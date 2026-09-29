@@ -1,0 +1,11 @@
+{
+  "blender": "5.2.1 LTS",
+  "objects": 178,
+  "triangles": 8954,
+  "glb_bytes": 666928,
+  "materials": 13,
+  "textures": 0,
+  "source": "Procedurally authored in Blender using the eight user-provided room references",
+  "placeholder_equipment": "Unbranded; interactive camera, switcher and monitor remain web components",
+  "coordinates": "Shared studio-room-layout.data.json; web Y-up mapped to Blender Z-up"
+}

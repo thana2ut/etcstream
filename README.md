@@ -1,36 +1,33 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# etcstream
 
-## Getting Started
+etcstream คือเว็บเกมฝึกเชื่อมต่อระบบภาพ เสียง และการถ่ายทอดสดในโลกแฟนตาซี เริ่มจากการต่อสาย HDMI ในห้องฝึกระดับ S และภารกิจ **เส้นทางภาพแรก**
 
-First, run the development server:
+## เริ่มใช้งาน
 
-```bash
+รันคำสั่งใน PowerShell ภายใน `D:\etcstream`:
+
+```powershell
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+เปิด `http://localhost:3000` อ่านคำชี้แจงแล้วจารึกชื่อผู้เล่น 2–20 ตัวอักษร จากโถงสำนักเลือก **ห้องฝึกปราณสัญญาณ** หรือ **หอจารึกแห่งภารกิจ** ในห้อง 3D คลิกเพื่อควบคุมมุมมอง ใช้เมาส์มองรอบตัว, WASD เคลื่อนที่, E หยิบ/ต่อ/ถอดสาย, F วางสาย และ ESC ปล่อยเมาส์
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+หน้าบทนำใช้พื้นที่หนึ่งหน้าจอ ปุ่มดำเนินต่ออยู่กับที่ เลื่อนอ่านคำชี้แจงภายในแผงกลางได้ด้วยล้อเมาส์ คีย์บอร์ด หรือการปัดบนจอสัมผัส โถงอะคาเดมีและหอจารึกก็ใช้พื้นที่หนึ่งหน้าจอ โดยข้อมูลยาวเลื่อนภายในส่วนของตัวเอง
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## โครงสร้าง
 
-## Learn More
+- `app/` บทนำ โถงอะคาเดมี หอจารึกภารกิจ และห้องฝึก
+- `app/app-shell.css` กฎพื้นที่หนึ่งหน้าจอและการเลื่อนภายในสำหรับแต่ละหน้า
+- `components/game/` ฉาก 3D และตัวควบคุมมุมมองบุคคลที่หนึ่ง
+- `game/types/` ชนิดข้อมูลผู้เล่น ภารกิจ และโหมด
+- `game/missions/` เป้าหมายเทคนิคและเรื่องเล่าภารกิจที่แยกจาก UI
+- `game/stores/` สถานะแอปและภารกิจใน Zustand
+- `game/persistence/` การบันทึกผู้เล่นและภารกิจที่ได้รับในเบราว์เซอร์
+- `game/audio/` สัญญาสำหรับเสียงตอบสนองในอนาคต ยังไม่เล่นเสียงในรุ่นนี้
 
-To learn more about Next.js, take a look at the following resources:
+## ขอบเขตต้นแบบ
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+ข้อมูลมีเพียงชื่อเล่น รหัสผู้เล่นแบบสุ่ม เวลาเล่นล่าสุด โหมด และระดับ บันทึกใน `localStorage` ของเบราว์เซอร์นี้ ไม่มีบัญชีผู้ใช้หรือบริการคลาวด์ การใช้หลายอุปกรณ์หรือการเก็บตัวตนอย่างถาวรต้องมีระบบหลังบ้านในขั้นถัดไป ข้อมูลในเบราว์เซอร์ผู้เล่นแก้ไขเองได้ จึงไม่ควรใช้เป็นแหล่งยืนยันคะแนนหรือสิทธิ์เมื่อเพิ่มระบบแข่งขัน
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+ระดับ S เปิดให้ฝึกต่อสาย HDMI สองเส้นจาก Camera ผ่าน Video Switcher ไปยัง Monitor ในฉาก 3D ภารกิจมีเรื่องเล่า 6 แบบและคงภารกิจที่เผยแล้วหลังรีเฟรช ห้องสอบ ระดับ M/L/XL และการควบคุมแบบสัมผัสยังไม่เปิดใช้ เรื่องเล่าทั้ง 6 แบบใช้เป้าหมายเทคนิค `MISSION_S_001` เดียวกันในรุ่นนี้
