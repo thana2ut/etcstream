@@ -65,7 +65,7 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
           {difficultyLabel && <strong className="mission-level-label">{difficultyLabel}</strong>}
           {objective && <p className="hud-panel-sub">{objective}</p>}
           {scenario.job && <p className="hud-panel-sub">งาน: {scenario.job}</p>}
-          {pickMode !== "whole" && <p className="hud-pick-mode" role="status">{pickMode === "a" ? "โหมด 1 · กด E ที่สายเพื่อหยิบเฉพาะหัวสาย" : "โหมด 2 · กด E ที่สายเพื่อหยิบเฉพาะปลายสาย"} (กดเลขซ้ำเพื่อยกเลิก)</p>}
+          {pickMode !== "whole" && <p className="hud-pick-mode" role="status">{`โหมด ${pickMode === "a" ? 1 : 2} · ${touch ? "เล็งสายแล้วแตะปุ่มใช้งาน" : "กด E ที่สาย"}เพื่อหยิบเฉพาะ${pickMode === "a" ? "หัวสาย" : "ปลายสาย"}`} ({touch ? "แตะปุ่มเลขเดิมซ้ำ" : "กดเลขซ้ำ"}เพื่อยกเลิก)</p>}
           {scenario.venueScale && state.heldItem && <p className="hud-panel-sub" role="status">กำลังถือ: {scenario.placeables.find((p) => p.id === state.heldItem)?.label} → นำไปที่ {scenario.placeables.find((p) => p.id === state.heldItem)?.zoneLabel ?? "ตำแหน่งใช้งาน"}</p>}
           {scenario.venueScale && <p className="hud-panel-sub" role="status">Program: {state.programSource ?? "ยังไม่เลือกแหล่งภาพ"} · {state.actionsDone["obs-ready"] ? "OBS จำลองพร้อม" : state.actionsDone["encoder-ready"] ? "Encoder จำลองพร้อม" : "ตรวจเส้นทางตามรายการ"}</p>}
           {scenario.faults?.map(fault => <p className="hud-check-note" key={fault}>{fault}</p>)}
