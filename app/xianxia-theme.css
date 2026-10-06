@@ -445,7 +445,6 @@
 .touch-controls {
   position: absolute;
   inset: 0;
-  z-index: 55;
   pointer-events: none;
   user-select: none;
   -webkit-user-select: none;
@@ -477,20 +476,18 @@
 .touch-left { left: 0; top: 51px; }
 .touch-down { left: 51px; top: 102px; }
 .touch-right { left: 102px; top: 51px; }
-.touch-look-pad {
+/* Drag anywhere on the open view to look; HUD panels and buttons stack above it. */
+.touch-look-pad { position: absolute; inset: 0; z-index: 5; pointer-events: auto; }
+.touch-move-pad, .touch-action-buttons, .touch-pick-buttons { z-index: 55; }
+.touch-pick-buttons {
   position: absolute;
-  pointer-events: auto;
   right: max(14px, env(safe-area-inset-right));
-  bottom: max(90px, calc(env(safe-area-inset-bottom) + 90px));
-  width: min(34vw, 210px);
-  height: min(29vh, 180px);
-  border: 1px dashed rgba(116, 222, 240, .42);
-  border-radius: 24px;
-  background: radial-gradient(circle, rgba(85, 214, 255, .12), rgba(8, 25, 42, .32));
-  display: grid;
-  place-items: center;
+  bottom: max(76px, calc(env(safe-area-inset-bottom) + 76px));
+  display: flex;
+  gap: 8px;
+  pointer-events: none;
 }
-.touch-look-pad span { color: rgba(219, 244, 248, .72); font-size: .72rem; pointer-events: none; }
+.touch-control-button.is-active { background: rgba(27, 104, 126, .95); border-color: var(--gold-300); color: var(--gold-300); }
 .touch-action-buttons {
   position: absolute;
   right: max(14px, env(safe-area-inset-right));
@@ -509,7 +506,8 @@
   .touch-move-pad { transform: scale(.82); transform-origin: left bottom; }
   .touch-action-buttons { gap: 5px; }
   .touch-action-buttons .touch-control-button { min-width: 43px; min-height: 43px; padding-inline: 8px; font-size: .7rem; }
-  .touch-look-pad { width: 32vw; height: 22vh; bottom: max(78px, calc(env(safe-area-inset-bottom) + 78px)); }
+  .touch-pick-buttons { gap: 5px; bottom: max(68px, calc(env(safe-area-inset-bottom) + 68px)); }
+  .touch-pick-buttons .touch-control-button { min-width: 43px; min-height: 43px; }
   .interaction-prompt-center.is-touch { bottom: max(150px, calc(env(safe-area-inset-bottom) + 150px)); }
   .fp-hands { display: none; }
 }

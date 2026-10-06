@@ -2,25 +2,43 @@
 
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Group, Quaternion, Vector3 } from "three";
+import { Group, Quaternion, Vector3, type Camera } from "three";
 import { useTrainingStore } from "@/game/stores/training-store";
 import { STUDIO } from "@/game/training/studio-room-layout";
-import { scenarioOf } from "@/game/training/hdmi-training";
+import { scenarioOf, type TrainingState } from "@/game/training/hdmi-training";
 import type { PlaceableDef } from "@/game/training/scenarios";
 import { Hds7105Model } from "./equipment/hds7105";
 import { DeviceLabel, DeviceVisual } from "./equipment/device-visual";
 
-const handOffset = new Vector3(0.3, -0.34, -0.75);
+export const handOffset = new Vector3(0.3, -0.34, -0.75);
 const up = new Vector3(0, 1, 0);
 const resting = new Quaternion();
 
 /** On the side tables devices turn to face the room; on the centre table the switcher's ports face the player. */
-function restingRotation(item: PlaceableDef, position: readonly number[], turn: number, venue: boolean): number {
+export function restingRotation(item: PlaceableDef, position: readonly number[], turn: number, venue: boolean): number {
   // Venue layouts: devices keep the orientation the layout gave them (ports toward the trainee), plus the player's turn.
   if (venue) return (item.device?.yaw ?? 0) + turn;
   const onSideTable = Math.abs(position[0]) > STUDIO.tableRadius;
   if (item.id === "switcher") return onSideTable ? STUDIO.switcherModel.sideTableRotationY : STUDIO.switcherModel.rotationY + turn;
   return onSideTable ? Math.sign(position[0]) * -Math.PI / 2 : turn;
+}
+
+export function heldScaleOf(item: PlaceableDef): number {
+  const readableHandheld = item.device?.model?.startsWith("COMICA WM100 PLUS") || item.device?.model?.startsWith("Magewell USB Capture");
+  return item.id === "switcher" ? 0.25 : readableHandheld ? 0.8 : 0.6;
+}
+
+/** Where a placeable item's visual sits right now (on a table or in the player's hand). */
+export function itemVisualTransform(state: TrainingState, item: PlaceableDef, camera: Camera, position: Vector3, quaternion: Quaternion): number {
+  if (state.heldItem === item.id) {
+    position.copy(handOffset).applyQuaternion(camera.quaternion).add(camera.position);
+    quaternion.copy(camera.quaternion);
+    return heldScaleOf(item);
+  }
+  const at = state.items[item.id];
+  position.set(...at.position);
+  quaternion.setFromAxisAngle(up, restingRotation(item, at.position, at.turn, Boolean(scenarioOf(state).venueScale)));
+  return 1;
 }
 
 function PlaceableItem({ item }: { item: PlaceableDef }) {
@@ -31,8 +49,7 @@ function PlaceableItem({ item }: { item: PlaceableDef }) {
   const turn = useTrainingStore((state) => state.items[item.id].turn);
   const venue = useTrainingStore((state) => Boolean(scenarioOf(state).venueScale));
   const isSwitcher = item.id === "switcher";
-  const readableHandheld = item.device?.model?.startsWith("COMICA WM100 PLUS") || item.device?.model?.startsWith("Magewell USB Capture");
-  const heldScale = isSwitcher ? 0.25 : readableHandheld ? 0.8 : 0.6;
+  const heldScale = heldScaleOf(item);
 
   useFrame(({ camera }) => {
     if (!group.current) return;

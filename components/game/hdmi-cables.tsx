@@ -1,12 +1,13 @@
 "use client";
 
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Group, Mesh, Quaternion, Vector3 } from "three";
 import { CABLE_ENDS, portAvailable, portPosition, scenarioOf, type CableEnd, type CableId, type Point3 } from "@/game/training/hdmi-training";
 import type { PortDef } from "@/game/training/scenarios";
 import { useTrainingStore } from "@/game/stores/training-store";
 import { PlugMesh } from "./cable-plugs";
+import { itemVisualTransform } from "./placeable-equipment";
 
 const up = new Vector3(0, 1, 0);
 const a = new Vector3();
@@ -19,6 +20,8 @@ const handOffset = new Vector3(0.37, -0.33, -0.65);
 /** Second plug of a carried lead: held a little lower and to the left (both ends travel with the player). */
 const spareOffset = new Vector3(0.18, -0.46, -0.6);
 const micOffset = new Vector3(0.15, -0.4, -0.64);
+const hostPos = new Vector3();
+const hostRot = new Quaternion();
 const segmentRotation = new Quaternion();
 const segmentCount = 9;
 const tipDir = new Vector3();
@@ -47,16 +50,33 @@ function Cable({ id }: { id: CableId }) {
   const def = scenario.cables.find((c) => c.id === id)!;
   const color = def.color;
   const adapter = Boolean(def.socketB);
+  const lockedHost = useMemo(() => {
+    const port = def.locked && def.fixedA ? scenario.ports[scenario.initialConnections?.find((c) => c.cableId === id)?.to ?? ""] : undefined;
+    const item = port?.requiresItem ? scenario.placeables.find((p) => p.id === port.requiresItem) : undefined;
+    if (!port || !item) return null;
+    // Offsets in the device's own frame: the plug from the authored jack, the capsule from its start beside the TX.
+    return {
+      item,
+      plug: new Vector3(port.position[0] - item.zone[0], port.position[1] - item.zone[1], port.position[2] - item.zone[2]),
+      capsule: new Vector3(def.start[0][0] - item.start[0], def.start[0][1] - item.start[1], def.start[0][2] - item.start[2]),
+    };
+  }, [def, id, scenario]);
 
   useFrame(({ camera }) => {
     const carrying = held?.cableId === id;
     const role = (end: CableEnd): boolean | "spare" => !carrying ? false : held!.end === end ? true : (held!.single || cable[end].portId || (end === "a" && def.fixedA) ? false : "spare");
-    if (def.fixedA) {
+    if (def.locked && lockedHost) {
+      // Factory-wired lead: capsule and plug ride along with their transmitter, wherever it is.
+      const state = useTrainingStore.getState();
+      const k = itemVisualTransform(state, lockedHost.item, camera, hostPos, hostRot);
+      a.copy(lockedHost.capsule).multiplyScalar(k).applyQuaternion(hostRot).add(hostPos);
+      b.copy(lockedHost.plug).multiplyScalar(k).applyQuaternion(hostRot).add(hostPos);
+    } else if (def.fixedA) {
       // This end is the mic capsule, not a second plug seated on the transmitter.
       if (carrying && !held?.single) a.copy(micOffset).applyQuaternion(camera.quaternion).add(camera.position);
       else a.set(...cable.a.loosePosition);
     } else endPoint(scenario.ports, cable.a.loosePosition, cable.a.portId, role("a"), camera, a);
-    endPoint(scenario.ports, cable.b.loosePosition, cable.b.portId, role("b"), camera, b);
+    if (!(def.locked && lockedHost)) endPoint(scenario.ports, cable.b.loosePosition, cable.b.portId, role("b"), camera, b);
     if (adapter) b.copy(a);                       // an adapter is a single rigid piece
     ends.current.a?.position.copy(a);
     ends.current.b?.position.copy(b);

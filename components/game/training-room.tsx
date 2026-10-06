@@ -1,6 +1,6 @@
 "use client";
 
-import { Billboard, Text } from "@react-three/drei";
+import { Billboard, Line, Text } from "@react-three/drei";
 import { DoubleSide } from "three";
 import { VenueEnvironment } from "./environment/venue-environment";
 import { StaticScenery } from "./render-performance";
@@ -177,6 +177,22 @@ function ScenarioMonitor() {
 /** Temporary: mission venues render the environment only, without scenario cables, ports or devices. */
 export const VENUE_SCENE_ONLY = true;
 
+/** Wireless TX → RX radio link: shown once both bodypacks sit at their operating spots. */
+function WirelessLink({ tx }: { tx: string }) {
+  const ends = useTrainingStore((state) => {
+    if (!state.items[tx] || !state.items.rx || !isItemPlaced(state, tx) || !isItemPlaced(state, "rx")) return "";
+    const [a, b] = [state.items[tx].position, state.items.rx.position];
+    return [a[0], a[1] + 0.3, a[2], b[0], b[1] + 0.32, b[2]].join(",");
+  });
+  if (!ends) return null;
+  const [ax, ay, az, bx, by, bz] = ends.split(",").map(Number);
+  const mid: [number, number, number] = [(ax + bx) / 2, Math.max(ay, by) + 0.25, (az + bz) / 2];
+  return <group>
+    <Line points={[[ax, ay, az], mid, [bx, by, bz]]} color="#62dce9" lineWidth={2} dashed dashSize={0.05} gapSize={0.04} transparent opacity={0.85} />
+    <Billboard position={mid}><Text font={ROOM_FONT} fontSize={0.035} color="#94edfa" anchorX="center">{`${tx.toUpperCase()} ⟶ RX · ไร้สาย`}</Text></Billboard>
+  </group>;
+}
+
 export function TrainingRoom({ venue = "studio" }: { venue?: VenueId }) {
   const scenario = useTrainingStore((state) => scenarioOf(state));
   const sockets = useTrainingStore((state) => socketPorts(state).join("|")).split("|").filter(Boolean);
@@ -197,6 +213,7 @@ export function TrainingRoom({ venue = "studio" }: { venue?: VenueId }) {
     </RigidBody>}
     {scenario.devices.filter((d) => !scenario.placeables.some((p) => p.id === d.id)).map((device) => <FixedDevice key={device.id} device={device} />)}
     {scenario.venueScale ? <ScenarioMonitor /> : <Monitor />}
+    {["tx1", "tx2"].filter((id) => scenario.placeables.some((p) => p.id === id)).map((id) => <WirelessLink key={id} tx={id} />)}
     {Object.keys(scenario.ports).filter((id) => !scenario.cables.some((cable) => cable.fixedA === id)).map((id) => <Port key={id} id={id} />)}
     {sockets.map((id) => <AdapterSocket key={id} id={id} />)}
     {scenario.actions.map((action) => <ActionSpot key={action.id} action={action} />)}

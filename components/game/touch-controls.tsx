@@ -2,6 +2,7 @@
 
 import { useRef, type PointerEvent as ReactPointerEvent } from "react";
 import { emitTrainingInput, type TrainingMoveCode } from "@/game/input/training-input";
+import { useTrainingStore } from "@/game/stores/training-store";
 
 function MoveButton({ code, label, className = "" }: { code: TrainingMoveCode; label: string; className?: string }) {
   const release = () => emitTrainingInput({ type: "move", code, pressed: false });
@@ -21,6 +22,8 @@ function MoveButton({ code, label, className = "" }: { code: TrainingMoveCode; l
 }
 
 export function TouchControls() {
+  const pickMode = useTrainingStore((state) => state.pickMode);
+  const setPickMode = useTrainingStore((state) => state.setPickMode);
   const look = useRef<{ id: number; x: number; y: number } | null>(null);
 
   const startLook = (event: ReactPointerEvent<HTMLDivElement>) => {
@@ -41,6 +44,16 @@ export function TouchControls() {
   const endInteract = () => emitTrainingInput({ type: "interact", pressed: false });
 
   return <div className="touch-controls" aria-label="ปุ่มควบคุมแบบสัมผัส">
+    <div
+      className="touch-look-pad"
+      role="application"
+      aria-label="ลากที่ใดก็ได้บนจอเพื่อมองรอบตัว"
+      onPointerDown={startLook}
+      onPointerMove={moveLook}
+      onPointerUp={stopLook}
+      onPointerCancel={stopLook}
+      onLostPointerCapture={stopLook}
+    />
     <div className="touch-move-pad" aria-label="ปุ่มเคลื่อนที่">
       <MoveButton code="KeyW" label="▲" className="touch-up" />
       <MoveButton code="KeyA" label="◀" className="touch-left" />
@@ -48,16 +61,11 @@ export function TouchControls() {
       <MoveButton code="KeyD" label="▶" className="touch-right" />
     </div>
 
-    <div
-      className="touch-look-pad"
-      role="application"
-      aria-label="ลากบริเวณนี้เพื่อมองรอบตัว"
-      onPointerDown={startLook}
-      onPointerMove={moveLook}
-      onPointerUp={stopLook}
-      onPointerCancel={stopLook}
-      onLostPointerCapture={stopLook}
-    ><span>ลากเพื่อมอง</span></div>
+
+    <div className="touch-pick-buttons" aria-label="เลือกหยิบหัวหรือปลายสาย">
+      <button type="button" className={`touch-control-button${pickMode === "a" ? " is-active" : ""}`} aria-pressed={pickMode === "a"} aria-label="โหมด 1 หยิบเฉพาะหัวสาย" onClick={() => setPickMode("a")}>1</button>
+      <button type="button" className={`touch-control-button${pickMode === "b" ? " is-active" : ""}`} aria-pressed={pickMode === "b"} aria-label="โหมด 2 หยิบเฉพาะปลายสาย" onClick={() => setPickMode("b")}>2</button>
+    </div>
 
     <div className="touch-action-buttons">
       <button
