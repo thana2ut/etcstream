@@ -21,7 +21,7 @@ export function BackButton({
   ariaLabel = "ย้อนกลับ",
 }: BackButtonProps) {
   const handleClick = () => {
-    soundEngine.play("button_click");
+    // The click sound comes from the global listener in AudioProvider (plays "ui_close" for back buttons).
     if (onClick) onClick();
   };
 

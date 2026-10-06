@@ -21,8 +21,31 @@ export function useGameAudio(): AudioControlsContextValue {
   return value;
 }
 
+const CLICKABLE = "button, a[href], [role='button'], [role='tab'], summary, input[type='checkbox'], input[type='radio'], select";
+const CLOSING = "[aria-label='ย้อนกลับ'], [aria-label^='ปิด'], .modal-close-x";
+const TAB = "[role='tab'], .tab-pill-btn";
+const SELECT = ".mission-difficulty-tile";
+
 export function AudioProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+
+  // Every clickable control on every page gets the UI click sound.
+  useEffect(() => {
+    const onClick = (event: MouseEvent) => {
+      const target = (event.target as Element | null)?.closest?.(CLICKABLE);
+      if (!target || target.matches(":disabled, [aria-disabled='true']")) return;
+      soundEngine.play(target.matches(CLOSING) ? "ui_close" : target.matches(TAB) ? "ui_tab" : target.matches(SELECT) ? "ui_select" : "button_click");
+    };
+    document.addEventListener("click", onClick, true);
+    return () => document.removeEventListener("click", onClick, true);
+  }, []);
+
+  // A soft chime whenever a new page opens (not on the very first load).
+  const firstPath = useRef(true);
+  useEffect(() => {
+    if (firstPath.current) { firstPath.current = false; return; }
+    soundEngine.play("ui_open");
+  }, [pathname]);
   const preferences = useSyncExternalStore(soundEngine.subscribe, soundEngine.getSnapshot, soundEngine.getServerSnapshot);
   const [playPhase, setPlayPhase] = useState<PlayAudioPhase>("intro");
   const first = useRef<HTMLAudioElement>(null);

@@ -4,6 +4,7 @@ import { AudioProvider } from "@/components/audio/audio-provider";
 import "./globals.css";
 import "./app-shell.css";
 import "./cultivation-theme.css";
+import "./xianxia-theme.css";
 
 export const metadata: Metadata = {
   title: `${academyCopy.brand} | ${academyCopy.worldTitle}`,

@@ -16,6 +16,11 @@ interface MissionResultModalProps {
   onNewMission?: () => void;
   connectedRoutes: number;
   requiredRoutes: number;
+  studioFull?: boolean;
+  /** Merit earned (mission mode). */
+  merit?: number;
+  /** New sect rank reached by this completion. */
+  rankUp?: string;
 }
 
 export function MissionResultModal({
@@ -28,11 +33,15 @@ export function MissionResultModal({
   onNewMission,
   connectedRoutes,
   requiredRoutes,
+  studioFull = false,
+  merit,
+  rankUp,
 }: MissionResultModalProps) {
   const completed = connectedRoutes === requiredRoutes;
 
   return (
     <div className="result-screen-overlay" role="dialog" aria-modal="true" aria-labelledby="result-title">
+      <Image src="/images/xianxia/mentor.webp" alt="" width={1024} height={1536} className="xianxia-mentor" aria-hidden="true" />
       <div className="result-modal-container glass-card result-panel gold-border-frame with-corner-runes">
         <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: "8px" }}>
           <BackButton onClick={onReturnToAcademy} label="ย้อนกลับ" />
@@ -41,7 +50,7 @@ export function MissionResultModal({
         {/* Header */}
         <div className="result-header-block">
           <div className="seal-orbit-mini" aria-hidden="true">
-            <Image src="/branding/etcstream-logo.png" alt="" width={38} height={32} className="brand-sigil result-sigil" />
+            <Image src="/images/xianxia/emblem.webp" alt="" width={38} height={32} className="brand-sigil result-sigil" />
           </div>
           <h1 id="result-title" className="result-main-title">{resultCopy.heading}</h1>
           <div className="result-sub-meta">
@@ -50,6 +59,8 @@ export function MissionResultModal({
             <strong className="mission-name-label">{missionTitle}</strong>
           </div>
           {difficultyLabel && <p className="result-level-label">{difficultyLabel}</p>}
+          {merit !== undefined && completed && <p className="result-level-label">ได้รับ +{merit} เกียรติภูมิ</p>}
+          {rankUp && completed && <p className="result-rank-up" role="status">✦ เลื่อนขั้นเป็น “{rankUp}” ✦</p>}
           {progressError && <p className="form-error" role="alert">{progressError}</p>}
         </div>
 
@@ -60,11 +71,11 @@ export function MissionResultModal({
             <div className="metric-row">
               <span className="metric-icon">🎯</span>
               <span className="metric-name">{resultCopy.metrics.completion}</span>
-              <strong className="metric-val">{connectedRoutes}/{requiredRoutes} เส้นทาง</strong>
+              <strong className="metric-val">{connectedRoutes}/{requiredRoutes} {studioFull ? "ขั้น" : "เส้นทาง"}</strong>
             </div>
             <div className="metric-row">
               <span className="metric-icon tone-success">✓</span>
-              <span className="metric-name">{resultCopy.metrics.correct}</span>
+              <span className="metric-name">{studioFull ? "ขั้นที่ผ่าน" : resultCopy.metrics.correct}</span>
               <strong className="metric-val">{connectedRoutes}</strong>
             </div>
             <div className="metric-row highlight-row">
@@ -90,7 +101,9 @@ export function MissionResultModal({
             <h2 className="grade-headline">{completed ? "ผ่านการฝึก" : "กำลังฝึก"}</h2>
             <p className="grade-narrative-text">
               {completed
-                ? "เจ้าสร้างเส้นทางภาพจากกล้อง ผ่านเครื่องสลับภาพ ไปถึงจอแสดงผลได้ครบแล้ว"
+                ? studioFull
+                  ? "ต่อเส้นทางภาพและเสียงผ่าน Switcher, Mixer, Capture Card ไปถึงจอและ OBS ได้ครบแล้ว"
+                  : "เจ้าสร้างเส้นทางภาพจากกล้อง ผ่านเครื่องสลับภาพ ไปถึงจอแสดงผลได้ครบแล้ว"
                 : "ตรวจสอบเส้นทางสัญญาณที่เหลือก่อนเข้ารับการประเมิน"}
             </p>
           </div>
@@ -106,11 +119,11 @@ export function MissionResultModal({
             <ul className="feedback-item-list">
               <li>
                 <span className="check-bullet">✓</span>
-                <span>เชื่อมสาย HDMI ถูกต้องตามเส้นทางที่กำหนด</span>
+                <span>{studioFull ? "ต่อสายภาพและเสียงตรงชนิดพอร์ตและทิศทางสัญญาณ" : "เชื่อมสาย HDMI ถูกต้องตามเส้นทางที่กำหนด"}</span>
               </li>
               <li>
                 <span className="check-bullet">✓</span>
-                <span>เข้าใจทิศทางของสัญญาณ OUTPUT และ INPUT อย่างชัดเจน</span>
+                <span>{studioFull ? "ตั้ง Mixer และเลือก Capture Device ใน OBS จำลองครบ" : "เข้าใจทิศทางของสัญญาณ OUTPUT และ INPUT อย่างชัดเจน"}</span>
               </li>
             </ul>
           </div>
@@ -123,7 +136,7 @@ export function MissionResultModal({
             <ul className="feedback-item-list">
               <li>
                 <span className="star-bullet">✦</span>
-                <span>ทบทวนทิศทาง HDMI OUT → HDMI IN ก่อนต่อสายครั้งต่อไป</span>
+                <span>{studioFull ? "ทบทวนเส้นทาง TX → RX แบบไร้สาย และการใช้หัวแปลง 3.5/6.35 มม." : "ทบทวนทิศทาง HDMI OUT → HDMI IN ก่อนต่อสายครั้งต่อไป"}</span>
               </li>
             </ul>
           </div>

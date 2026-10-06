@@ -13,6 +13,8 @@ const LEGACY_MUTED_KEY = "streamlab_audio_muted";
 const DEFAULT_VOLUME = 0.32;
 const DEFAULT_PREFERENCES: AudioPreferences = { volume: DEFAULT_VOLUME, muted: false };
 
+export type SoundCue = AcademyAudioCue | "button_click" | "button_hover" | "ui_open" | "ui_close" | "ui_tab" | "ui_select" | "draw_result";
+
 class WebAudioSoundEngine implements AcademyAudioPlayer {
   private ctx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
@@ -122,22 +124,73 @@ class WebAudioSoundEngine implements AcademyAudioPlayer {
     return this.preferences.muted;
   }
 
-  private playSample(path: string): void {
+  private playSample(path: string, gain = 1): void {
     if (typeof window === "undefined") return;
     const sample = new Audio(path);
-    sample.volume = Math.min(0.72, this.preferences.volume * 1.5);
+    sample.volume = Math.min(0.72, this.preferences.volume * 1.5) * gain;
     this.activeSamples.add(sample);
     sample.addEventListener("ended", () => this.activeSamples.delete(sample), { once: true });
     void sample.play().catch(() => this.activeSamples.delete(sample));
   }
 
-  public play(cue: AcademyAudioCue | "button_click" | "button_hover"): void {
+  /** Recorded UI/feedback sounds (Pixabay, see public/audio/AUDIO_SOURCES.md). Gain is relative to the sample volume. */
+  private static readonly SAMPLES: Partial<Record<SoundCue, { path: string; gain: number }>> = {
+    button_click: { path: "/audio/sfx/ui-click.mp3", gain: 1 },
+    button_hover: { path: "/audio/sfx/ui-hover.mp3", gain: 0.35 },
+    ui_open: { path: "/audio/sfx/ui-open.mp3", gain: 0.8 },
+    ui_close: { path: "/audio/sfx/ui-close.mp3", gain: 0.9 },
+    ui_tab: { path: "/audio/sfx/ui-tab.mp3", gain: 0.8 },
+    ui_select: { path: "/audio/sfx/ui-select.mp3", gain: 0.9 },
+    mission_accept: { path: "/audio/sfx/ui-confirm.mp3", gain: 1 },
+    mission_complete: { path: "/audio/sfx/mission-complete.mp3", gain: 1 },
+    connection_success: { path: "/audio/sfx/ui-connect.mp3", gain: 0.9 },
+    draw_result: { path: "/audio/sfx/draw-result.mp3", gain: 1 },
+  };
+  private static readonly UI_TAPS: ReadonlySet<SoundCue> = new Set(["button_click", "ui_close", "ui_tab", "ui_select"]);
+  private lastTapAt = 0;
+
+  /**
+   * Mission-hall roulette track: starts playing, reports its length (so the spin can follow its rhythm) and
+   * returns a stop function that fades it out the moment the roulette lands.
+   */
+  public startSpin(onDuration?: (seconds: number) => void): () => void {
+    if (typeof window === "undefined" || this.preferences.muted || this.preferences.volume === 0) { onDuration?.(0); return () => {}; }
+    const track = new Audio("/audio/sfx/draw-spin.mp3");
+    const volume = Math.min(0.72, this.preferences.volume * 1.5);
+    track.volume = volume;
+    track.loop = true;
+    track.addEventListener("loadedmetadata", () => onDuration?.(Number.isFinite(track.duration) ? track.duration : 0), { once: true });
+    this.activeSamples.add(track);
+    void track.play().catch(() => this.activeSamples.delete(track));
+    let stopped = false;
+    return () => {
+      if (stopped) return;
+      stopped = true;
+      const start = performance.now();
+      const fade = () => {
+        const k = Math.min(1, (performance.now() - start) / 160);
+        track.volume = volume * (1 - k);
+        if (k < 1) requestAnimationFrame(fade); else { track.pause(); this.activeSamples.delete(track); }
+      };
+      fade();
+    };
+  }
+
+  public play(cue: SoundCue): void {
     if (this.preferences.muted || this.preferences.volume === 0) return;
+    if (WebAudioSoundEngine.UI_TAPS.has(cue)) {
+      // One press can reach both a component handler and the global listener; play one tap.
+      const now = typeof performance === "undefined" ? Date.now() : performance.now();
+      if (now - this.lastTapAt < 90) return;
+      this.lastTapAt = now;
+    }
+    const sample = WebAudioSoundEngine.SAMPLES[cue];
+    if (sample) { this.playSample(sample.path, sample.gain); return; }
     if (cue === "name_inscribed" || cue === "academy_enter") {
       this.playSample("/audio/sfx/dream-chime.mp3");
       return;
     }
-    if (cue === "mission_reveal" || cue === "mission_accept" || cue === "seal_open") {
+    if (cue === "mission_reveal" || cue === "seal_open") {
       this.playSample("/audio/sfx/magic-spell.mp3");
       return;
     }

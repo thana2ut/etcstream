@@ -25,7 +25,7 @@ export function nearestTablePlacement(x: number, z: number, kind: "cable" | "equ
   if (Math.hypot(x - STUDIO.table[0], z - STUDIO.table[2]) > STUDIO.tableRadius + 0.35) return null;
   const candidates = kind === "cable"
     ? [STUDIO.placementZones.cableLeft, STUDIO.placementZones.cableRight]
-    : [STUDIO.placementZones.smallDevice, STUDIO.placementZones.auxDevice];
+    : [STUDIO.placementZones.switcher];
   return candidates.reduce((best, candidate) =>
     Math.hypot(x - candidate[0], z - candidate[2]) < Math.hypot(x - best[0], z - best[2]) ? candidate : best);
 }

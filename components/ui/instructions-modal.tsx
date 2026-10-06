@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { ActionButton } from "./action-buttons";
 import { BackButton } from "./back-button";
+import { soundEngine } from "@/game/audio/sound-engine";
 
 interface InstructionsModalProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ interface InstructionsModalProps {
 type TabKey = "notice" | "context" | "howToPlay" | "rules" | "roles";
 
 export function InstructionsModal({ isOpen, onClose, onBack }: InstructionsModalProps) {
+  useEffect(() => { if (isOpen) soundEngine.play("ui_open"); }, [isOpen]);
   const [activeTab, setActiveTab] = useState<TabKey>("notice");
   const [dontShowAgain, setDontShowAgain] = useState(false);
 
@@ -40,6 +42,8 @@ export function InstructionsModal({ isOpen, onClose, onBack }: InstructionsModal
 
   return (
     <div className="instructions-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-heading">
+      <Image src="/images/xianxia/mentor.webp" alt="" width={1024} height={1536} className="xianxia-mentor" aria-hidden="true" />
+      <Image src="/images/xianxia/mentor-fire.webp" alt="" width={1000} height={1500} className="xianxia-mentor xianxia-mentor-right" aria-hidden="true" />
       <div className="instructions-modal-container glass-card scholar-panel gold-border-frame with-corner-runes">
         {/* Modal Header with Back button & Tabs */}
         <div className="modal-header-tabs">
@@ -103,7 +107,7 @@ export function InstructionsModal({ isOpen, onClose, onBack }: InstructionsModal
         <div className="modal-content-scroll" tabIndex={0}>
           {activeTab === "notice" && (
             <div className="tab-pane pane-notice">
-              <Image src="/branding/etcstream-logo.png" alt="โลโก้ etcstream" width={54} height={46} className="brand-sigil modal-sigil" />
+              <Image src="/images/xianxia/emblem.webp" alt="โลโก้ etcstream" width={54} height={46} className="brand-sigil modal-sigil" />
               <h2 id="modal-heading" className="modal-title">คำชี้แจงแห่งสำนัก</h2>
               <div className="ornate-gold-divider">
                 <span className="line" />

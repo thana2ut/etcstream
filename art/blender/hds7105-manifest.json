@@ -1,0 +1,248 @@
+{
+  "model": "DeviceWell HDS7105 (USB-C STREAM revision)",
+  "blender": "5.2.1 LTS",
+  "dimensions_mm": {
+    "width": 236.0,
+    "depth": 105.0,
+    "height_total": 47.5,
+    "source": "Published spec 236 x 105 x 47 mm"
+  },
+  "origin": "bottom centre; web +Z = operator front, web -Z = rear port panel",
+  "objects": 169,
+  "triangles": 15065,
+  "glb_bytes": 1003744,
+  "textures": 0,
+  "ports": [
+    {
+      "id": "CONTROL",
+      "label": "CONTROL",
+      "connector": "RJ45",
+      "direction": "BIDIRECTIONAL",
+      "anchor": "PORT_CONTROL",
+      "web_position_m": [
+        0.0956,
+        0.0125,
+        -0.0545
+      ]
+    },
+    {
+      "id": "LINE_OUT",
+      "label": "OUT",
+      "connector": "3.5mm TRS",
+      "direction": "OUTPUT",
+      "anchor": "PORT_LINE_OUT",
+      "web_position_m": [
+        0.0811,
+        0.011,
+        -0.0545
+      ]
+    },
+    {
+      "id": "LINE_IN",
+      "label": "IN",
+      "connector": "3.5mm TRS",
+      "direction": "INPUT",
+      "anchor": "PORT_LINE_IN",
+      "web_position_m": [
+        0.0721,
+        0.011,
+        -0.0545
+      ]
+    },
+    {
+      "id": "MIC_IN_2",
+      "label": "2",
+      "connector": "3.5mm TRS",
+      "direction": "INPUT",
+      "anchor": "PORT_MIC_IN_2",
+      "web_position_m": [
+        0.0632,
+        0.011,
+        -0.0545
+      ]
+    },
+    {
+      "id": "MIC_IN_1",
+      "label": "1",
+      "connector": "3.5mm TRS",
+      "direction": "INPUT",
+      "anchor": "PORT_MIC_IN_1",
+      "web_position_m": [
+        0.0546,
+        0.011,
+        -0.0545
+      ]
+    },
+    {
+      "id": "STREAM",
+      "label": "STREAM",
+      "connector": "USB-C",
+      "direction": "OUTPUT",
+      "anchor": "PORT_STREAM",
+      "web_position_m": [
+        0.0442,
+        0.011,
+        -0.0545
+      ]
+    },
+    {
+      "id": "PGM",
+      "label": "PGM",
+      "connector": "HDMI Type-A",
+      "direction": "OUTPUT",
+      "anchor": "PORT_PGM",
+      "web_position_m": [
+        0.0287,
+        0.011,
+        -0.0545
+      ]
+    },
+    {
+      "id": "MULTIVIEW",
+      "label": "MULTIVIEW",
+      "connector": "HDMI Type-A",
+      "direction": "OUTPUT",
+      "anchor": "PORT_MULTIVIEW",
+      "web_position_m": [
+        0.0086,
+        0.011,
+        -0.0545
+      ]
+    },
+    {
+      "id": "IN4",
+      "label": "IN4",
+      "connector": "HDMI Type-A",
+      "direction": "INPUT",
+      "anchor": "PORT_IN4",
+      "web_position_m": [
+        -0.0116,
+        0.011,
+        -0.0545
+      ]
+    },
+    {
+      "id": "IN3",
+      "label": "IN3",
+      "connector": "HDMI Type-A",
+      "direction": "INPUT",
+      "anchor": "PORT_IN3",
+      "web_position_m": [
+        -0.0307,
+        0.011,
+        -0.0545
+      ]
+    },
+    {
+      "id": "IN2",
+      "label": "IN2",
+      "connector": "HDMI Type-A",
+      "direction": "INPUT",
+      "anchor": "PORT_IN2",
+      "web_position_m": [
+        -0.0495,
+        0.011,
+        -0.0545
+      ]
+    },
+    {
+      "id": "IN1",
+      "label": "IN1",
+      "connector": "HDMI Type-A",
+      "direction": "INPUT",
+      "anchor": "PORT_IN1",
+      "web_position_m": [
+        -0.0673,
+        0.011,
+        -0.0545
+      ]
+    },
+    {
+      "id": "DP_IN1",
+      "label": "DP",
+      "connector": "DisplayPort",
+      "direction": "INPUT",
+      "anchor": "PORT_DP_IN1",
+      "web_position_m": [
+        -0.0842,
+        0.011,
+        -0.0545
+      ]
+    },
+    {
+      "id": "DC_12V",
+      "label": "DC 12V",
+      "connector": "DC barrel",
+      "direction": "INPUT",
+      "anchor": "PORT_DC_12V",
+      "web_position_m": [
+        -0.097,
+        0.011,
+        -0.0545
+      ]
+    },
+    {
+      "id": "TALLY",
+      "label": "TALLY",
+      "connector": "DB15",
+      "direction": "BIDIRECTIONAL",
+      "anchor": "PORT_TALLY",
+      "web_position_m": [
+        0.0549,
+        0.0265,
+        -0.0545
+      ]
+    },
+    {
+      "id": "DCB_1",
+      "label": "DCB",
+      "connector": "USB-A",
+      "direction": "BIDIRECTIONAL",
+      "anchor": "PORT_DCB_1",
+      "web_position_m": [
+        0.0274,
+        0.0265,
+        -0.0545
+      ]
+    },
+    {
+      "id": "DCB_2",
+      "label": "DCB",
+      "connector": "USB-A",
+      "direction": "BIDIRECTIONAL",
+      "anchor": "PORT_DCB_2",
+      "web_position_m": [
+        0.0071,
+        0.0265,
+        -0.0545
+      ]
+    },
+    {
+      "id": "POWER",
+      "label": "POWER",
+      "connector": "Rocker switch",
+      "direction": "CONTROL",
+      "anchor": "PORT_POWER",
+      "web_position_m": [
+        -0.0834,
+        0.0265,
+        -0.0545
+      ]
+    }
+  ],
+  "verified": [
+    "rear port order and labels (photos 7, 8)",
+    "top-panel key set, labels and grouping (photos 5, 6)",
+    "overall size (published spec)",
+    "no T-bar on this revision (photos 5, 6)"
+  ],
+  "unverified": [
+    "side profile and top-plate overhang (no side photo)",
+    "split of 47 mm into body/plate/key height",
+    "exact port spacing (+/- 2 mm, measured from photos)",
+    "DP connector chamfer side",
+    "bottom and rubber feet",
+    "transition wipe icons simplified to blank keys"
+  ],
+  "references": "art/reference/hds7105 (5-8 authoritative; 1 port order only; 2-4 other revisions)"
+}

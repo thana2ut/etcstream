@@ -1,0 +1,262 @@
+{
+  "model": "YAMAHA PMX-402D-USB",
+  "display_scale": 2.5,
+  "size_web_m": [
+    0.75,
+    0.275,
+    0.75
+  ],
+  "estimated_real_size_m": [
+    0.3,
+    0.3,
+    0.11
+  ],
+  "real_size_verified": false,
+  "main_fader_web": [
+    0.1378,
+    0.326,
+    0.2419
+  ],
+  "ports": {
+    "CH1_MIC": {
+      "label": "Mixer CH1 MIC IN (XLR)",
+      "connector": "XLR",
+      "direction": "INPUT",
+      "web": [
+        -0.2486,
+        0.288,
+        -0.321
+      ]
+    },
+    "CH1_LINE": {
+      "label": "Mixer CH1 LINE IN (6.35 mm)",
+      "connector": "6.35mm",
+      "direction": "INPUT",
+      "web": [
+        -0.2486,
+        0.288,
+        -0.2597
+      ]
+    },
+    "CH2_MIC": {
+      "label": "Mixer CH2 MIC IN (XLR)",
+      "connector": "XLR",
+      "direction": "INPUT",
+      "web": [
+        -0.1818,
+        0.288,
+        -0.321
+      ]
+    },
+    "CH2_LINE": {
+      "label": "Mixer CH2 LINE IN (6.35 mm)",
+      "connector": "6.35mm",
+      "direction": "INPUT",
+      "web": [
+        -0.1818,
+        0.288,
+        -0.2597
+      ]
+    },
+    "CH3_MIC": {
+      "label": "Mixer CH3 MIC IN (XLR)",
+      "connector": "XLR",
+      "direction": "INPUT",
+      "web": [
+        -0.1141,
+        0.288,
+        -0.321
+      ]
+    },
+    "CH3_LINE": {
+      "label": "Mixer CH3 LINE IN (6.35 mm)",
+      "connector": "6.35mm",
+      "direction": "INPUT",
+      "web": [
+        -0.1141,
+        0.288,
+        -0.2597
+      ]
+    },
+    "CH4_MIC": {
+      "label": "Mixer CH4 MIC IN (XLR)",
+      "connector": "XLR",
+      "direction": "INPUT",
+      "web": [
+        -0.0489,
+        0.288,
+        -0.321
+      ]
+    },
+    "CH4_LINE": {
+      "label": "Mixer CH4 LINE IN (6.35 mm)",
+      "connector": "6.35mm",
+      "direction": "INPUT",
+      "web": [
+        -0.0489,
+        0.288,
+        -0.2597
+      ]
+    },
+    "MAIN_OUT_L": {
+      "label": "Mixer MAIN OUT L (6.35 mm)",
+      "connector": "6.35mm",
+      "direction": "OUTPUT",
+      "web": [
+        0.0187,
+        0.288,
+        -0.3387
+      ]
+    },
+    "MAIN_OUT_R": {
+      "label": "Mixer MAIN OUT R (6.35 mm)",
+      "connector": "6.35mm",
+      "direction": "OUTPUT",
+      "web": [
+        0.0611,
+        0.288,
+        -0.3387
+      ]
+    },
+    "AUX_IN": {
+      "label": "Mixer AUX IN (6.35 mm)",
+      "connector": "6.35mm",
+      "direction": "INPUT",
+      "web": [
+        0.0187,
+        0.288,
+        -0.2984
+      ]
+    },
+    "AUX_SEND": {
+      "label": "Mixer AUX SEND OUT (6.35 mm)",
+      "connector": "6.35mm",
+      "direction": "OUTPUT",
+      "web": [
+        0.0611,
+        0.288,
+        -0.2984
+      ]
+    },
+    "REC_L": {
+      "label": "Mixer REC L (RCA)",
+      "connector": "RCA",
+      "direction": "OUTPUT",
+      "web": [
+        0.0261,
+        0.292,
+        -0.2581
+      ]
+    },
+    "REC_R": {
+      "label": "Mixer REC R (RCA)",
+      "connector": "RCA",
+      "direction": "OUTPUT",
+      "web": [
+        0.0595,
+        0.292,
+        -0.2581
+      ]
+    },
+    "USB": {
+      "label": "Mixer USB-A (media)",
+      "connector": "USB-A",
+      "direction": "INPUT",
+      "web": [
+        0.238,
+        0.286,
+        -0.3484
+      ]
+    },
+    "PHONES": {
+      "label": "Mixer PHONES (6.35 mm)",
+      "connector": "6.35mm",
+      "direction": "OUTPUT",
+      "web": [
+        0.2283,
+        0.288,
+        0.1435
+      ]
+    },
+    "POWER": {
+      "label": "Mixer POWER switch",
+      "connector": "Switch",
+      "direction": "CONTROL",
+      "web": [
+        0.3206,
+        0.1825,
+        -0.396
+      ]
+    },
+    "AC_IN": {
+      "label": "Mixer AC INPUT 220-240V (IEC)",
+      "connector": "IEC",
+      "direction": "INPUT",
+      "web": [
+        0.3167,
+        0.0635,
+        -0.396
+      ]
+    },
+    "SPK_A_R": {
+      "label": "Mixer SPEAKER RIGHT.A (speakON)",
+      "connector": "speakON",
+      "direction": "OUTPUT",
+      "web": [
+        0.2056,
+        0.1524,
+        -0.396
+      ]
+    },
+    "SPK_A_L": {
+      "label": "Mixer SPEAKER LEFT.A (speakON)",
+      "connector": "speakON",
+      "direction": "OUTPUT",
+      "web": [
+        0.081,
+        0.1524,
+        -0.396
+      ]
+    },
+    "SPK_B_R": {
+      "label": "Mixer SPEAKER RIGHT.B (6.35 mm)",
+      "connector": "6.35mm",
+      "direction": "OUTPUT",
+      "web": [
+        0.2056,
+        0.0635,
+        -0.396
+      ]
+    },
+    "SPK_B_L": {
+      "label": "Mixer SPEAKER LEFT.B (6.35 mm)",
+      "connector": "6.35mm",
+      "direction": "OUTPUT",
+      "web": [
+        0.081,
+        0.0635,
+        -0.396
+      ]
+    },
+    "XLR_OUT_L": {
+      "label": "Mixer MAIN OUT LEFT (XLR)",
+      "connector": "XLR",
+      "direction": "OUTPUT",
+      "web": [
+        -0.0183,
+        0.1524,
+        -0.396
+      ]
+    },
+    "XLR_OUT_R": {
+      "label": "Mixer MAIN OUT RIGHT (XLR)",
+      "connector": "XLR",
+      "direction": "OUTPUT",
+      "web": [
+        -0.0183,
+        0.0675,
+        -0.396
+      ]
+    }
+  }
+}

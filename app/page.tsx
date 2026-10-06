@@ -108,6 +108,8 @@ export default function Home() {
       {/* 100% Procedural Fantasy Background (NO literal screenshots) */}
       <FantasyBackground
         variant={phase === "welcome" ? "palace" : phase === "name" ? "chamber" : "palace"}
+        image={phase === "landing" ? "/images/xianxia/bg-landing.webp" : "/images/xianxia/bg-gate.webp"}
+        clouds
       />
 
       {/* Header */}
@@ -117,9 +119,9 @@ export default function Home() {
       {phase === "landing" && (
         <>
           <div className="landing-hero-center">
-            <Image src="/branding/etcstream-logo.png" alt="โลโก้ etcstream" width={130} height={108} className="brand-sigil landing-sigil" priority />
-            <p className="landing-brand-name">etcstream</p>
+            <Image src="/images/xianxia/emblem.webp" alt="ตราสำนัก etcstream" width={170} height={141} className="brand-sigil landing-sigil" priority />
             <h1 className="landing-title-text">สำนักวิถีแห่งสายสัญญาณ</h1>
+            <div className="xianxia-divider" aria-hidden="true">◆</div>
             <p className="landing-narrative-text">
               เรียนรู้ศาสตร์ภาพ เสียง และเส้นทางสัญญาณ
               ผ่านการฝึกและภารกิจในโลกแห่งสำนัก

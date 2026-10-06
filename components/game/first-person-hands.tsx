@@ -1,30 +1,41 @@
 "use client";
 
-import { useRef } from "react";
-import { useFrame } from "@react-three/fiber";
-import { Group } from "three";
+import { useEffect, useRef } from "react";
+import Image from "next/image";
 import { useTrainingStore } from "@/game/stores/training-store";
 
+/**
+ * First-person hands as a 2D screen overlay (painted xianxia sleeves).
+ * Right hand grips while a cable end or device is held; left hand reaches
+ * whenever the crosshair rests on something interactable.
+ */
 export function FirstPersonHands() {
-  const group = useRef<Group>(null);
   const holding = useTrainingStore((state) => Boolean(state.held || state.heldItem));
-  useFrame(({ camera }) => {
-    if (!group.current) return;
-    group.current.position.copy(camera.position);
-    group.current.quaternion.copy(camera.quaternion);
-  });
+  const aiming = useTrainingStore((state) => Boolean(state.focusedTarget));
+  const root = useRef<HTMLDivElement>(null);
 
-  return <group ref={group}>
-    <group position={[-0.62, -0.57, -0.98]} rotation={[0.24, 0, -0.28]} scale={0.54}>
-      <mesh renderOrder={10}><capsuleGeometry args={[0.105, 0.32, 5, 10]} /><meshStandardMaterial color="#947969" roughness={0.83} depthTest={false} /></mesh>
-      <mesh position={[0, -0.22, 0.025]} renderOrder={10}><cylinderGeometry args={[0.13, 0.16, 0.31, 10]} /><meshStandardMaterial color="#19334d" roughness={0.55} metalness={0.25} depthTest={false} /></mesh>
-      <mesh position={[0, 0.22, -0.02]} renderOrder={10}><sphereGeometry args={[0.12, 10, 8]} /><meshStandardMaterial color="#947969" roughness={0.83} depthTest={false} /></mesh>
-    </group>
-    <group position={[0.56, -0.57, -0.98]} rotation={[holding ? -0.2 : 0.2, 0, 0.3]} scale={0.54}>
-      <mesh renderOrder={10}><capsuleGeometry args={[0.11, 0.33, 5, 10]} /><meshStandardMaterial color="#a3846e" roughness={0.83} depthTest={false} /></mesh>
-      <mesh position={[0, -0.24, 0.02]} renderOrder={10}><cylinderGeometry args={[0.14, 0.17, 0.3, 10]} /><meshStandardMaterial color="#19334d" roughness={0.55} metalness={0.25} depthTest={false} /></mesh>
-      <mesh position={[0, 0.22, -0.02]} renderOrder={10}><sphereGeometry args={[0.13, 10, 8]} /><meshStandardMaterial color="#a3846e" roughness={0.83} depthTest={false} /></mesh>
-      {holding && <mesh position={[0, 0.28, -0.07]} renderOrder={11}><boxGeometry args={[0.14, 0.07, 0.19]} /><meshStandardMaterial color="#d8b874" emissive="#d8b874" emissiveIntensity={0.28} depthTest={false} /></mesh>}
-    </group>
-  </group>;
+  // Weapon-style sway: hands lag behind mouse look and spring back, which sells depth.
+  useEffect(() => {
+    const node = root.current;
+    if (!node || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let x = 0, y = 0, frame = 0;
+    const onMove = (event: MouseEvent) => {
+      x = Math.max(-1, Math.min(1, x - event.movementX / 120));
+      y = Math.max(-1, Math.min(1, y - event.movementY / 120));
+    };
+    const tick = () => {
+      x *= 0.88; y *= 0.88;
+      node.style.setProperty("--sway-x", x.toFixed(3));
+      node.style.setProperty("--sway-y", y.toFixed(3));
+      frame = requestAnimationFrame(tick);
+    };
+    window.addEventListener("mousemove", onMove);
+    frame = requestAnimationFrame(tick);
+    return () => { cancelAnimationFrame(frame); window.removeEventListener("mousemove", onMove); };
+  }, []);
+
+  return <div ref={root} className="fp-hands" aria-hidden="true">
+    <Image width={900} height={900} priority className={`fp-hand fp-hand-left ${aiming ? "is-reaching" : ""}`} src={aiming ? "/images/xianxia/hands/left-reach.webp" : "/images/xianxia/hands/left-idle.webp"} alt="" draggable={false} />
+    <Image width={900} height={900} priority className={`fp-hand fp-hand-right ${holding ? "is-gripping" : ""}`} src={holding ? "/images/xianxia/hands/right-grip.webp" : "/images/xianxia/hands/right-idle.webp"} alt="" draggable={false} />
+  </div>;
 }

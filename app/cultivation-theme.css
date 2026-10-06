@@ -3190,6 +3190,8 @@ html[data-reduced-motion="true"] *, html[data-reduced-motion="true"] *::before, 
 .mission-plaque-sigil { align-self: flex-end; font-size: 1.9rem; color: var(--violet-primary); line-height: 1; margin-top: -14px; }
 .mission-plaque strong { font-size: 1.2rem; color: var(--gold-soft); line-height: 1.4; margin-top: 8px; }
 .mission-plaque-subtitle { color: var(--violet-primary); font-size: .84rem; margin-top: 4px; }
+.mission-plaque-venue { display: inline-block; align-self: flex-start; margin-top: 6px; padding: 2px 10px; border: 1px solid rgba(232, 196, 120, .45); border-radius: 999px; background: rgba(12, 14, 20, .55); color: #f1d9a0; font-size: .76rem; }
+.mission-choice-venue { color: #f1d9a0; font-weight: 600; }
 .mission-plaque-description { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; color: var(--text-secondary); font-size: .85rem; line-height: 1.6; margin: 12px 0 18px; }
 .mission-plaque-footer { display: flex; justify-content: space-between; gap: 8px; width: 100%; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--line-soft); color: var(--gold-soft); font-size: .76rem; }
 .mission-choice-panel { margin-top: 30px; padding: clamp(20px, 3vw, 32px); border: 1px solid var(--line-gold); border-radius: 20px; background: rgba(5, 15, 36, .94); scroll-margin-top: 130px; }
@@ -3214,3 +3216,48 @@ html[data-reduced-motion="true"] *, html[data-reduced-motion="true"] *::before, 
 .result-level-label { color: var(--gold-soft); font-size: .88rem; margin: 8px 0 0; }
 @media (max-width: 1000px) { .mission-board-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .mission-difficulty-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 650px) { .mission-hall-content { padding-top: 22px; } .mission-board-grid, .mission-difficulty-grid { grid-template-columns: 1fr; } .mission-plaque { min-height: 215px; } .mission-difficulty-tile { min-height: 110px; } .mission-choice-footer { flex-direction: column; align-items: stretch; } .mission-choice-footer .cultivation-btn { width: 100%; justify-content: center; } }
+
+.mission-plaque-venue { display: flex; flex-direction: column; gap: 2px; border-radius: 10px; }
+
+/* Secondary venue info under the fantasy room name: plain text, no frame. */
+.mission-plaque-place { display: block; margin-top: 6px; color: #e9d8b4; font-size: .8rem; line-height: 1.45; opacity: .92; }
+
+/* ── Mission hall: sect rank + drawn assignment ───────────────────────── */
+.mission-draw { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(280px, 1.6fr); gap: 22px; padding: 22px 26px; margin: 0 auto 26px; max-width: 1180px; width: 100%; }
+.mission-draw h2 { margin: 4px 0 2px; font-size: 1.7rem; color: #f6ddaa; }
+.mission-draw h3 { margin: 4px 0 6px; font-size: 1.35rem; color: #f6ddaa; }
+.mission-draw p, .mission-draw small { color: #d9cfbd; line-height: 1.55; }
+.mission-draw small { display: block; font-size: .82rem; margin-top: 6px; }
+.mission-draw-merit { color: #e8c27a !important; }
+.mission-draw-meter { height: 8px; border-radius: 999px; background: rgba(8, 14, 24, .65); box-shadow: inset 0 0 0 1px rgba(201, 164, 106, .3); overflow: hidden; margin-top: 10px; }
+.mission-draw-meter span { display: block; height: 100%; background: linear-gradient(90deg, #a87c3f, #e7c98f); transition: width .6s ease; }
+.mission-draw-order { border-left: 1px solid rgba(201, 164, 106, .25); padding-left: 22px; }
+.mission-draw-scroll { animation: mission-scroll-in .45s ease-out; }
+.mission-draw-place { color: #e9d8b4 !important; font-size: .9rem; margin: 0; }
+.mission-draw-job { color: #8be4f4 !important; font-size: .92rem; margin: 4px 0; }
+.mission-draw-reward { margin: 10px 0 14px; padding-left: 18px; color: #f2d9a6; line-height: 1.7; }
+.mission-draw-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+@keyframes mission-scroll-in { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
+@media (max-width: 760px) { .mission-draw { grid-template-columns: 1fr; padding: 16px; } .mission-draw-order { border-left: 0; padding-left: 0; border-top: 1px solid rgba(201, 164, 106, .25); padding-top: 14px; } }
+.result-rank-up { margin: 8px auto 0; padding: 6px 16px; width: fit-content; border-radius: 999px; color: #1a1206; font-weight: 700; background: linear-gradient(90deg, #e7c98f, #f6e2b0, #e7c98f); box-shadow: 0 0 18px rgba(231, 201, 143, .55); animation: mission-scroll-in .5s ease-out; }
+
+/* Mission roulette: sealed cards show status only; the running highlight lands on the assigned venue. */
+.mission-draw { grid-template-columns: 1fr auto; align-items: center; }
+.mission-plaque.is-sealed { filter: saturate(.55) brightness(.72); cursor: default; }
+.mission-plaque.is-sealed:hover { transform: none; }
+.mission-plaque.is-rolling { filter: none; transform: translateY(-4px) scale(1.02); box-shadow: 0 0 0 2px #e7c98f, 0 0 36px rgba(231, 201, 143, .65); transition: transform .08s, box-shadow .08s; }
+.mission-plaque.is-drawn { box-shadow: 0 0 0 2px #e7c98f, 0 0 42px rgba(231, 201, 143, .55); animation: mission-drawn-pulse 2.4s ease-in-out infinite; }
+@keyframes mission-drawn-pulse { 50% { box-shadow: 0 0 0 2px #f6e2b0, 0 0 60px rgba(246, 226, 176, .75); } }
+
+/* Admin password gate */
+.admin-gate { position: relative; z-index: 2; display: grid; gap: 14px; width: min(420px, calc(100% - 32px)); padding: 28px; text-align: center; }
+.admin-gate h1 { margin: 0; font-size: 1.5rem; color: #f6ddaa; }
+.admin-gate input { padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(201, 164, 106, .45); background: rgba(8, 14, 24, .7); color: #f6ddaa; font-size: 1.1rem; letter-spacing: .25em; text-align: center; outline: none; }
+.admin-gate input:focus { border-color: #e7c98f; box-shadow: 0 0 0 3px rgba(231, 201, 143, .2); }
+
+/* Draw box: quiet, translucent — the venue cards are the focus. */
+.mission-draw.glass-card { background: rgba(10, 14, 22, .32); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-color: rgba(201, 164, 106, .22); box-shadow: none; }
+.mission-draw.gold-border-frame::before, .mission-draw.gold-border-frame::after { opacity: .45; }
+.mission-draw h2 { font-size: 1.25rem; color: rgba(246, 221, 170, .85); }
+.mission-draw p, .mission-draw small { color: rgba(233, 222, 200, .78); }
+.mission-draw .mission-hall-eyebrow { opacity: .7; }

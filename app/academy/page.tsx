@@ -46,7 +46,7 @@ export default function Academy() {
   return (
     <main className="fantasy-viewport">
       {/* 100% Procedural Fantasy Background */}
-      <FantasyBackground variant="academy" />
+      <FantasyBackground variant="academy" image="/images/xianxia/bg-academy.webp" />
 
       {/* Header with trainee info and Back Button */}
       <AcademyHeader

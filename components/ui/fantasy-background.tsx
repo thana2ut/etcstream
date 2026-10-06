@@ -1,14 +1,28 @@
 "use client";
 
 import React from "react";
+import { CloudSky } from "./cloud-sky";
 
 export type BackdropVariant = "palace" | "academy" | "archive" | "chamber" | "lab";
 
 interface FantasyBackgroundProps {
   variant?: BackdropVariant;
+  /** Painted backdrop from /public/images/xianxia; replaces the procedural layers when set. */
+  image?: string;
+  /** Animated drifting cloud layers over the painted sky. */
+  clouds?: boolean;
 }
 
-export function FantasyBackground({ variant = "palace" }: FantasyBackgroundProps) {
+export function FantasyBackground({ variant = "palace", image, clouds = false }: FantasyBackgroundProps) {
+  if (image) {
+    return (
+      <div className="xianxia-backdrop" aria-hidden="true">
+        <div className="xianxia-backdrop-image" style={{ backgroundImage: `url(${image})` }} />
+        {clouds && <CloudSky />}
+        <div className="xianxia-mist" />
+      </div>
+    );
+  }
   return (
     <div className={`procedural-fantasy-bg variant-${variant}`} aria-hidden="true">
       {/* LAYER 1: Deep Cosmic Atmospheric Gradient */}

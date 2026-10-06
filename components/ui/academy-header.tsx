@@ -86,9 +86,8 @@ export function AcademyHeader({
 
         {/* Brand logo lockup */}
         <Link href="/" className={`header-brand ${hideBrandOnMobile ? "hide-mobile" : ""}`}>
-          <Image src="/branding/etcstream-logo.png" alt="โลโก้ etcstream" width={56} height={48} className="header-brand-logo" priority />
+          <Image src="/images/xianxia/emblem.webp" alt="โลโก้ etcstream" width={56} height={48} className="header-brand-logo" priority />
           <div className="brand-text-block">
-            <strong className="brand-eng">etcstream</strong>
             <small className="brand-thai">สำนักวิถีแห่งสายสัญญาณ</small>
           </div>
         </Link>

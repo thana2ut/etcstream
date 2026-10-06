@@ -10,7 +10,8 @@ const contentSecurityPolicy = [
   "img-src 'self' data: blob:",
   "font-src 'self' https://fonts.gstatic.com",
   "media-src 'self' blob:",
-  `connect-src 'self'${isDevelopment ? " ws: wss:" : ""}`,
+  // GLTFLoader decodes textures embedded in local GLB files through a temporary blob URL.
+  `connect-src 'self' blob:${isDevelopment ? " ws: wss:" : ""}`,
   "worker-src 'self' blob:",
   "object-src 'none'",
   "base-uri 'self'",

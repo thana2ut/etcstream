@@ -30,7 +30,6 @@ export function ActionButton({
   const baseClass = `cultivation-btn btn-${variant} btn-${size} ${fullWidth ? "btn-full" : ""} ${className}`;
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => {
-    soundEngine.play("button_click");
     if (onClick) {
       (onClick as React.MouseEventHandler<HTMLButtonElement | HTMLAnchorElement>)(e);
     }

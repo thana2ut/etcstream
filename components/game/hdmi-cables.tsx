@@ -3,11 +3,10 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Group, Mesh, Quaternion, Vector3 } from "three";
-import {
-  CABLE_COLORS, CABLE_ENDS, CABLE_IDS, HDMI_PORTS,
-  type CableEnd, type CableId, type Point3,
-} from "@/game/training/hdmi-training";
+import { CABLE_ENDS, portAvailable, portPosition, scenarioOf, type CableEnd, type CableId, type Point3 } from "@/game/training/hdmi-training";
+import type { PortDef } from "@/game/training/scenarios";
 import { useTrainingStore } from "@/game/stores/training-store";
+import { PlugMesh } from "./cable-plugs";
 
 const up = new Vector3(0, 1, 0);
 const a = new Vector3();
@@ -17,13 +16,26 @@ const finish = new Vector3();
 const midpoint = new Vector3();
 const direction = new Vector3();
 const handOffset = new Vector3(0.37, -0.33, -0.65);
+/** Second plug of a carried lead: held a little lower and to the left (both ends travel with the player). */
+const spareOffset = new Vector3(0.18, -0.46, -0.6);
+const micOffset = new Vector3(0.15, -0.4, -0.64);
 const segmentRotation = new Quaternion();
 const segmentCount = 9;
+const tipDir = new Vector3();
+const negZ = new Vector3(0, 0, -1);
 
-function endPoint(position: Point3, portId: keyof typeof HDMI_PORTS | null, held: boolean, camera: import("three").Camera, output: Vector3) {
-  if (portId) return output.set(...HDMI_PORTS[portId].position);
+function endPoint(_ports: Record<string, PortDef>, position: Point3, portId: string | null, held: boolean | "spare", camera: import("three").Camera, output: Vector3) {
+  // A lead fixed to a device still on the equipment table lies at its loose spot.
+  const state = useTrainingStore.getState();
+  if (portId && portAvailable(state, portId)) return output.set(...portPosition(state, portId));
+  if (held === "spare") return output.copy(spareOffset).applyQuaternion(camera.quaternion).add(camera.position);
   if (held) return output.copy(handOffset).applyQuaternion(camera.quaternion).add(camera.position);
   return output.set(...position);
+}
+
+/** Seated plugs shrink so neighbouring jacks stay visible; loose plugs are a bit larger to grab. */
+function plugFit(portId: string | null): { scale: number; hit: number } {
+  return portId ? { scale: 0.32, hit: 0.1 } : { scale: 0.55, hit: 0.15 };
 }
 
 function Cable({ id }: { id: CableId }) {
@@ -31,13 +43,31 @@ function Cable({ id }: { id: CableId }) {
   const held = useTrainingStore((state) => state.held);
   const ends = useRef<Record<CableEnd, Group | null>>({ a: null, b: null });
   const segments = useRef<(Mesh | null)[]>([]);
-  const color = CABLE_COLORS[id];
+  const scenario = useTrainingStore((state) => scenarioOf(state));
+  const def = scenario.cables.find((c) => c.id === id)!;
+  const color = def.color;
+  const adapter = Boolean(def.socketB);
 
   useFrame(({ camera }) => {
-    endPoint(cable.a.loosePosition, cable.a.portId, held?.cableId === id && held.end === "a", camera, a);
-    endPoint(cable.b.loosePosition, cable.b.portId, held?.cableId === id && held.end === "b", camera, b);
+    const carrying = held?.cableId === id;
+    const role = (end: CableEnd): boolean | "spare" => !carrying ? false : held!.end === end ? true : (held!.single || cable[end].portId || (end === "a" && def.fixedA) ? false : "spare");
+    if (def.fixedA) {
+      // This end is the mic capsule, not a second plug seated on the transmitter.
+      if (carrying && !held?.single) a.copy(micOffset).applyQuaternion(camera.quaternion).add(camera.position);
+      else a.set(...cable.a.loosePosition);
+    } else endPoint(scenario.ports, cable.a.loosePosition, cable.a.portId, role("a"), camera, a);
+    endPoint(scenario.ports, cable.b.loosePosition, cable.b.portId, role("b"), camera, b);
+    if (adapter) b.copy(a);                       // an adapter is a single rigid piece
     ends.current.a?.position.copy(a);
     ends.current.b?.position.copy(b);
+    // Point each plug tip away from the cable (toward the jack it sits in).
+    for (const [end, self, other] of [["a", a, b], ["b", b, a]] as const) {
+      const node = ends.current[end];
+      if (!node) continue;
+      tipDir.copy(self).sub(other);
+      if (adapter || tipDir.lengthSq() < 1e-6) tipDir.set(0, 0, -1);
+      node.quaternion.setFromUnitVectors(negZ, tipDir.normalize());
+    }
     const tabletop = a.y >= 0.79 && b.y >= 0.79;
     const sag = Math.min(0.24, 0.09 + a.distanceTo(b) * 0.035);
     for (let index = 0; index < segmentCount; index++) {
@@ -60,20 +90,22 @@ function Cable({ id }: { id: CableId }) {
 
   return <group>
     {CABLE_ENDS.map((end) => <group key={end} ref={(node) => { ends.current[end] = node; }}>
-      <mesh castShadow><boxGeometry args={[0.13, 0.065, 0.18]} /><meshStandardMaterial color="#182637" metalness={0.65} roughness={0.3} /></mesh>
-      <mesh position={[0, 0, -0.11]}><boxGeometry args={[0.1, 0.04, 0.055]} /><meshStandardMaterial color={color} metalness={0.55} emissive={color} emissiveIntensity={0.25} /></mesh>
+      <group scale={def.fixedA && end === "a" ? 1.15 : plugFit(cable[end].portId).scale}>
+      {!(adapter && end === "b") && <PlugMesh style={def.plugs?.[end === "a" ? 0 : 1] ?? "hdmi"} accent={end === "a" ? "#c21d1d" : "#e9e9e9"} />}
       <mesh userData={{ trainingTarget: { kind: "end", cableId: id, end } }}>
-        <sphereGeometry args={[0.17, 10, 8]} />
+        <sphereGeometry args={[plugFit(cable[end].portId).hit, 10, 8]} />
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
+      </group>
     </group>)}
-    {Array.from({ length: segmentCount }, (_, index) => <mesh key={index} ref={(node) => { segments.current[index] = node; }} castShadow>
-      <cylinderGeometry args={[0.025, 0.025, 1, 7]} />
-      <meshStandardMaterial color="#202b3d" roughness={0.82} metalness={0.18} />
+    {!adapter && Array.from({ length: segmentCount }, (_, index) => <mesh key={index} ref={(node) => { segments.current[index] = node; }} castShadow>
+      <cylinderGeometry args={[def.short ? 0.009 : 0.012, def.short ? 0.009 : 0.012, 1, 7]} />
+      <meshStandardMaterial color={color} roughness={0.7} metalness={0.15} />
     </mesh>)}
   </group>;
 }
 
 export function HdmiCables() {
-  return <>{CABLE_IDS.map((id) => <Cable key={id} id={id} />)}</>;
+  const cables = useTrainingStore((state) => scenarioOf(state).cables);
+  return <>{cables.map((cable) => <Cable key={cable.id} id={cable.id} />)}</>;
 }

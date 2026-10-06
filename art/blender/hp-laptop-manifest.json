@@ -1,0 +1,33 @@
+{
+  "asset": "Silver HP 15.6-inch laptop from seven user-provided views",
+  "blender": "5.2.1 LTS",
+  "dimensions_m": [
+    0.358,
+    0.242,
+    0.019
+  ],
+  "open_angle_degrees": 102,
+  "objects": 47,
+  "triangles": 28210,
+  "glb_bytes": 2024960,
+  "materials": 11,
+  "references": [
+    "1-รูปภาพ-1.jpg",
+    "2-รูปภาพ-2.jpg",
+    "3-รูปภาพ-3.jpg",
+    "4-รูปภาพ-4.jpg",
+    "5-รูปภาพ-5.jpg",
+    "6-รูปภาพ-6.jpg",
+    "7-รูปภาพ-7.jpg"
+  ],
+  "verified_visuals": [
+    "silver wedge chassis",
+    "full keyboard with numpad",
+    "offset touchpad",
+    "thin black bezel",
+    "webcam bar",
+    "HP marks",
+    "left and right port groups"
+  ],
+  "limitation": "Exact HP SKU and official dimensions were not supplied; size uses a representative 15.6-inch chassis envelope."
+}

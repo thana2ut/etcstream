@@ -1,8 +1,8 @@
 {
   "blender": "5.2.1 LTS",
-  "objects": 178,
-  "triangles": 8954,
-  "glb_bytes": 666928,
+  "objects": 238,
+  "triangles": 14742,
+  "glb_bytes": 1070936,
   "materials": 13,
   "textures": 0,
   "source": "Procedurally authored in Blender using the eight user-provided room references",
