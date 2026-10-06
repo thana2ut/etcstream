@@ -298,6 +298,7 @@ export function interactWithTarget(state: TrainingState, target: TrainingTarget 
     for (const [cableId, cable] of Object.entries(cables)) for (const end of CABLE_ENDS) {
       const portId = cable[end].portId;
       if (end === "a" && cableDef(state, cableId).fixedA) continue; // a lavalier stays on its own lead
+      if (cableDef(state, cableId).locked) continue; // factory-wired leads travel with their device
       if (portId && scenario.ports[portId]?.requiresItem === target.itemId) {
         cable[end].portId = null;
         cable[end].loosePosition = portPosition(state, portId);
@@ -308,6 +309,7 @@ export function interactWithTarget(state: TrainingState, target: TrainingTarget 
 
   if (target.kind === "end") {
     if (!cables[target.cableId] || !cableDef(state, target.cableId)) return state;
+    if (cableDef(state, target.cableId).locked) return { ...state, notice: notice("ติดตั้งมากับเครื่องแล้ว", "ไมค์หนีบปกเสียบอยู่กับตัวส่ง TX แล้ว ไม่ต้องต่อเพิ่ม", "info") };
     const fixedMic = cableDef(state, target.cableId).fixedA;
     if (fixedMic && target.end === "a") {
       if (state.held || state.heldItem) return { ...state, notice: notice("มือไม่ว่าง", "กด F เพื่อวางสิ่งที่ถืออยู่ก่อน", "error") };
@@ -361,6 +363,7 @@ export function interactWithTarget(state: TrainingState, target: TrainingTarget 
   if (!state.held) {
     if (!occupied) return { ...state, notice: notice(feedbackCopy.training.pickUpFirst.title, feedbackCopy.training.pickUpFirst.detail, "error") };
     if (occupied.end === "a" && cableDef(state, occupied.cableId).fixedA) return state;
+    if (cableDef(state, occupied.cableId).locked) return { ...state, notice: notice("ติดตั้งมากับเครื่องแล้ว", "ไมค์หนีบปกเสียบอยู่กับตัวส่ง TX แล้ว ไม่ต้องต่อเพิ่ม", "info") };
     cables[occupied.cableId][occupied.end].portId = null;
     return withCables(state, cables, { held: occupied, notice: notice(feedbackCopy.training.disconnected.title, feedbackCopy.training.disconnected.detail, "info") });
   }
@@ -522,6 +525,7 @@ export function targetInstruction(state: TrainingState, target: TrainingTarget |
   }
   if (target.kind === "end") {
     const def = cableDef(state, target.cableId);
+    if (def.locked) return `${def.label} · ต่อกับ TX มาแล้ว`;
     if (state.held) return feedbackCopy.training.alreadyHolding.detail;
     if (target.end === "a" && def.fixedA) return `E · หยิบ${def.label} พร้อมปลั๊กไปเสียบ TX`;
     const connector = def.ends[target.end === "a" ? 0 : 1];

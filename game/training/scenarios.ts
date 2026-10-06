@@ -57,6 +57,8 @@ export interface CableDef {
   short?: boolean;
   /** End "a" is permanently attached here (a lavalier's own lead). */
   fixedA?: string;
+  /** Factory-wired to its device: cannot be picked up or unplugged (e.g. lavalier already in its TX). */
+  locked?: boolean;
 }
 
 export type FlowGroup = "video" | "audio" | "capture" | "monitor";
@@ -228,8 +230,8 @@ const studioCables: CableDef[] = [
   cable(12, 18, "speaker-trs", "สายสัญญาณ Balanced 6.35 mm TRS", ["6.35mm", "6.35mm"], ["trs635", "trs635"], "#1b1b1f"),
   cable(13, 16, "xs1-xlr", "สายไมโครโฟน XLR 3-pin", ["XLR-F", "XLR-M"], ["xlr-f", "xlr-m"], "#1b1b1f"),
   cable(14, 16, "speaker-xlr", "สายสัญญาณ Balanced XLR", ["XLR-F", "XLR-M"], ["xlr-f", "xlr-m"], "#1b1b1f"),
-  { id: "lav-1", catalog: 17, label: "สายไมค์หนีบปก 1 (3.5 mm)", ends: ["3.5mm", "3.5mm"], plugs: ["lav", "trs35"], color: "#1b1b1f", start: [add(START.tx1, 0.05, 0.02, 0.1), add(START.tx1, 0.05, 0.02, 0.2)], fixedA: "lav1:mic" },
-  { id: "lav-2", catalog: 17, label: "สายไมค์หนีบปก 2 (3.5 mm)", ends: ["3.5mm", "3.5mm"], plugs: ["lav", "trs35"], color: "#1b1b1f", start: [add(START.tx2, 0.05, 0.02, 0.1), add(START.tx2, 0.05, 0.02, 0.2)], fixedA: "lav2:mic" },
+  { id: "lav-1", catalog: 17, label: "สายไมค์หนีบปก 1 (3.5 mm)", ends: ["3.5mm", "3.5mm"], plugs: ["lav", "trs35"], color: "#1b1b1f", start: [add(START.tx1, 0.05, 0.02, 0.1), add(START.tx1, 0.05, 0.02, 0.2)], fixedA: "lav1:mic", locked: true },
+  { id: "lav-2", catalog: 17, label: "สายไมค์หนีบปก 2 (3.5 mm)", ends: ["3.5mm", "3.5mm"], plugs: ["lav", "trs35"], color: "#1b1b1f", start: [add(START.tx2, 0.05, 0.02, 0.1), add(START.tx2, 0.05, 0.02, 0.2)], fixedA: "lav2:mic", locked: true },
 ];
 
 const SW_IN = ["sw:in1", "sw:in2", "sw:in3", "sw:in4"];
@@ -265,6 +267,8 @@ const studioPlaceables: PlaceableDef[] = [
   SWITCHER,
   ...studioDevices.filter((d) => d.kind !== "camera" && d.id !== "speaker").map((d): PlaceableDef => ({ id: d.id, label: `${d.label}${d.model ? ` (${d.model})` : ""}`, start: START[d.id], zone: d.position, device: d })),
 ];
-const studio: Scenario = { id: "studio-full", placeables: studioPlaceables, ports: studioPorts, cables: studioCables, requirements: studioRequirements, actions: studioActions, devices: studioDevices };
+const studio: Scenario = { id: "studio-full", placeables: studioPlaceables, ports: studioPorts, cables: studioCables, requirements: studioRequirements, actions: studioActions, devices: studioDevices,
+  // Lavaliers ship plugged into their own TX.
+  initialConnections: [{ cableId: "lav-1", from: "lav1:mic", to: "tx1:mic-in" }, { cableId: "lav-2", from: "lav2:mic", to: "tx2:mic-in" }] };
 
 export const SCENARIOS: Record<ScenarioId, Scenario> = { "hdmi-basic": basic, "studio-full": studio, ...VENUE_SCENARIOS };

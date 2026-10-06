@@ -96,9 +96,8 @@ test("either physical HP USB-A jack completes the capture route and OBS step", (
 test("a completed studio lesson loses completion when any required physical lead is removed", () => {
   const complete = act(fullStudio(), action("obs-source"));
   assert.equal(complete.completed, true);
-  for (const cableId of ["hdmi-1", "hdmi-2", "hdmi-3", "lav-1", "lav-2", "trs35-1", "adapter-35-635", "xs1-xlr", "trs635-1", "adapter-635-35", "usb-ac", "speaker-trs"]) {
-    const side = cableId.startsWith("lav-") ? "b" : "a";
-    const disconnected = act(complete, end(cableId, side));
+  for (const cableId of ["hdmi-1", "hdmi-2", "hdmi-3", "trs35-1", "adapter-35-635", "xs1-xlr", "trs635-1", "adapter-635-35", "usb-ac", "speaker-trs"]) {
+    const disconnected = act(complete, end(cableId, "a"));
     assert.equal(disconnected.completed, false, `${cableId} must invalidate the lesson`);
     assert.ok(trainingProgress(disconnected) < trainingTotal(disconnected), `${cableId} must remove progress`);
   }
@@ -191,33 +190,25 @@ test("OBS reports the first missing link, and unplugging undoes dependent steps"
   assert.equal(s.completed, false);
 });
 
-test("lavalier leads stay attached to the mic; lifting the switcher unplugs its ports", () => {
-  let s = initialTrainingState("studio-full");
-  assert.equal(s.cables["lav-1"].a.portId, "lav1:mic");
-  assert.deepEqual(act(s, end("lav-1", "a")).held, { cableId: "lav-1", end: "b" });
-  s = fullStudio();
+test("lifting the switcher unplugs its ports", () => {
+  let s = fullStudio();
   s = act(s, { kind: "item", itemId: "switcher" });
   assert.equal(s.cables["hdmi-1"].b.portId, null);
   assert.equal(s.cables["hdmi-1"].a.portId, "cam1:video-out");
   assert.equal(s.completed, false);
 });
 
-test("a lavalier mic and its captive lead travel together, plug into TX, and can be unplugged", () => {
+test("lavaliers ship plugged into their TX and cannot be unplugged or picked up", () => {
   let s = initialTrainingState("studio-full");
-  const originalMic = s.cables["lav-1"].a.loosePosition;
-  s = act(s, end("lav-1", "a"));
-  assert.deepEqual(s.held, { cableId: "lav-1", end: "b" });
+  const lav1 = load("../game/training/scenarios.ts").SCENARIOS["studio-full"].requirements.find((r) => r.id === "lav1");
   assert.equal(s.cables["lav-1"].a.portId, "lav1:mic");
-  s = placeHeldOnCenterTable(s, [0, 0.81, 0]);
-  assert.notDeepEqual(s.cables["lav-1"].a.loosePosition, originalMic);
-  assert.equal(s.cables["lav-1"].a.portId, "lav1:mic");
-  s = place(s, "tx1");
-  s = act(act(s, end("lav-1", "a")), port("tx1:mic-in"));
   assert.equal(s.cables["lav-1"].b.portId, "tx1:mic-in");
-  assert.equal(requirementDone(s, load("../game/training/scenarios.ts").SCENARIOS["studio-full"].requirements.find((r) => r.id === "lav1")), true);
-  s = act(s, end("lav-1", "a"));
-  assert.equal(s.cables["lav-1"].b.portId, null);
-  assert.deepEqual(s.held, { cableId: "lav-1", end: "b" });
+  assert.equal(requirementDone(s, lav1), true);
+  for (const side of ["a", "b"]) assert.equal(act(s, end("lav-1", side)).held, null);
+  assert.equal(act(s, port("tx1:mic-in")).held, null);
+  s = place(s, "tx1"); // carrying the TX keeps its mic attached
+  assert.equal(s.cables["lav-1"].b.portId, "tx1:mic-in");
+  assert.equal(requirementDone(s, lav1), true);
 });
 
 test("equipment starts on the left table, cables on the right, and devices must be carried to the centre", () => {

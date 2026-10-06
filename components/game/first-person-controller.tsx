@@ -157,7 +157,13 @@ export function FirstPersonController({ active, fallbackLook, touch, onExitFallb
       scene.traverse((object) => { if (object.userData.trainingTarget) targets.current.push(object); });
     }
     raycaster.setFromCamera(lookCenter, camera);
-    const hit = raycaster.intersectObjects(targets.current, false)[0];
+    // Device hit volumes are coarse boxes that can enclose their own ports (e.g. the camera's HDMI OUT):
+    // a port or cable end just behind a device box wins over the box itself.
+    const hits = raycaster.intersectObjects(targets.current, false);
+    const first = hits[0];
+    const hit = first?.object.userData.trainingTarget?.kind === "device"
+      ? hits.find((h) => h.distance - first.distance < 0.6 && h.object.userData.trainingTarget?.kind !== "device") ?? first
+      : first;
     useTrainingStore.getState().focus((hit?.object.userData.trainingTarget as TrainingTarget | undefined) ?? null);
   });
 
