@@ -1,9 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
-import { LAYOUTS } from "@/game/training/venue-layouts";
+import { LAYOUTS, VENUE_SCALE } from "@/game/training/venue-layouts";
 import { LayoutColliders, LayoutFurniture } from "./layout-furniture";
-import { DoubleSide, MeshPhysicalMaterial, OctahedronGeometry } from "three";
+import { DoubleSide, MeshStandardMaterial, OctahedronGeometry } from "three";
 import { VenueLighting, CHROME, merge, place, Tube, Lathe, Cyl, BLACK_METAL, g, Instanced, RB, Slab, type Placement, type V3, type XZ } from "./kit";
 import { tex } from "./textures";
 
@@ -47,7 +47,8 @@ function Chandeliers({ h, at: spots }: { h: number; at: XZ[] }) {
   const parts = useMemo(() => {
     const drops = merge(Array.from({ length: 34 }, (_, i) => place(new OctahedronGeometry(0.035, 0), [-2.2 + (i % 17) * 0.275, -0.25 - (i % 4) * 0.16 - (i % 3) * 0.05, i < 17 ? -0.95 : 0.95], [0, i, 0], [0.7, 1.8, 0.7])));
     const wires = merge(Array.from({ length: 34 }, (_, i) => place(g.cyl(0.002, 0.002, 0.5, 4), [-2.2 + (i % 17) * 0.275, 0, i < 17 ? -0.95 : 0.95])));
-    const glass = new MeshPhysicalMaterial({ color: "#fff8e8", metalness: 0, roughness: 0.04, transmission: 0.6, ior: 1.6, thickness: 0.05, emissive: "#ffdf9a", emissiveIntensity: 0.55 });
+    // Plain emissive crystal (a transmission material would re-render the whole hall every frame).
+    const glass = new MeshStandardMaterial({ color: "#fff8e8", roughness: 0.3, emissive: "#ffdf9a", emissiveIntensity: 0.7 });
     return [{ geo: drops, mat: glass }, { geo: wires, mat: { ...CHROME } }];
   }, []);
   const at = useMemo<Placement[]>(() => spots.map(([x, z]) => ({ p: [x, h - 0.15, z] as V3 })), [h, spots]);
@@ -69,7 +70,15 @@ function TrackSpot({ p, aim = 0.55 }: { p: V3; aim?: number }) {
 /* Activity-hall job site (game/training/venue-layouts.ts `auditorium`):
  * stage + podium at the front with the LED / projection wall behind it, audience blocks with left / centre / right aisles,
  * FOH production + audio desks rear-centre, cable rack + road case behind FOH, side-stage cases, cable tray along the right wall. */
+// The mission hall is enlarged with its layout (VENUE_SCALE, a game-design choice); fittings scale with it.
+const K = VENUE_SCALE.auditorium, k = (v: number) => +(v * K).toFixed(3);
+const STAGE = LAYOUTS.auditorium.furniture.find((f) => f.kind === "stage")!;
+const COFFERS: XZ[] = [-6, 0, 6].flatMap((x) => [-2.5, 2.5, 7.0].map((z): XZ => [x * K, z * K]));
+const STAGE_FRONT_Z = STAGE.center[2] + STAGE.size[2] / 2;
+const FLOWERS_AT: Placement[] = (() => { const n = Math.floor((STAGE.size[0] - 0.8) / 0.34); return Array.from({ length: n }, (_, i) => ({ p: [-(n - 1) * 0.17 + i * 0.34, STAGE.size[1], STAGE_FRONT_Z - 0.12] as V3, ry: i * 0.7 })); })();
+
 export function Auditorium() {
+  const stage = STAGE;
   const L = LAYOUTS.auditorium;
   const { minX, maxX, minZ, maxZ } = L.bounds;
   const w = maxX - minX + 0.4, d = maxZ - minZ + 0.4, h = 5.0;
@@ -82,33 +91,32 @@ export function Auditorium() {
   const curtain = useMemo(() => g.drape(1.6, h - 0.1, 7, 0.07), []);
   const centre = slide("c", "Signal Flow Workshop 2026", ["• Camera → Production Switcher → LED / Capture", "• SDI OUT → SDI IN · XLR → Stagebox → Mixer", "• ตรวจ Program ก่อนเริ่มกิจกรรม"]);
   const sideA = slide("a", "กำหนดการกิจกรรม", ["1. พิธีเปิด", "2. บรรยายพิเศษ", "3. มอบรางวัล"]);
-  const stageFrontZ = -5.3 + 1.3;
-  const coffers = useMemo<XZ[]>(() => [-6, 0, 6].flatMap((x) => [-2.5, 2.5, 7.0].map((z): XZ => [x, z])), []);
-  const flowerAt = useMemo<Placement[]>(() => Array.from({ length: 40 }, (_, i) => ({ p: [-6.6 + i * 0.34, 0.8, stageFrontZ - 0.12] as V3, ry: i * 0.7 })), [stageFrontZ]);
+  const coffers = COFFERS;
+  const flowerAt = FLOWERS_AT;
   return <>
     <color attach="background" args={["#efe9df"]} />
     <VenueLighting mood="ballroom" intensity={0.8} />
     <hemisphereLight args={["#fffaf0", "#6d6a72", 0.72]} />
     <ambientLight intensity={0.17} />
-    <directionalLight position={[0.5, h - 0.45, 2.5]} target-position={[0, 0, -2]} intensity={1.4} color="#fff3e0" castShadow shadow-mapSize={[2048, 2048]} shadow-camera-left={-11} shadow-camera-right={11} shadow-camera-top={11} shadow-camera-bottom={-11} shadow-normalBias={0.03} />
-    {[[-4, 1.5], [4, 1.5]].map(([x, z]) => <pointLight key={`${x}${z}`} position={[x, h - 0.9, z]} intensity={12} distance={16} color="#fff1d6" />)}
+    <directionalLight position={[0.5, h - 0.45, 2.5]} target-position={[0, 0, -2]} intensity={1.4} color="#fff3e0" castShadow shadow-mapSize={[2048, 2048]} shadow-camera-left={-15} shadow-camera-right={15} shadow-camera-top={15} shadow-camera-bottom={-15} shadow-normalBias={0.03} />
+    {[[-4, 1.5], [4, 1.5]].map(([x, z]) => <pointLight key={`${x}${z}`} position={[k(x), h - 0.9, k(z)]} intensity={12} distance={18} color="#fff1d6" />)}
     {/* stage wash from the front truss */}
-    {[-2.5, 2.5].map((x) => <spotLight key={x} position={[x, h - 0.7, -1.6]} target-position={[x * 0.4, 1.0, -5.0]} angle={0.7} penumbra={0.7} intensity={18} distance={12} color="#fff4e2" />)}
+    {[-2.5, 2.5].map((x) => <spotLight key={x} position={[k(x), h - 0.7, k(-1.6)]} target-position={[k(x * 0.4), 1.0, stage.center[2]]} angle={0.7} penumbra={0.7} intensity={18} distance={12} color="#fff4e2" />)}
 
     {/* shell: carpet, cream walls with veneer pilasters, coffered ceiling with crystal chandeliers */}
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.001, midZ]} receiveShadow><planeGeometry args={[w, d]} /><meshStandardMaterial map={carpet} roughness={1} /></mesh>
     <Slab p={[0, h / 2, frontZ]} s={[w, h, 0.1]} map={wall} c="#ffffff" r={0.85} />
-    {[-8.6, 8.6].map((x) => <RB key={x} p={[x, h / 2, frontZ + 0.09]} s={[1.0, h, 0.1]} rad={0.02} map={veneer} c="#ffffff" r={0.4} />)}
+    {[-1, 1].map((sx) => <RB key={sx} p={[sx * (w / 2 - 0.6), h / 2, frontZ + 0.09]} s={[1.0, h, 0.1]} rad={0.02} map={veneer} c="#ffffff" r={0.4} />)}
     {[-1, 1].map((s) => <group key={s}>
       <Slab p={[s * w / 2, h / 2, midZ]} s={[0.1, h, d]} map={wall} c="#ffffff" r={0.85} />
-      {Array.from({ length: 4 }, (_, i) => <RB key={i} p={[s * (w / 2 - 0.1), h / 2, frontZ + 2.5 + i * 4]} s={[0.16, h, 0.6]} rad={0.02} c="#e2d7c4" />)}
-      {Array.from({ length: 4 }, (_, i) => <group key={`l${i}`} position={[s * (w / 2 - 0.16), 2.6, frontZ + 4.5 + i * 4]}>
+      {Array.from({ length: Math.floor((d - 3) / 4) + 1 }, (_, i) => <RB key={i} p={[s * (w / 2 - 0.1), h / 2, frontZ + 2.5 + i * 4]} s={[0.16, h, 0.6]} rad={0.02} c="#e2d7c4" />)}
+      {Array.from({ length: Math.floor((d - 5) / 4) + 1 }, (_, i) => <group key={`l${i}`} position={[s * (w / 2 - 0.16), 2.6, frontZ + 4.5 + i * 4]}>
         <Lathe p={[0, 0, 0]} prof={[[0.06, -0.12], [0.11, -0.12], [0.08, 0.1], [0.05, 0.1]]} c="#fff1d8" e="#ffcf80" ei={1.2} r={0.8} />
       </group>)}
     </group>)}
     <Slab p={[0, h / 2, backWallZ]} s={[w, h, 0.1]} map={wall} c="#ffffff" r={0.85} />
     {/* rear entrance doors (spawn side) */}
-    <group position={[-7.9, 0, backWallZ - 0.06]}>
+    <group position={[k(-7.9), 0, backWallZ - 0.06]}>
       {[-0.46, 0.46].map((x) => <RB key={x} p={[x, 1.1, 0]} s={[0.88, 2.2, 0.06]} rad={0.012} map={veneer} c="#ffffff" r={0.45} />)}
       <RB p={[0, 2.42, 0.03]} s={[0.5, 0.18, 0.02]} rad={0.004} c="#1f8f3a" e="#2bd45a" ei={0.6} />
     </group>
@@ -119,20 +127,20 @@ export function Auditorium() {
       {[-1, 1].map((sx) => <RB key={`x${sx}`} p={[x + sx * 2.45, h - 0.18, z]} s={[0.22, 0.3, 3.4]} rad={0.04} c="#ffffff" r={0.7} />)}
     </group>)}
     <Chandeliers h={h} at={coffers} />
-    <RB p={[0, h - 0.38, -1.6]} s={[14, 0.045, 0.06]} rad={0.01} {...BLACK_METAL} />
-    {[-6, -4.5, -3, -1.5, 0, 1.5, 3, 4.5, 6].map((x) => <TrackSpot key={x} p={[x, h - 0.46, -1.6]} aim={-0.6} />)}
+    <RB p={[0, h - 0.38, k(-1.6)]} s={[k(14), 0.045, 0.06]} rad={0.01} {...BLACK_METAL} />
+    {[-6, -4.5, -3, -1.5, 0, 1.5, 3, 4.5, 6].map((x) => <TrackSpot key={x} p={[k(x), h - 0.46, k(-1.6)]} aim={-0.6} />)}
 
     {/* LED / projection wall behind the stage (the "LED Program Screen" processor sits side-stage right) */}
-    {([[-6.9, 3.4, sideA], [0, 6.0, centre], [6.9, 3.4, sideA]] as const).map(([x, sw, map]) => <group key={x} position={[x, 2.9, frontZ + 0.13]}>
+    {([[-6.9, 3.4, sideA], [0, 6.0, centre], [6.9, 3.4, sideA]] as const).map(([x, sw, map]) => <group key={x} position={[k(x), 2.9, frontZ + 0.13]}>
       <RB p={[0, 0, 0]} s={[sw + 0.24, sw * 0.5625 + 0.24, 0.08]} rad={0.04} c="#1c1f25" m={0.3} r={0.35} />
       <mesh position={[0, 0, 0.045]}><planeGeometry args={[sw, sw * 0.5625]} /><meshBasicMaterial map={map} toneMapped={false} /></mesh>
     </group>)}
-    {[-1, 1].map((s) => [0, 1].map((k) => <mesh key={`${s}${k}`} geometry={curtain} position={[s * (3.65 + k * 1.15), h / 2, frontZ + 0.3 + k * 0.03]} castShadow><meshStandardMaterial map={curtainTex} side={DoubleSide} roughness={0.95} /></mesh>))}
+    {[-1, 1].map((s) => [0, 1].map((j) => <mesh key={`${s}${j}`} geometry={curtain} position={[s * (k(3.65) + j * 1.15), h / 2, frontZ + 0.3 + j * 0.03]} castShadow><meshStandardMaterial map={curtainTex} side={DoubleSide} roughness={0.95} /></mesh>))}
     <Instanced parts={flowers} at={flowerAt} />
 
     {/* service route: covered cable tray from stage-right along the right wall, then across the back to FOH */}
-    <RB p={[8.75, 0.03, 1.4]} s={[0.3, 0.06, 11.0]} rad={0.02} c="#2a2c31" />
-    <RB p={[6.1, 0.03, 6.95]} s={[5.6, 0.06, 0.3]} rad={0.02} c="#2a2c31" />
+    <RB p={[k(8.75), 0.03, k(1.4)]} s={[0.3, 0.06, k(11.0)]} rad={0.02} c="#2a2c31" />
+    <RB p={[k(6.1), 0.03, k(6.95)]} s={[k(5.6), 0.06, 0.3]} rad={0.02} c="#2a2c31" />
 
     {/* layout furniture: stage, podium, presenter table, camera riser, audience tables, FOH, cable rack, road cases */}
     <LayoutFurniture layout={L} look={{ top: "#2b2f36", cloth: "#fbfaf7" }} />

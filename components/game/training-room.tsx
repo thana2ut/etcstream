@@ -3,6 +3,9 @@
 import { Billboard, Line, Text } from "@react-three/drei";
 import { DoubleSide } from "three";
 import { VenueEnvironment } from "./environment/venue-environment";
+import { Studio as MissionStudio } from "./environment/venue/studio";
+import { tex } from "./environment/venue/textures";
+import { layoutOf } from "@/game/training/hdmi-training";
 import { StaticScenery } from "./render-performance";
 import type { VenueId } from "@/game/content/mission-catalog";
 import { STUDIO } from "@/game/training/studio-room-layout";
@@ -159,23 +162,67 @@ function FixedDevice({ device }: { device: DeviceDef }) {
   </group>;
 }
 
-function ScenarioMonitor() {
-  const scenario = useTrainingStore((state) => scenarioOf(state));
-  const live = useTrainingStore((state) => {
-    const path = scenarioOf(state).requirements.filter(r => r.group === "video" || r.id === "monitor");
-    return path.length > 0 && path.every(r => requirementDone(state, r));
-  });
-  const programSource = useTrainingStore((state) => state.programSource);
-  const device = scenario.devices.find(d => d.id === "monitor");
+/** What a venue screen really shows, from the lead plugged into it (never just "a cable exists"). */
+function screenFeed(state: Parameters<typeof scenarioOf>[0] & { cables: Record<string, { a: { portId: string | null }; b: { portId: string | null } }>; programSource?: string }, deviceId: string): string {
+  const scenario = scenarioOf(state);
+  for (const cable of Object.values(state.cables)) {
+    const ends = [cable.a.portId, cable.b.portId];
+    const mine = ends.find((p) => p && scenario.ports[p]?.device === deviceId && scenario.ports[p].direction === "INPUT");
+    if (!mine) continue;
+    const other = ends.find((p) => p !== mine);
+    if (!other) return "NO SIGNAL";
+    const req = scenario.requirements.find((r) => r.to.includes(mine));
+    const correct = Boolean(req && req.from.includes(other));
+    const upstream = scenario.requirements.filter((r) => r.group === "video").some((r) => requirementDone(state as never, r));
+    if (other.includes("multiview")) return !upstream ? "NO SIGNAL" : correct ? "MULTIVIEW" : "MULTIVIEW\n(WRONG FEED)";
+    if (!correct) return "WRONG FEED\nCHECK SOURCE";
+    return state.programSource ? `PROGRAM ACTIVE\n${state.programSource.toUpperCase()}` : "NO PROGRAM\nSELECTED";
+  }
+  return "NO SIGNAL";
+}
+
+function ScenarioScreen({ deviceId }: { deviceId: string }) {
+  const device = useTrainingStore((state) => scenarioOf(state).devices.find((d) => d.id === deviceId));
+  const feed = useTrainingStore((state) => screenFeed(state, deviceId));
   if (!device) return null;
-  return <Billboard position={[device.position[0], device.position[1] + 0.5, device.position[2]]}>
-    <mesh><planeGeometry args={[0.6, 0.26]} /><meshBasicMaterial color={live ? "#084f40" : "#161c27"} /></mesh>
-    <Text font={ROOM_FONT} position={[0, 0, 0.01]} fontSize={0.035} maxWidth={0.58} textAlign="center" color="#ffffff">{live ? `SIGNAL ACTIVE\nPROGRAM: ${programSource ?? "INPUT READY"}` : "NO SIGNAL"}</Text>
+  const ok = feed.startsWith("PROGRAM") || feed === "MULTIVIEW";
+  return <Billboard position={[device.position[0], device.position[1] + Math.max(device.size[1], 0.3) + 0.35, device.position[2]]}>
+    <mesh><planeGeometry args={[0.6, 0.26]} /><meshBasicMaterial color={ok ? "#084f40" : feed.startsWith("NO") ? "#161c27" : "#5a1a14"} /></mesh>
+    <Text font={ROOM_FONT} position={[0, 0, 0.01]} fontSize={0.035} maxWidth={0.58} textAlign="center" color="#ffffff">{feed}</Text>
   </Billboard>;
 }
 
-/** Temporary: mission venues render the environment only, without scenario cables, ports or devices. */
-export const VENUE_SCENE_ONLY = true;
+function ScenarioMonitor() {
+  const ids = useTrainingStore((state) => scenarioOf(state).devices.filter((d) => d.id === "monitor" || d.id === "display").map((d) => d.id).join("|"));
+  return <>{ids.split("|").filter(Boolean).map((id) => <ScenarioScreen key={id} deviceId={id} />)}</>;
+}
+
+/** Mission venues show their full interactive equipment, ports and cables (set true only for a scenery-only preview). */
+export const VENUE_SCENE_ONLY = false;
+
+/** Thai zone signs over the main work areas of a mission venue (storage, control desk, cameras, stage side, stream, racks). */
+const ZONE_SIGNS: [string, string][] = [["cam1", "จุดกล้อง"], ["stagebox", "ข้างเวที / Stagebox"], ["encoder", "จุดสตรีม"], ["router", "ตู้ Rack"], ["mic0", "จุดเสียง / ผู้บรรยาย"], ["fiber-tx", "จุดส่งสัญญาณ Fiber"]];
+function ZoneSign({ text, at }: { text: string; at: [number, number, number] }) {
+  const map = tex.sign(`zone-${text}`, 512, 128, (c, w, h) => {
+    c.fillStyle = "rgba(10,18,34,0.88)"; c.fillRect(0, 0, w, h);
+    c.strokeStyle = "#e7c98f"; c.lineWidth = 6; c.strokeRect(3, 3, w - 6, h - 6);
+    c.fillStyle = "#ffe9b8"; c.font = "bold 54px 'Sarabun','Leelawadee UI','Tahoma',sans-serif"; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(text, w / 2, h / 2 + 2);
+  });
+  return <Billboard position={at}><mesh><planeGeometry args={[1.4, 0.35]} /><meshBasicMaterial map={map} transparent depthWrite={false} /></mesh></Billboard>;
+}
+function ZoneSigns() {
+  const signs = useTrainingStore((state) => {
+    const layout = layoutOf(state);
+    const list: { text: string; at: [number, number, number] }[] = [
+      { text: "คลังอุปกรณ์", at: [layout.equipment.center[0], layout.equipment.center[1] + 1.25, layout.equipment.center[2]] },
+      { text: "คลังสาย", at: [layout.cables.center[0], layout.cables.center[1] + 1.25, layout.cables.center[2]] },
+      { text: "โต๊ะควบคุม", at: [layout.work.center[0], layout.work.center[1] + 1.55, layout.work.center[2]] },
+    ];
+    for (const [id, text] of ZONE_SIGNS) { const p = layout.places[id]?.p; if (p) list.push({ text, at: [p[0], Math.max(p[1], 0) + 2.3, p[2]] }); }
+    return JSON.stringify(list);
+  });
+  return <>{(JSON.parse(signs) as { text: string; at: [number, number, number] }[]).map((s) => <ZoneSign key={s.text} text={s.text} at={s.at} />)}</>;
+}
 
 /** Wireless TX → RX radio link: shown once both bodypacks sit at their operating spots. */
 function WirelessLink({ tx }: { tx: string }) {
@@ -199,7 +246,8 @@ export function TrainingRoom({ venue = "studio" }: { venue?: VenueId }) {
   // Mission-hall venues currently show the scene only (no cables / equipment). Flip VENUE_SCENE_ONLY to restore gameplay.
   if (VENUE_SCENE_ONLY && scenario.venueScale) return <StaticScenery><VenueEnvironment venue={venue} /></StaticScenery>;
   return <>
-    <StaticScenery><VenueEnvironment venue={venue} /></StaticScenery>
+    {/* Mission S has its own enlarged studio shell; free practice keeps Studio Room 01. */}
+    <StaticScenery>{scenario.layout === "studioMission" ? <MissionStudio /> : <VenueEnvironment venue={venue} />}</StaticScenery>
     {scenario.id === "hdmi-basic" && <BasicCamera />}
     {/* Tripod cameras block walking; colliders follow whichever cameras this scenario shows. */}
     <RigidBody key={scenario.id} type="fixed" colliders={false}>
@@ -213,6 +261,7 @@ export function TrainingRoom({ venue = "studio" }: { venue?: VenueId }) {
     </RigidBody>}
     {scenario.devices.filter((d) => !scenario.placeables.some((p) => p.id === d.id)).map((device) => <FixedDevice key={device.id} device={device} />)}
     {scenario.venueScale ? <ScenarioMonitor /> : <Monitor />}
+    {scenario.venueScale && <ZoneSigns />}
     {["tx1", "tx2"].filter((id) => scenario.placeables.some((p) => p.id === id)).map((id) => <WirelessLink key={id} tx={id} />)}
     {Object.keys(scenario.ports).filter((id) => !scenario.cables.some((cable) => cable.fixedA === id)).map((id) => <Port key={id} id={id} />)}
     {sockets.map((id) => <AdapterSocket key={id} id={id} />)}

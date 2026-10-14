@@ -5,10 +5,22 @@ import {
 } from "@/game/training/hdmi-training";
 
 import { soundEngine } from "@/game/audio/sound-engine";
+import { scenarioOf, stowHeldCable } from "@/game/training/hdmi-training";
+import { MAX_WRONG_STREAK } from "@/game/content/cable-catalog";
 
 interface TrainingStore extends TrainingState {
   focusedTarget: TrainingTarget | null;
-  reset: (scenarioId?: ScenarioId) => void;
+  /** `hiddenCables`: mission leads not packed in the cable-prep lobby. */
+  reset: (scenarioId?: ScenarioId, hiddenCables?: string[]) => void;
+  /** Mission only: consecutive wrong connection attempts (5 = level failed). */
+  wrongStreak: number;
+  failed: boolean;
+  /** Mission bag: take a whole loose lead straight into the hands (same as E on it at the cable shelf). */
+  takeCable: (cableId: string) => boolean;
+  /** Mission bag: return the lead in hand to the bag. */
+  stowHeld: () => void;
+  /** Hide the status banner (it auto-hides a few seconds after each action). */
+  clearNotice: () => void;
   focus: (target: TrainingTarget | null) => void;
   interact: () => void;
   /** Next E on a cable takes the whole lead, or only its head (1) / tail (2). Resets after use. */
@@ -38,13 +50,32 @@ function targetKey(target: TrainingTarget | null): string {
 export const useTrainingStore = create<TrainingStore>((set, get) => ({
   ...initialTrainingState(),
   focusedTarget: null,
-  reset: (scenarioId) => set((state) => ({ ...initialTrainingState(scenarioId ?? state.scenarioId), focusedTarget: null, heldTurn: 0, inspecting: null, inspectHoldStart: null, pickMode: "whole" })),
+  wrongStreak: 0, failed: false,
+  stowHeld: () => set((state) => stowHeldCable(state)),
+  clearNotice: () => set({ notice: null }),
+  takeCable: (cableId) => {
+    const state = get();
+    const c = state.cables[cableId];
+    if (!c || state.hiddenCables?.includes(cableId)) return false;
+    if (state.held || state.heldItem) { set({ notice: { title: "มือไม่ว่าง", detail: "กด F เพื่อวางสิ่งที่ถืออยู่ก่อน แล้วค่อยหยิบสายจากกระเป๋า", tone: "error" } }); return false; }
+    if (c.a.portId || c.b.portId) return false;
+    const label = scenarioOf(state).cables.find((x) => x.id === cableId)?.label ?? "สาย";
+    set({ held: { cableId, end: "a" }, notice: { title: "หยิบสายจากกระเป๋าแล้ว", detail: `${label} · เล็งพอร์ตแล้วกด E เพื่อเสียบ`, tone: "info" } });
+    return true;
+  },
+  reset: (scenarioId, hiddenCables) => set((state) => ({ ...initialTrainingState(scenarioId ?? state.scenarioId, hiddenCables ?? []), wrongStreak: 0, failed: false, focusedTarget: null, heldTurn: 0, inspecting: null, inspectHoldStart: null, pickMode: "whole" })),
   focus: (target) => {
     if (targetKey(get().focusedTarget) !== targetKey(target)) set({ focusedTarget: target });
   },
   interact: () =>
     set((state) => {
+      if (state.failed) return state;
       const next = { ...interactWithTarget(state, state.focusedTarget, state.pickMode), pickMode: state.focusedTarget?.kind === "end" ? "whole" as const : state.pickMode };
+      // Mission levels: a plug pushed into a port it does not belong to counts as a wrong connection; MAX in a row fails the level.
+      if (scenarioOf(state).venueScale && state.held && state.focusedTarget?.kind === "port") {
+        const streak = next.notice?.tone === "error" ? state.wrongStreak + 1 : 0;
+        Object.assign(next, { wrongStreak: streak, failed: streak >= MAX_WRONG_STREAK });
+      }
       if (next.notice?.tone === "success") {
         soundEngine.play("connection_success");
       } else if (next.notice?.tone === "error") {

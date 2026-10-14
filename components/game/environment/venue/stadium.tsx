@@ -6,12 +6,14 @@ import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeom
 import { VenueLighting, Ball, BLACK_METAL, CHROME, Cyl, g, Instanced, Lathe, merge, place, RB, RUBBER, Slab, STEEL, Tube, type Placement, type V3, FONT } from "./kit";
 import { tex } from "./textures";
 import { Text } from "@react-three/drei";
-import { LAYOUTS } from "@/game/training/venue-layouts";
+import { LAYOUTS, VENUE_SCALE } from "@/game/training/venue-layouts";
 import { LayoutColliders, LayoutFurniture } from "./layout-furniture";
 
 const THAI = "'Sarabun','Leelawadee UI','Tahoma',sans-serif";
 /** Pitch: 90 m along X, 60 m along Z, its near touchline 7 m in front of the broadcast platform. */
-const PITCH = { x: 90, z: 60, near: 15.5 };
+// The broadcast compound is enlarged with its layout (VENUE_SCALE, a game-design choice); room shell and dressing follow.
+const K = VENUE_SCALE.stadium, k = (v: number) => +(v * K).toFixed(3);
+const PITCH = { x: 90, z: 60, near: k(15.5) };
 const PCZ = PITCH.near + PITCH.z / 2;
 
 function adBoard(key: string, bg: string, fg: string, text: string) {
@@ -296,7 +298,7 @@ export function Stadium() {
   const stripes = tex.turf([6, 30]);
   const roomWall = tex.paint("#2a2e36", [6, 2]);
   const roomFloor = tex.tiles("#3b3f46", "#2c2f35", 4, [6, 5]);
-  const room = { x0: -13.1, x1: -1.0, z0: -7.6, z1: 2.2, h: 3.2 };
+  const room = { x0: k(-13.1), x1: k(-1.0), z0: k(-7.6), z1: k(2.2), h: 3.4 };
   return <>
     <color attach="background" args={["#060a18"]} />
     <VenueLighting mood="night" intensity={0.7} />
@@ -304,7 +306,7 @@ export function Stadium() {
     <StarSky />
     <hemisphereLight args={["#b8c8ff", "#3a4a3a", 0.75]} />
     <ambientLight intensity={0.25} />
-    <directionalLight position={[10, 18, 16]} intensity={2.0} color="#f2f6ff" castShadow shadow-mapSize={[2048, 2048]} shadow-camera-left={-16} shadow-camera-right={16} shadow-camera-top={16} shadow-camera-bottom={-16} shadow-normalBias={0.03} />
+    <directionalLight position={[10, 18, 16]} intensity={2.0} color="#f2f6ff" castShadow shadow-mapSize={[2048, 2048]} shadow-camera-left={-22} shadow-camera-right={22} shadow-camera-top={22} shadow-camera-bottom={-22} shadow-normalBias={0.03} />
 
     {/* pitch + markings beyond the camera positions */}
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, PCZ]} receiveShadow><planeGeometry args={[PITCH.x + 24, PITCH.z + 24]} /><meshStandardMaterial color="#2c6b30" roughness={1} /></mesh>
@@ -326,46 +328,46 @@ export function Stadium() {
     <Slab p={[(room.x0 + room.x1) / 2, room.h / 2, room.z0]} s={[room.x1 - room.x0, room.h, 0.12]} map={roomWall} c="#ffffff" r={0.9} />
     <Slab p={[room.x0, room.h / 2, (room.z0 + room.z1) / 2]} s={[0.12, room.h, room.z1 - room.z0]} map={roomWall} c="#ffffff" r={0.9} />
     <Slab p={[(room.x0 + room.x1) / 2, room.h / 2, room.z1]} s={[room.x1 - room.x0, room.h, 0.12]} map={roomWall} c="#ffffff" r={0.9} />
-    <Slab p={[room.x1, room.h / 2, -4.4]} s={[0.12, room.h, 6.4]} map={roomWall} c="#ffffff" r={0.9} />
-    <Slab p={[room.x1, room.h / 2, 1.4]} s={[0.12, room.h, 1.6]} map={roomWall} c="#ffffff" r={0.9} />
-    <Slab p={[room.x1, room.h - 0.3, -0.3]} s={[0.12, 0.6, 1.8]} map={roomWall} c="#ffffff" r={0.9} />
+    <Slab p={[room.x1, room.h / 2, k(-4.4)]} s={[0.12, room.h, k(6.4)]} map={roomWall} c="#ffffff" r={0.9} />
+    <Slab p={[room.x1, room.h / 2, k(1.4)]} s={[0.12, room.h, k(1.6)]} map={roomWall} c="#ffffff" r={0.9} />
+    <Slab p={[room.x1, room.h - 0.3, k(-0.3)]} s={[0.12, 0.6, k(1.8)]} map={roomWall} c="#ffffff" r={0.9} />
     <Slab p={[(room.x0 + room.x1) / 2, room.h, (room.z0 + room.z1) / 2]} s={[room.x1 - room.x0, 0.1, room.z1 - room.z0]} c="#15171b" r={0.9} />
-    <Text font={FONT} position={[room.x1 + 0.08, 2.45, -0.3]} rotation={[0, Math.PI / 2, 0]} fontSize={0.22} color="#ffd34d">BROADCAST CONTROL</Text>
-    <RB p={[room.x1 + 0.07, 2.75, -0.3]} s={[0.04, 0.16, 0.7]} rad={0.01} c="#c40f12" e="#ff2020" ei={1.2} />
-    {[-10.5, -7.0, -3.5].flatMap((x) => [-5.5, -1.6].map((z) => <RB key={`${x}${z}`} p={[x, room.h - 0.04, z]} s={[1.4, 0.04, 0.5]} rad={0.01} c="#ffffff" e="#e8eeff" ei={1.4} />))}
+    <Text font={FONT} position={[room.x1 + 0.08, 2.45, k(-0.3)]} rotation={[0, Math.PI / 2, 0]} fontSize={0.22} color="#ffd34d">BROADCAST CONTROL</Text>
+    <RB p={[room.x1 + 0.07, 2.75, k(-0.3)]} s={[0.04, 0.16, 0.7]} rad={0.01} c="#c40f12" e="#ff2020" ei={1.2} />
+    {[-10.5, -7.0, -3.5].flatMap((x) => [-5.5, -1.6].map((z) => <RB key={`${x}${z}`} p={[k(x), room.h - 0.04, k(z)]} s={[1.4, 0.04, 0.5]} rad={0.01} c="#ffffff" e="#e8eeff" ei={1.4} />))}
     {/* two room lights cover the whole control room (panel fixtures above are emissive only) */}
-    {[-9.5, -4.5].map((x) => <pointLight key={x} position={[x, room.h - 0.5, -2.6]} intensity={26} distance={16} decay={1.6} color="#eef2ff" />)}
+    {[-9.5, -4.5].map((x) => <pointLight key={x} position={[k(x), room.h - 0.5, k(-2.6)]} intensity={26} distance={16} decay={1.6} color="#eef2ff" />)}
     {/* soft fill so the control room never reads as a black box (the night environment barely reaches indoors) */}
-    <pointLight position={[-7, room.h - 0.4, 0.8]} intensity={14} distance={12} decay={1.6} color="#eef2ff" />
+    <pointLight position={[k(-7), room.h - 0.4, k(0.8)]} intensity={14} distance={12} decay={1.6} color="#eef2ff" />
     {/* multiview wall frame + desks / racks / audio desk come from the layout */}
-    <group position={[-7.0, 0, -7.4]}>
+    <group position={[k(-7.0), 0, k(-7.4)]} scale={[K, 1, 1]}>
       {Array.from({ length: 4 }, (_, i) => <RB key={i} p={[-2.7 + i * 1.8, 3.0, 0.1]} s={[1.6, 0.24, 0.06]} rad={0.01} c="#0e1015" />)}
     </group>
 
     {/* ZONE B — commentary position with branded backdrop */}
-    <group position={[6.2, 0, -2.5]}>
+    <group position={[k(6.2), 0, k(-2.5)]}>
       <RB p={[0, 1.5, 0]} s={[4.2, 2.6, 0.12]} rad={0.04} c="#10141f" />
       <mesh position={[0, 1.55, 0.065]}><planeGeometry args={[4.0, 2.35]} /><meshBasicMaterial map={backdropTexture()} toneMapped={false} /></mesh>
     </group>
-    {[5.5, 6.9].map((x) => <group key={x} position={[x, 0, -1.0]}>
+    {[5.5, 6.9].map((x) => <group key={x} position={[k(x), 0, k(-1.0)]}>
       <RB p={[0, 0.48, 0]} s={[0.5, 0.1, 0.48]} rad={0.04} c="#20232a" />
       <RB p={[0, 0.85, -0.22]} rot={[0.12, 0, 0]} s={[0.48, 0.6, 0.08]} rad={0.04} c="#20232a" />
       <Cyl p={[0, 0.25, 0]} rt={0.025} h={0.4} {...CHROME} />
       {/* headset resting on the desk */}
       <mesh position={[0, 0.82, -0.62]} rotation={[0, 0, 0]}><torusGeometry args={[0.09, 0.012, 8, 24, Math.PI]} /><meshStandardMaterial color="#1a1a1a" /></mesh>
     </group>)}
-    <spotLight position={[6.2, 3.6, 1.0]} target-position={[6.2, 0.9, -1.8]} angle={0.7} penumbra={0.6} intensity={18} distance={8} color="#fff2e0" />
+    <spotLight position={[k(6.2), 3.6, k(1.0)]} target-position={[k(6.2), 0.9, k(-1.8)]} angle={0.7} penumbra={0.6} intensity={18} distance={8} color="#fff2e0" />
 
     {/* ZONE A — pitch-side cable route along the edge + ramp at the walkway */}
-    <RB p={[0, 0.025, 11.3]} s={[26, 0.05, 0.22]} rad={0.02} c="#24262b" />
-    <RB p={[-0.9, 0.025, 5.0]} s={[0.22, 0.05, 12.6]} rad={0.02} c="#24262b" />
+    <RB p={[0, 0.025, k(11.3)]} s={[k(26), 0.05, 0.22]} rad={0.02} c="#24262b" />
+    <RB p={[k(-0.9), 0.025, k(5.0)]} s={[0.22, 0.05, k(12.6)]} rad={0.02} c="#24262b" />
 
     <Stands />
     {[[-52, -14], [52, -14], [-52, PITCH.near + PITCH.z + 14], [52, PITCH.near + PITCH.z + 14]].map(([x, z]) => <Floodlight key={`${x}${z}`} p={[x, 0, z]} />)}
     <Scoreboard />
     {/* outside-broadcast truck parked in the compound beyond the east fence */}
-    <ObVan p={[18.0, 0, 3.0]} ry={0} />
-    <CameraTower p={[17.5, 0, 12.0]} />
+    <ObVan p={[k(18.0), 0, k(3.0)]} ry={0} />
+    <CameraTower p={[k(17.5), 0, k(12.0)]} />
 
     <LayoutFurniture layout={L} look={{ top: "#2b2f36", cloth: "#14161b", caseColor: "#1d1f24" }} />
     <LayoutColliders layout={L} />

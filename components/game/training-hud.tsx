@@ -4,12 +4,21 @@ import { useTrainingStore } from "@/game/stores/training-store";
 import { requirementDone, scenarioOf, targetInstruction, trainingProgress, trainingTotal } from "@/game/training/hdmi-training";
 import type { FlowGroup } from "@/game/training/scenarios";
 import { ControlsGuide } from "@/components/ui/controls-guide";
+import { MAX_WRONG_STREAK } from "@/game/content/cable-catalog";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export function TrainingHud({ title, difficultyLabel, objective, touch }: { title: string; difficultyLabel?: string; objective?: string; touch: boolean }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const state = useTrainingStore();
+  // The status banner shows each new action's result for 3.5 s, then clears itself.
+  const notice = state.notice;
+  const clearNotice = state.clearNotice;
+  useEffect(() => {
+    if (!notice) return;
+    const t = window.setTimeout(clearNotice, 3500);
+    return () => window.clearTimeout(t);
+  }, [notice, clearNotice]);
   const pickMode = state.pickMode;
   const progress = trainingProgress(state);
 
@@ -25,7 +34,7 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
   const rows = GROUPS.map((group) => ({
     ...group,
     items: [
-      ...scenario.requirements.filter((r) => r.group === group.id).map((r) => ({ id: r.id, label: r.verified ? r.label : `${r.label} *`, done: requirementDone(state, r) })),
+      ...scenario.requirements.filter((r) => r.group === group.id).map((r) => ({ id: r.id, label: r.verified || scenario.venueScale ? r.label : `${r.label} *`, done: requirementDone(state, r) })),
       ...scenario.actions.filter((a) => a.group === group.id).map((a) => ({ id: a.id, label: a.label, done: Boolean(state.actionsDone[a.id]) })),
     ],
   })).filter((group) => group.items.length > 0);
@@ -63,16 +72,17 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
             </button>
           </div>
           {difficultyLabel && <strong className="mission-level-label">{difficultyLabel}</strong>}
-          {objective && <p className="hud-panel-sub">{objective}</p>}
-          {scenario.job && <p className="hud-panel-sub">งาน: {scenario.job}</p>}
+          {/* Mission levels keep the panel compact like free practice: title, progress, grouped checklist. */}
+          {objective && !scenario.venueScale && <p className="hud-panel-sub">{objective}</p>}
+          {scenario.job && !scenario.venueScale && <p className="hud-panel-sub">งาน: {scenario.job}</p>}
           {pickMode !== "whole" && <p className="hud-pick-mode" role="status">{`โหมด ${pickMode === "a" ? 1 : 2} · ${touch ? "เล็งสายแล้วแตะปุ่มใช้งาน" : "กด E ที่สาย"}เพื่อหยิบเฉพาะ${pickMode === "a" ? "หัวสาย" : "ปลายสาย"}`} ({touch ? "แตะปุ่มเลขเดิมซ้ำ" : "กดเลขซ้ำ"}เพื่อยกเลิก)</p>}
           {scenario.venueScale && state.heldItem && <p className="hud-panel-sub" role="status">กำลังถือ: {scenario.placeables.find((p) => p.id === state.heldItem)?.label} → นำไปที่ {scenario.placeables.find((p) => p.id === state.heldItem)?.zoneLabel ?? "ตำแหน่งใช้งาน"}</p>}
-          {scenario.venueScale && <p className="hud-panel-sub" role="status">Program: {state.programSource ?? "ยังไม่เลือกแหล่งภาพ"} · {state.actionsDone["obs-ready"] ? "OBS จำลองพร้อม" : state.actionsDone["encoder-ready"] ? "Encoder จำลองพร้อม" : "ตรวจเส้นทางตามรายการ"}</p>}
-          {scenario.faults?.map(fault => <p className="hud-check-note" key={fault}>{fault}</p>)}
           <div className="hud-panel-sub">
             <span>◈</span>
             <span>ความคืบหน้า: {progress}/{total} ขั้น</span>
           </div>
+          {scenario.venueScale && !state.completed && <p className="hud-panel-sub" role="status" style={{ color: state.wrongStreak >= 3 ? "var(--danger)" : undefined }}>ต่อผิดติดต่อกัน: {state.wrongStreak}/{MAX_WRONG_STREAK}</p>}
+          {scenario.venueScale && state.completed && <p className="hud-panel-sub" role="status" style={{ color: "var(--success)", fontWeight: 700 }}>✓ ผ่านด่านแล้ว — ครบทุกเงื่อนไข</p>}
 
           <div className="hud-checklist">
             {rows.map((group) => (
@@ -92,7 +102,8 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
                 <div className={`hud-checkbox-square ${state.completed ? "is-done" : ""}`}>{state.completed && <span>✓</span>}</div>
               </div>
             )}
-            {rows.length > 1 && <small className="hud-check-note">{scenario.venueScale ? "* แบบจำลองเพื่อฝึกเส้นทาง รุ่นและพอร์ตที่ระบุว่ารอยืนยันยังต้องตรวจของจริง" : "* เส้นทางชั่วคราว รอตรวจสายจริงในห้อง"}</small>}
+            {scenario.venueScale && scenario.faults?.map((fault) => <small className="hud-check-note" key={fault}>⚠ {fault}</small>)}
+            {rows.length > 1 && <small className="hud-check-note">{scenario.venueScale ? "อุปกรณ์เป็นแบบจำลองเพื่อฝึกเส้นทาง รุ่นและพอร์ตที่ระบุว่ารอยืนยันยังต้องตรวจของจริง" : "* เส้นทางชั่วคราว รอตรวจสายจริงในห้อง"}</small>}
           </div>
         </aside>
       )}
@@ -119,9 +130,15 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
         <div
           className={`training-feedback glass tone-${state.notice.tone}`}
           style={{
+            // Top-centre under the header: clear of the objective panel (left) and the look-control button (right).
             position: "absolute",
-            top: "90px",
-            right: "28px",
+            top: "84px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "max-content",
+            maxWidth: "min(680px, calc(100vw - 32px))",
+            lineHeight: 1.6,
+            textAlign: "center",
             padding: "10px 16px",
             borderRadius: "8px",
             background: state.notice.tone === "success" ? "rgba(16, 185, 129, 0.2)" : state.notice.tone === "error" ? "rgba(239, 68, 68, 0.2)" : "rgba(85, 214, 255, 0.18)",

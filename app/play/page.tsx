@@ -23,6 +23,8 @@ import { MissionResultModal } from "@/components/ui/mission-result-modal";
 import { clearedCount, meritFor, rankFor } from "@/game/content/mission-ranks";
 import { soundEngine } from "@/game/audio/sound-engine";
 import { getSafePlayParams } from "@/game/security/route-validation";
+import { CableLobby, BagOverlay } from "@/components/ui/cable-lobby";
+import { bagUsage, catalogIdFor, hiddenCablesFor, MAX_WRONG_STREAK } from "@/game/content/cable-catalog";
 
 export default function Play() {
   return (
@@ -57,6 +59,13 @@ function PlayExperience() {
   const [reward, setReward] = useState<{ merit: number; rankUp?: string } | null>(null);
   const [showResultModal, setShowResultModal] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  // Mission Hall: cable bag packed in the prep lobby before every attempt (null = still in the lobby).
+  const [bag, setBag] = useState<Record<string, number> | null>(null);
+  const [bagOpen, setBagOpen] = useState(false);
+  const trainingFailed = useTrainingStore((state) => state.failed);
+  // Re-render the bag panel when the lead in hand (or the cable layout) changes.
+  const heldCableId = useTrainingStore((state) => state.held?.cableId ?? null);
+  useTrainingStore((state) => state.cables);
 
   useEffect(() => {
     setPlayPhase(showResultModal ? "result" : introOpen ? "intro" : "gameplay");
@@ -224,10 +233,27 @@ function PlayExperience() {
     startMission();
   };
 
+  // Packed leads still lying loose in the room (visible, neither end plugged) — what the bag can hand over.
+  const looseLeads = () => {
+    const st = useTrainingStore.getState();
+    return activeScenario.cables.filter((c) => !st.hiddenCables?.includes(c.id) && !c.fixedA && st.cables[c.id] && !st.cables[c.id].a.portId && !st.cables[c.id].b.portId && st.held?.cableId !== c.id);
+  };
+  const readyLeads = () => looseLeads().reduce<Record<string, number>>((m, c) => { const id = catalogIdFor(c); m[id] = (m[id] ?? 0) + 1; return m; }, {});
+
   const handleRetry = () => {
     resetTraining(scenarioId);
+    // Mission levels return to the cable-prep lobby for every new attempt.
+    if (routeMode === "mission") { setBag(null); setIntroOpen(true); }
     setShowResultModal(false);
   };
+
+  if (routeMode === "mission" && validMission && bag === null) {
+    return <CableLobby
+      scenario={activeScenario} title={currentTitle} levelLabel={difficultyLabel ?? ""} objective={difficulty?.objective} playerName={player.nickname}
+      onBack={() => router.push("/missions")}
+      onConfirm={(packed) => { setBag(packed); resetTraining(scenarioId, hiddenCablesFor(activeScenario, packed)); setIntroOpen(true); }}
+    />;
+  }
 
   return (
     <main className="fantasy-viewport game-screen" style={{ background: "#050d1a" }}>
@@ -236,7 +262,7 @@ function PlayExperience() {
         <GameCanvas
           key={scenarioId}
           venue={routeMode === "mission" ? mission?.venueId : "studio"}
-          active={!introOpen && !showResultModal && !showExitConfirm}
+          active={!introOpen && !showResultModal && !showExitConfirm && !bagOpen && !trainingFailed}
           fallbackLook={fallbackLook}
           touch={touch}
           onExitFallback={exitFallback}
@@ -270,6 +296,16 @@ function PlayExperience() {
           <InspectHoldRing />
           <EquipmentInspector />
           <TrainingHud title={currentTitle} difficultyLabel={difficultyLabel ?? undefined} objective={difficulty?.objective} touch={touch} />
+          {routeMode === "mission" && bag && <button type="button" className="cl-bag-button" onClick={() => { if (document.pointerLockElement) document.exitPointerLock(); setBagOpen(true); }}>🎒 กระเป๋า</button>}
+          {bagOpen && bag && <BagOverlay bag={bag} usage={bagUsage(activeScenario, bag)}
+            ready={readyLeads()}
+            holding={(() => { const def = heldCableId ? activeScenario.cables.find((c) => c.id === heldCableId) : null; return def && !def.fixedA ? { id: catalogIdFor(def), label: def.label } : null; })()}
+            onStow={() => useTrainingStore.getState().stowHeld()}
+            onTake={(catalogId) => {
+              const lead = looseLeads().find((c) => catalogIdFor(c) === catalogId);
+              if (lead && useTrainingStore.getState().takeCable(lead.id)) setBagOpen(false);
+            }}
+            onClose={() => setBagOpen(false)} />}
           {touch && !showExitConfirm && <TouchControls />}
 
           {/* Pointer lock capture prompt if not locked */}
@@ -397,6 +433,20 @@ function PlayExperience() {
       )}
 
       {/* REF 10: RESULT MODAL (เมื่อสำเร็จภารกิจ) */}
+      {/* Mission: too many wrong connections in a row = level not passed. */}
+      {routeMode === "mission" && trainingFailed && !showResultModal && (
+        <div className="exit-confirm-backdrop" role="dialog" aria-modal="true" aria-labelledby="fail-title">
+          <div className="exit-confirm-modal glass-card dialog-panel gold-border-frame with-corner-runes">
+            <h2 id="fail-title" className="exit-confirm-title">ไม่ผ่านด่าน</h2>
+            <p className="exit-confirm-desc">ต่อสายผิดติดต่อกัน {MAX_WRONG_STREAK} ครั้ง — ตรวจทิศทาง OUTPUT → INPUT ชนิดสัญญาณ และสายที่เลือกมาแล้วลองใหม่</p>
+            <div className="exit-confirm-actions">
+              <ActionButton variant="glass" size="md" arrow={false} onClick={() => router.push("/missions")}>กลับหอภารกิจ</ActionButton>
+              <ActionButton variant="gold" size="md" onClick={handleRetry}>กลับห้องเตรียมสาย</ActionButton>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showResultModal && (
         <MissionResultModal
           playerName={player.nickname}

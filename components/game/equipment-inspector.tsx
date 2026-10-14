@@ -7,6 +7,7 @@ import { useTrainingStore } from "@/game/stores/training-store";
 import { scenarioOf } from "@/game/training/hdmi-training";
 import type { DeviceDef } from "@/game/training/scenarios";
 import { EQUIPMENT_INFO } from "@/game/content/equipment-info";
+import { missionEquipmentInfo } from "@/game/content/mission-equipment-info";
 import { INSPECT_HOLD_MS } from "./first-person-controller";
 import { Hds7105Model } from "./equipment/hds7105";
 import { DeviceVisual } from "./equipment/device-visual";
@@ -32,11 +33,25 @@ export function EquipmentInspector() {
   }, [id, close]);
   if (!id) return null;
 
-  const info = scenario.venueScale ? undefined : EQUIPMENT_INFO[id];
+  // Mission venues use mission-only knowledge; free practice keeps its studio notes.
+  const info = scenario.venueScale ? missionEquipmentInfo(scenario, id) : EQUIPMENT_INFO[id];
   const device: DeviceDef | undefined = scenario.devices.find((d) => d.id === id);
   const ports = Object.values(scenario.ports).filter((p) => p.device === id);
   const inputs = ports.filter((p) => p.direction === "INPUT");
   const outputs = ports.filter((p) => p.direction === "OUTPUT");
+
+  // Mission Hall: a compact, optional card beside the 3D room (the room stays the main interface). ESC / ✕ closes it.
+  if (scenario.venueScale) return <aside className="inspector-compact glass-card" role="dialog" aria-labelledby="inspector-title">
+    <button type="button" className="inspector-close" onClick={() => close(null)} aria-label="ปิดข้อมูลอุปกรณ์">✕</button>
+    <span className="inspector-role">{info?.role ?? "อุปกรณ์"}</span>
+    <h2 id="inspector-title">{device?.label ?? id}</h2>
+    <strong className="inspector-model">{info?.model ?? device?.model}</strong>
+    <details open><summary>คืออะไร / ใช้ทำอะไร</summary><p>{info?.summary ?? "อุปกรณ์ในระบบของด่านนี้"}</p></details>
+    {info && info.facts.length > 0 && <details><summary>ควรรู้</summary><ul>{info.facts.map((f) => <li key={f}>{f}</li>)}</ul></details>}
+    {ports.length > 0 && <details><summary>พอร์ต ({ports.length})</summary><ul>{[...inputs, ...outputs].map((p) => <li key={p.label}>{p.label} · {p.direction}</li>)}</ul></details>}
+    {info && <details open><summary>ในด่านนี้</summary><p>{info.inThisRoom}</p></details>}
+    <p className="inspector-unverified">สถานะข้อมูล: {device?.status ?? "GENERIC TRAINING MODEL"} · โมเดล 3D เป็นตัวแทนชั่วคราว (รอปั้นโมเดลจริง){info && info.unverified.length > 0 ? ` · ยังไม่ยืนยัน: ${info.unverified.join(", ")}` : ""}</p>
+  </aside>;
 
   return <div className="inspector-overlay" role="dialog" aria-modal="true" aria-labelledby="inspector-title">
     <div className="inspector-stage">
@@ -60,7 +75,7 @@ export function EquipmentInspector() {
       {device?.status && <p>{device.status} · {device.generic ? "โมเดลฝึกแทน ยังไม่ใช่โมเดลสินค้าเหมือนจริง" : ""}</p>}
       {info && <p>{info.summary}</p>}
       {info && info.facts.length > 0 && <><h3>ควรรู้</h3><ul>{info.facts.map((f) => <li key={f}>{f}</li>)}</ul></>}
-      {info && <><h3>ในห้องฝึกนี้</h3><p className="inspector-flow">{info.inThisRoom}</p></>}
+      {info && <><h3>{scenario.venueScale ? "ในด่านนี้" : "ในห้องฝึกนี้"}</h3><p className="inspector-flow">{info.inThisRoom}</p></>}
       {ports.length > 0 && <>
         <h3>พอร์ต ({ports.length})</h3>
         <div className="inspector-ports">

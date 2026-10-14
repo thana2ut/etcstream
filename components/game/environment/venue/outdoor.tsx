@@ -4,13 +4,16 @@ import { useMemo } from "react";
 import { BackSide, BufferGeometry, DoubleSide, Float32BufferAttribute, IcosahedronGeometry } from "three";
 import { VenueLighting, BLACK_METAL, CHROME, ConeGeo, Cyl, g, Instanced, Lathe, merge, place, RB, Slab, STEEL, Tube, type Placement, type V3, type XZ } from "./kit";
 import { tex } from "./textures";
-import { LAYOUTS } from "@/game/training/venue-layouts";
+import { LAYOUTS, VENUE_SCALE } from "@/game/training/venue-layouts";
 import { LayoutColliders, LayoutFurniture } from "./layout-furniture";
 
 const THAI = "'Sarabun','Leelawadee UI','Tahoma',sans-serif";
 const L = LAYOUTS.outdoor;
 /** Control tent over the production desk (its legs are layout obstacles). */
-const TENT = { x0: 1.9, x1: 6.1, z0: 6.6, z1: 10.9, eave: 2.6, peak: 3.5 };
+// The field site is enlarged with its layout (VENUE_SCALE, a game-design choice); tent, stage dressing and props follow.
+const K = VENUE_SCALE.outdoor, k = (v: number) => +(v * K).toFixed(3);
+const STAGE = L.furniture.find((f) => f.kind === "stage")!;
+const TENT = { x0: k(1.9), x1: k(6.1), z0: k(6.6), z1: k(10.9), eave: 2.6, peak: 3.6 };
 const TENT_POLES: XZ[] = [[TENT.x0, TENT.z0], [TENT.x1, TENT.z0], [TENT.x0, TENT.z1], [TENT.x1, TENT.z1]];
 
 function skyTexture() {
@@ -145,7 +148,7 @@ function Canopy() {
 
 /** Building behind the site: rendered facade, framed windows with sills, entrance canopy, parapet. */
 function Building() {
-  const z = -17;
+  const z = k(-17);
   const render = tex.render("#e2d8c6");
   const glass = { c: "#6d93b6", m: 0.6, r: 0.08 };
   return <group>
@@ -214,11 +217,11 @@ export function Outdoor() {
     run(minZ, maxZ, (c) => [minX - 0.2, 0, c], Math.PI / 2);
     run(minZ, maxZ, (c) => [maxX + 0.2, 0, c], Math.PI / 2);
     run(minX, maxX, (c) => [c, 0, minZ - 0.2]);
-    run(-8.6, maxX, (c) => [c, 0, maxZ + 0.2]);
+    run(k(-8.6), maxX, (c) => [c, 0, maxZ + 0.2]);
     return list;
   }, [minX, maxX, minZ, maxZ]);
-  const trees = useMemo<Placement[]>(() => [[-15, -4, 1.2], [-16, 5, 1], [15, -3, 1.3], [16, 6, 1], [-8, 15, 1.1], [6, 15.5, 1.2], [0, 18, 1.4], [-18, 12, 1.3], [17, 13, 1.1], [-15, -14, 1.2], [14, -15, 1.3]].map(([x, z, s], i) => ({ p: [x, 0, z] as V3, s, ry: i * 1.3 })), []);
-  const coneAt = useMemo<Placement[]>(() => [[-11.2, 11.0], [-9.0, 11.2], [-0.8, -6.2], [0.8, -6.2], [11.4, -9.4]].map(([x, z]) => ({ p: [x, 0, z] as V3 })), []);
+  const trees = useMemo<Placement[]>(() => [[-15, -4, 1.2], [-16, 5, 1], [15, -3, 1.3], [16, 6, 1], [-8, 15, 1.1], [6, 15.5, 1.2], [0, 18, 1.4], [-18, 12, 1.3], [17, 13, 1.1], [-15, -14, 1.2], [14, -15, 1.3]].map(([x, z, s], i) => ({ p: [k(x), 0, k(z)] as V3, s, ry: i * 1.3 })), []);
+  const coneAt = useMemo<Placement[]>(() => [[-11.2, 11.0], [-9.0, 11.2], [-0.8, -6.2], [0.8, -6.2], [11.4, -9.4]].map(([x, z]) => ({ p: [k(x), 0, k(z)] as V3 })), []);
   return <>
     <color attach="background" args={["#a9d2f3"]} />
     <VenueLighting mood="day" intensity={0.55} />
@@ -228,13 +231,13 @@ export function Outdoor() {
       {[[0, 0, 0, 1], [1.1, -0.2, 0.2, 0.8], [-1.0, -0.25, 0, 0.75], [0.4, 0.4, -0.2, 0.7]].map(([a, b, c, r], k) => <mesh key={k} position={[a, b, c]}><sphereGeometry args={[r, 14, 10]} /><meshStandardMaterial color="#ffffff" roughness={1} fog={false} /></mesh>)}
     </group>)}
     <hemisphereLight args={["#dff0ff", "#9a968a", 0.69]} />
-    <directionalLight position={[8, 12, 6]} intensity={2.4} color="#fff2d6" castShadow shadow-mapSize={[2048, 2048]} shadow-camera-left={-10} shadow-camera-right={10} shadow-camera-top={10} shadow-camera-bottom={-10} shadow-normalBias={0.03} />
+    <directionalLight position={[8, 12, 6]} intensity={2.4} color="#fff2d6" castShadow shadow-mapSize={[2048, 2048]} shadow-camera-left={-16} shadow-camera-right={16} shadow-camera-top={16} shadow-camera-bottom={-16} shadow-normalBias={0.03} />
 
     {/* ground: lawn, paved plaza with kerb */}
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow><planeGeometry args={[120, 120]} /><meshStandardMaterial map={tex.grass([40, 40])} roughness={1} /></mesh>
     <Slab p={[(minX + maxX) / 2, -0.04, (minZ + maxZ) / 2]} s={[maxX - minX + 1.2, 0.1, maxZ - minZ + 1.2]} map={tex.paving([(maxX - minX) / 2, (maxZ - minZ) / 2])} c="#ffffff" r={0.92} />
     {/* service road at the entrance */}
-    <Slab p={[-10.3, -0.035, 15]} s={[4, 0.1, 6]} map={tex.concrete([2, 3])} c="#ffffff" r={0.95} />
+    <Slab p={[k(-10.3), -0.035, k(15)]} s={[4, 0.1, 6]} map={tex.concrete([2, 3])} c="#ffffff" r={0.95} />
 
     <Canopy />
     <Building />
@@ -245,7 +248,7 @@ export function Outdoor() {
 
     {/* banner on a truss frame (the backdrop collider) */}
     {/* stage truss + banner behind the stage (far end of the site) */}
-    <group position={[0, 1.0, -10.05]}>
+    <group position={[0, STAGE.size[1], STAGE.center[2] - STAGE.size[2] / 2 + 0.15]} scale={[K, 1, 1]}>
       {[-5.8, 5.8].map((x) => <group key={x}>
         {[-1, 1].flatMap((a) => [-1, 1].map((b) => <Tube key={`${a}${b}`} pts={[[x + a * 0.15, 0.02, b * 0.15], [x + a * 0.15, 4.2, b * 0.15]]} r={0.022} {...CHROME} />))}
         {Array.from({ length: 14 }, (_, i) => <Tube key={i} pts={[[x - 0.15, 0.1 + i * 0.29, 0.15], [x + 0.15, 0.26 + i * 0.29, 0.15]]} r={0.009} {...CHROME} />)}
@@ -257,12 +260,12 @@ export function Outdoor() {
     </group>
 
     {/* long cable runs follow the site edge; ramps where they cross walkways */}
-    <RB p={[11.5, 0.025, 0.6]} s={[0.22, 0.05, 19.0]} rad={0.02} c="#24262b" />
-    <RB p={[8.8, 0.025, 9.9]} s={[5.4, 0.05, 0.22]} rad={0.02} c="#24262b" />
-    <CableRamp p={[0, 0, 3.0]} ry={0} len={3.2} />
-    <CableRamp p={[11.5, 0, 4.4]} ry={Math.PI / 2} len={1.6} />
+    <RB p={[k(11.5), 0.025, k(0.6)]} s={[0.22, 0.05, k(19.0)]} rad={0.02} c="#24262b" />
+    <RB p={[k(8.8), 0.025, k(9.9)]} s={[k(5.4), 0.05, 0.22]} rad={0.02} c="#24262b" />
+    <CableRamp p={[0, 0, k(3.0)]} ry={0} len={3.2} />
+    <CableRamp p={[k(11.5), 0, k(4.4)]} ry={Math.PI / 2} len={1.6} />
     {/* folding chairs and a cooler for the crew */}
-    {[[2.6, 10.2, 0.4], [3.4, 10.3, -0.2]].map(([x, z, ry]) => <group key={x} position={[x, 0, z]} rotation={[0, ry, 0]}>
+    {[[2.6, 10.2, 0.4], [3.4, 10.3, -0.2]].map(([x, z, ry]) => <group key={x} position={[k(x), 0, k(z)]} rotation={[0, ry, 0]}>
       <RB p={[0, 0.45, 0]} s={[0.42, 0.03, 0.4]} rad={0.012} c="#2c3e63" />
       <RB p={[0, 0.78, 0.2]} rot={[-0.15, 0, 0]} s={[0.42, 0.3, 0.025]} rad={0.012} c="#2c3e63" />
       {[-1, 1].map((s) => <group key={s}>
@@ -270,7 +273,7 @@ export function Outdoor() {
         <Tube pts={[[s * 0.2, 0, 0.22], [s * 0.2, 0.45, -0.1]]} r={0.011} {...STEEL} />
       </group>)}
     </group>)}
-    <group position={[4.4, 0, 10.45]}>
+    <group position={[k(4.4), 0, k(10.45)]}>
       <RB p={[0, 0.2, 0]} s={[0.6, 0.38, 0.38]} rad={0.05} c="#e7473c" />
       <RB p={[0, 0.41, 0]} s={[0.62, 0.06, 0.4]} rad={0.03} c="#f4f4f4" />
       <Tube pts={[[-0.22, 0.44, 0], [-0.2, 0.52, 0], [0.2, 0.52, 0], [0.22, 0.44, 0]]} r={0.012} c="#f4f4f4" />

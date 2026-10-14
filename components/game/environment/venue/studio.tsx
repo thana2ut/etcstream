@@ -2,10 +2,15 @@
 
 import { useMemo } from "react";
 import { CylinderGeometry, DoubleSide } from "three";
-import { VenueLighting, Ball, BLACK_METAL, Bounds, CHROME, Cyl, D, g, Instanced, Lathe, merge, place, RB, Slab, STEEL, Tube, W, WorkFurniture, type Placement, type V3 } from "./kit";
+import { VenueLighting, BLACK_METAL, CHROME, Cyl, D, g, Instanced, merge, place, RB, Slab, STEEL, Tube, type Placement, type V3 } from "./kit";
+import { LAYOUTS } from "@/game/training/venue-layouts";
+import { LayoutColliders, LayoutFurniture } from "./layout-furniture";
 import { tex } from "./textures";
 
-/** TV production studio: black box with a green cyclorama, pipe lighting grid, pedestal cameras, jib and a gallery window. */
+/**
+ * Mission Hall S venue (layout `studioMission`): enlarged TV studio — black box, green cyclorama, pipe lighting grid, jib,
+ * gallery window. Mission-only: the free-practice Studio Room 01 (studio-room-01.tsx / GLB) is a separate scene and is untouched.
+ */
 const ROOM = { x0: -8.6, x1: 8.6, z0: -D / 2 - 0.05, z1: 9.5, h: 6.4 };
 const THAI = "'Sarabun','Leelawadee UI','Tahoma',sans-serif";
 
@@ -49,35 +54,6 @@ function useFresnels() {
   }, []);
 }
 
-/** Studio camera on a pneumatic pedestal with teleprompter. */
-function PedestalCamera({ p, ry = 0, tally = false }: { p: V3; ry?: number; tally?: boolean }) {
-  return <group position={p} rotation={[0, ry, 0]}>
-    <Lathe p={[0, 0, 0]} prof={[[0, 0.08], [0.42, 0.08], [0.46, 0.12], [0.46, 0.2], [0.3, 0.24], [0, 0.24]]} c="#2b2e34" m={0.5} r={0.4} />
-    {[0, 1, 2].map((k) => { const a = (k / 3) * Math.PI * 2; return <group key={k} position={[Math.cos(a) * 0.4, 0.05, Math.sin(a) * 0.4]}>
-      <RB p={[0, 0.03, 0]} s={[0.1, 0.05, 0.12]} rad={0.012} {...BLACK_METAL} />
-      <mesh rotation={[0, 0, Math.PI / 2]} castShadow><cylinderGeometry args={[0.05, 0.05, 0.05, 16]} /><meshStandardMaterial color="#121212" roughness={0.9} /></mesh>
-    </group>; })}
-    <Cyl p={[0, 0.65, 0]} rt={0.09} rb={0.12} h={0.85} {...STEEL} />
-    <Cyl p={[0, 1.0, 0]} rt={0.065} h={0.3} {...CHROME} />
-    <mesh position={[0, 0.95, 0]} rotation={[Math.PI / 2, 0, 0]} castShadow><torusGeometry args={[0.36, 0.022, 10, 40]} /><meshStandardMaterial color="#c8c8c8" metalness={0.9} roughness={0.25} /></mesh>
-    {[0, 1, 2].map((k) => { const a = (k / 3) * Math.PI * 2 + 0.5; return <Tube key={k} pts={[[0, 0.95, 0], [Math.cos(a) * 0.36, 0.95, Math.sin(a) * 0.36]]} r={0.012} {...CHROME} />; })}
-    <RB p={[0, 1.2, 0]} s={[0.3, 0.12, 0.34]} rad={0.03} {...BLACK_METAL} />
-    {/* camera body + lens + viewfinder */}
-    <RB p={[0, 1.42, 0.08]} s={[0.26, 0.3, 0.5]} rad={0.04} c="#3a3d44" m={0.3} r={0.45} />
-    <RB p={[0, 1.42, -0.3]} s={[0.24, 0.24, 0.36]} rad={0.04} c="#ececec" r={0.35} />
-    <Cyl p={[0, 1.42, -0.52]} rot={[Math.PI / 2, 0, 0]} rt={0.1} h={0.1} {...BLACK_METAL} />
-    <RB p={[0, 1.72, 0.12]} s={[0.3, 0.2, 0.22]} rad={0.03} {...BLACK_METAL} />
-    <RB p={[0, 1.72, 0.235]} s={[0.24, 0.15, 0.01]} rad={0.004} c="#1a2a44" e="#4a7ac0" ei={0.8} />
-    {/* teleprompter: hood + angled glass + monitor */}
-    <RB p={[0, 1.42, -0.76]} s={[0.56, 0.46, 0.42]} rad={0.03} c="#16181c" r={0.8} />
-    <Slab p={[0, 1.42, -0.98]} rot={[0.78, 0, 0]} s={[0.5, 0.56, 0.006]} c="#7da6c8" m={0.2} r={0.05} transparent opacity={0.35} />
-    <RB p={[0, 1.17, -0.95]} s={[0.5, 0.04, 0.38]} rad={0.012} c="#0d0e10" />
-    {[-1, 1].map((s) => <Tube key={s} pts={[[s * 0.15, 1.3, 0.3], [s * 0.3, 1.25, 0.6], [s * 0.32, 1.22, 0.72]]} r={0.018} {...STEEL} />)}
-    <Ball p={[0.14, 1.62, -0.25]} r={0.018} c={tally ? "#ff2020" : "#331111"} e={tally ? "#ff2020" : "#000"} ei={tally ? 3 : 0} />
-    <Tube pts={[[0, 0.3, 0.2], [0, 0.04, 0.45], [0.3, 0.02, 1.4], [0.2, 0.02, 3]]} r={0.014} c="#111" />
-  </group>;
-}
-
 /** Jib crane with counterweights and remote head. */
 function Jib({ p, ry = 0 }: { p: V3; ry?: number }) {
   return <group position={p} rotation={[0, ry, 0]}>
@@ -94,16 +70,6 @@ function Jib({ p, ry = 0 }: { p: V3; ry?: number }) {
       </group>
     </group>
   </group>;
-}
-
-function Stanchions({ from, to, n }: { from: V3; to: V3; n: number }) {
-  const posts = Array.from({ length: n }, (_, i): V3 => [from[0] + ((to[0] - from[0]) * i) / (n - 1), 0, from[2] + ((to[2] - from[2]) * i) / (n - 1)]);
-  return <>
-    {posts.map((q, i) => <group key={i} position={q}>
-      <Lathe p={[0, 0, 0]} prof={[[0, 0], [0.16, 0], [0.17, 0.02], [0.06, 0.05], [0.025, 0.07], [0.025, 0.95], [0.035, 0.97], [0, 0.99]]} {...CHROME} />
-    </group>)}
-    {posts.slice(1).map((q, i) => { const a = posts[i]; return <Tube key={`b${i}`} pts={[[a[0], 0.92, a[2]], [(a[0] + q[0]) / 2, 0.82, (a[2] + q[2]) / 2], [q[0], 0.92, q[2]]]} r={0.02} c="#151515" />; })}
-  </>;
 }
 
 export function Studio() {
@@ -126,7 +92,6 @@ export function Studio() {
     {/* key/fill from the grid onto the set */}
     <spotLight position={[-3, h - 1.2, 3.5]} target-position={[0, 0.8, -1]} angle={0.6} penumbra={0.5} intensity={60} distance={14} color="#fff2dc" castShadow shadow-mapSize={[2048, 2048]} shadow-normalBias={0.03} />
     <spotLight position={[3.5, h - 1.2, 3]} target-position={[0, 0.8, -1]} angle={0.65} penumbra={0.7} intensity={35} distance={14} color="#e8f0ff" />
-    <spotLight position={[0, h - 1.2, -3]} target-position={[0, 0, -4.4]} angle={0.9} penumbra={0.8} intensity={30} distance={10} color="#f2fff2" />
     <pointLight position={[0, 3, 6]} intensity={5} distance={12} color="#cdd8ff" />
     {/* dimmed house lights over the camera floor behind the set */}
     {[-4, 0, 4].map((x) => <group key={x}>
@@ -134,15 +99,14 @@ export function Studio() {
       <RB p={[x, h - 0.95, 6.8]} s={[0.9, 0.06, 0.3]} rad={0.02} c="#fff2dc" e="#ffdca0" ei={1.2} />
     </group>)}
     {/* work light over both side tables so plugs and cables read clearly */}
-    {[-4.9, 4.9].map((x) => <spotLight key={x} position={[x * 0.85, h - 1.2, -0.2]} target-position={[x, 0.78, -0.2]} angle={0.75} penumbra={0.8} intensity={28} distance={9} color="#fff6ea" />)}
 
     {/* floor: sealed concrete with gaffer-tape marks */}
     <Slab p={[(x0 + x1) / 2, -0.05, (z0 + z1) / 2]} s={[x1 - x0, 0.1, z1 - z0]} map={floorTex} c="#ffffff" r={0.28} m={0.1} />
-    {[[-2.6, 2.6], [0.4, 3.0], [2.4, 2.4]].map(([x, z], i) => <group key={i}>
-      <Slab p={[x, 0.002, z]} s={[0.3, 0.004, 0.05]} c="#f2c230" />
-      <Slab p={[x, 0.002, z]} s={[0.05, 0.004, 0.3]} c="#f2c230" />
-    </group>)}
-    <Slab p={[0, 0.002, D / 2 - 0.15]} s={[W - 0.4, 0.004, 0.05]} c="#ffffff" />
+    {/* gaffer-tape marks at the three tripod positions of the mission layout */}
+    {(["cam1", "cam2", "cam3"] as const).map((id) => { const [x, , z] = LAYOUTS.studioMission.places[id].p; return <group key={id}>
+      <Slab p={[x, 0.002, z]} s={[0.4, 0.004, 0.05]} c="#f2c230" />
+      <Slab p={[x, 0.002, z]} s={[0.05, 0.004, 0.4]} c="#f2c230" />
+    </group>; })}
 
     {/* acoustic black walls (panelled) */}
     {([[x0, (z0 + z1) / 2, z1 - z0, 1], [x1, (z0 + z1) / 2, z1 - z0, 1], [(x0 + x1) / 2, z1, x1 - x0, 0]] as const).map(([x, z, len, side], i) => <group key={i}>
@@ -198,20 +162,16 @@ export function Studio() {
       </group>)}
     </group>
 
-    {/* cameras behind the floor line, a jib to the left, stanchions marking the working area */}
-    <PedestalCamera p={[-2.2, 0, 6.2]} ry={0.25} tally />
-    <PedestalCamera p={[1.2, 0, 6.6]} ry={-0.05} />
-    <PedestalCamera p={[4.4, 0, 5.8]} ry={-0.45} />
-    <Jib p={[-5.2, 0, 8.6]} ry={Math.PI / 2 + 0.45} />
-    <Stanchions from={[-W / 2 + 0.1, 0, D / 2 + 0.15]} to={[W / 2 - 0.1, 0, D / 2 + 0.15]} n={9} />
-    <Stanchions from={[W / 2 + 0.15, 0, -D / 2 + 1]} to={[W / 2 + 0.15, 0, D / 2 + 0.15]} n={6} />
-    <Stanchions from={[-W / 2 - 0.15, 0, -D / 2 + 1]} to={[-W / 2 - 0.15, 0, D / 2 + 0.15]} n={6} />
+    {/* a jib parked in the back-left corner (scenery; the mission cameras are interactive devices) */}
+    <Jib p={[-6.8, 0, 8.4]} ry={Math.PI / 2 + 0.45} />
     {/* cable snakes and a coiled cable on the floor */}
-    {[[-2.2, 6.2, -1.5, 9.2], [1.2, 6.6, 3.5, 9.2]].map(([a, b, c, d], i) => <Tube key={i} pts={[[a, 0.02, b], [(a + c) / 2 + 0.4, 0.02, (b + d) / 2], [c, 0.02, d]]} r={0.018} c="#101010" />)}
     <mesh position={[6.6, 0.02, 0.5]} rotation={[Math.PI / 2, 0, 0]}><torusGeometry args={[0.32, 0.03, 8, 32]} /><meshStandardMaterial color="#111" roughness={0.7} /></mesh>
     <RB p={[7.4, 0.35, -1.6]} s={[0.6, 0.7, 0.6]} rad={0.04} map={tex.fabric("#202124", [2, 2])} c="#ffffff" r={0.85} />
 
-    <WorkFurniture style={{ top: "#6a5a4a", edge: "#1a1c20", frame: { ...BLACK_METAL }, round: "anchor", sides: "racks", led: "#3a7bff" }} />
-    <Bounds />
+    {/* floor cable tray from the camera marks to the production desk (route guide) */}
+    <RB p={[0, 0.02, 1.9]} s={[6.4, 0.04, 0.22]} rad={0.015} c="#202226" />
+    <RB p={[0, 0.02, 2.6]} s={[0.22, 0.04, 1.4]} rad={0.015} c="#202226" />
+    <LayoutFurniture layout={LAYOUTS.studioMission} look={{ top: "#6a5a4a", frame: { ...BLACK_METAL } }} />
+    <LayoutColliders layout={LAYOUTS.studioMission} />
   </>;
 }

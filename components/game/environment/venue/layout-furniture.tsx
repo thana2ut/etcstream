@@ -109,9 +109,9 @@ function AudienceTable({ f, look }: { f: Furniture; look: FurnitureLook }) {
     <RB p={[0, h - 0.01, 0]} s={[w, 0.02, 0.6]} rad={0.008} c="#fbfaf7" />
     <RB p={[0, (h - 0.02) / 2, 0]} s={[w + 0.02, h - 0.02, 0.62]} rad={0.008} map={tex.fabric(look.cloth ?? "#fbfaf7", [4, 1])} c="#ffffff" r={0.95} />
     {[-w / 4, w / 4].flatMap((x) => [-1, 1].map((s) => <group key={`${x}${s}`} position={[x, 0, s * 0.55]} rotation={[0, s > 0 ? 0 : Math.PI, 0]}>
-      <RB p={[0, 0.46, 0]} s={[0.44, 0.08, 0.44]} rad={0.035} map={tex.fabric("#f5f3ef")} c="#ffffff" r={0.92} />
-      <RB p={[0, 0.22, 0]} s={[0.44, 0.44, 0.44]} rad={0.03} map={tex.fabric("#f5f3ef")} c="#ffffff" r={0.92} />
-      <RB p={[0, 0.85, 0.2]} rot={[-0.08, 0, 0]} s={[0.44, 0.7, 0.07]} rad={0.03} map={tex.fabric("#f5f3ef")} c="#ffffff" r={0.92} />
+      {/* low-detail banquet chair: seat block + back (keeps large halls smooth) */}
+      <RB p={[0, 0.25, 0]} s={[0.44, 0.5, 0.44]} rad={0.03} c="#f5f3ef" r={0.92} />
+      <RB p={[0, 0.85, 0.2]} rot={[-0.08, 0, 0]} s={[0.44, 0.7, 0.07]} rad={0.03} c="#f5f3ef" r={0.92} />
     </group>))}
   </group>;
 }
@@ -120,12 +120,9 @@ function ChairBlock({ f }: { f: Furniture }) {
   const [w] = f.size;
   const n = Math.max(2, Math.round(w / 0.52));
   return <group>{Array.from({ length: n }, (_, i) => <group key={i} position={[-w / 2 + 0.26 + i * ((w - 0.52) / (n - 1)), 0, 0]}>
-    <RB p={[0, 0.45, 0]} s={[0.42, 0.03, 0.4]} rad={0.012} c="#2c3e63" />
+    {/* low-detail folding chair: seat on a solid frame + back (no tube legs) */}
+    <RB p={[0, 0.235, 0]} s={[0.4, 0.47, 0.38]} rad={0.012} c="#2c3e63" />
     <RB p={[0, 0.78, 0.19]} rot={[-0.15, 0, 0]} s={[0.42, 0.3, 0.025]} rad={0.012} c="#2c3e63" />
-    {[-1, 1].map((s) => <group key={s}>
-      <Tube pts={[[s * 0.2, 0, -0.2], [s * 0.2, 0.45, 0.05], [s * 0.2, 0.95, 0.24]]} r={0.01} {...STEEL} />
-      <Tube pts={[[s * 0.2, 0, 0.22], [s * 0.2, 0.45, -0.1]]} r={0.01} {...STEEL} />
-    </group>)}
   </group>)}</group>;
 }
 

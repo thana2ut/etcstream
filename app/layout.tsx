@@ -1,10 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { academyCopy } from "@/game/content/academy-copy";
 import { AudioProvider } from "@/components/audio/audio-provider";
+import { PageLock } from "@/components/ui/page-lock";
 import "./globals.css";
 import "./app-shell.css";
 import "./cultivation-theme.css";
 import "./xianxia-theme.css";
+import "./cable-lobby.css";
 
 export const metadata: Metadata = {
   title: `${academyCopy.brand} | ${academyCopy.worldTitle}`,
@@ -27,7 +29,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="th">
-      <body><AudioProvider>{children}</AudioProvider></body>
+      <body><PageLock /><AudioProvider>{children}</AudioProvider></body>
     </html>
   );
 }

@@ -807,3 +807,15 @@ button:focus-visible,a:focus-visible,input:focus-visible{
 @media(max-width:760px){.intro-sections{grid-template-columns:1fr}.role-panel{grid-template-columns:1fr}.path-grid{grid-template-columns:1fr}.path-card{min-height:350px}.chamber-content{padding-top:40px}.chamber-intro{margin-bottom:45px}.play-intro-backdrop{padding-top:68px}}
 @media(max-width:480px){.entry-header{padding-top:26px}.entry-header strong{font-size:.75rem}.entry-header small{font-size:.65rem}.intro-panel{margin:15px 0 55px}.intro-sections section{padding:19px}.intro-banner{margin-bottom:32px}.intro-banner .intro-poem{font-size:1rem!important}.entry-footer span{display:none}.reveal-top{align-items:start}.mission-facts>div{flex:1}.play-intro{max-height:calc(100vh - 90px)}}
 @media(prefers-reduced-motion:reduce){.stage-reveal,.intro-panel,.intro-closing,.circuit-seal,.energy-line{animation:none!important}*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important}}
+
+/* App-like page lock: a two-finger horizontal swipe (trackpad) or edge overscroll must never trigger browser
+   back / forward. Applies to the page and every inner scroll area (panels, lists, the cable lobby). */
+html, body { overscroll-behavior: none; }
+* { overscroll-behavior-x: none; }
+
+/* Thai line breaking: browsers break Thai at dictionary word boundaries, which can leave one short word alone on the
+   last line ("…เพื่อต่อ / สาย"). `pretty` avoids those orphans in running text; short UI text is balanced so every
+   line is about the same length. `overflow-wrap` only kicks in for unbreakable runs (long IDs / URLs). */
+body { text-wrap: pretty; overflow-wrap: break-word; line-height: 1.6; }
+h1, h2, h3, h4, h5, h6, button, label, summary, th, .training-feedback, .hud-panel-title, .hud-check-item span,
+.prompt-action-pill, .cl-slot-name, .cl-bag-pick strong, .mission-plaque strong { text-wrap: balance; }

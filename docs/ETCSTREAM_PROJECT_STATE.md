@@ -66,3 +66,27 @@ See `docs/EQUIPMENT_INVENTORY.md`. Summary:
   `public/models/environment/studio-room-01.glb` remains in the repo but is no longer loaded by mission mode.
 - Scenario equipment placement is automatic (perimeter of the centre table + staging table); dense levels (XL-5)
   may crowd port labels — needs a visual pass during playtest.
+
+## Mission Hall — 5 chapters × 5 levels restored (2026-10-12, mission-only)
+
+- คืนหน้าหอภารกิจแบบเดิม (การ์ด 5 บท + ระดับ 1–5 ต่อบท) และทางเล่น first-person เดิม; ยกเลิกแคมเปญ 5 ด่านแบบแบนที่ทำไว้ก่อนหน้า (ลบไฟล์ `game/mission-hall/*`, `components/mission-hall/*` ซึ่งยังไม่เคย commit)
+- `game/training/venue-scenarios.ts` เขียนกราฟ 25 ด่านใหม่ตามงานวิจัย 5 สถานที่ (รายละเอียด `docs/MISSION_HALL_5_CHAPTERS_25_LEVELS.md`)
+- `VENUE_SCENE_ONLY = false` — ฉากภารกิจแสดงอุปกรณ์/พอร์ต/สายอีกครั้ง; จอในฉากแสดงตามสายที่เสียบจริง
+- ความรู้อุปกรณ์ภารกิจ: `game/content/mission-equipment-info.ts` (หน้าดูอุปกรณ์ใช้เฉพาะเมื่อ scenario มี venueScale)
+- ห้องฝึกอิสระ (`studio-full`, `hdmi-basic`, Studio Room 01) ไม่ได้แก้ · NOT TESTED / NOT PLAYTESTED
+
+## Mission Hall — research-locked, enlarged mission venues (2026-10-12, mission-only)
+
+- ขยายฉากภารกิจ 4 ห้องด้วย `VENUE_SCALE` (ห้องเรียน 1.45, หอประชุม 1.35, ภายนอก 1.35, สนามกีฬา 1.3) — ผังและเปลือกฉากขยายตามกัน; เป็นค่าออกแบบเกม ไม่ใช่ขนาดจริง (`docs/MISSION_HALL_VENUE_LAYOUTS.md`)
+- สตูดิโอภารกิจใช้ผังใหม่ `studioMission` + ฉาก `venue/studio.tsx` (แยกจาก Studio Room 01 ที่ไม่ได้แตะ)
+- บท 03 ใช้ไมค์ตามงานวิจัย: Podium + Handheld ไร้สาย ×2 + Lav ×2 (RX แยกเครื่อง)
+- การ์ดความรู้ในภารกิจเป็นการ์ดเล็กข้างจอ (ห้องฝึกอิสระยังเป็นหน้าดูอุปกรณ์เต็มจอเหมือนเดิม)
+- เอกสารใหม่: `MISSION_HALL_VENUE_LAYOUTS.md`, `MISSION_EQUIPMENT_MODELING_BACKLOG.md` (งานปั้น NOT STARTED), `MISSION_SIGNAL_FLOW_SOURCE_MATRIX.md`
+- NOT TESTED / NOT PLAYTESTED
+
+## Mission Hall — complete in-world stock + smooth-play pass (2026-10-12, mission-only)
+
+- สนามกีฬา: CCU แยก 6 เครื่อง (คู่ระบบกล้อง 1–6) แทน rack เดียว · คลังสายเป็น technical cable rack 2 ชั้นขนาดใหญ่ขึ้น
+- ป้ายโซนภาษาไทยในฉากภารกิจ (คลังอุปกรณ์, คลังสาย, โต๊ะควบคุม, จุดกล้อง, ข้างเวที, จุดสตรีม, ตู้ Rack ...)
+- เอกสาร: `MISSION_HALL_EQUIPMENT_PLACEMENT_AND_STOCK.md`, `MISSION_HALL_PERFORMANCE_AND_ACCESSIBILITY.md`
+- NOT TESTED / NOT PLAYTESTED · ไม่ได้วัด FPS

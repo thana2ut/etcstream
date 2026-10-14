@@ -18,8 +18,8 @@ import { VENUE_SCENARIOS } from "./venue-scenarios";
 
 export type Point3 = [number, number, number];
 export type Direction = "INPUT" | "OUTPUT";
-export type Connector = "HDMI" | "USB-A" | "USB-C" | "3.5mm" | "6.35mm" | "XLR" | "XLR-M" | "XLR-F" | "SDI" | "RCA" | "speakON" | "IEC" | "DisplayPort" | "DC" | "ETHERNET" | "FIBER";
-export type SignalType = "VIDEO_HDMI" | "VIDEO_SDI" | "AUDIO_ANALOG" | "AUDIO_BALANCED" | "USB_DATA" | "NETWORK" | "FIBER_VIDEO";
+export type Connector = "HDMI" | "USB-A" | "USB-C" | "3.5mm" | "6.35mm" | "XLR" | "XLR-M" | "XLR-F" | "SDI" | "RCA" | "speakON" | "IEC" | "DisplayPort" | "DC" | "ETHERNET" | "FIBER" | "MULTICORE" | "GPI" | "RS422" | "XLR4";
+export type SignalType = "VIDEO_HDMI" | "VIDEO_SDI" | "AUDIO_ANALOG" | "AUDIO_BALANCED" | "USB_DATA" | "NETWORK" | "FIBER_VIDEO" | "AUDIO_MULTICORE" | "CONTROL" | "COMMS";
 /** Visual style of a plug end (see components/game/cable-plugs.tsx). */
 export type PlugStyle = "fiber" | "ethernet" | "hdmi" | "sdi" | "xlr-m" | "xlr-f" | "trs35" | "trrs35" | "ts635" | "trs635" | "speaker635" | "rca" | "usba" | "usba3" | "usbc" | "dp" | "iec" | "dc" | "lav" | "adapter35to635" | "adapter635to35";
 export type VenueScale = "xs" | "s" | "m" | "l" | "xl";

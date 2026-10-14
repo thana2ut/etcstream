@@ -1,11 +1,15 @@
 "use client";
 
 import { CuboidCollider, RigidBody } from "@react-three/rapier";
-import { LAYOUTS } from "@/game/training/venue-layouts";
+import { LAYOUTS, VENUE_SCALE } from "@/game/training/venue-layouts";
 import { LayoutColliders, LayoutFurniture } from "./layout-furniture";
-import { VenueLighting, BLACK_METAL, CHROME, Cyl, D, H, Lathe, RB, Slab, STEEL, Tube, W, type V3 } from "./kit";
+import { VenueLighting, BLACK_METAL, CHROME, Cyl, D as BASE_D, H, Lathe, RB, Slab, STEEL, Tube, W as BASE_W, type V3 } from "./kit";
 import { tex } from "./textures";
 
+/** Mission classroom is enlarged with its layout (VENUE_SCALE, a game-design choice): shell and wall fittings follow. */
+const K = VENUE_SCALE.classroom;
+const W = BASE_W * K, D = BASE_D * K;
+const k = (v: number) => +(v * K).toFixed(3);
 const BACK = -D / 2;
 
 /** Whiteboard writing: lesson title and a signal-flow sketch in marker. */
@@ -105,8 +109,8 @@ export function Classroom() {
     <hemisphereLight args={["#ffffff", "#8a7f70", 0.63]} />
     <ambientLight intensity={0.12} />
     {/* daylight through the window wall */}
-    <directionalLight position={[-9, 4.5, 1]} target-position={[0, 0, 0]} intensity={2.2} color="#fff7e8" castShadow shadow-mapSize={[2048, 2048]} shadow-camera-left={-7} shadow-camera-right={7} shadow-camera-top={6} shadow-camera-bottom={-6} shadow-normalBias={0.03} />
-    {[-2.4, 1.6].map((z) => <pointLight key={z} position={[0, H - 0.4, z]} intensity={4} distance={9} color="#f2f6ff" />)}
+    <directionalLight position={[-9, 4.5, 1]} target-position={[0, 0, 0]} intensity={2.2} color="#fff7e8" castShadow shadow-mapSize={[2048, 2048]} shadow-camera-left={-10} shadow-camera-right={10} shadow-camera-top={9} shadow-camera-bottom={-9} shadow-normalBias={0.03} />
+    {[-2.4, 1.6].map((z) => <pointLight key={z} position={[0, H - 0.4, k(z)]} intensity={4} distance={12} color="#f2f6ff" />)}
 
     {/* shell: tiled floor, painted walls with a washable dado band, skirting, T-bar ceiling */}
     <Slab p={[0, -0.05, 0]} s={[W, 0.1, D]} map={floor} c="#ffffff" r={0.35} />
@@ -117,10 +121,10 @@ export function Classroom() {
       <Slab p={[x + (side ? Math.sign(-x) * 0.06 : 0), 0.05, z + (side ? 0 : Math.sign(-z) * 0.06)]} s={side ? [0.02, 0.1, len] : [len, 0.1, 0.02]} c="#5f5246" r={0.5} />
       <Slab p={[x + (side ? Math.sign(-x) * 0.058 : 0), 1.1, z + (side ? 0 : Math.sign(-z) * 0.058)]} s={side ? [0.016, 0.03, len] : [len, 0.03, 0.016]} c="#6f8388" />
     </group>)}
-    {[-3.6, -1.2, 1.2, 3.6].flatMap((x) => [-2.6, 0.2, 3].map((z) => <CeilingTroffer key={`${x}${z}`} p={[x, H - 0.005, z]} />))}
+    {[-3.6, -1.2, 1.2, 3.6].flatMap((x) => [-2.6, 0.2, 3].map((z) => <CeilingTroffer key={`${x}${z}`} p={[k(x), H - 0.005, k(z)]} />))}
 
     {/* whiteboard with aluminium frame, marker tray, markers and eraser */}
-    <group position={[-1.5, 1.55, BACK + 0.08]}>
+    <group position={[k(-1.5), 1.55, BACK + 0.08]}>
       <RB p={[0, 0, 0]} s={[3.3, 1.3, 0.04]} rad={0.015} {...CHROME} c="#c8ccd1" />
       <Slab p={[0, 0, 0.022]} s={[3.22, 1.22, 0.004]} map={board} c="#ffffff" r={0.12} />
       <RB p={[0, -0.68, 0.06]} s={[3.1, 0.03, 0.09]} rad={0.012} {...CHROME} c="#b8bdc3" />
@@ -132,12 +136,12 @@ export function Classroom() {
     </group>
 
     {/* ceiling projector + pull-down screen */}
-    <group position={[1.9, 0, BACK]}>
+    <group position={[k(1.9), 0, BACK]}>
       <RB p={[0, 2.92, 0.1]} s={[2.5, 0.1, 0.12]} rad={0.04} c="#f2f2f0" />
       <Slab p={[0, 1.95, 0.11]} s={[2.3, 1.75, 0.006]} map={slide} c="#ffffff" e="#ffffff" ei={0.25} r={0.9} />
       <Slab p={[0, 1.04, 0.11]} s={[2.32, 0.04, 0.02]} c="#2a2a2a" />
     </group>
-    <group position={[1.6, H - 0.02, 0.6]}>
+    <group position={[k(1.6), H - 0.02, k(0.6)]}>
       <Cyl p={[0, -0.18, 0]} rt={0.02} h={0.36} {...STEEL} />
       <RB p={[0, -0.42, 0]} s={[0.36, 0.12, 0.3]} rad={0.035} c="#f1f1ef" r={0.4} />
       <Cyl p={[0.08, -0.42, -0.16]} rt={0.04} h={0.04} rot={[Math.PI / 2, 0, 0]} c="#151515" m={0.3} r={0.2} />
@@ -145,21 +149,21 @@ export function Classroom() {
     </group>
 
     {/* windows on the left wall, door + split AC on the right */}
-    {[-2.7, 0, 2.7].map((z) => <Window key={z} z={z} />)}
-    <group position={[W / 2 - 0.06, 0, 2.6]}>
+    {[-2.7, 0, 2.7].map((z) => <Window key={z} z={k(z)} />)}
+    <group position={[W / 2 - 0.06, 0, k(2.6)]}>
       <RB p={[-0.02, 1.05, 0]} s={[0.06, 2.12, 1.06]} rad={0.012} c="#e9e3d8" />
       <RB p={[-0.04, 1.03, 0]} s={[0.05, 2.04, 0.94]} rad={0.01} map={door} c="#ffffff" r={0.5} />
       <Tube pts={[[-0.1, 1.0, -0.38], [-0.14, 1.0, -0.38], [-0.14, 1.0, -0.26]]} r={0.01} {...CHROME} />
       <RB p={[-0.07, 1.65, 0.2]} s={[0.01, 0.34, 0.24]} rad={0.004} c="#d8ecff" e="#d8ecff" ei={0.3} />
     </group>
-    <group position={[W / 2 - 0.16, 2.65, -1]}>
+    <group position={[W / 2 - 0.16, 2.65, k(-1)]}>
       <RB p={[0, 0, 0]} s={[0.22, 0.3, 0.95]} rad={0.08} c="#f7f7f5" r={0.35} />
       <RB p={[-0.1, -0.11, 0]} s={[0.03, 0.04, 0.85]} rad={0.012} c="#d9dbdd" />
       <mesh position={[-0.112, 0.06, 0.38]}><sphereGeometry args={[0.008, 8, 8]} /><meshStandardMaterial color="#3cf07a" emissive="#3cf07a" emissiveIntensity={2} /></mesh>
     </group>
 
     {/* cork pinboard with notices, wall clock */}
-    <group position={[W / 2 - 0.07, 1.7, -2.6]}>
+    <group position={[W / 2 - 0.07, 1.7, k(-2.6)]}>
       <RB p={[0, 0, 0]} s={[0.05, 1.05, 1.7]} rad={0.015} map={tex.wood("#9a6c40")} c="#ffffff" />
       <Slab p={[-0.028, 0, 0]} s={[0.004, 0.95, 1.6]} map={cork} c="#ffffff" r={0.95} />
       {[[-0.2, 0.25, -0.55, 0.05], [0.18, 0.2, -0.15, -0.06], [-0.15, -0.2, 0.25, 0.03], [0.15, 0.3, 0.6, 0.07], [-0.05, -0.25, -0.5, -0.04]].map(([dy, , dz, rz], i) => <group key={i} position={[-0.033, dy, dz]} rotation={[rz, 0, 0]}>
@@ -176,7 +180,7 @@ export function Classroom() {
     </group>
 
     {/* steel lockers + posters on the wall behind the spawn point */}
-    <group position={[-4.15, 0, D / 2 - 0.25]}>
+    <group position={[k(-4.15), 0, D / 2 - 0.25]}>
       {Array.from({ length: 6 }, (_, i) => <group key={i} position={[-1.15 + i * 0.46, 0, 0]}>
         <RB p={[0, 0.92, 0]} s={[0.44, 1.8, 0.42]} rad={0.012} c="#8d99a6" m={0.5} r={0.45} />
         <RB p={[0, 0.92, -0.212]} s={[0.4, 1.72, 0.01]} rad={0.004} c="#9aa6b2" m={0.5} r={0.4} />
@@ -187,15 +191,15 @@ export function Classroom() {
       <RB p={[0, 1.86, 0]} s={[2.8, 0.04, 0.44]} rad={0.01} c="#7d8995" m={0.5} />
       <RB p={[0, 0.03, 0]} s={[2.8, 0.06, 0.4]} rad={0.01} c="#3c434b" />
     </group>
-    {[["poster-a", -5.0, "#1d4fb0", "กติกาห้องเรียน"], ["poster-b", -3.3, "#2f8f46", "ความปลอดภัยทางไฟฟ้า"]].map(([k, x, col, title]) => <Slab key={String(k)} p={[Number(x), 2.45, D / 2 - 0.06]} rot={[0, Math.PI, 0]} s={[1.1, 0.75, 0.01]} c="#ffffff" map={tex.sign(String(k), 320, 220, (c, w, h) => {
+    {[["poster-a", -5.0, "#1d4fb0", "กติกาห้องเรียน"], ["poster-b", -3.3, "#2f8f46", "ความปลอดภัยทางไฟฟ้า"]].map(([key, x, col, title]) => <Slab key={String(key)} p={[k(Number(x)), 2.45, D / 2 - 0.06]} rot={[0, Math.PI, 0]} s={[1.1, 0.75, 0.01]} c="#ffffff" map={tex.sign(String(key), 320, 220, (c, w, h) => {
       c.fillStyle = "#fbfbf8"; c.fillRect(0, 0, w, h); c.fillStyle = String(col); c.fillRect(0, 0, w, 54);
       c.fillStyle = "#fff"; c.font = "bold 28px 'Sarabun','Leelawadee UI',sans-serif"; c.fillText(String(title), 16, 37);
       c.fillStyle = "#333"; for (let i = 0; i < 5; i++) { c.beginPath(); c.arc(24, 84 + i * 28, 5, 0, 7); c.fill(); c.fillRect(40, 80 + i * 28, 200 - (i % 2) * 60, 8); }
     })} />)}
 
     {/* student desk sets along the front wall, waste bin, fire extinguisher */}
-    <Lathe p={[-5.35, 0, 3.55]} prof={[[0, 0], [0.13, 0], [0.16, 0.36], [0.165, 0.37], [0.15, 0.37], [0.12, 0.02], [0, 0.02]]} c="#3a6fb0" r={0.5} />
-    <group position={[-W / 2 + 0.16, 0, -3.95]}>
+    <Lathe p={[k(-5.35), 0, k(3.55)]} prof={[[0, 0], [0.13, 0], [0.16, 0.36], [0.165, 0.37], [0.15, 0.37], [0.12, 0.02], [0, 0.02]]} c="#3a6fb0" r={0.5} />
+    <group position={[-W / 2 + 0.16, 0, k(-3.95)]}>
       <Lathe p={[0, 0, 0]} prof={[[0, 0], [0.075, 0], [0.08, 0.04], [0.08, 0.5], [0.06, 0.56], [0.025, 0.6], [0, 0.6]]} c="#c8201d" r={0.3} m={0.2} />
       <RB p={[0, 0.63, 0]} s={[0.05, 0.06, 0.05]} rad={0.012} {...BLACK_METAL} />
       <Tube pts={[[0, 0.62, 0.02], [0.02, 0.5, 0.08], [0.03, 0.3, 0.09]]} r={0.008} c="#111" />
@@ -206,6 +210,6 @@ export function Classroom() {
         teacher desk + TV at the front, student desks between, tripod camera rear-centre. */}
     <LayoutFurniture layout={LAYOUTS.classroom} look={{ top: "#cfa774", frame: { ...STEEL, c: "#6a7078" } }} />
     <LayoutColliders layout={LAYOUTS.classroom} />
-    <RigidBody type="fixed" colliders={false}><CuboidCollider position={[-4.15, 0.95, D / 2 - 0.25]} args={[1.4, 0.95, 0.22]} /></RigidBody>
+    <RigidBody type="fixed" colliders={false}><CuboidCollider position={[k(-4.15), 0.95, D / 2 - 0.25]} args={[1.4, 0.95, 0.22]} /></RigidBody>
   </>;
 }

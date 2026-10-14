@@ -9,7 +9,7 @@ import { STUDIO } from "./studio-room-layout";
  * Furniture is axis-aligned; `center` is the floor centre, `size` = [x width, height, z depth].
  */
 export type Point3 = [number, number, number];
-export type LayoutId = "studio" | "classroom" | "auditorium" | "outdoor" | "stadium";
+export type LayoutId = "studio" | "studioMission" | "classroom" | "auditorium" | "outdoor" | "stadium";
 
 export interface Spot { p: Point3; yaw: number; label?: string }
 export interface Surface { shape: "round" | "rect"; center: Point3; radius?: number; size?: [number, number]; front: 1 | -1;
@@ -148,6 +148,11 @@ const auditorium: VenueLayout = {
     display: at(8.3, 0, -2.9, -Math.PI / 2, "LED processor ข้างเวทีขวา"),
     mic1: at(-2.2, 1.9, -4.6, 0, "Podium บนเวที"),
     mic2: at(5.8, 0.8, -4.25, 0, "ขาไมค์ Handheld หน้าเวทีขวา"),
+    // Wireless receivers live side-stage on their own road case, next to the stagebox (short XLR runs).
+    hhrx1: at(7.1, 0.85, -4.05, -Math.PI / 2, "ข้างเวทีขวา: RX Handheld 1"), hhrx2: at(7.1, 0.85, -3.6, -Math.PI / 2, "ข้างเวทีขวา: RX Handheld 2"),
+    lavrx1: at(7.1, 0.85, -3.15, -Math.PI / 2, "ข้างเวทีขวา: RX Lav 1"), lavrx2: at(7.1, 0.85, -2.7, -Math.PI / 2, "ข้างเวทีขวา: RX Lav 2"),
+    hh1: at(4.4, 1.15, -4.7, 0, "หน้าเวทีขวา: Handheld 1"), hh2: at(5.1, 1.15, -4.7, 0, "หน้าเวทีขวา: Handheld 2"),
+    tx2: at(0.2, 0.8, -4.35, 0, "จุดวิทยากรบนเวที"), lav2: at(0.6, 0.8, -4.35, 0),
     slides: at(-4.4, 0.76, -3.3, 0, "โต๊ะ Presentation หน้าเวทีซ้าย"),
     tx1: at(-1.2, 0.8, -4.35, 0, "จุดพิธีกรบนเวที"), lav1: at(-7.95, 0.85, -4.25, 0),
     cam1: cam(0, 3.95, [0, -5.5], "กล้อง 1 หลังกลาง (Wide)"),
@@ -157,6 +162,7 @@ const auditorium: VenueLayout = {
   },
   furniture: [
     mFoh, mAudio, mCableRack, mSideCase, furn("m-case-foh", "roadCase", 6.4, 7.75, 1.2, 0.85, 0.7, "Road case"),
+    furn("m-rx-case", "roadCase", 7.3, -3.4, 0.6, 0.85, 1.9, "Wireless RX case ข้างเวที"),
     furn("m-stage", "stage", 0, -5.3, 14.0, 0.8, 2.6), furn("m-podium", "podium", -2.2, -4.85, 0.7, 1.9, 0.55),
     furn("m-presenter", "presenterTable", -4.4, -3.35, 1.3, 0.76, 0.6), furn("m-cam-riser", "riser", 0, 3.95, 1.4, 0.25, 1.2),
     ...M_AUDIENCE,
@@ -216,7 +222,8 @@ const xlSwitch = furn("xl-switch", "productionDesk", -7.0, -5.0, 4.4, 0.76, 0.9,
 const xlReplay = furn("xl-replay", "productionDesk", -7.0, -2.9, 4.4, 0.76, 0.9, "Replay desk");
 const xlGraphics = furn("xl-graphics", "productionDesk", -7.0, -0.8, 4.4, 0.76, 0.9, "Graphics desk");
 const xlAudio = furn("xl-audio", "audioDesk", -2.6, -4.0, 1.8, 0.76, 1.0, "Audio console");
-const xlCases = furn("xl-cases", "roadCase", 2.4, 3.2, 2.6, 0.85, 0.7, "Technical road cases · สาย");
+// Two-level technical cable rack: the full broadcast graph needs ~50 typed leads in organised rows.
+const xlCases = furn("xl-cases", "cableRack", 2.6, 3.4, 4.2, 0.9, 1.0, "Technical cable rack · Fiber / SDI / XLR / Network");
 const xlCableRack = furn("xl-cable-rack", "cableRack", -2.3, 0.8, 1.6, 1.0, 0.5, "Accessory rack");
 const xlCommentary = furn("xl-commentary", "commentaryDesk", 6.2, -1.6, 3.0, 0.76, 0.8, "Commentary desk");
 const RACKS: [string, number, string][] = [["ccu", -6.4, "CCU / Base Station"], ["router", -5.6, "Video Router"], ["encoder", -3.8, "Main Encoder"], ["network", -3.0, "Primary Network"], ["live", -2.2, "Uplink"], ["backup", -0.2, "Backup Encoder"], ["backup-net", 0.6, "Backup Network"]];
@@ -264,7 +271,69 @@ const stadium: VenueLayout = {
   zones: ["ZONE C ห้องควบคุม: Multiview Wall, แถวโต๊ะ Switcher / Replay / Graphics, Audio console, ตู้ Rack", "ZONE B: โต๊ะผู้บรรยาย", "ZONE A ข้างสนาม: กล้อง 6 ตำแหน่ง, Crowd / Field mic, จุดพิธีกร", "ทางเดินกลาง: Technical road cases (อุปกรณ์), Cable rack ในห้องควบคุม"],
 };
 
-export const LAYOUTS: Record<LayoutId, VenueLayout> = { studio, classroom, auditorium, outdoor, stadium };
+/* ════════ S (Mission Hall only) · enlarged mission studio — separate from free-practice Studio Room 01 ════════
+ *  Procedural TV-studio shell (components/game/environment/venue/studio.tsx): green cyclorama at −Z, three tripod marks,
+ *  presenter table, production desk with service space on every side, cable table (left), equipment table (right), TV on a stand. */
+const smProd = furn("sm-prod", "productionDesk", 0, 3.4, 4.6, 0.76, 1.1, "โต๊ะผลิตรายการ");
+const smCables = furn("sm-cables", "cableRack", -6.6, 2.6, 1.0, 0.9, 3.2, "โต๊ะพักสาย");
+const smEquip = furn("sm-equip", "operatorDesk", 6.6, 2.6, 1.0, 0.76, 3.2, "โต๊ะอุปกรณ์พกพา");
+const smTvAt: Point3 = [-4.4, 0, 5.8];
+const studioMission: VenueLayout = {
+  id: "studioMission",
+  job: "เตรียมระบบภาพและเสียงของสตูดิโอภารกิจ",
+  bounds: { minX: -8.2, maxX: 8.2, minZ: -3.2, maxZ: 9.1 },
+  spawn: [7.4, 0.84, 8.0], spawnYaw: yawToward([7.4, 0, 8.0], [0, 0, 1.5]),
+  work: top(smProd),
+  equipment: top(smEquip),
+  cables: top(smCables),
+  places: {
+    sw: at(0, 0.76, 3.25, 0, "กลางโต๊ะผลิต: HDS7105"),
+    mix: at(-1.4, 0.76, 3.3, 0, "โต๊ะผลิต ซ้าย: Audio Mixer"),
+    rx: at(-2.0, 0.76, 3.55, 0, "ข้าง Mixer: Wireless RX"),
+    capture: at(0.95, 0.76, 3.3, 0, "ระหว่าง HDS7105 กับ Notebook: Magewell"),
+    pc: at(1.75, 0.76, 3.3, -0.3, "โต๊ะผลิต ขวา: HP Notebook"),
+    tx1: at(-0.7, 0.76, -2.0, 0, "โต๊ะพิธีกร: TX 1"), tx2: at(0.4, 0.76, -2.0, 0, "โต๊ะพิธีกร: TX 2"),
+    lav1: at(-1.0, 0.76, -2.0, 0), lav2: at(0.7, 0.76, -2.0, 0),
+    mic: at(-0.15, 0.76, -1.95, 0, "โต๊ะพิธีกร: Sennheiser XS 1"),
+    monitor: at(smTvAt[0], 0.95, smTvAt[2], yawToward(smTvAt, [0, 0, 3.4]), "TV Multiview บนขาตั้ง"),
+    speaker: at(-3.2, 0, 3.6, 0.5, "Yamaha HS5 ข้างโต๊ะผลิต"),
+    cam1: cam(-3.0, 0.4, [0, -2.2], "กล้อง 1 ซ้าย"), cam2: cam(0, 0.9, [0, -2.2], "กล้อง 2 กลาง"), cam3: cam(3.0, 0.4, [0, -2.2], "กล้อง 3 ขวา"),
+  },
+  furniture: [smProd, smCables, smEquip, furn("sm-presenter", "presenterTable", 0, -2.0, 2.2, 0.76, 0.7, "โต๊ะพิธีกร"), furn("sm-tv", "tvStand", smTvAt[0], smTvAt[2], 1.2, 0.95, 0.45)],
+  obstacles: [],
+  zones: ["ฉากเขียว + โต๊ะพิธีกร (ด้านหน้า)", "จุดขาตั้งกล้อง 3 ตำแหน่ง", "โต๊ะผลิตรายการ (เดินรอบได้ทุกด้าน)", "ซ้าย = โต๊ะพักสาย", "ขวา = โต๊ะอุปกรณ์พกพา", "TV Multiview บนขาตั้ง"],
+};
+
+/**
+ * Mission venues are enlarged uniformly around the origin — a player-experience design choice, NOT surveyed dimensions.
+ * Uniform scale keeps every camera / device yaw valid. Furniture keeps its real size (rooms get roomier, not stretched);
+ * stage platforms and the control wall widen with the room. Free-practice `studio` is never scaled.
+ */
+export const VENUE_SCALE: Record<LayoutId, number> = { studio: 1, studioMission: 1, classroom: 1.45, auditorium: 1.35, outdoor: 1.35, stadium: 1.3 };
+const sc = (p: Point3, k: number): Point3 => [+(p[0] * k).toFixed(3), p[1], +(p[2] * k).toFixed(3)];
+/** Scale a mission-only spot authored in the venue's base coordinates. */
+export const scaleSpot = (id: LayoutId, s: Spot): Spot => ({ ...s, p: sc(s.p, VENUE_SCALE[id]) });
+function expand(l: VenueLayout, k: number): VenueLayout {
+  const surf = (s: Surface): Surface => ({ ...s, center: sc(s.center, k) });
+  return {
+    ...l,
+    bounds: { minX: l.bounds.minX * k, maxX: l.bounds.maxX * k, minZ: l.bounds.minZ * k, maxZ: l.bounds.maxZ * k },
+    spawn: sc(l.spawn, k),
+    work: surf(l.work), equipment: surf(l.equipment), cables: surf(l.cables),
+    places: Object.fromEntries(Object.entries(l.places).map(([id, s]) => [id, { ...s, p: sc(s.p, k) }])),
+    furniture: l.furniture.map((f) => ({ ...f, center: sc(f.center, k), size: f.kind === "stage" || f.kind === "controlWall" ? [+(f.size[0] * k).toFixed(3), f.size[1], f.size[2]] as Point3 : f.size })),
+    // Room walls (long thin obstacles) stretch with the room; posts stay posts.
+    obstacles: l.obstacles.map((o) => ({ center: sc(o.center, k), half: [o.half[0] > 0.5 ? +(o.half[0] * k).toFixed(3) : o.half[0], o.half[1], o.half[2] > 0.5 ? +(o.half[2] * k).toFixed(3) : o.half[2]] as Point3 })),
+  };
+}
+
+export const LAYOUTS: Record<LayoutId, VenueLayout> = {
+  studio, studioMission,
+  classroom: expand(classroom, VENUE_SCALE.classroom),
+  auditorium: expand(auditorium, VENUE_SCALE.auditorium),
+  outdoor: expand(outdoor, VENUE_SCALE.outdoor),
+  stadium: expand(stadium, VENUE_SCALE.stadium),
+};
 
 /* ════════ helpers shared by gameplay and environments ════════ */
 export function onSurface(s: Surface, x: number, z: number, margin = 0): boolean {
