@@ -26,6 +26,9 @@ const { initialTrainingState, interactWithTarget: act, dropHeldEnd, placeHeldOnC
 const venues = Object.values(SCENARIOS).filter(s => s.venueScale);
 function attach(state, cableId, end, portId) {
   if (state.cables[cableId][end].portId === portId) return state;
+  // Level 4 starts with a deliberate wrong patch: pull whatever occupies the target port first.
+  const occupied = Object.values(state.cables).some(c => c.a.portId === portId || c.b.portId === portId);
+  if (occupied) { state = act(state, { kind: "port", portId }); state = dropHeldEnd(state, [0, 0.81, 0]); }
   state = act(state, { kind: "end", cableId, end });
   state = act(state, { kind: "port", portId });
   assert.equal(state.cables[cableId][end].portId, portId, `${state.scenarioId}: ${cableId} ${end} ${state.notice?.title}`);
@@ -109,7 +112,9 @@ test("equipment and port coverage: every interactive device/port participates", 
   for (const s of venues) {
     const used = new Set(s.requirements.flatMap(r => [...r.from, ...r.to]));
     assert.equal(used.size, Object.keys(s.ports).length, s.id);
-    for (const d of s.devices) assert.ok([...used].some(p => s.ports[p].device === d.id), `${s.id} orphan ${d.id}`);
+    // Cable-less wireless gear (e.g. a handheld mic) participates through its pairing action instead.
+    const actionOwners = new Set(s.actions.flatMap(a => [a.onItem, ...a.id.split("-")]));
+    for (const d of s.devices) assert.ok([...used].some(p => s.ports[p].device === d.id) || actionOwners.has(d.id), `${s.id} orphan ${d.id}`);
     for (const a of s.actions) for (const n of a.needs) assert.ok(s.requirements.some(r => r.id === n) || s.actions.some(r => r.id === n));
   }
 });
@@ -131,17 +136,17 @@ test("wrong direction, connector, signal, route, occupied and loop never mutate 
     assert.deepEqual(state.held, before.held);
     assert.equal(state.notice.tone, "error");
   }
-  rejected("cam1:video-out", "sw:pgm-out"); // output -> output
-  rejected("sw:input1", "capture:video-in"); // input -> input
-  rejected("cam1:video-out", "capture:video-in"); // missing intermediate switcher
-  rejected("cam1:video-out", "sw:presentation-in"); // wrong route, compatible connector
-  rejected(null, "mix:input1"); // video -> audio
-  rejected("cam1:video-out", "cam1:video-out"); // same endpoint
+  rejected("cam1:hdmi-out", "sw:hdmi-out"); // output -> output
+  rejected("sw:hdmi-in1", "monitor:hdmi-in"); // input -> input
+  rejected("cam1:hdmi-out", "monitor:hdmi-in"); // missing intermediate switcher
+  rejected("cam1:hdmi-out", "sw:hdmi-in2"); // wrong route, compatible connector
+  rejected(null, "mix:ch1-in"); // video -> audio
+  rejected("cam1:hdmi-out", "cam1:hdmi-out"); // same endpoint
   let state = setUp(s.id);
-  state = attach(state, "lead-cam-1", "a", "cam1:video-out");
+  state = attach(state, "lead-cam-1", "a", "cam1:hdmi-out");
   state = act(state, { kind: "end", cableId: "lead-monitor", end: "a" });
   const before = structuredClone(state);
-  state = act(state, { kind: "port", portId: "cam1:video-out" });
+  state = act(state, { kind: "port", portId: "cam1:hdmi-out" });
   assert.deepEqual(state.cables, before.cables); assert.deepEqual(state.held, before.held);
   state = dropHeldEnd(state, [0, 0.8, 0]);
   assert.equal(state.held, null);
@@ -149,7 +154,7 @@ test("wrong direction, connector, signal, route, occupied and loop never mutate 
   state = setUp("m-5");
   state = act(state, { kind: "end", cableId: "lead-cam-1", end: "a" });
   const snap = structuredClone(state);
-  state = act(state, { kind: "port", portId: "sw:presentation-in" });
+  state = act(state, { kind: "port", portId: "sw:hdmi-in2" });
   assert.deepEqual(state.cables, snap.cables); assert.deepEqual(state.held, snap.held);
 });
 test("switching changes Program state and can return to an earlier source", () => {
@@ -180,22 +185,23 @@ test("venue placement: every port, control and cable start sits inside its venue
     }
   }
 });
-test("studio SDI configuration uses explicit converters without inventing SDI jacks on HDS7105", () => {
-  const { buildVenueScenario } = load("../game/training/venue-scenarios.ts");
-  const s = buildVenueScenario("s", 5, "SDI");
-  assert.equal(s.ports["sw:input1"].connector, "HDMI");
-  assert.equal(s.ports["cam1:sdi-out"].connector, "SDI");
-  assert.ok(s.devices.some(d => d.id === "convert1"));
+test("SDI switcher takes HDMI sources only through explicit converters", () => {
+  const s = SCENARIOS["m-5"];
+  assert.equal(s.ports["slides:hdmi-out"].connector, "HDMI");
+  assert.equal(s.ports["conv-slides:sdi-out"].connector, "SDI");
+  assert.equal(s.ports["sw:sdi-in5"].connector, "SDI");
+  assert.ok(s.devices.some(d => d.id === "conv-slides"));
+  assert.ok(!Object.entries(s.ports).some(([id, p]) => p.device === "sw" && p.connector === "HDMI" && p.direction === "INPUT"));
 });
 test("same physical connector with a different signal family is rejected", () => {
-  const s = SCENARIOS["xs-1"], p = s.ports["sw:input1"];
+  const s = SCENARIOS["xs-1"], p = s.ports["sw:hdmi-in1"];
   const old = p.signalType;
   try {
     p.signalType = "AUDIO_ANALOG";
     let state = initialTrainingState(s.id);
     state = act(state, {kind:"end", cableId:"lead-cam-1", end:"a"});
     const before = structuredClone(state);
-    state = act(state, {kind:"port", portId:"sw:input1"});
+    state = act(state, {kind:"port", portId:"sw:hdmi-in1"});
     assert.equal(state.notice.tone, "error");
     assert.deepEqual(state.cables,before.cables); assert.deepEqual(state.held,before.held);
   } finally { p.signalType = old; }
