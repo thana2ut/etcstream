@@ -143,7 +143,6 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
                 </span>
               </button>
               {count(c.id) ? <em className="cl-slot-count">×{count(c.id)}</em> : null}
-              <button type="button" className="cl-slot-add" onClick={() => { setSelected(c); add(c); }} aria-label={`ใส่ ${c.name} ลงกระเป๋า`}><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10" /></svg></button>
             </div>)}
             {items.length === 0 && <p className="cl-empty">ไม่พบสายที่ตรงกับ “{query}” · ลองคำอื่น เช่น HDMI, XLR, SDI</p>}
           </div>
@@ -175,12 +174,12 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
         </div>
         <div className="cl-bag">
           <div className="cl-bag-head"><strong><svg className="cl-pouch" viewBox="0 0 32 32" aria-hidden="true"><path d="M11 6h10l-2 4h-6z" fill="#c99a4a"/><path d="M13 10c-6 3-9 9-7 14 1 3 4 4 10 4s9-1 10-4c2-5-1-11-7-14z" fill="#e9c27a" stroke="#7a5426" strokeWidth="1.2"/><path d="M12 10h8" stroke="#7a5426" strokeWidth="1.6"/><circle cx="16" cy="19" r="3" fill="none" stroke="#7a5426" strokeWidth="1.2"/></svg> กระเป๋าของเจ้า</strong><button type="button" className="cl-link" disabled={total === 0} onClick={clear}>ล้าง</button></div>
-          <p className="cl-bag-empty">{total === 0 ? <>กระเป๋ายังว่าง · กด <b>+</b> บนการ์ดสาย หรือปุ่ม “ใส่กระเป๋า”</> : <>กดช่องเพื่อดูรายละเอียด · <b>✕</b> นำออกทีละเส้น</>}</p>
+          <p className="cl-bag-empty">{total === 0 ? <>กระเป๋ายังว่าง · ดับเบิลคลิกการ์ดสาย หรือกดปุ่ม “ใส่กระเป๋า”</> : <>กดช่องเพื่อดูรายละเอียด · <b>✕</b> นำออกทีละเส้น</>}</p>
           <div className="cl-bag-scroll" ref={bagScroll}>
             <div className="cl-bag-grid">
               {Array.from({ length: slots }, (_, i) => {
                 const e = bagEntries[i];
-                if (!e) return <span key={`empty-${i}`} className="cl-bag-slot is-empty" aria-hidden="true" />;
+                if (!e) return <span key={`empty-${i}`} className="cl-bag-slot is-empty" aria-hidden="true"><span className="cl-bag-plus"><svg viewBox="0 0 16 16"><path d="M8 3.5v9M3.5 8h9" /></svg></span></span>;
                 return <span key={e.c.id} className={`cl-bag-slot is-filled ${selected.id === e.c.id ? "is-selected" : ""}`}>
                   <button type="button" className="cl-bag-hit" onClick={() => setSelected(e.c)} title={`${e.c.name} ×${e.n}`} aria-label={`${e.c.name} ${e.n} เส้น`}>
                     <ConnectorIcon family={e.c.family} color={e.c.color} /><em>{e.n}</em>
