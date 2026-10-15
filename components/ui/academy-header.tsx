@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type RefObject } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useAcademyStore } from "@/game/stores/academy-store";
@@ -31,6 +31,57 @@ const getBackupNicknameSnapshot = () => {
 
 const getBackupNicknameServer = () => null;
 
+/** Pointer this close to the top edge (px) slides the header in. */
+const REVEAL_ZONE = 64;
+const HIDE_DELAY = 700;
+
+/**
+ * App-style auto-hiding header: hidden by default, slides in when the pointer nears the top edge (or a tap on the
+ * top edge on touch screens), and slides away again once the pointer leaves. Stays hidden while the game holds the
+ * pointer lock. Keyboard focus inside it keeps it open.
+ */
+function useAutoHide(ref: RefObject<HTMLElement | null>) {
+  const [revealed, setRevealed] = useState(true);
+  useEffect(() => {
+    let timer = 0;
+    const show = () => { window.clearTimeout(timer); setRevealed(true); };
+    const hideSoon = (delay = HIDE_DELAY) => { window.clearTimeout(timer); timer = window.setTimeout(() => setRevealed(false), delay); };
+    const inside = (e: Event) => Boolean(ref.current && e.target instanceof Node && ref.current.contains(e.target));
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerType === "touch") return;
+      if (document.pointerLockElement) { hideSoon(0); return; }
+      const bottom = ref.current?.getBoundingClientRect().height ?? REVEAL_ZONE;
+      if (e.clientY <= REVEAL_ZONE || inside(e)) show();
+      else if (e.clientY > bottom + 24 && !ref.current?.contains(document.activeElement)) hideSoon();
+    };
+    const onTouch = (e: TouchEvent) => {
+      const y = e.touches[0]?.clientY ?? 999;
+      if (y <= 48 || inside(e)) { show(); hideSoon(3000); }
+    };
+    const onLeaveWindow = (e: MouseEvent) => { if (!e.relatedTarget) hideSoon(); };
+    const onFocusIn = (e: FocusEvent) => { if (inside(e)) show(); };
+    const onFocusOut = (e: FocusEvent) => { if (!(e.relatedTarget instanceof Node && ref.current?.contains(e.relatedTarget))) hideSoon(); };
+    const onLock = () => { if (document.pointerLockElement) hideSoon(0); };
+    hideSoon(2200); // shown briefly on arrival so players learn where it lives
+    window.addEventListener("pointermove", onMove, { passive: true });
+    window.addEventListener("touchstart", onTouch, { passive: true });
+    document.addEventListener("mouseout", onLeaveWindow);
+    document.addEventListener("focusin", onFocusIn);
+    document.addEventListener("focusout", onFocusOut);
+    document.addEventListener("pointerlockchange", onLock);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("touchstart", onTouch);
+      document.removeEventListener("mouseout", onLeaveWindow);
+      document.removeEventListener("focusin", onFocusIn);
+      document.removeEventListener("focusout", onFocusOut);
+      document.removeEventListener("pointerlockchange", onLock);
+    };
+  }, [ref]);
+  return revealed;
+}
+
 export function AcademyHeader({
   traineeName,
   backHref,
@@ -46,6 +97,8 @@ export function AcademyHeader({
     getBackupNicknameServer
   );
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
+  const revealed = useAutoHide(headerRef);
 
   // Single source of truth for nickname with instant fallback
   const displayName = traineeName ?? storePlayer?.nickname ?? localName;
@@ -77,7 +130,10 @@ export function AcademyHeader({
   };
 
   return (
-    <header className="academy-main-header">
+    <>
+    {/* Hairline handle at the top edge while the header is tucked away (hover or tap to bring it back). */}
+    <div className={`academy-header-handle ${revealed ? "" : "is-visible"}`} aria-hidden="true" />
+    <header ref={headerRef} className={`academy-main-header is-autohide ${revealed ? "is-revealed" : ""}`}>
       <div className="header-left">
         {/* If back navigation is requested */}
         {onBack || backHref ? (
@@ -135,5 +191,6 @@ export function AcademyHeader({
         </div>
       </div>
     </header>
+    </>
   );
 }

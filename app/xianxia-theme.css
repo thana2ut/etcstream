@@ -565,3 +565,19 @@
 @media (max-height: 820px) {
   .mission-detail-inner { justify-content: flex-start; }
 }
+
+/* App-style auto-hiding top bar (see useAutoHide in academy-header.tsx). */
+.academy-main-header.is-autohide,
+.fantasy-viewport:not(.game-screen) > .academy-main-header.is-autohide {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 150;
+  transform: translateY(-110%); opacity: 0; pointer-events: none;
+  transition: transform .32s cubic-bezier(.2, .8, .2, 1), opacity .25s ease;
+  background: linear-gradient(180deg, rgba(5, 8, 22, .92) 0%, rgba(5, 8, 22, .72) 75%, rgba(5, 8, 22, 0) 100%);
+  backdrop-filter: blur(8px);
+}
+.academy-main-header.is-autohide.is-revealed,
+.fantasy-viewport:not(.game-screen) > .academy-main-header.is-autohide.is-revealed { transform: none; opacity: 1; pointer-events: auto; }
+.academy-header-handle { position: fixed; top: 0; left: 50%; z-index: 149; width: 120px; height: 5px; transform: translate(-50%, -100%); border-radius: 0 0 6px 6px;
+  background: linear-gradient(90deg, transparent, rgba(233, 194, 122, .85), transparent); box-shadow: 0 0 10px rgba(233, 194, 122, .55); opacity: 0; transition: transform .3s ease, opacity .3s ease; pointer-events: none; }
+.academy-header-handle.is-visible { transform: translate(-50%, 0); opacity: .8; }
+@media (prefers-reduced-motion: reduce) { .academy-main-header.is-autohide, .academy-header-handle { transition: none; } }
