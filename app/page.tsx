@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { academyCopy as copy } from "@/game/content/academy-copy";
@@ -17,15 +17,32 @@ import { validateNickname } from "@/game/security/nickname-validation";
 
 type EntryPhase = "landing" | "name" | "inscribing" | "welcome";
 
+/** Reload keeps the trainee on the step they were on (per tab), instead of starting the entry flow over. */
+const PHASE_KEY = "etcstream_entry_phase";
+const readSavedPhase = (): EntryPhase | null => {
+  try {
+    const v = window.sessionStorage.getItem(PHASE_KEY);
+    return v === "landing" || v === "name" || v === "welcome" ? v : null;
+  } catch { return null; }
+};
+const noSubscribe = () => () => {};
+
 export default function Home() {
   const router = useRouter();
   const { hydrated, player, hydrate, setPlayer } = useAcademyStore();
-  const [phase, setPhase] = useState<EntryPhase>("landing");
+  // null = not chosen in this visit yet: use the step saved for this tab (or landing).
+  const [chosenPhase, setPhase] = useState<EntryPhase | null>(null);
+  // undefined on the server / first paint, the saved step (or null) on the client.
+  const savedPhase = useSyncExternalStore(noSubscribe, readSavedPhase, () => undefined);
   const [showInstructions, setShowInstructions] = useState(false);
   const [changeName, setChangeName] = useState(false);
   const [nickname, setNickname] = useState("");
   const [error, setError] = useState("");
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  // Until the saved step is known only the background is drawn, so a reload does not flash the landing hero.
+  const restored = hydrated && savedPhase !== undefined;
+  // "welcome" needs a saved trainee; without one, fall back to the name step.
+  const phase: EntryPhase = chosenPhase ?? (savedPhase === "welcome" ? (player ? "welcome" : "name") : savedPhase ?? "landing");
 
   useEffect(() => {
     const pending = timers.current;
@@ -33,6 +50,11 @@ export default function Home() {
     return () => pending.forEach(clearTimeout);
   }, [hydrate]);
 
+
+  useEffect(() => {
+    if (!restored) return;
+    try { window.sessionStorage.setItem(PHASE_KEY, phase === "inscribing" ? "welcome" : phase); } catch { /* storage blocked: reload starts at landing */ }
+  }, [phase, restored]);
 
   // Click "ก้าวเข้าสู่เส้นทาง >" on Landing (REF 01)
   const handleStartJourney = () => {
@@ -104,7 +126,7 @@ export default function Home() {
   const currentDisplayName = player?.nickname || nickname;
 
   return (
-    <main className="fantasy-viewport">
+    <main className="fantasy-viewport landing-page">
       {/* 100% Procedural Fantasy Background (NO literal screenshots) */}
       <FantasyBackground
         variant={phase === "welcome" ? "palace" : phase === "name" ? "chamber" : "palace"}
@@ -116,7 +138,7 @@ export default function Home() {
       <AcademyHeader />
 
       {/* REF 01: LANDING PHASE */}
-      {phase === "landing" && (
+      {restored && phase === "landing" && (
         <>
           <div className="landing-hero-center">
             <Image src="/images/xianxia/emblem.webp" alt="ตราสำนัก etcstream" width={170} height={141} className="brand-sigil landing-sigil" priority />
@@ -202,7 +224,7 @@ export default function Home() {
       )}
 
       {/* REF 03: NAME ENTRY PHASE */}
-      {phase === "name" && (
+      {restored && phase === "name" && (
         <section className="name-entry-card glass-card gold-border-frame with-corner-runes" aria-labelledby="name-title">
           <Image src="/branding/etcstream-logo.png" alt="" width={56} height={48} className="brand-sigil name-sigil" />
           <h1 id="name-title" className="name-entry-title">{copy.name.heading}</h1>
@@ -269,7 +291,7 @@ export default function Home() {
       )}
 
       {/* INSCRIBING TRANSITION */}
-      {phase === "inscribing" && (
+      {restored && phase === "inscribing" && (
         <div className="name-entry-card glass-card gold-border-frame" role="status">
           <div className="seal-orbit-mini" style={{ width: "60px", height: "60px", margin: "0 auto 16px" }}>
             <Image src="/branding/etcstream-logo.png" alt="" width={48} height={40} className="brand-sigil" />
@@ -279,7 +301,7 @@ export default function Home() {
       )}
 
       {/* REF 04: WELCOME PERSONALIZED PHASE */}
-      {phase === "welcome" && (
+      {restored && phase === "welcome" && (
         <section className="welcome-hero-card" aria-labelledby="welcome-title">
           <Image src="/branding/etcstream-logo.png" alt="โลโก้ etcstream" width={72} height={60} className="brand-sigil welcome-sigil" />
           <p className="welcome-greeting-label">ยินดีต้อนรับ</p>

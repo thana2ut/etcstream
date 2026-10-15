@@ -4,7 +4,9 @@
    Painted backdrops live in /public/images/xianxia; 3D room is untouched.
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Charm:wght@400;700&family=Sarabun:wght@300;400;500;600;700&display=swap');
+/* Charm, Sarabun and Kart chinesestyle are loaded by next/font in app/layout.tsx (self-hosted + preloaded). */
+
+
 
 :root {
   --void-950: #070b12;
@@ -39,8 +41,9 @@
   --bg-panel-strong: rgba(10, 14, 22, 0.92);
   --panel-glass-hover: rgba(30, 40, 56, 0.88);
 
-  --font-thai: 'Sarabun', -apple-system, "Segoe UI", sans-serif;
-  --font-brush: 'Charm', 'Sarabun', serif;
+  --font-thai: var(--font-sarabun), 'Sarabun', -apple-system, "Segoe UI", sans-serif;
+  --font-legacy-brush: var(--font-charm), 'Charm', var(--font-sarabun), serif;
+  --font-brush: var(--font-kart), 'Kart chinesestyle', var(--font-sarabun), serif;
   --font-serif: var(--font-brush);
 }
 
@@ -599,3 +602,124 @@
   border: 1.5px solid rgba(233, 194, 122, .6); background: rgba(7, 11, 18, .55); color: #f3e2b6; cursor: pointer; opacity: .7; backdrop-filter: blur(3px); transition: opacity .2s, box-shadow .2s, transform .15s; }
 .game-pause-btn:hover, .game-pause-btn:focus-visible { opacity: 1; box-shadow: 0 0 14px rgba(245, 184, 66, .45); }
 .game-pause-btn:active { transform: scale(.94); }
+/* ---------- Kart chinesestyle heading scale ---------- */
+.fantasy-viewport.landing-page :is(h1, h2, h3, h4, .name-entry-title, .welcome-greeting-label,
+  .welcome-role-badge) {
+  font-family: var(--font-thai);
+}
+
+.landing-page .landing-title-text {
+  font-family: var(--font-legacy-brush);
+}
+
+.chamber-title {
+  font-size: clamp(2.45rem, 5.5vw, 3.8rem);
+  line-height: 1.4;
+  letter-spacing: .018em;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.fantasy-viewport :is(h1, h2, h3, .banner-heading, .mission-name-label, .mission-level-label,
+  .mission-plaque-subtitle, .mission-choice-subtitle, .mission-difficulty-heading,
+  .mission-difficulty-tile strong, .mission-choice-footer strong, .detail-mission-h1,
+  .grade-headline, .inspector-panel h3, .inspector-compact h2) {
+  font-family: var(--font-brush);
+}
+
+.intro-banner h1, .name-stage h1, .welcome-stage h1, .chamber-intro h1,
+.hall-heading h1, .mission-hall-heading h1, .landing-title-text {
+  font-size: clamp(2.35rem, 5vw, 4.5rem);
+  line-height: 1.35;
+  letter-spacing: .015em;
+}
+
+.path-heading h2, .section-heading h2, .mission-choice-intro h2,
+.modal-title, .result-main-title, .reveal-top h2, .mission-draw h2,
+.inspector-panel h2 {
+  font-size: clamp(1.75rem, 3.4vw, 2.75rem);
+  line-height: 1.45;
+  letter-spacing: .012em;
+}
+
+.path-card h3, .mission-plaque strong, .mission-draw h3,
+.technical-goal h3, .portal-heading, .grade-headline {
+  font-size: clamp(1.35rem, 2.5vw, 2rem);
+  line-height: 1.5;
+  letter-spacing: .01em;
+}
+
+.portal-subtitle, .path-subtitle, .mission-plaque-subtitle,
+.mission-choice-subtitle, .mission-level-label, .mission-difficulty-heading,
+.banner-heading {
+  font-size: clamp(.95rem, 1.5vw, 1.2rem);
+  line-height: 1.55;
+  letter-spacing: .025em;
+}
+
+.mission-plaque strong, .mission-difficulty-tile strong,
+.detail-mission-h1, .mission-name-label { text-wrap: balance; }
+
+@media (max-width: 650px) {
+  .intro-banner h1, .name-stage h1, .welcome-stage h1, .chamber-intro h1,
+  .hall-heading h1, .mission-hall-heading h1, .landing-title-text {
+    font-size: clamp(2rem, 10vw, 3rem);
+    line-height: 1.4;
+  }
+
+  .path-heading h2, .section-heading h2, .mission-choice-intro h2,
+  .modal-title, .result-main-title, .reveal-top h2, .mission-draw h2,
+  .inspector-panel h2 { font-size: clamp(1.5rem, 7vw, 2.1rem); }
+
+  .path-card h3, .mission-plaque strong, .mission-draw h3,
+  .technical-goal h3, .portal-heading, .grade-headline {
+    font-size: clamp(1.2rem, 5.5vw, 1.6rem);
+  }
+}
+
+/* ---------- Final heading hierarchy ---------- */
+/* Large: the academy gateway title is the single visual anchor of the page. */
+.chamber-title {
+  font-family: var(--font-brush);
+  font-size: clamp(3rem, 6.8vw, 4.45rem);
+  line-height: 1.4;
+  letter-spacing: .045em;
+  word-spacing: .08em;
+  text-shadow: 0 3px 12px rgba(0, 0, 0, .78);
+}
+
+/* Medium: portal and modal titles support the main heading without competing. */
+.portal-heading,
+.modal-title {
+  font-family: var(--font-brush);
+  font-size: clamp(1.55rem, 2.8vw, 2.15rem);
+  line-height: 1.45;
+  letter-spacing: .015em;
+}
+
+/* Small: supporting labels stay readable but visually subordinate. */
+.portal-subtitle,
+.path-subtitle,
+.mission-plaque-subtitle,
+.mission-choice-subtitle,
+.banner-heading {
+  font-size: clamp(.9rem, 1.35vw, 1.08rem);
+  line-height: 1.5;
+}
+
+/* Requested Chinese display font on the supplied reference points. */
+.landing-page .landing-title-text,
+.landing-page .modal-title {
+  font-family: 'Kart chinesestyle', var(--font-brush) !important;
+  font-weight: 400;
+}
+
+@media (max-width: 650px) {
+  .chamber-title {
+    font-size: clamp(2.55rem, 11vw, 3.45rem);
+    letter-spacing: .035em;
+    word-spacing: .04em;
+  }
+  .portal-heading,
+  .modal-title { font-size: clamp(1.4rem, 6vw, 1.8rem); }
+}

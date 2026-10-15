@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from "next";
+import { Charm, Sarabun } from "next/font/google";
+import localFont from "next/font/local";
 import { academyCopy } from "@/game/content/academy-copy";
 import { AudioProvider } from "@/components/audio/audio-provider";
 import { PageLock } from "@/components/ui/page-lock";
@@ -7,6 +9,11 @@ import "./app-shell.css";
 import "./cultivation-theme.css";
 import "./xianxia-theme.css";
 import "./cable-lobby.css";
+
+// Fonts are self-hosted and preloaded with the page (no flash of a fallback font on load or reload).
+const sarabun = Sarabun({ subsets: ["thai", "latin"], weight: ["300", "400", "500", "600", "700"], variable: "--font-sarabun", display: "swap" });
+const charm = Charm({ subsets: ["thai", "latin"], weight: ["400", "700"], variable: "--font-charm", display: "block" });
+const kart = localFont({ src: "../public/fonts/Kart-chinesestyle.ttf", variable: "--font-kart", display: "block" });
 
 export const metadata: Metadata = {
   title: `${academyCopy.brand} | ${academyCopy.worldTitle}`,
@@ -30,7 +37,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="th">
+    <html lang="th" className={`${sarabun.variable} ${charm.variable} ${kart.variable}`}>
       <body><PageLock /><AudioProvider>{children}</AudioProvider></body>
     </html>
   );
