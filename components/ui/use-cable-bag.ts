@@ -10,8 +10,9 @@ import { catalogById, type CatalogCable } from "@/game/content/cable-catalog";
 export function useCableBag() {
   const [bag, setBag] = useState<Record<string, number>>({});
 
-  const add = useCallback((c: CatalogCable) => {
-    setBag((prev) => ({ ...prev, [c.id]: (prev[c.id] ?? 0) + 1 }));
+  const add = useCallback((c: CatalogCable, n = 1) => {
+    const k = Math.max(1, Math.floor(n));
+    setBag((prev) => ({ ...prev, [c.id]: (prev[c.id] ?? 0) + k }));
   }, []);
 
   const remove = useCallback((c: CatalogCable) => {

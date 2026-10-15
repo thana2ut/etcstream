@@ -61,7 +61,12 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
   // Guide strip: a cable is always selected, so the trainee is either packing (3) or ready to enter (4).
   const step = total > 0 ? 4 : 3;
 
-  const add = (c: CatalogCable) => { addOne(c); soundEngine.play("button_hover"); };
+  const add = (c: CatalogCable, n = 1) => { addOne(c, n); soundEngine.play("button_hover"); };
+  // Quantity picked in the detail stepper: only goes into the bag when "ใส่กระเป๋า" is pressed (resets to 1 per cable).
+  const [draft, setDraft] = useState<{ id: string; n: number }>({ id: "", n: 1 });
+  const qty = draft.id === selected.id ? draft.n : 1;
+  const setQty = (n: number) => setDraft({ id: selected.id, n: Math.min(20, Math.max(1, n)) });
+  const putInBag = () => { add(selected, qty); setDraft({ id: selected.id, n: 1 }); };
   const remove = (c: CatalogCable) => { removeOne(c); soundEngine.play("button_hover"); };
   const pick = (c: CatalogCable) => { setSelected(c); soundEngine.play("button_hover"); };
   // The bag window shows whole rows only: its height snaps to N rows of slots for whatever space the column leaves.
@@ -168,12 +173,12 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
             <div><dt>ใช้ต่อ</dt><dd>{selected.use}</dd></div>
           </dl>
           <div className="cl-detail-actions">
-            <div className="cl-stepper" role="group" aria-label="จำนวนในกระเป๋า">
-              <button type="button" onClick={() => remove(selected)} disabled={!count(selected.id)} aria-label="นำออก 1 เส้น">−</button>
-              <output aria-live="polite">{count(selected.id)}</output>
-              <button type="button" onClick={() => add(selected)} aria-label="เพิ่ม 1 เส้น">+</button>
+            <div className="cl-stepper" role="group" aria-label="จำนวนที่จะใส่กระเป๋า">
+              <button type="button" onClick={() => setQty(qty - 1)} disabled={qty <= 1} aria-label="ลดจำนวน">−</button>
+              <output aria-live="polite">{qty}</output>
+              <button type="button" onClick={() => setQty(qty + 1)} disabled={qty >= 20} aria-label="เพิ่มจำนวน">+</button>
             </div>
-            <button type="button" className="cl-btn is-primary" onClick={() => add(selected)}><span className="cl-plus">+</span> ใส่กระเป๋า</button>
+            <button type="button" className="cl-btn is-primary" onClick={putInBag}><span className="cl-plus">+</span> ใส่กระเป๋า{qty > 1 ? ` ${qty} เส้น` : ""}</button>
           </div>
         </div>
         <div className="cl-bag">
