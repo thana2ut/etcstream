@@ -165,7 +165,7 @@ export function CardCableScene({ cable }: { cable: CatalogCable }) {
  * viewport (position: fixed) and `.cl-catalog-wrap` clips it to the card grid; pointer events pass through.
  */
 export function CatalogCanvas() {
-  return <Canvas className="cl-catalog-gl" dpr={[1, 1.25]} gl={{ alpha: true, antialias: true }} style={{ position: "fixed", inset: 0, width: "100vw", height: "100vh", pointerEvents: "none" }}>
+  return <Canvas className="cl-catalog-gl" dpr={1} gl={{ alpha: true, antialias: true }} style={{ position: "fixed", inset: 0, width: "100vw", height: "100vh", pointerEvents: "none" }}>
     <View.Port />
   </Canvas>;
 }

@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CableInspector, CablePreview, CableView, CardCableScene, CatalogCanvas } from "./cable-model";
 import { CategoryIcon, FrameCorners, Medallion, OnAirPlaque, PagodaRoof, ScrollRail, Tassel } from "./lobby-ornaments";
 import { CABLE_CATALOG, CABLE_CATEGORIES, catalogById, MAX_WRONG_STREAK, type CableCategory, type CatalogCable, type ConnectorFamily } from "@/game/content/cable-catalog";
 import type { Scenario } from "@/game/training/scenarios";
 import { soundEngine } from "@/game/audio/sound-engine";
+import { preloadRoomModels } from "@/game/assets/preload-models";
 
 /** Small connector silhouette per family (no images). */
 export function ConnectorIcon({ family, color }: { family: ConnectorFamily; color: string }) {
@@ -40,6 +41,8 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
   const [bag, setBag] = useState<Record<string, number>>({});
   const [message, setMessage] = useState("");
   const [inspecting, setInspecting] = useState<CatalogCable | null>(null);
+  // The trainee spends a while here: fetch the room's 3D models now so the level opens without hitches.
+  useEffect(() => { preloadRoomModels(); }, []);
   const total = Object.values(bag).reduce((a, b) => a + b, 0);
   const used = Object.keys(bag).length;
   const items = CABLE_CATALOG.filter((c) => c.category === category);

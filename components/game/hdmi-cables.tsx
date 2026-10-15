@@ -16,6 +16,7 @@ const start = new Vector3();
 const finish = new Vector3();
 const midpoint = new Vector3();
 const direction = new Vector3();
+const unit = new Vector3();
 const handOffset = new Vector3(0.37, -0.33, -0.65);
 /** Second plug of a carried lead: held a little lower and to the left (both ends travel with the player). */
 const spareOffset = new Vector3(0.18, -0.46, -0.6);
@@ -46,6 +47,7 @@ function Cable({ id }: { id: CableId }) {
   const held = useTrainingStore((state) => state.held);
   const ends = useRef<Record<CableEnd, Group | null>>({ a: null, b: null });
   const segments = useRef<(Mesh | null)[]>([]);
+  const last = useRef({ a: new Vector3(NaN, NaN, NaN), b: new Vector3(NaN, NaN, NaN) });
   const scenario = useTrainingStore((state) => scenarioOf(state));
   const def = scenario.cables.find((c) => c.id === id)!;
   const color = def.color;
@@ -88,6 +90,9 @@ function Cable({ id }: { id: CableId }) {
       if (adapter || tipDir.lengthSq() < 1e-6) tipDir.set(0, 0, -1);
       node.quaternion.setFromUnitVectors(negZ, tipDir.normalize());
     }
+    // Idle leads (not in hand, ends unchanged) keep last frame's segments: most cables in a room sit still.
+    if (!carrying && !def.locked && last.current.a.equals(a) && last.current.b.equals(b)) return;
+    last.current.a.copy(a); last.current.b.copy(b);
     const tabletop = a.y >= 0.79 && b.y >= 0.79;
     const sag = Math.min(0.24, 0.09 + a.distanceTo(b) * 0.035);
     for (let index = 0; index < segmentCount; index++) {
@@ -101,7 +106,7 @@ function Cable({ id }: { id: CableId }) {
       finish.y = tabletop ? Math.max(0.79, finish.y - Math.sin(Math.PI * t1) * sag) : finish.y - Math.sin(Math.PI * t1) * sag * 0.35;
       midpoint.copy(start).add(finish).multiplyScalar(0.5);
       direction.copy(finish).sub(start);
-      segmentRotation.setFromUnitVectors(up, direction.clone().normalize());
+      segmentRotation.setFromUnitVectors(up, unit.copy(direction).normalize());
       mesh.position.copy(midpoint);
       mesh.quaternion.copy(segmentRotation);
       mesh.scale.set(1, direction.length(), 1);
