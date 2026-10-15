@@ -598,7 +598,7 @@
 @media (prefers-reduced-motion: reduce) { .academy-main-header.is-autohide, .academy-header-handle { transition: none; } }
 
 /* In-game pause / exit (the top bar is not shown during gameplay). */
-.game-pause-btn { position: fixed; top: 12px; right: 14px; z-index: 60; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%;
+.game-pause-btn { position: fixed; top: 84px; right: 14px; z-index: 60; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%;
   border: 1.5px solid rgba(233, 194, 122, .6); background: rgba(7, 11, 18, .55); color: #f3e2b6; cursor: pointer; opacity: .7; backdrop-filter: blur(3px); transition: opacity .2s, box-shadow .2s, transform .15s; }
 .game-pause-btn:hover, .game-pause-btn:focus-visible { opacity: 1; box-shadow: 0 0 14px rgba(245, 184, 66, .45); }
 .game-pause-btn:active { transform: scale(.94); }
@@ -735,3 +735,5 @@
 .academy-main-header .trainee-name, .academy-main-header .trainee-name strong { font-family: var(--font-thai) !important; }
 /* Sound popover heading in the same face as the rest of the panel (inner-page rules set <strong> to the brush face). */
 .academy-main-header .audio-popover-title { font-family: var(--font-thai) !important; font-weight: 700; }
+/* In-game HUD sits below the top bar (72px), level with the pause button. */
+.game-screen .hud-objective-panel { top: 84px; }

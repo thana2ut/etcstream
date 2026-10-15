@@ -281,7 +281,6 @@ function PlayExperience() {
         }
         backLabel="ย้อนกลับ"
         breadcrumb={difficultyLabel ? `${mission?.title} > ${difficultyLabel}` : "ห้องฝึกปราณสัญญาณ"}
-        hidden={!introOpen && !showResultModal}
       />
       {/* While playing the top bar is gone; this small pause button is the way out (opens the exit confirmation). */}
       {!introOpen && !showResultModal && !showExitConfirm && (
@@ -313,8 +312,9 @@ function PlayExperience() {
               className="cultivation-btn btn-gold btn-sm"
               style={{
                 position: "absolute",
-                top: "70px",
-                right: "28px",
+                // below the top bar (72px) and the pause button
+                top: "134px",
+                right: "14px",
                 zIndex: 45,
                 boxShadow: "0 0 15px var(--gold-glow)",
               }}
