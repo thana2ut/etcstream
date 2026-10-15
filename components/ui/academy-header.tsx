@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore, type RefObject } from "react";
+import { memo, useEffect, useRef, useState, useSyncExternalStore, type RefObject } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { useAcademyStore } from "@/game/stores/academy-store";
 import { AudioControls } from "@/components/audio/audio-controls";
@@ -95,6 +96,7 @@ export const AcademyHeader = memo(function AcademyHeader({
   brandInert = false,
 }: AcademyHeaderProps) {
   const storePlayer = useAcademyStore((s) => s.player);
+  const pathname = usePathname();
   const localName = useSyncExternalStore(
     subscribeStorage,
     getBackupNicknameSnapshot,
@@ -154,6 +156,8 @@ export const AcademyHeader = memo(function AcademyHeader({
             </div>
           </>;
           if (brandInert) return <div className={`${cls} is-inert`}>{inner}</div>;
+          // Away from the academy hall the brand is an exit straight back to it; on the hall itself it keeps the page's back.
+          if ((onBack || backHref) && pathname !== "/academy") return <Link href="/academy" className={`${cls} is-back`} title="กลับโถงสำนัก" aria-label="กลับโถงสำนัก">{inner}</Link>;
           if (onBack) return <button type="button" className={`${cls} is-back`} onClick={onBack} title={backLabel} aria-label={`${backLabel} (สำนักวิถีแห่งสายสัญญาณ)`}>{inner}</button>;
           if (backHref) return <Link href={backHref} className={`${cls} is-back`} title={backLabel} aria-label={backLabel}>{inner}</Link>;
           return <Link href="/" className={cls}>{inner}</Link>;
