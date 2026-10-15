@@ -143,7 +143,7 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
                 </span>
               </button>
               {count(c.id) ? <em className="cl-slot-count">×{count(c.id)}</em> : null}
-              <button type="button" className="cl-slot-add" onClick={() => { setSelected(c); add(c); }} aria-label={`ใส่ ${c.name} ลงกระเป๋า`}>+</button>
+              <button type="button" className="cl-slot-add" onClick={() => { setSelected(c); add(c); }} aria-label={`ใส่ ${c.name} ลงกระเป๋า`}><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10" /></svg></button>
             </div>)}
             {items.length === 0 && <p className="cl-empty">ไม่พบสายที่ตรงกับ “{query}” · ลองคำอื่น เช่น HDMI, XLR, SDI</p>}
           </div>
@@ -180,7 +180,7 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
             <div className="cl-bag-grid">
               {Array.from({ length: slots }, (_, i) => {
                 const e = bagEntries[i];
-                if (!e) return <span key={`empty-${i}`} className="cl-bag-slot is-empty" aria-hidden="true"><span className="cl-bag-plus">+</span></span>;
+                if (!e) return <span key={`empty-${i}`} className="cl-bag-slot is-empty" aria-hidden="true" />;
                 return <span key={e.c.id} className={`cl-bag-slot is-filled ${selected.id === e.c.id ? "is-selected" : ""}`}>
                   <button type="button" className="cl-bag-hit" onClick={() => setSelected(e.c)} title={`${e.c.name} ×${e.n}`} aria-label={`${e.c.name} ${e.n} เส้น`}>
                     <ConnectorIcon family={e.c.family} color={e.c.color} /><em>{e.n}</em>
