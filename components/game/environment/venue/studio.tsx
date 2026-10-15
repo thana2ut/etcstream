@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { CylinderGeometry, DoubleSide } from "three";
 import { VenueLighting, BLACK_METAL, CHROME, Cyl, D, g, Instanced, merge, place, RB, Slab, STEEL, Tube, type Placement, type V3 } from "./kit";
+import { CuboidCollider, RigidBody } from "@react-three/rapier";
 import { LAYOUTS } from "@/game/training/venue-layouts";
 import { LayoutColliders, LayoutFurniture } from "./layout-furniture";
 import { tex } from "./textures";
@@ -38,6 +39,120 @@ function studioSign() {
     c.fillStyle = "#3a7bff"; c.fillRect(330, 40, 160, 48);
     c.fillStyle = "#fff"; c.font = `bold 30px ${THAI}`; c.fillText("สตูดิโอ 1", 350, h / 2 + 2);
   });
+}
+
+/** Night city skyline for the news-set video wall. */
+function skylineTexture() {
+  return tex.sign("news-skyline", 1024, 384, (c, w, h) => {
+    const sky = c.createLinearGradient(0, 0, 0, h); sky.addColorStop(0, "#081633"); sky.addColorStop(0.65, "#163c86"); sky.addColorStop(1, "#0a1a3a");
+    c.fillStyle = sky; c.fillRect(0, 0, w, h);
+    let seed = 7; const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
+    for (let x = 0; x < w; ) {
+      const bw = 26 + rnd() * 60, bh = 70 + rnd() * 220;
+      c.fillStyle = rnd() > 0.5 ? "#0c1b3d" : "#10234c"; c.fillRect(x, h - 60 - bh, bw, bh);
+      for (let yy = h - 60 - bh + 8; yy < h - 66; yy += 12) for (let xx = x + 4; xx < x + bw - 6; xx += 9) if (rnd() > 0.45) { c.fillStyle = rnd() > 0.7 ? "#ffd27a" : "#9fd0ff"; c.fillRect(xx, yy, 4, 5); }
+      x += bw + 4;
+    }
+    c.fillStyle = "#0b2a5e"; c.fillRect(0, h - 60, w, 60);
+    for (let i = 0; i < 40; i++) { c.fillStyle = `rgba(120,190,255,${0.15 + rnd() * 0.3})`; c.fillRect(rnd() * w, h - 50 + rnd() * 40, 30 + rnd() * 80, 2); }
+  });
+}
+/** Globe graphic for the front of the news desk. */
+function globeTexture() {
+  return tex.sign("news-globe", 512, 160, (c, w, h) => {
+    const g2 = c.createLinearGradient(0, 0, w, 0); g2.addColorStop(0, "#0b2f78"); g2.addColorStop(0.5, "#1d5ad0"); g2.addColorStop(1, "#0b2f78");
+    c.fillStyle = g2; c.fillRect(0, 0, w, h);
+    c.strokeStyle = "rgba(170,215,255,.85)"; c.lineWidth = 2;
+    c.beginPath(); c.arc(w / 2, h / 2, 56, 0, 7); c.stroke();
+    for (const r of [20, 40]) { c.beginPath(); c.ellipse(w / 2, h / 2, r, 56, 0, 0, 7); c.stroke(); }
+    for (const dy of [-28, 0, 28]) { c.beginPath(); c.moveTo(w / 2 - 54, h / 2 + dy); c.lineTo(w / 2 + 54, h / 2 + dy); c.stroke(); }
+  });
+}
+/** Vertical wood slats with an LED strip at the base and top (premium set wall). */
+function WoodSlatWall({ p, w, h, rot = [0, 0, 0], led = "#ffcf8a" }: { p: V3; w: number; h: number; rot?: V3; led?: string }) {
+  const wood = tex.wood("#9a6a3c", [1, 3]);
+  const n = Math.round(w / 0.1);
+  return <group position={p} rotation={rot}>
+    <RB p={[0, h / 2, -0.03]} s={[w, h, 0.04]} rad={0.01} c="#2a1d14" r={0.8} />
+    {Array.from({ length: n }, (_, i) => <RB key={i} p={[-w / 2 + 0.05 + i * (w / n), h / 2, 0.01]} s={[0.055, h - 0.08, 0.035]} rad={0.006} map={wood} c="#ffffff" r={0.55} />)}
+    {[0.06, h - 0.06].map((y) => <Slab key={y} p={[0, y, 0.04]} s={[w, 0.025, 0.01]} c="#ffffff" e={led} ei={2.6} />)}
+  </group>;
+}
+/** News set: low riser, illuminated anchor desk, two chairs, skyline video wall flanked by wood slats. */
+function NewsSet({ p, yaw }: { p: V3; yaw: number }) {
+  const sky = skylineTexture(), globe = globeTexture();
+  return <group position={p} rotation={[0, yaw, 0]}>
+    {/* riser with LED edge */}
+    <RB p={[0, 0.1, 0]} s={[3.8, 0.2, 2.6]} rad={0.02} c="#1c1f25" m={0.3} r={0.35} />
+    <Slab p={[0, 0.2, 1.31]} s={[3.8, 0.02, 0.01]} c="#ffffff" e="#ffc878" ei={2.4} />
+    <Slab p={[1.91, 0.2, 0]} s={[0.01, 0.02, 2.6]} c="#ffffff" e="#ffc878" ei={2.4} />
+    {/* video wall */}
+    <group position={[0, 0.2, -1.15]}>
+      <RB p={[0, 1.45, -0.06]} s={[3.1, 2.1, 0.1]} rad={0.02} c="#0b0c10" />
+      <mesh position={[0, 1.45, 0.0]}><planeGeometry args={[2.98, 1.92]} /><meshBasicMaterial map={sky} toneMapped={false} /></mesh>
+      {[-1, 1].map((sd) => <WoodSlatWall key={sd} p={[sd * 1.75, 0, -0.04]} w={0.45} h={2.9} led="#7fb4ff" />)}
+      <RB p={[0, 2.75, 0.02]} s={[3.9, 0.22, 0.25]} rad={0.02} map={tex.wood("#a77748", [3, 1])} c="#ffffff" r={0.6} />
+      <Slab p={[0, 2.63, 0.15]} s={[3.8, 0.02, 0.01]} c="#ffffff" e="#ffc878" ei={2.6} />
+    </group>
+    {/* curved-front anchor desk: white top, glowing globe panel, LED base */}
+    <group position={[0, 0.2, 0.15]}>
+      <RB p={[0, 0.74, 0]} s={[2.4, 0.06, 0.8]} rad={0.03} c="#e8ecf2" m={0.2} r={0.25} />
+      <RB p={[0, 0.38, 0.05]} s={[2.3, 0.7, 0.62]} rad={0.03} c="#c7ccd4" m={0.5} r={0.3} />
+      <mesh position={[0, 0.4, 0.37]}><planeGeometry args={[1.5, 0.46]} /><meshBasicMaterial map={globe} toneMapped={false} /></mesh>
+      <Slab p={[0, 0.03, 0.37]} s={[2.3, 0.02, 0.01]} c="#ffffff" e="#ffd08a" ei={2.6} />
+      {[-0.5, 0.5].map((x) => <group key={x} position={[x, 0, -0.65]}>
+        <Cyl p={[0, 0.32, 0]} rt={0.025} h={0.5} {...CHROME} />
+        <RB p={[0, 0.6, 0]} s={[0.5, 0.08, 0.48]} rad={0.03} c="#16171a" r={0.6} />
+        <RB p={[0, 0.98, -0.22]} rot={[-0.08, 0, 0]} s={[0.48, 0.7, 0.08]} rad={0.03} c="#16171a" r={0.6} />
+        <Cyl p={[0, 0.07, 0]} rt={0.26} h={0.03} {...CHROME} />
+      </group>)}
+    </group>
+    <pointLight position={[0, 1.6, 1.2]} intensity={6} distance={5} color="#5d8cff" />
+  </group>;
+}
+/** Interview corner: rug, two armchairs, round coffee table, plant, warm lamp light. */
+function InterviewCorner({ p, yaw }: { p: V3; yaw: number }) {
+  const chair = (x: number, ry: number) => <group position={[x, 0, 0]} rotation={[0, ry, 0]}>
+    <RB p={[0, 0.25, 0]} s={[0.78, 0.3, 0.76]} rad={0.08} c="#e8e2d6" r={0.9} />
+    <RB p={[0, 0.66, -0.31]} rot={[-0.12, 0, 0]} s={[0.78, 0.6, 0.18]} rad={0.08} c="#e8e2d6" r={0.9} />
+    {[-1, 1].map((s) => <RB key={s} p={[s * 0.36, 0.45, 0]} s={[0.12, 0.3, 0.74]} rad={0.05} c="#ded7ca" r={0.9} />)}
+    {[-1, 1].flatMap((a) => [-1, 1].map((b) => <Cyl key={`${a}${b}`} p={[a * 0.3, 0.05, b * 0.28]} rt={0.02} h={0.1} c="#3b2a1d" />))}
+  </group>;
+  return <group position={p} rotation={[0, yaw, 0]}>
+    <Cyl p={[0, 0.005, 0]} rt={1.5} h={0.01} seg={48} map={tex.fabric("#d9d2c4", [4, 4])} c="#ffffff" r={1} />
+    {chair(-0.85, 0.5)}
+    {chair(0.85, -0.5)}
+    <group position={[0, 0, 0.15]}>
+      <Cyl p={[0, 0.48, 0]} rt={0.36} h={0.035} map={tex.wood("#8a5a34")} c="#ffffff" r={0.5} />
+      <Cyl p={[0, 0.24, 0]} rt={0.03} h={0.46} {...BLACK_METAL} />
+      <Cyl p={[0, 0.015, 0]} rt={0.22} h={0.03} {...BLACK_METAL} />
+      <Cyl p={[0.1, 0.55, 0.05]} rt={0.035} h={0.09} c="#f2f2f2" r={0.3} />
+    </group>
+    {/* plant in a tall pot */}
+    <group position={[1.55, 0, -0.9]}>
+      <Cyl p={[0, 0.3, 0]} rt={0.2} rb={0.16} h={0.6} c="#2b2b2b" r={0.6} />
+      {[[0.12, 1.05, 0.05], [-0.14, 0.95, 0.06], [0.05, 1.3, -0.08], [-0.08, 1.2, 0.12], [0.18, 0.85, -0.1], [-0.18, 0.8, -0.08], [0.02, 1.45, 0.02]].map((l, i) => <group key={i}>
+        <Tube pts={[[0, 0.6, 0], [l[0] * 0.5, (l[1] + 0.6) / 2, l[2] * 0.5], l as V3]} r={0.008} c="#4d6b2c" />
+        <mesh position={l as V3} scale={[1, 0.45, 0.7]}><sphereGeometry args={[0.13, 12, 8]} /><meshStandardMaterial color={i % 2 ? "#3f7d32" : "#4f8f3a"} roughness={0.7} /></mesh>
+      </group>)}
+    </group>
+    <pointLight position={[0, 2.0, 0.4]} intensity={5} distance={4.5} color="#ffcc88" />
+  </group>;
+}
+/** Straight dolly track (two rails on sleepers). */
+function DollyTrack({ p, len, yaw }: { p: V3; len: number; yaw: number }) {
+  return <group position={p} rotation={[0, yaw, 0]}>
+    {[-0.3, 0.3].map((x) => <Tube key={x} pts={[[x, 0.04, -len / 2], [x, 0.04, len / 2]]} r={0.02} {...CHROME} />)}
+    {Array.from({ length: Math.floor(len / 0.6) + 1 }, (_, i) => <RB key={i} p={[0, 0.015, -len / 2 + i * 0.6]} s={[0.8, 0.03, 0.08]} rad={0.008} {...BLACK_METAL} />)}
+  </group>;
+}
+/** Hanging production monitor from the grid. */
+function HangingMonitor({ p, yaw, i }: { p: V3; yaw: number; i: number }) {
+  return <group position={p} rotation={[0, yaw, 0]}>
+    <Tube pts={[[0, 0.55, 0], [0, 0.32, 0]]} r={0.015} {...STEEL} />
+    <RB p={[0, 0, 0]} s={[1.0, 0.6, 0.06]} rad={0.015} c="#0a0a0c" />
+    <mesh position={[0, 0, 0.032]}><planeGeometry args={[0.94, 0.54]} /><meshBasicMaterial map={multiview(i)} toneMapped={false} /></mesh>
+  </group>;
 }
 
 /** Fresnel / profile fixture hung from the grid. */
@@ -76,7 +191,7 @@ export function Studio() {
   const { x0, x1, z0, z1, h } = ROOM;
   const fresnels = useFresnels();
   const panelTex = tex.fabric("#1b1c20", [3, 2]);
-  const floorTex = tex.paint("#3a3d42", [12, 10]);
+  const floorTex = tex.paint("#202328", [12, 10]);
   const cycTex = tex.paint("#2fb34a", [6, 3]);
   const cove = useMemo(() => new CylinderGeometry(0.9, 0.9, 9.2, 24, 1, true, Math.PI, Math.PI / 2), []);
   const gridAt = useMemo<Placement[]>(() => {
@@ -101,7 +216,7 @@ export function Studio() {
     {/* work light over both side tables so plugs and cables read clearly */}
 
     {/* floor: sealed concrete with gaffer-tape marks */}
-    <Slab p={[(x0 + x1) / 2, -0.05, (z0 + z1) / 2]} s={[x1 - x0, 0.1, z1 - z0]} map={floorTex} c="#ffffff" r={0.28} m={0.1} />
+    <Slab p={[(x0 + x1) / 2, -0.05, (z0 + z1) / 2]} s={[x1 - x0, 0.1, z1 - z0]} map={floorTex} c="#ffffff" r={0.16} m={0.3} />
     {/* gaffer-tape marks at the three tripod positions of the mission layout */}
     {(["cam1", "cam2", "cam3"] as const).map((id) => { const [x, , z] = LAYOUTS.studioMission.places[id].p; return <group key={id}>
       <Slab p={[x, 0.002, z]} s={[0.4, 0.004, 0.05]} c="#f2c230" />
@@ -171,7 +286,25 @@ export function Studio() {
     {/* floor cable tray from the camera marks to the production desk (route guide) */}
     <RB p={[0, 0.02, 1.9]} s={[6.4, 0.04, 0.22]} rad={0.015} c="#202226" />
     <RB p={[0, 0.02, 2.6]} s={[0.22, 0.04, 1.4]} rad={0.015} c="#202226" />
-    <LayoutFurniture layout={LAYOUTS.studioMission} look={{ top: "#6a5a4a", frame: { ...BLACK_METAL } }} />
+    {/* reference zones (art/reference/venues/studio-01/02): news set back-left, interview corner back-right */}
+    <NewsSet p={[-6.3, 0, -2.1]} yaw={0.35} />
+    <InterviewCorner p={[6.2, 0, -1.6]} yaw={-0.45} />
+    <WoodSlatWall p={[x1 - 0.12, 0, -1.2]} w={4.2} h={3.6} rot={[0, -Math.PI / 2, 0]} />
+    <DollyTrack p={[-2.2, 0, -0.6]} len={3.6} yaw={0.9} />
+    {[[-3.2, 2.0, 0.35, 2], [3.2, 2.0, -0.35, 3], [0, -0.6, 0, 4]].map(([x, z, ry, i]) => <HangingMonitor key={i} p={[x, h - 2.1, z]} yaw={ry} i={i} />)}
+    {/* cable reels and stacked road cases along the back wall */}
+    {[-2.4, -1.4].map((x) => <group key={x} position={[x, 0, z1 - 0.6]}>
+      {[-0.2, 0.2].map((dz) => <Cyl key={dz} p={[0, 0.38, dz]} rt={0.38} h={0.04} rot={[Math.PI / 2, 0, 0]} c="#d77a22" r={0.6} />)}
+      <Cyl p={[0, 0.38, 0]} rt={0.24} h={0.36} rot={[Math.PI / 2, 0, 0]} c="#121212" r={0.7} />
+    </group>)}
+    {[0.4, 1.3, 2.2].map((x, i) => <RB key={x} p={[x, 0.36 + (i === 1 ? 0.7 : 0), z1 - 0.55]} s={[0.8, 0.7, 0.6]} rad={0.03} map={tex.fabric("#1d1e21", [2, 2])} c="#ffffff" r={0.85} />)}
+    <RigidBody type="fixed" colliders={false}>
+      <CuboidCollider position={[-6.3, 0.9, -2.1]} rotation={[0, 0.35, 0]} args={[1.95, 0.9, 1.35]} />
+      <CuboidCollider position={[6.2, 0.5, -1.6]} rotation={[0, -0.45, 0]} args={[1.4, 0.5, 0.9]} />
+      <CuboidCollider position={[-1.9, 0.4, z1 - 0.6]} args={[0.9, 0.4, 0.4]} />
+      <CuboidCollider position={[1.3, 0.7, z1 - 0.55]} args={[1.3, 0.7, 0.32]} />
+    </RigidBody>
+    <LayoutFurniture layout={LAYOUTS.studioMission} look={{ top: "#2b2e33", frame: { ...BLACK_METAL } }} />
     <LayoutColliders layout={LAYOUTS.studioMission} />
   </>;
 }
