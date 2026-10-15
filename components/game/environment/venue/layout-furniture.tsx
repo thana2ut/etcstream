@@ -90,16 +90,20 @@ function RackCabinet({ f }: { f: Furniture }) {
 
 function StudentDesk({ f }: { f: Furniture }) {
   const [w, h, d] = f.size;
+  // One chair per ~0.9 m of table (2-seat tables in the classroom); light wood top on a black steel frame.
+  const seats = Math.max(1, Math.round(w / 0.9));
+  const frame = { ...BLACK_METAL, c: "#22252a" };
   return <group>
-    <RB p={[0, h - 0.015, 0]} s={[w, 0.025, d]} rad={0.01} map={tex.wood("#d5b282")} c="#ffffff" r={0.45} />
-    <RB p={[0, h - 0.12, -0.02]} s={[w - 0.08, 0.012, d - 0.16]} rad={0.004} c="#6d737b" m={0.5} />
-    <Legs w={w} d={d} h={h - 0.03} frame={{ ...STEEL, c: "#5d636b" }} />
-    {/* chair behind the desk */}
-    <group position={[0, 0, d / 2 + 0.3]}>
-      <RB p={[0, 0.45, 0]} s={[0.42, 0.03, 0.4]} rad={0.012} c="#2f6fb5" r={0.35} />
-      <RB p={[0, 0.74, 0.19]} rot={[-0.1, 0, 0]} s={[0.42, 0.34, 0.025]} rad={0.012} c="#2f6fb5" r={0.35} />
-      {[-1, 1].map((s) => <Tube key={s} pts={[[s * 0.19, 0.01, -0.18], [s * 0.19, 0.44, -0.16], [s * 0.19, 0.44, 0.18], [s * 0.19, 0.01, 0.2]]} r={0.01} {...STEEL} />)}
-    </group>
+    <RB p={[0, h - 0.015, 0]} s={[w, 0.03, d]} rad={0.01} map={tex.wood("#dcc39a", [Math.max(1, w), 1])} c="#ffffff" r={0.4} />
+    <RB p={[0, h - 0.11, -d / 2 + 0.06]} s={[w - 0.1, 0.16, 0.015]} rad={0.004} {...frame} />
+    <Legs w={w} d={d} h={h - 0.03} frame={frame} inset={0.05} />
+    <Tube pts={[[-w / 2 + 0.05, 0.14, 0], [w / 2 - 0.05, 0.14, 0]]} r={0.012} {...frame} />
+    {Array.from({ length: seats }, (_, i) => <group key={i} position={[-w / 2 + (w / seats) * (i + 0.5), 0, d / 2 + 0.32]}>
+      {/* blue polypropylene stacking chair on a chrome frame */}
+      <RB p={[0, 0.46, 0]} s={[0.44, 0.035, 0.42]} rad={0.014} c="#1f4fa6" r={0.38} />
+      <RB p={[0, 0.76, 0.2]} rot={[-0.12, 0, 0]} s={[0.44, 0.36, 0.03]} rad={0.014} c="#1f4fa6" r={0.38} />
+      {[-1, 1].map((sx) => <Tube key={sx} pts={[[sx * 0.2, 0.01, -0.19], [sx * 0.2, 0.45, -0.17], [sx * 0.2, 0.45, 0.17], [sx * 0.2, 0.62, 0.21], [sx * 0.2, 0.01, 0.22]]} r={0.009} {...CHROME} />)}
+    </group>)}
   </group>;
 }
 

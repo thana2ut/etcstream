@@ -3,21 +3,29 @@
 import { CuboidCollider, RigidBody } from "@react-three/rapier";
 import { LAYOUTS, VENUE_SCALE } from "@/game/training/venue-layouts";
 import { LayoutColliders, LayoutFurniture } from "./layout-furniture";
-import { VenueLighting, BLACK_METAL, CHROME, Cyl, D as BASE_D, H, Lathe, RB, Slab, STEEL, Tube, W as BASE_W, type V3 } from "./kit";
+import { AvCart, VenueLighting, Ball, BLACK_METAL, CHROME, Cyl, D as BASE_D, H, Lathe, RB, Slab, STEEL, Tube, W as BASE_W, type V3 } from "./kit";
 import { tex } from "./textures";
 
-/** Mission classroom is enlarged with its layout (VENUE_SCALE, a game-design choice): shell and wall fittings follow. */
+/**
+ * Mission classroom (บทที่ 01) — modern media-training classroom, built to the reference concept
+ * (art/reference/venues/classroom-01/02, docs/VENUE_VISUAL_REFERENCES.md):
+ *  front: wood-slat feature wall, centred projector screen over the teacher desk, grey acoustic panels, corner speakers,
+ *         track lights, mobile whiteboard (left), classroom TV on a stand (right, layout furniture)
+ *  left:  large windows with blinds, camera on tripod (scenario device) beside a softbox, AV cart with wireless gear
+ *  right: tall metal shelving over the portable-gear cabinet, blue / grey acoustic panels, door
+ *  ceiling: suspended grid with LED panels, AC vents, downlights, ceiling projector · floor: polished grey tile.
+ * Gameplay furniture (desks, cabinet, cable shelf, TV stand) comes from the layout so colliders and surfaces match.
+ */
 const K = VENUE_SCALE.classroom;
 const W = BASE_W * K, D = BASE_D * K;
 const k = (v: number) => +(v * K).toFixed(3);
 const BACK = -D / 2;
+const L = -W / 2, R = W / 2;
 
 /** Whiteboard writing: lesson title and a signal-flow sketch in marker. */
 function boardTexture() {
   return tex.sign("classroom-board", 1024, 384, (c, w, h) => {
     c.fillStyle = "#fbfbf8"; c.fillRect(0, 0, w, h);
-    const grad = c.createLinearGradient(0, 0, w, h); grad.addColorStop(0, "rgba(0,0,0,0)"); grad.addColorStop(1, "rgba(120,130,140,.06)");
-    c.fillStyle = grad; c.fillRect(0, 0, w, h);
     c.fillStyle = "#1d4fb0"; c.font = "bold 54px 'Sarabun','Leelawadee UI',sans-serif"; c.fillText("HDMI 101 · พื้นฐานการต่อสัญญาณภาพ", 40, 78);
     c.strokeStyle = "#1d4fb0"; c.lineWidth = 3; c.beginPath(); c.moveTo(40, 96); c.lineTo(760, 98); c.stroke();
     const boxes: [number, string][] = [[60, "CAMERA"], [400, "SWITCHER"], [740, "MONITOR"]];
@@ -25,191 +33,265 @@ function boardTexture() {
     for (const [x, label] of boxes) { c.strokeStyle = "#222"; c.strokeRect(x, 150, 230, 90); c.fillStyle = "#222"; c.fillText(label, x + 22, 207); }
     c.strokeStyle = "#c0302a"; c.fillStyle = "#c0302a";
     for (const x of [290, 630]) { c.beginPath(); c.moveTo(x + 10, 195); c.lineTo(x + 100, 195); c.stroke(); c.beginPath(); c.moveTo(x + 100, 182); c.lineTo(x + 112, 195); c.lineTo(x + 100, 208); c.fill(); }
-    c.font = "28px sans-serif"; c.fillText("OUT", 300, 180); c.fillText("IN", 350, 230); c.fillText("OUT", 640, 180); c.fillText("IN", 690, 230);
     c.fillStyle = "#1e7a3a"; c.font = "30px 'Sarabun','Leelawadee UI',sans-serif"; c.fillText("✔ ต่อ OUTPUT → INPUT เสมอ   ✔ ตรวจทุกช่วงก่อนออกอากาศ", 40, 320);
+    void h;
   });
 }
+/** Projected slide: soft blue abstract (as in the reference). */
 function slideTexture() {
-  return tex.sign("classroom-slide", 640, 400, (c, w, h) => {
-    c.fillStyle = "#f4f7fb"; c.fillRect(0, 0, w, h);
-    c.fillStyle = "#16407e"; c.fillRect(0, 0, w, 64);
-    c.fillStyle = "#fff"; c.font = "bold 30px 'Sarabun','Leelawadee UI',sans-serif"; c.fillText("บทที่ 1 · ประตูแรกแห่งภาพ", 24, 43);
-    c.fillStyle = "#28303c"; c.font = "24px 'Sarabun','Leelawadee UI',sans-serif";
-    ["• รู้จักพอร์ต HDMI IN / OUT", "• เส้นทาง Camera → Switcher → Monitor", "• ตรวจสัญญาณบนจอปลายทาง"].forEach((s, i) => c.fillText(s, 34, 130 + i * 50));
-    c.fillStyle = "#d6deea"; c.fillRect(34, 300, 360, 10); c.fillRect(34, 322, 260, 10);
-    c.fillStyle = "#16407e"; c.beginPath(); c.arc(540, 320, 46, 0, 7); c.fill();
+  return tex.sign("classroom-slide-2", 800, 450, (c, w, h) => {
+    c.fillStyle = "#e9eefb"; c.fillRect(0, 0, w, h);
+    c.fillStyle = "#6f86d8"; c.beginPath(); c.moveTo(0, 0); c.lineTo(w * 0.55, 0); c.bezierCurveTo(w * 0.42, 70, w * 0.2, 60, 0, 110); c.fill();
+    c.fillStyle = "#8ea0e2"; c.beginPath(); c.arc(w * 0.84, h * 0.66, 92, 0, 7); c.fill();
+    c.fillStyle = "#5f78cf"; c.fillRect(0, h - 46, w, 46);
+    c.fillStyle = "#c9d3f3"; c.beginPath(); c.moveTo(0, h - 46); c.bezierCurveTo(w * 0.3, h - 80, w * 0.6, h - 20, w, h - 70); c.lineTo(w, h - 46); c.fill();
   });
 }
-/** View through the classroom windows: sky, campus trees and the next building. */
+/** View through the windows: sky, campus trees and a city block. */
 function windowView() {
-  return tex.sign("window-view", 256, 196, (c, w, h) => {
-    const sky = c.createLinearGradient(0, 0, 0, h * 0.6); sky.addColorStop(0, "#8fc0ea"); sky.addColorStop(1, "#dcecf8");
+  return tex.sign("window-view-2", 320, 220, (c, w, h) => {
+    const sky = c.createLinearGradient(0, 0, 0, h * 0.7); sky.addColorStop(0, "#9cc6ec"); sky.addColorStop(1, "#e4f0fa");
     c.fillStyle = sky; c.fillRect(0, 0, w, h);
-    c.fillStyle = "#d8cfbf"; c.fillRect(150, 70, 120, 90);
-    c.fillStyle = "#7d9cb8"; for (let i = 0; i < 4; i++) for (let j = 0; j < 3; j++) c.fillRect(158 + i * 26, 80 + j * 26, 16, 16);
-    c.fillStyle = "#5a8a45";
-    for (let i = 0; i < 9; i++) { c.beginPath(); c.arc(10 + i * 30, 120 - (i % 3) * 10, 26, 0, 7); c.fill(); }
-    c.fillStyle = "#6f9e47"; c.fillRect(0, 140, w, h - 140);
-  });
-}
-function clockTexture() {
-  return tex.sign("clock-face", 256, 256, (c, w) => {
-    c.fillStyle = "#fdfdfb"; c.beginPath(); c.arc(128, 128, 126, 0, 7); c.fill();
-    c.fillStyle = "#222"; c.font = "bold 26px sans-serif"; c.textAlign = "center"; c.textBaseline = "middle";
-    for (let i = 1; i <= 12; i++) { const a = (i / 12) * Math.PI * 2 - Math.PI / 2; c.fillText(String(i), 128 + Math.cos(a) * 98, 128 + Math.sin(a) * 98); }
-    for (let i = 0; i < 60; i++) { const a = (i / 60) * Math.PI * 2; c.fillRect(128 + Math.cos(a) * 118 - 1, 128 + Math.sin(a) * 118 - 1, i % 5 ? 2 : 4, i % 5 ? 2 : 4); }
-    void w;
-  });
-}
-function noticeTexture(i: number) {
-  const colors = ["#fff7c2", "#d9f0ff", "#ffe1d6", "#e5ffd9", "#ffffff"];
-  return tex.sign(`notice${i}`, 128, 160, (c, w, h) => {
-    c.fillStyle = colors[i % colors.length]; c.fillRect(0, 0, w, h);
-    c.fillStyle = "rgba(30,40,60,.75)"; c.fillRect(10, 12, w - 20, 12);
-    for (let k = 0; k < 8; k++) c.fillRect(10, 38 + k * 14, (w - 20) * (0.5 + ((k * 37 + i * 11) % 50) / 100), 4);
+    c.fillStyle = "#c9cfd6"; c.fillRect(170, 60, 60, 110); c.fillRect(240, 85, 70, 85);
+    c.fillStyle = "#8aa2bb"; for (let i = 0; i < 3; i++) for (let j = 0; j < 5; j++) c.fillRect(176 + i * 18, 68 + j * 20, 10, 12);
+    c.fillStyle = "#4f8a3f";
+    for (let i = 0; i < 12; i++) { c.beginPath(); c.arc(8 + i * 28, 150 - (i % 3) * 12, 30, 0, 7); c.fill(); }
+    c.fillStyle = "#6c9d48"; c.fillRect(0, 170, w, h - 170);
   });
 }
 
+/** Large window with aluminium frame, mullions, sill and a venetian blind drawn to the top third. */
 function Window({ z }: { z: number }) {
-  const x = -W / 2 + 0.06;
+  const x = L + 0.06;
+  const wd = 2.3, ht = 1.75, cy = 1.72;
   return <group>
-    <Slab p={[x + 0.005, 1.75, z]} rot={[0, Math.PI / 2, 0]} s={[1.7, 1.3, 0.01]} map={windowView()} c="#ffffff" e="#ffffff" ei={0.55} />
-    {/* aluminium frame + mullion + sill */}
-    {[[0, 0.66, 0, 1.76], [0, -0.66, 0, 1.76]].map(([, dy, , len], i) => <RB key={i} p={[x + 0.03, 1.75 + dy, z]} s={[0.05, 0.05, len]} rad={0.008} {...CHROME} c="#c9cdd2" />)}
-    {[-0.86, 0, 0.86].map((dz) => <RB key={dz} p={[x + 0.03, 1.75, z + dz]} s={[0.05, 1.36, 0.045]} rad={0.008} {...CHROME} c="#c9cdd2" />)}
-    <RB p={[x + 0.08, 1.06, z]} s={[0.16, 0.035, 1.84]} rad={0.01} c="#e9e4da" />
-    {/* venetian blind, half drawn */}
-    {Array.from({ length: 14 }, (_, i) => <RB key={i} p={[x + 0.09, 2.36 - i * 0.045, z]} rot={[0, 0, 0.5]} s={[0.05, 0.004, 1.66]} rad={0.0015} c="#f1efe9" r={0.5} />)}
-    <RB p={[x + 0.09, 2.42, z]} s={[0.07, 0.05, 1.72]} rad={0.01} c="#e6e3dc" />
-    <Tube pts={[[x + 0.12, 2.38, z + 0.78], [x + 0.12, 1.75, z + 0.8]]} r={0.003} c="#ddd" />
+    <Slab p={[x + 0.005, cy, z]} rot={[0, Math.PI / 2, 0]} s={[wd, ht, 0.01]} map={windowView()} c="#ffffff" e="#ffffff" ei={0.6} />
+    {[ht / 2, -ht / 2].map((dy) => <RB key={dy} p={[x + 0.03, cy + dy, z]} s={[0.06, 0.06, wd + 0.06]} rad={0.008} {...CHROME} c="#c9cdd2" />)}
+    {[-wd / 2, -wd / 6, wd / 6, wd / 2].map((dz) => <RB key={dz} p={[x + 0.03, cy, z + dz]} s={[0.06, ht, 0.05]} rad={0.008} {...CHROME} c="#c9cdd2" />)}
+    <RB p={[x + 0.09, cy - ht / 2 - 0.03, z]} s={[0.18, 0.04, wd + 0.1]} rad={0.01} c="#ecebe6" />
+    {/* blind slats (top third) + headrail + pull cord */}
+    {Array.from({ length: 12 }, (_, i) => <RB key={i} p={[x + 0.1, cy + ht / 2 - 0.08 - i * 0.045, z]} rot={[0, 0, 0.55]} s={[0.05, 0.004, wd - 0.08]} rad={0.0015} c="#e9e9e6" r={0.5} />)}
+    <RB p={[x + 0.1, cy + ht / 2 - 0.02, z]} s={[0.07, 0.05, wd]} rad={0.01} c="#dddcd6" />
+    <Tube pts={[[x + 0.13, cy + ht / 2 - 0.05, z + wd / 2 - 0.1], [x + 0.13, cy, z + wd / 2 - 0.08]]} r={0.003} c="#ddd" />
   </group>;
 }
 
+/** Louvered 1200×600 LED troffer in the suspended ceiling. */
 function CeilingTroffer({ p }: { p: V3 }) {
   return <group position={p}>
     <RB p={[0, 0, 0]} s={[1.2, 0.05, 0.6]} rad={0.01} c="#f4f4f2" m={0.3} r={0.4} />
-    <Slab p={[0, -0.028, 0]} s={[1.12, 0.005, 0.52]} c="#ffffff" e="#f6f9ff" ei={1.6} />
+    <Slab p={[0, -0.028, 0]} s={[1.12, 0.005, 0.52]} c="#ffffff" e="#f6f9ff" ei={1.2} />
     {[-0.37, 0, 0.37].map((x) => <Slab key={x} p={[x, -0.033, 0]} s={[0.012, 0.006, 0.52]} c="#d8dade" m={0.6} />)}
+    {[-0.13, 0.13].map((z) => <Slab key={z} p={[0, -0.033, z]} s={[1.12, 0.006, 0.012]} c="#d8dade" m={0.6} />)}
+  </group>;
+}
+/** Square AC diffuser with slats. */
+function AcVent({ p }: { p: V3 }) {
+  return <group position={p}>
+    <RB p={[0, 0, 0]} s={[0.62, 0.03, 0.62]} rad={0.01} c="#eceeef" r={0.5} />
+    {[-0.2, -0.1, 0, 0.1, 0.2].map((z) => <Slab key={z} p={[0, -0.018, z]} s={[0.52, 0.006, 0.05]} c="#bfc3c7" m={0.4} />)}
+  </group>;
+}
+function Downlight({ p }: { p: V3 }) {
+  return <group position={p}>
+    <Cyl p={[0, 0, 0]} rt={0.07} h={0.02} c="#e9ebec" m={0.5} />
+    <Cyl p={[0, -0.012, 0]} rt={0.05} h={0.004} c="#ffffff" e="#fff6e2" ei={2.2} />
+  </group>;
+}
+/** Fabric acoustic panel with a thin frame. */
+function AcousticPanel({ p, s, rot = [0, 0, 0], c }: { p: V3; s: [number, number]; rot?: V3; c: string }) {
+  return <group position={p} rotation={rot}>
+    <RB p={[0, 0, 0]} s={[s[0], s[1], 0.05]} rad={0.01} map={tex.fabric(c, [Math.max(1, s[0]), Math.max(1, s[1])])} c="#ffffff" r={0.96} />
+  </group>;
+}
+/** Black two-way wall speaker on a bracket. */
+function WallSpeaker({ p, yaw }: { p: V3; yaw: number }) {
+  return <group position={p} rotation={[0, yaw, 0]}>
+    <RB p={[0, 0, 0.04]} s={[0.05, 0.05, 0.08]} rad={0.01} {...BLACK_METAL} />
+    <group position={[0, 0, 0.2]} rotation={[0.12, 0, 0]}>
+      <RB p={[0, 0, 0]} s={[0.3, 0.46, 0.26]} rad={0.025} c="#16171a" r={0.6} />
+      <RB p={[0, 0, 0.131]} s={[0.27, 0.43, 0.005]} rad={0.01} map={tex.fabric("#1c1d20", [1, 2])} c="#ffffff" r={0.95} />
+    </group>
+  </group>;
+}
+/** Track rail with spot heads aimed at the front wall. */
+function TrackLights({ z, xs }: { z: number; xs: number[] }) {
+  const y = H - 0.08;
+  return <group>
+    <RB p={[0, y, z]} s={[Math.max(...xs) - Math.min(...xs) + 1, 0.04, 0.05]} rad={0.012} {...BLACK_METAL} />
+    {xs.map((x) => <group key={x} position={[x, y - 0.04, z]} rotation={[-0.6, 0, 0]}>
+      <Cyl p={[0, -0.05, 0]} rt={0.012} h={0.1} {...BLACK_METAL} />
+      <Cyl p={[0, -0.14, 0]} rt={0.045} rb={0.05} h={0.14} {...BLACK_METAL} />
+      <Cyl p={[0, -0.212, 0]} rt={0.04} h={0.004} c="#fff8e8" e="#fff2d4" ei={2.4} />
+    </group>)}
+  </group>;
+}
+/** Potted indoor plant (fiddle-leaf style): pot, soil, stems, leaf clusters. */
+function Plant({ p, s = 1 }: { p: V3; s?: number }) {
+  const leaves: V3[] = [[0.12, 1.05, 0.05], [-0.14, 0.95, 0.06], [0.05, 1.25, -0.08], [-0.08, 1.18, 0.12], [0.16, 0.82, -0.1], [-0.15, 0.75, -0.08], [0.02, 1.4, 0.02], [0.18, 1.3, 0.1], [-0.2, 1.12, -0.12]];
+  return <group position={p} scale={s}>
+    <Lathe p={[0, 0, 0]} prof={[[0, 0], [0.17, 0], [0.2, 0.42], [0.21, 0.44], [0, 0.44]]} c="#e9e7e2" r={0.55} />
+    <Cyl p={[0, 0.43, 0]} rt={0.19} h={0.02} c="#3d2d20" r={1} />
+    {leaves.map((l, i) => <group key={i}>
+      <Tube pts={[[0, 0.43, 0], [l[0] * 0.5, (l[1] + 0.43) / 2, l[2] * 0.5], l]} r={0.008} c="#4d6b2c" />
+      <Ball p={l} r={0.11} sc={[1, 0.45, 0.7]} c={i % 2 ? "#3f7d32" : "#4f8f3a"} rough={0.7} />
+    </group>)}
+  </group>;
+}
+/** Softbox on a light stand beside the camera, aimed at the teaching area. */
+function Softbox({ p, yaw }: { p: V3; yaw: number }) {
+  const legs = [0, 1, 2].map((i) => i * (Math.PI * 2) / 3);
+  return <group position={p} rotation={[0, yaw, 0]}>
+    {legs.map((a, i) => <Tube key={i} pts={[[0, 0.6, 0], [Math.cos(a) * 0.45, 0.02, Math.sin(a) * 0.45]]} r={0.012} {...BLACK_METAL} />)}
+    <Cyl p={[0, 1.15, 0]} rt={0.016} h={1.1} {...STEEL} />
+    <Cyl p={[0, 1.95, 0]} rt={0.012} h={0.6} {...STEEL} />
+    <group position={[0, 2.2, 0]} rotation={[0.2, 0, 0]}>
+      <RB p={[0, 0, -0.12]} s={[0.12, 0.12, 0.12]} rad={0.02} c="#111" />
+      <Lathe p={[0, 0, 0.02]} rot={[Math.PI / 2, 0, Math.PI / 4]} seg={4} prof={[[0.06, -0.12], [0.5, 0.2], [0.5, 0.22], [0.06, -0.1]]} c="#1b1c20" r={0.7} />
+      <Slab p={[0, 0, 0.23]} s={[0.66, 0.66, 0.005]} c="#ffffff" e="#fff8ea" ei={2.0} />
+    </group>
+  </group>;
+}
+/** Mobile whiteboard on a steel frame with casters. */
+function MobileWhiteboard({ p, yaw }: { p: V3; yaw: number }) {
+  return <group position={p} rotation={[0, yaw, 0]}>
+    <RB p={[0, 1.45, 0]} s={[1.8, 1.1, 0.04]} rad={0.015} {...CHROME} c="#c8ccd1" />
+    <Slab p={[0, 1.45, 0.022]} s={[1.74, 1.04, 0.004]} map={boardTexture()} c="#ffffff" r={0.12} />
+    <RB p={[0, 0.87, 0.05]} s={[1.6, 0.03, 0.08]} rad={0.01} {...CHROME} c="#b8bdc3" />
+    {[-0.93, 0.93].map((x) => <group key={x}>
+      <RB p={[x, 0.95, 0]} s={[0.04, 1.9, 0.04]} rad={0.01} {...STEEL} />
+      <RB p={[x, 0.08, 0]} s={[0.05, 0.04, 0.6]} rad={0.01} {...STEEL} />
+      {[-0.27, 0.27].map((z) => <Cyl key={z} p={[x, 0.035, z]} rt={0.035} h={0.03} rot={[0, 0, Math.PI / 2]} c="#2a2a2a" r={0.8} />)}
+    </group>)}
+    {["#1d4fb0", "#c0302a", "#111"].map((c, i) => <group key={c} position={[-0.5 + i * 0.14, 0.9, 0.06]} rotation={[0, 0, Math.PI / 2]}>
+      <Cyl p={[0, 0, 0]} rt={0.011} h={0.12} c="#f2f2f2" r={0.4} />
+      <Cyl p={[0, 0.07, 0]} rt={0.012} h={0.035} c={c} r={0.4} />
+    </group>)}
+  </group>;
+}
+/** Tall steel shelving above the portable-gear cabinet: camera cases, cable coils, headsets, boxes. */
+function StorageShelving({ x, z, len }: { x: number; z: number; len: number }) {
+  const shelves = [1.32, 1.82, 2.32];
+  const posts = [-len / 2, -len / 6, len / 6, len / 2];
+  const depth = 0.42, fx = x - depth / 2; // front edge (room side)
+  return <group>
+    {posts.flatMap((dz) => [x - depth / 2 + 0.02, x + depth / 2 - 0.02].map((px) => <RB key={`${dz}${px}`} p={[px, 1.4, z + dz]} s={[0.035, 2.8, 0.035]} rad={0.006} {...STEEL} c="#6f757d" />))}
+    {shelves.map((y) => <RB key={y} p={[x, y, z]} s={[depth, 0.025, len]} rad={0.004} {...STEEL} c="#7b828a" />)}
+    {/* row 1: camera cases */}
+    {[-1.05, -0.45, 0.2, 0.85].map((dz, i) => <group key={dz} position={[x + 0.02, shelves[0] + 0.15, z + dz]}>
+      <RB p={[0, 0, 0]} s={[0.34, 0.28, 0.5]} rad={0.02} c={i % 2 ? "#1b1c1f" : "#2a2c30"} r={0.7} />
+      <RB p={[-0.172, 0.04, 0]} s={[0.01, 0.06, 0.2]} rad={0.004} {...CHROME} />
+    </group>)}
+    {/* row 2: cable coils + headsets */}
+    {[-1.1, -0.7, -0.3, 0.1].map((dz, i) => <mesh key={dz} position={[fx + 0.18, shelves[1] + 0.13, z + dz]} rotation={[0, Math.PI / 2, 0]}>
+      <torusGeometry args={[0.12, 0.028, 10, 28]} /><meshStandardMaterial color={["#e0702a", "#141414", "#2b5fd0", "#141414"][i]} roughness={0.6} />
+    </mesh>)}
+    {[0.55, 0.95].map((dz) => <group key={dz} position={[fx + 0.16, shelves[1] + 0.1, z + dz]}>
+      <Lathe p={[0, 0.06, 0]} rot={[0, 0, Math.PI / 2]} prof={[[0.0, 0.0], [0.09, 0], [0.09, 0.012], [0, 0.012]]} c="#141414" />
+      {[-0.08, 0.08].map((dy) => <Cyl key={dy} p={[0, 0.02, dy]} rt={0.045} h={0.04} rot={[Math.PI / 2, 0, 0]} c="#202124" r={0.6} />)}
+    </group>)}
+    {/* row 3: labelled storage boxes + small cases */}
+    {[-1.1, -0.55, 0, 0.55, 1.05].map((dz, i) => <RB key={dz} p={[x + 0.02, shelves[2] + 0.13, z + dz]} s={[0.34, 0.24, 0.42]} rad={0.015} c={["#2a2c30", "#d9d6cf", "#2a2c30", "#3c3f45", "#d9d6cf"][i]} r={0.7} />)}
+  </group>;
+}
+/** Ceiling-mounted projector with drop pole, aimed at the front screen. */
+function CeilingProjector({ p }: { p: V3 }) {
+  return <group position={p}>
+    <Cyl p={[0, -0.2, 0]} rt={0.022} h={0.4} {...STEEL} />
+    <RB p={[0, -0.42, 0]} s={[0.38, 0.13, 0.32]} rad={0.035} c="#f1f1ef" r={0.4} />
+    <RB p={[0, -0.49, 0]} s={[0.3, 0.02, 0.26]} rad={0.01} c="#d8d8d5" />
+    <Cyl p={[0.09, -0.42, -0.17]} rt={0.045} h={0.04} rot={[Math.PI / 2, 0, 0]} c="#151515" m={0.3} r={0.2} />
+    <Cyl p={[0.09, -0.42, -0.192]} rt={0.035} h={0.004} rot={[Math.PI / 2, 0, 0]} c="#9cc7ff" e="#cfe3ff" ei={1.8} />
   </group>;
 }
 
 export function Classroom() {
-  const floor = tex.tiles("#dcd6c8", "#b4ad9f", 4, [W / 2.4, D / 2.4]);
-  const wall = tex.paint("#efe7d6", [4, 2]);
-  const dado = tex.paint("#8fa3a8", [6, 1]);
-  const ceiling = tex.tiles("#f3f2ee", "#d9d8d2", 2, [W / 1.2, D / 1.2]);
-  const board = boardTexture();
+  const floor = tex.tiles("#b9bcbf", "#9da1a5", 4, [W / 1.8, D / 1.8]);
+  const wall = tex.paint("#e6e4df", [4, 2]);
+  const lowerWall = tex.paint("#a9adb2", [6, 1]);
+  const ceiling = tex.tiles("#e9e9e6", "#c9c9c4", 2, [W / 1.2, D / 1.2]);
+  const slats = tex.wood("#b88a58", [6, 1]);
+  const door = tex.wood("#a8723f", [1, 2]);
   const slide = slideTexture();
-  const cork = tex.cork();
-  const clock = clockTexture();
-  const door = tex.wood("#8a5a34", [1, 2]);
   return <>
-    <color attach="background" args={["#dfe3e6"]} />
-    <VenueLighting mood="classroom" intensity={0.8} />
-    <hemisphereLight args={["#ffffff", "#8a7f70", 0.63]} />
-    <ambientLight intensity={0.12} />
-    {/* daylight through the window wall */}
-    <directionalLight position={[-9, 4.5, 1]} target-position={[0, 0, 0]} intensity={2.2} color="#fff7e8" castShadow shadow-mapSize={[2048, 2048]} shadow-camera-left={-10} shadow-camera-right={10} shadow-camera-top={9} shadow-camera-bottom={-9} shadow-normalBias={0.03} />
-    {[-2.4, 1.6].map((z) => <pointLight key={z} position={[0, H - 0.4, k(z)]} intensity={4} distance={12} color="#f2f6ff" />)}
+    <color attach="background" args={["#e3e6e9"]} />
+    <VenueLighting mood="classroom" intensity={0.5} />
+    <hemisphereLight args={["#f4f6fa", "#77746f", 0.32]} />
+    <ambientLight intensity={0.04} />
+    {/* daylight through the window wall (left) */}
+    <directionalLight position={[-12, 5, 1]} target-position={[0, 0, 0]} intensity={1.7} color="#fff3df" castShadow shadow-mapSize={[2048, 2048]} shadow-camera-left={-11} shadow-camera-right={11} shadow-camera-top={9} shadow-camera-bottom={-9} shadow-normalBias={0.03} />
+    {[-2.4, 1.6].map((z) => <pointLight key={z} position={[0, H - 0.4, k(z)]} intensity={2.2} distance={11} color="#f3f6ff" />)}
+    <spotLight position={[0, H - 0.2, BACK + 2.2]} target-position={[0, 1.6, BACK]} angle={0.9} penumbra={0.7} intensity={6} distance={6} color="#fff1d8" />
 
-    {/* shell: tiled floor, painted walls with a washable dado band, skirting, T-bar ceiling */}
-    <Slab p={[0, -0.05, 0]} s={[W, 0.1, D]} map={floor} c="#ffffff" r={0.35} />
+    {/* shell: polished tile floor, white walls with a grey lower band and skirting, suspended ceiling */}
+    <Slab p={[0, -0.05, 0]} s={[W, 0.1, D]} map={floor} c="#ffffff" r={0.2} m={0.08} />
     <Slab p={[0, H + 0.02, 0]} s={[W, 0.04, D]} map={ceiling} c="#ffffff" r={0.9} />
-    {([[0, BACK, W, 0], [0, D / 2, W, 0], [-W / 2, 0, D, 1], [W / 2, 0, D, 1]] as const).map(([x, z, len, side], i) => <group key={i}>
+    {([[0, BACK, W, 0], [0, D / 2, W, 0], [L, 0, D, 1], [R, 0, D, 1]] as const).map(([x, z, len, side], i) => <group key={i}>
       <Slab p={[x, H / 2, z]} s={side ? [0.1, H, len] : [len, H, 0.1]} map={wall} c="#ffffff" r={0.85} />
-      <Slab p={[x + (side ? Math.sign(-x) * 0.055 : 0), 0.55, z + (side ? 0 : Math.sign(-z) * 0.055)]} s={side ? [0.01, 1.1, len] : [len, 1.1, 0.01]} map={dado} c="#ffffff" r={0.6} />
-      <Slab p={[x + (side ? Math.sign(-x) * 0.06 : 0), 0.05, z + (side ? 0 : Math.sign(-z) * 0.06)]} s={side ? [0.02, 0.1, len] : [len, 0.1, 0.02]} c="#5f5246" r={0.5} />
-      <Slab p={[x + (side ? Math.sign(-x) * 0.058 : 0), 1.1, z + (side ? 0 : Math.sign(-z) * 0.058)]} s={side ? [0.016, 0.03, len] : [len, 0.03, 0.016]} c="#6f8388" />
+      {i !== 0 && <Slab p={[x + (side ? Math.sign(-x) * 0.055 : 0), 0.5, z + (side ? 0 : Math.sign(-z) * 0.055)]} s={side ? [0.01, 1.0, len] : [len, 1.0, 0.01]} map={lowerWall} c="#ffffff" r={0.6} />}
+      <Slab p={[x + (side ? Math.sign(-x) * 0.06 : 0), 0.05, z + (side ? 0 : Math.sign(-z) * 0.06)]} s={side ? [0.02, 0.1, len] : [len, 0.1, 0.02]} c="#4a4d52" r={0.5} />
     </group>)}
-    {[-3.6, -1.2, 1.2, 3.6].flatMap((x) => [-2.6, 0.2, 3].map((z) => <CeilingTroffer key={`${x}${z}`} p={[k(x), H - 0.005, k(z)]} />))}
+    {[-4.6, -2.3, 0, 2.3, 4.6].flatMap((x) => [-2.6, 0.2, 3].map((z) => <CeilingTroffer key={`${x}${z}`} p={[k(x), H - 0.005, k(z)]} />))}
+    {[-3.45, 3.45].flatMap((x) => [-1.2, 1.6].map((z) => <AcVent key={`${x}${z}`} p={[k(x), H - 0.005, k(z)]} />))}
+    {[-5.2, 5.2].flatMap((x) => [-3.6, -1.2, 1.2, 3.6].map((z) => <Downlight key={`${x}${z}`} p={[k(x), H - 0.005, k(z)]} />))}
+    <CeilingProjector p={[0, H - 0.02, k(-0.2)]} />
 
-    {/* whiteboard with aluminium frame, marker tray, markers and eraser */}
-    <group position={[k(-1.5), 1.55, BACK + 0.08]}>
-      <RB p={[0, 0, 0]} s={[3.3, 1.3, 0.04]} rad={0.015} {...CHROME} c="#c8ccd1" />
-      <Slab p={[0, 0, 0.022]} s={[3.22, 1.22, 0.004]} map={board} c="#ffffff" r={0.12} />
-      <RB p={[0, -0.68, 0.06]} s={[3.1, 0.03, 0.09]} rad={0.012} {...CHROME} c="#b8bdc3" />
-      {["#1d4fb0", "#c0302a", "#1e7a3a", "#111"].map((c, i) => <group key={c} position={[-1.2 + i * 0.16, -0.65, 0.06]} rotation={[0, 0, Math.PI / 2]}>
-        <Cyl p={[0, 0, 0]} rt={0.011} h={0.12} c="#f2f2f2" r={0.4} />
-        <Cyl p={[0, 0.07, 0]} rt={0.012} h={0.035} c={c} r={0.4} />
+    {/* front wall: wood-slat feature wall, centred projector screen, grey acoustic panels, corner speakers, track lights */}
+    <group position={[0, 0, BACK + 0.06]}>
+      <RB p={[0, H / 2 - 0.05, 0.03]} s={[k(5.6), H - 0.1, 0.04]} rad={0.01} c="#a77a4c" r={0.6} />
+      {Array.from({ length: Math.round(k(5.6) / 0.09) }, (_, i) => <RB key={i} p={[-k(2.8) + 0.045 + i * 0.09, H / 2 - 0.05, 0.065]} s={[0.05, H - 0.14, 0.03]} rad={0.006} map={slats} c="#ffffff" r={0.55} />)}
+      {[-1, 1].map((sd) => <group key={sd}>
+        {[0, 1].flatMap((col) => [0, 1].map((row) => <AcousticPanel key={`${col}${row}`} p={[sd * (k(3.35) + col * 1.02), 1.55 + row * 1.02, 0.05]} s={[0.98, 0.98]} c={(col + row) % 2 ? "#8f969c" : "#a7adb2"} />))}
+        <WallSpeaker p={[sd * k(4.75), H - 0.62, 0]} yaw={0} />
       </group>)}
-      <RB p={[1.1, -0.635, 0.06]} s={[0.14, 0.04, 0.05]} rad={0.01} c="#333a48" />
+      {/* projector screen centred over the teacher desk */}
+      <RB p={[0, 2.98, 0.14]} s={[4.3, 0.12, 0.14]} rad={0.04} c="#f2f2f0" />
+      <RB p={[0, 1.9, 0.12]} s={[4.06, 2.24, 0.02]} rad={0.004} c="#1a1a1a" />
+      <Slab p={[0, 1.9, 0.135]} s={[3.9, 2.08, 0.004]} map={slide} c="#ffffff" e="#ffffff" ei={0.08} r={0.9} />
     </group>
+    <TrackLights z={BACK + 1.0} xs={[-3.2, -1.6, 0, 1.6, 3.2]} />
+    <MobileWhiteboard p={[k(-3.1), 0, BACK + 0.95]} yaw={0.18} />
 
-    {/* ceiling projector + pull-down screen */}
-    <group position={[k(1.9), 0, BACK]}>
-      <RB p={[0, 2.92, 0.1]} s={[2.5, 0.1, 0.12]} rad={0.04} c="#f2f2f0" />
-      <Slab p={[0, 1.95, 0.11]} s={[2.3, 1.75, 0.006]} map={slide} c="#ffffff" e="#ffffff" ei={0.25} r={0.9} />
-      <Slab p={[0, 1.04, 0.11]} s={[2.32, 0.04, 0.02]} c="#2a2a2a" />
-    </group>
-    <group position={[k(1.6), H - 0.02, k(0.6)]}>
-      <Cyl p={[0, -0.18, 0]} rt={0.02} h={0.36} {...STEEL} />
-      <RB p={[0, -0.42, 0]} s={[0.36, 0.12, 0.3]} rad={0.035} c="#f1f1ef" r={0.4} />
-      <Cyl p={[0.08, -0.42, -0.16]} rt={0.04} h={0.04} rot={[Math.PI / 2, 0, 0]} c="#151515" m={0.3} r={0.2} />
-      <Cyl p={[0.08, -0.42, -0.182]} rt={0.032} h={0.004} rot={[Math.PI / 2, 0, 0]} c="#9cc7ff" e="#cfe3ff" ei={1.8} />
-    </group>
+    {/* left wall: large windows with blinds, acoustic panel near the front, softbox beside the camera, AV cart */}
+    {[-2.75, 0, 2.75].map((z) => <Window key={z} z={k(z)} />)}
+    <AcousticPanel p={[L + 0.08, 1.9, BACK + 0.9]} rot={[0, Math.PI / 2, 0]} s={[1.0, 1.6]} c="#5d78a8" />
+    <Softbox p={[k(-5.1), 0, k(1.45)]} yaw={Math.atan2(-(0 - k(-5.1)), -(k(-3.0) - k(1.45)))} />
+    <AvCart p={[k(-5.3), 0, k(3.45)]} frame={STEEL} />
+    {/* wireless receivers + small mixer on the cart */}
+    {[-0.16, 0.12].map((dz, i) => <group key={dz} position={[k(-5.3) + (i ? 0.1 : -0.12), 0.86, k(3.45) + dz]}>
+      <RB p={[0, 0.03, 0]} s={[0.2, 0.05, 0.14]} rad={0.01} c="#1c1d20" />
+      <Cyl p={[-0.07, 0.13, -0.05]} rt={0.005} h={0.16} c="#111" />
+      <Cyl p={[0.07, 0.13, -0.05]} rt={0.005} h={0.16} c="#111" />
+      <Ball p={[0.06, 0.04, 0.071]} r={0.006} c="#38ff6a" e="#38ff6a" ei={2.4} />
+    </group>)}
+    <Plant p={[L + 0.45, 0, k(-1.45)]} s={0.85} />
 
-    {/* windows on the left wall, door + split AC on the right */}
-    {[-2.7, 0, 2.7].map((z) => <Window key={z} z={k(z)} />)}
-    <group position={[W / 2 - 0.06, 0, k(2.6)]}>
-      <RB p={[-0.02, 1.05, 0]} s={[0.06, 2.12, 1.06]} rad={0.012} c="#e9e3d8" />
-      <RB p={[-0.04, 1.03, 0]} s={[0.05, 2.04, 0.94]} rad={0.01} map={door} c="#ffffff" r={0.5} />
-      <Tube pts={[[-0.1, 1.0, -0.38], [-0.14, 1.0, -0.38], [-0.14, 1.0, -0.26]]} r={0.01} {...CHROME} />
-      <RB p={[-0.07, 1.65, 0.2]} s={[0.01, 0.34, 0.24]} rad={0.004} c="#d8ecff" e="#d8ecff" ei={0.3} />
+    {/* right wall: tall steel shelving over the gear cabinet, blue / grey acoustic panels, door */}
+    <StorageShelving x={R - 0.25} z={k(0.1)} len={2.9} />
+    {[-3.55, -2.3, 2.0, 3.25].map((zb, i) => <AcousticPanel key={zb} p={[R - 0.08, 2.05, k(zb)]} rot={[0, -Math.PI / 2, 0]} s={[1.1, 1.6]} c={i % 2 ? "#5d78a8" : "#8f969c"} />)}
+    <group position={[R - 0.06, 0, k(2.0) + 1.1]}>
+      <RB p={[-0.02, 1.08, 0]} s={[0.06, 2.18, 1.12]} rad={0.012} c="#e9e6df" />
+      <RB p={[-0.04, 1.05, 0]} s={[0.05, 2.08, 1.0]} rad={0.01} map={door} c="#ffffff" r={0.5} />
+      <RB p={[-0.07, 1.55, 0.18]} s={[0.01, 0.42, 0.16]} rad={0.004} c="#d8ecff" e="#d8ecff" ei={0.3} />
+      <Tube pts={[[-0.1, 1.0, -0.4], [-0.15, 1.0, -0.4], [-0.15, 1.0, -0.26]]} r={0.01} {...CHROME} />
     </group>
-    <group position={[W / 2 - 0.16, 2.65, k(-1)]}>
-      <RB p={[0, 0, 0]} s={[0.22, 0.3, 0.95]} rad={0.08} c="#f7f7f5" r={0.35} />
-      <RB p={[-0.1, -0.11, 0]} s={[0.03, 0.04, 0.85]} rad={0.012} c="#d9dbdd" />
-      <mesh position={[-0.112, 0.06, 0.38]}><sphereGeometry args={[0.008, 8, 8]} /><meshStandardMaterial color="#3cf07a" emissive="#3cf07a" emissiveIntensity={2} /></mesh>
-    </group>
+    <Plant p={[R - 0.5, 0, BACK + 0.55]} s={1.0} />
 
-    {/* cork pinboard with notices, wall clock */}
-    <group position={[W / 2 - 0.07, 1.7, k(-2.6)]}>
-      <RB p={[0, 0, 0]} s={[0.05, 1.05, 1.7]} rad={0.015} map={tex.wood("#9a6c40")} c="#ffffff" />
-      <Slab p={[-0.028, 0, 0]} s={[0.004, 0.95, 1.6]} map={cork} c="#ffffff" r={0.95} />
-      {[[-0.2, 0.25, -0.55, 0.05], [0.18, 0.2, -0.15, -0.06], [-0.15, -0.2, 0.25, 0.03], [0.15, 0.3, 0.6, 0.07], [-0.05, -0.25, -0.5, -0.04]].map(([dy, , dz, rz], i) => <group key={i} position={[-0.033, dy, dz]} rotation={[rz, 0, 0]}>
-        <Slab p={[0, 0, 0]} s={[0.003, 0.32, 0.26]} map={noticeTexture(i)} c="#ffffff" r={0.8} />
-        <mesh position={[-0.006, 0.14, 0]}><sphereGeometry args={[0.012, 8, 8]} /><meshStandardMaterial color={["#e53935", "#1e88e5", "#43a047"][i % 3]} /></mesh>
-      </group>)}
-    </group>
-    <group position={[0, 2.7, D / 2 - 0.06]} rotation={[0, Math.PI, 0]}>
-      <Lathe p={[0, 0, 0]} rot={[Math.PI / 2, 0, 0]} prof={[[0.0, -0.03], [0.19, -0.03], [0.205, -0.02], [0.205, 0.02], [0.19, 0.03]]} c="#2b2b2b" r={0.4} />
-      <Slab p={[0, 0, 0.026]} s={[0.36, 0.36, 0.002]} map={clock} c="#ffffff" transparent />
-      <RB p={[0.04, 0.03, 0.035]} rot={[0, 0, -0.9]} s={[0.12, 0.012, 0.003]} rad={0.002} c="#111" />
-      <RB p={[0, 0.07, 0.036]} rot={[0, 0, 1.4]} s={[0.15, 0.008, 0.003]} rad={0.002} c="#111" />
-      <Cyl p={[0, 0, 0.038]} rt={0.01} h={0.006} rot={[Math.PI / 2, 0, 0]} c="#c0302a" />
-    </group>
-
-    {/* steel lockers + posters on the wall behind the spawn point */}
-    <group position={[k(-4.15), 0, D / 2 - 0.25]}>
-      {Array.from({ length: 6 }, (_, i) => <group key={i} position={[-1.15 + i * 0.46, 0, 0]}>
-        <RB p={[0, 0.92, 0]} s={[0.44, 1.8, 0.42]} rad={0.012} c="#8d99a6" m={0.5} r={0.45} />
-        <RB p={[0, 0.92, -0.212]} s={[0.4, 1.72, 0.01]} rad={0.004} c="#9aa6b2" m={0.5} r={0.4} />
-        {[1.55, 1.48, 1.41, 0.45, 0.38, 0.31].map((y) => <RB key={y} p={[0, y, -0.22]} s={[0.24, 0.018, 0.004]} rad={0.002} c="#5e6873" />)}
-        <RB p={[0.15, 1.0, -0.225]} s={[0.025, 0.12, 0.02]} rad={0.008} {...CHROME} />
-        <RB p={[-0.1, 1.68, -0.218]} s={[0.12, 0.05, 0.002]} rad={0.002} c="#fdfdfb" />
-      </group>)}
-      <RB p={[0, 1.86, 0]} s={[2.8, 0.04, 0.44]} rad={0.01} c="#7d8995" m={0.5} />
-      <RB p={[0, 0.03, 0]} s={[2.8, 0.06, 0.4]} rad={0.01} c="#3c434b" />
-    </group>
-    {[["poster-a", -5.0, "#1d4fb0", "กติกาห้องเรียน"], ["poster-b", -3.3, "#2f8f46", "ความปลอดภัยทางไฟฟ้า"]].map(([key, x, col, title]) => <Slab key={String(key)} p={[k(Number(x)), 2.45, D / 2 - 0.06]} rot={[0, Math.PI, 0]} s={[1.1, 0.75, 0.01]} c="#ffffff" map={tex.sign(String(key), 320, 220, (c, w, h) => {
-      c.fillStyle = "#fbfbf8"; c.fillRect(0, 0, w, h); c.fillStyle = String(col); c.fillRect(0, 0, w, 54);
-      c.fillStyle = "#fff"; c.font = "bold 28px 'Sarabun','Leelawadee UI',sans-serif"; c.fillText(String(title), 16, 37);
-      c.fillStyle = "#333"; for (let i = 0; i < 5; i++) { c.beginPath(); c.arc(24, 84 + i * 28, 5, 0, 7); c.fill(); c.fillRect(40, 80 + i * 28, 200 - (i % 2) * 60, 8); }
-    })} />)}
-
-    {/* student desk sets along the front wall, waste bin, fire extinguisher */}
-    <Lathe p={[k(-5.35), 0, k(3.55)]} prof={[[0, 0], [0.13, 0], [0.16, 0.36], [0.165, 0.37], [0.15, 0.37], [0.12, 0.02], [0, 0.02]]} c="#3a6fb0" r={0.5} />
-    <group position={[-W / 2 + 0.16, 0, k(-3.95)]}>
+    {/* back wall: acoustic panel band, wall speaker pair, fire extinguisher by the door side */}
+    {[-4.5, -2.25, 0, 2.25].map((x, i) => <AcousticPanel key={x} p={[k(x), 1.95, D / 2 - 0.08]} rot={[0, Math.PI, 0]} s={[1.6, 1.2]} c={i % 2 ? "#8f969c" : "#5d78a8"} />)}
+    <group position={[R - 0.16, 0, D / 2 - 0.35]}>
       <Lathe p={[0, 0, 0]} prof={[[0, 0], [0.075, 0], [0.08, 0.04], [0.08, 0.5], [0.06, 0.56], [0.025, 0.6], [0, 0.6]]} c="#c8201d" r={0.3} m={0.2} />
       <RB p={[0, 0.63, 0]} s={[0.05, 0.06, 0.05]} rad={0.012} {...BLACK_METAL} />
-      <Tube pts={[[0, 0.62, 0.02], [0.02, 0.5, 0.08], [0.03, 0.3, 0.09]]} r={0.008} c="#111" />
-      <RB p={[-0.04, 1.2, 0]} s={[0.01, 0.2, 0.15]} rad={0.003} c="#d32f2f" e="#ff5544" ei={0.2} />
     </group>
 
-    {/* Job layout (game/training/venue-layouts.ts): AV operator desk rear-right, AV cabinet on the right wall,
-        teacher desk + TV at the front, student desks between, tripod camera rear-centre. */}
-    <LayoutFurniture layout={LAYOUTS.classroom} look={{ top: "#cfa774", frame: { ...STEEL, c: "#6a7078" } }} />
+    {/* Job layout (game/training/venue-layouts.ts): teacher desk front-centre, 2-seat student tables, AV desk rear-right,
+        gear cabinet on the right wall, cable shelf by the AV desk, TV on its stand front-right. */}
+    <LayoutFurniture layout={LAYOUTS.classroom} look={{ top: "#d9bf94", frame: { ...BLACK_METAL, c: "#25282d" } }} />
     <LayoutColliders layout={LAYOUTS.classroom} />
-    <RigidBody type="fixed" colliders={false}><CuboidCollider position={[k(-4.15), 0.95, D / 2 - 0.25]} args={[1.4, 0.95, 0.22]} /></RigidBody>
+    <RigidBody type="fixed" colliders={false}>
+      <CuboidCollider position={[k(-3.1), 0.95, BACK + 0.95]} args={[0.95, 0.95, 0.35]} />
+      <CuboidCollider position={[k(-5.3), 0.5, k(3.45)]} args={[0.34, 0.5, 0.28]} />
+      <CuboidCollider position={[k(-5.1), 1.1, k(1.45)]} args={[0.3, 1.1, 0.3]} />
+    </RigidBody>
   </>;
 }

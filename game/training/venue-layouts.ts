@@ -84,17 +84,19 @@ const studio: VenueLayout = {
   zones: ["ฉากเขียว + จุดพิธีกร (ด้านหน้า)", "แถวกล้อง 3 ตัวบนขาตั้ง", "โต๊ะกลมผลิตรายการ (จุดทำงานหลัก)", "โต๊ะยาวซ้าย = สาย", "โต๊ะยาวขวา = อุปกรณ์พกพา", "Studio Monitor บนรถเข็น"],
 };
 
-/* ════════ XS · Classroom ════════
- *  Front wall: whiteboard + projector screen + classroom TV · teacher desk with presentation laptop
- *  Student desks in the middle · tripod camera rear-centre · AV operator desk rear-right · AV cabinet on the right wall. */
+/* ════════ XS · Classroom (reference: art/reference/venues/classroom-01/02) ════════
+ *  Front wall: projector screen centred over the teacher desk · mobile whiteboard front-left · classroom TV front-right
+ *  Two blocks of 2-seat student tables with a centre aisle · camera on a tripod by the left windows (with softbox)
+ *  AV operator desk rear-right · metal storage shelving (portable gear) on the right wall. */
 const xsDesk = furn("xs-operator", "operatorDesk", 3.5, 2.9, 2.4, 0.76, 0.8, "โต๊ะควบคุม AV");
 const xsCabinet = furn("xs-cabinet", "avCabinet", 5.35, 0.1, 0.62, 0.95, 3.0, "ตู้ AV");
 const xsCableShelf = furn("xs-cable-shelf", "cableRack", 1.5, 3.95, 1.1, 0.9, 0.45, "ชั้นวางสาย");
-const xsTeacher = furn("xs-teacher", "teacherDesk", -3.2, -3.0, 1.6, 0.76, 0.7, "โต๊ะผู้สอน");
+const xsTeacher = furn("xs-teacher", "teacherDesk", 0, -3.0, 1.9, 0.76, 0.72, "โต๊ะผู้สอน");
+// 2-seat tables: left block (3 seats wide) and right block, centre aisle between them.
 const XS_STUDENT: Furniture[] = [];
-for (const [r, z] of [-1.1, 0.15, 1.4].entries()) for (const x of [-4.0, -2.7, -1.4, 1.4, 2.7]) {
-  if (r === 2 && x === 2.7) continue; // keeps the walkway to the operator desk open
-  XS_STUDENT.push(furn(`xs-student-${r}-${x}`, "studentDesk", x, z, 0.72, 0.72, 0.5));
+for (const [r, z] of [-1.1, 0.15, 1.4].entries()) {
+  XS_STUDENT.push(furn(`xs-student-${r}-l`, "studentDesk", -2.7, z, 2.5, 0.74, 0.55));
+  if (r < 2) XS_STUDENT.push(furn(`xs-student-${r}-r`, "studentDesk", 2.05, z, 1.75, 0.74, 0.55)); // last row right: walkway to the AV desk
 }
 const classroom: VenueLayout = {
   id: "classroom",
@@ -110,14 +112,14 @@ const classroom: VenueLayout = {
     sw: at(3.6, 0.76, 2.72, 0, "โต๊ะควบคุม AV — กลาง"),
     capture: at(4.08, 0.76, 2.85, 0, "โต๊ะควบคุม AV — ระหว่างสวิตเชอร์กับโน้ตบุ๊ก"),
     pc: at(4.45, 0.76, 2.8, -0.25, "โต๊ะควบคุม AV — ขวา"),
-    slides: at(-3.6, 0.76, -3.05, 0, "โต๊ะผู้สอน (หน้าห้อง)"),
-    tx1: at(-3.0, 0.76, -2.9, 0, "โต๊ะผู้สอน — ไมค์ผู้สอน"), lav1: at(-2.62, 0.76, -2.9, 0),
+    slides: at(-0.45, 0.76, -3.05, 0, "โต๊ะผู้สอน (หน้าห้อง กลาง)"),
+    tx1: at(0.3, 0.76, -2.9, 0, "โต๊ะผู้สอน — ไมค์ผู้สอน"), lav1: at(0.68, 0.76, -2.9, 0),
     monitor: at(4.2, 0.98, -3.85, 0, "TV ห้องเรียน (ผนังหน้า ขวา)"),
-    cam1: cam(0, 3.35, [-1.2, -3.6], "กล้องห้องเรียน หลังห้องกลาง"),
+    cam1: cam(-4.55, 2.35, [0, -3.4], "กล้องห้องเรียน ริมหน้าต่าง (หลังซ้าย)"),
   },
   furniture: [xsDesk, xsCabinet, xsCableShelf, xsTeacher, furn("xs-tv", "tvStand", 4.2, -3.9, 1.2, 0.95, 0.45), ...XS_STUDENT],
   obstacles: [],
-  zones: ["หน้าห้อง: ไวท์บอร์ด จอโปรเจกเตอร์ TV และโต๊ะผู้สอน", "กลางห้อง: โต๊ะนักเรียน 3 แถว", "หลังห้อง: กล้องบนขาตั้ง + โต๊ะควบคุม AV", "ผนังขวา: ตู้ AV (อุปกรณ์พกพา)", "ข้างโต๊ะควบคุม: ชั้นวางสาย"],
+  zones: ["หน้าห้อง: จอโปรเจกเตอร์กลาง โต๊ะผู้สอน ไวท์บอร์ด (ซ้าย) TV (ขวา)", "กลางห้อง: โต๊ะนักเรียนคู่ 2 ฝั่ง ทางเดินกลาง", "ริมหน้าต่าง: กล้องบนขาตั้ง + ไฟ Softbox", "หลังขวา: โต๊ะควบคุม AV", "ผนังขวา: ชั้นเหล็กเก็บอุปกรณ์พกพา", "ข้างโต๊ะควบคุม: ชั้นวางสาย"],
 };
 
 /* ════════ M · Auditorium / activity hall ════════
