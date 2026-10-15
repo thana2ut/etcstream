@@ -282,7 +282,14 @@ function PlayExperience() {
         }
         backLabel="ย้อนกลับ"
         breadcrumb={difficultyLabel ? `${mission?.title} > ${difficultyLabel}` : "ห้องฝึกปราณสัญญาณ"}
+        hidden={!introOpen && !showResultModal}
       />
+      {/* While playing the top bar is gone; this small pause button is the way out (opens the exit confirmation). */}
+      {!introOpen && !showResultModal && !showExitConfirm && (
+        <button type="button" className="game-pause-btn" onClick={handleTriggerGameplayBack} aria-label="หยุดเกม / ออกจากด่าน" title="หยุดเกม / ออกจากด่าน">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg>
+        </button>
+      )}
 
       {/* Reticle for aiming */}
       {!introOpen && !showResultModal && !showExitConfirm && (

@@ -15,6 +15,8 @@ interface AcademyHeaderProps {
   backLabel?: string;
   breadcrumb?: string;
   hideBrandOnMobile?: boolean;
+  /** Gameplay is running: the bar is not rendered at all (no reveal on hover). */
+  hidden?: boolean;
 }
 
 const subscribeStorage = (callback: () => void) => {
@@ -33,7 +35,7 @@ const getBackupNicknameServer = () => null;
 
 /** Pointer this close to the top edge (px) slides the header in. */
 const REVEAL_ZONE = 64;
-const HIDE_DELAY = 700;
+const HIDE_DELAY = 300;
 
 /**
  * App-style auto-hiding header: hidden by default, slides in when the pointer nears the top edge (or a tap on the
@@ -89,6 +91,7 @@ export function AcademyHeader({
   backLabel = "ย้อนกลับ",
   breadcrumb,
   hideBrandOnMobile,
+  hidden = false,
 }: AcademyHeaderProps) {
   const storePlayer = useAcademyStore((s) => s.player);
   const localName = useSyncExternalStore(
@@ -128,6 +131,8 @@ export function AcademyHeader({
       // Ignore if denied by browser
     }
   };
+
+  if (hidden) return null;
 
   return (
     <>
