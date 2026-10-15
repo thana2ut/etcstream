@@ -107,7 +107,7 @@ export function MissionHall({ admin = false }: { admin?: boolean }) {
   const difficulty = selectedMission ? getDifficultyMeta(selectedMission, selectedLevel) : null;
 
   const startMission = (slug: string, level: number) => {
-    if (!selectMission(slug, level)) {
+    if (!selectMission(slug, level, admin)) {
       setError("เริ่มภารกิจไม่ได้ โปรดตรวจการตั้งค่าเบราว์เซอร์แล้วลองอีกครั้ง");
       return;
     }
@@ -184,7 +184,8 @@ export function MissionHall({ admin = false }: { admin?: boolean }) {
             <h3 className="mission-difficulty-heading">บทเรียน 5 ระดับของสถานที่</h3>
             <div className="mission-difficulty-grid" role="group" aria-label="เลือกระดับบทเรียน">
               {selectedMission.difficulties.map((item) => {
-                const unlocked = isDifficultyUnlocked(progress, selectedMission.slug, item.level);
+                // Admin hall: every level is open so each room can be played and adjusted directly.
+                const unlocked = admin || isDifficultyUnlocked(progress, selectedMission.slug, item.level);
                 const completed = progress.completed[selectedMission.slug]?.includes(item.level);
                 return (
                   <button

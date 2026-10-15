@@ -27,7 +27,8 @@ interface AcademyState {
   setPlayer: (player: Player) => boolean;
   clearPlayer: () => boolean;
   selectMode: (mode: GameMode) => boolean;
-  selectMission: (slug: string, level: number) => boolean;
+  /** `admin`: skip the level unlock order (admin hall only). */
+  selectMission: (slug: string, level: number, admin?: boolean) => boolean;
   startMission: () => void;
   completeMission: () => void;
 }
@@ -64,10 +65,10 @@ export const useAcademyStore = create<AcademyState>((set, get) => ({
     set({ player: updated, selectedMissionId: missionS001.id, missionState: "ready" });
     return true;
   },
-  selectMission: (slug, level) => {
+  selectMission: (slug, level, admin = false) => {
     const player = get().player;
     if (!player) return false;
-    const progress = missionProgressRepository.select(player.playerId, slug, level);
+    const progress = missionProgressRepository.select(player.playerId, slug, level, admin);
     if (!progress) return false;
     const updated = { ...player, currentMode: "challenge" as const, lastPlayedAt: new Date().toISOString() };
     if (!playerRepository.savePlayer(updated)) return false;

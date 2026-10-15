@@ -61,10 +61,11 @@ export class LocalStorageMissionProgressRepository {
     catch { return false; }
   }
 
-  select(playerId: string, slug: string, level: number): MissionProgressRecord | null {
+  /** `ignoreLock`: admin hall (/missions/admin) may open any level to work on a room; players follow the unlock order. */
+  select(playerId: string, slug: string, level: number, ignoreLock = false): MissionProgressRecord | null {
     const mission = getMissionBySlug(slug);
     const record = this.load(playerId);
-    if (!mission || !getDifficultyMeta(mission, level) || !isDifficultyUnlocked(record, slug, level)) return null;
+    if (!mission || !getDifficultyMeta(mission, level) || (!ignoreLock && !isDifficultyUnlocked(record, slug, level))) return null;
     const updated: MissionProgressRecord = { ...record, selected: { slug, difficulty: level, acceptedAt: new Date().toISOString() } };
     return this.save(updated) ? updated : null;
   }
