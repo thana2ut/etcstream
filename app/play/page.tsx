@@ -299,6 +299,7 @@ function PlayExperience() {
             : handleTriggerGameplayBack
         }
         backLabel="ย้อนกลับ"
+        brandInert={!introOpen && !showResultModal}
         breadcrumb={difficultyLabel ? `${mission?.title} > ${difficultyLabel}` : "ห้องฝึกปราณสัญญาณ"}
       />
       {/* While playing the top bar is gone; this small pause button is the way out (opens the exit confirmation). */}

@@ -16,6 +16,8 @@ interface AcademyHeaderProps {
   hideBrandOnMobile?: boolean;
   /** Gameplay is running: the bar is not rendered at all (no reveal on hover). */
   hidden?: boolean;
+  /** Brand is not clickable (e.g. while a level is being played). */
+  brandInert?: boolean;
 }
 
 const subscribeStorage = (callback: () => void) => {
@@ -87,6 +89,10 @@ export const AcademyHeader = memo(function AcademyHeader({
   traineeName,
   hideBrandOnMobile,
   hidden = false,
+  onBack,
+  backHref,
+  backLabel = "ย้อนกลับ",
+  brandInert = false,
 }: AcademyHeaderProps) {
   const storePlayer = useAcademyStore((s) => s.player);
   const localName = useSyncExternalStore(
@@ -137,13 +143,21 @@ export const AcademyHeader = memo(function AcademyHeader({
       <div className="header-left">
         {/* Same bar on every page (brand left; trainee, sound, full screen right): no per-page back button. */}
 
-        {/* Brand logo lockup */}
-        <Link href="/" className={`header-brand ${hideBrandOnMobile ? "hide-mobile" : ""}`}>
-          <Image src="/images/xianxia/emblem.webp" alt="โลโก้ etcstream" width={56} height={48} className="header-brand-logo" priority />
-          <div className="brand-text-block">
-            <small className="brand-thai">สำนักวิถีแห่งสายสัญญาณ</small>
-          </div>
-        </Link>
+        {/* Brand lockup doubles as "back": pages that pass onBack / backHref return to the previous screen;
+            the home page links to itself; during play it is inert. */}
+        {(() => {
+          const cls = `header-brand ${hideBrandOnMobile ? "hide-mobile" : ""}`;
+          const inner = <>
+            <Image src="/images/xianxia/emblem.webp" alt="โลโก้ etcstream" width={56} height={48} className="header-brand-logo" priority />
+            <div className="brand-text-block">
+              <small className="brand-thai">สำนักวิถีแห่งสายสัญญาณ</small>
+            </div>
+          </>;
+          if (brandInert) return <div className={`${cls} is-inert`}>{inner}</div>;
+          if (onBack) return <button type="button" className={`${cls} is-back`} onClick={onBack} title={backLabel} aria-label={`${backLabel} (สำนักวิถีแห่งสายสัญญาณ)`}>{inner}</button>;
+          if (backHref) return <Link href={backHref} className={`${cls} is-back`} title={backLabel} aria-label={backLabel}>{inner}</Link>;
+          return <Link href="/" className={cls}>{inner}</Link>;
+        })()}
       </div>
 
       <div className="header-right">

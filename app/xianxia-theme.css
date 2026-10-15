@@ -741,3 +741,7 @@
 .game-screen .hud-objective-mini-pill { top: 86px; }
 /* Objective panel ends above the controls guide (top 84 + measured guide height + bottom 24 + gap 12): the two never overlap. */
 .game-screen .hud-objective-panel { max-height: calc(100vh - 84px - var(--guide-h, 255px) - 36px); }
+/* Brand as back button: same look as the home link, no button chrome. */
+.academy-main-header button.header-brand { appearance: none; background: none; border: 0; padding: 0; font: inherit; color: inherit; cursor: pointer; text-align: left; }
+.academy-main-header .header-brand.is-inert { cursor: default; }
+.academy-main-header .header-brand.is-inert:hover { transform: none; filter: none; }
