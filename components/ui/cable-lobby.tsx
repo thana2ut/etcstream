@@ -56,6 +56,10 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
     setBag(next); setMessage("");
   };
   const bagEntries = Object.entries(bag).map(([id, n]) => ({ c: catalogById(id)!, n }));
+  const packedIn = (cat: CableCategory) => bagEntries.filter((e) => e.c.category === cat).reduce((a, e) => a + e.n, 0);
+  // Guide strip: a cable is always selected, so the trainee is either packing (3) or ready to enter (4).
+  const step = total > 0 ? 4 : 3;
+  const pick = (c: CatalogCable) => { setSelected(c); soundEngine.play("button_hover"); };
 
   return <main className="cl-screen">
     <div className="cl-bg" aria-hidden="true"><div className="cl-bg-art" /><div className="cl-bg-shade" /></div>
@@ -66,6 +70,9 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
         <span className="cl-eyebrow">ห้องเตรียมสาย · Cable Prep Lobby{playerName ? ` · ผู้ฝึก ${playerName}` : ""}</span>
         <h1>{title} <small>{levelLabel}</small></h1>
         {objective && <p>{objective}</p>}
+        <ol className="cl-steps" aria-label="ขั้นตอน">
+          {["เลือกหมวด", "เลือกสาย", "ใส่กระเป๋า", "เข้าสู่ด่าน"].map((t, i) => <li key={t} className={i + 1 < step ? "is-done" : i + 1 === step ? "is-now" : ""}><b>{i + 1}</b>{t}</li>)}
+        </ol>
       </div>
       <div className="cl-capacity" aria-live="polite"><Tassel side="left" long /><Tassel side="right" long /><span>ในกระเป๋า</span><strong>{total}</strong><small>เส้น · {used} ชนิด</small></div>
     </header>
@@ -74,17 +81,22 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
       <nav className="cl-tabs" aria-label="หมวดสาย">
         {CABLE_CATEGORIES.map((cat) => <button key={cat.id} type="button" className={category === cat.id ? "is-on" : ""} onClick={() => setCategory(cat.id)} aria-pressed={category === cat.id}>
           <span className="cl-tab-glyph"><CategoryIcon id={cat.id} /></span><span>{cat.label}</span>
+          {packedIn(cat.id) > 0 && <em className="cl-tab-count" aria-label={`ใส่แล้ว ${packedIn(cat.id)} เส้น`}>{packedIn(cat.id)}</em>}
         </button>)}
       </nav>
 
       <div className="cl-catalog-wrap">
       <div className="cl-catalog" role="list" aria-label="รายการสายในหมวด">
         <FrameCorners />
-        {items.map((c) => <button key={c.id} type="button" role="listitem" className={`cl-slot ${selected.id === c.id ? "is-selected" : ""}`} onClick={() => setSelected(c)} onDoubleClick={() => add(c)} title={c.name}>
-          <CableView className="cl-slot-3d"><CardCableScene cable={c} /></CableView>
-          <span className="cl-slot-name">{c.name}</span>
+        {items.map((c) => <div key={c.id} role="listitem" className={`cl-slot ${selected.id === c.id ? "is-selected" : ""} ${bag[c.id] ? "is-packed" : ""}`}>
+          <button type="button" className="cl-slot-hit" onClick={() => pick(c)} onDoubleClick={() => add(c)} aria-pressed={selected.id === c.id} title={`${c.name} — กดเพื่อดู · ดับเบิลคลิกเพื่อใส่กระเป๋า`}>
+            <CableView className="cl-slot-3d"><CardCableScene cable={c} /></CableView>
+            <span className="cl-slot-name">{c.name}</span>
+            <span className="cl-slot-ends">{c.ends}</span>
+          </button>
           {bag[c.id] ? <em className="cl-slot-count">×{bag[c.id]}</em> : null}
-        </button>)}
+          <button type="button" className="cl-slot-add" onClick={() => { setSelected(c); add(c); }} aria-label={`ใส่ ${c.name} ลงกระเป๋า`}>+</button>
+        </div>)}
       </div>
 
         <CatalogCanvas />
@@ -100,14 +112,23 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
             <CablePreview cable={selected} />
             <span className="cl-hold">กดเพื่อดูรายละเอียดเพิ่มเติม</span>
           </button>
+          <dl className="cl-facts">
+            <div><dt>หัวต่อ</dt><dd>{selected.ends}</dd></div>
+            <div><dt>ใช้ต่อ</dt><dd>{selected.use}</dd></div>
+          </dl>
           <div className="cl-detail-actions">
-            <button type="button" className="cl-btn" onClick={() => remove(selected)} disabled={!bag[selected.id]}>− นำออก</button>
+            <div className="cl-stepper" role="group" aria-label="จำนวนในกระเป๋า">
+              <button type="button" onClick={() => remove(selected)} disabled={!bag[selected.id]} aria-label="นำออก 1 เส้น">−</button>
+              <output aria-live="polite">{bag[selected.id] ?? 0}</output>
+              <button type="button" onClick={() => add(selected)} aria-label="เพิ่ม 1 เส้น">+</button>
+            </div>
             <button type="button" className="cl-btn is-primary" onClick={() => add(selected)}><span className="cl-plus">+</span> ใส่กระเป๋า</button>
           </div>
         </div>
         <div className="cl-bag">
           <FrameCorners /><ScrollRail />
-          <div className="cl-bag-head"><strong><svg className="cl-pouch" viewBox="0 0 32 32" aria-hidden="true"><path d="M11 6h10l-2 4h-6z" fill="#c99a4a"/><path d="M13 10c-6 3-9 9-7 14 1 3 4 4 10 4s9-1 10-4c2-5-1-11-7-14z" fill="#e9c27a" stroke="#7a5426" strokeWidth="1.2"/><path d="M12 10h8" stroke="#7a5426" strokeWidth="1.6"/><circle cx="16" cy="19" r="3" fill="none" stroke="#7a5426" strokeWidth="1.2"/></svg> กระเป๋าของเจ้า</strong><button type="button" className="cl-link" onClick={() => { setBag({}); setMessage(""); }}>ล้าง</button></div>
+          <div className="cl-bag-head"><strong><svg className="cl-pouch" viewBox="0 0 32 32" aria-hidden="true"><path d="M11 6h10l-2 4h-6z" fill="#c99a4a"/><path d="M13 10c-6 3-9 9-7 14 1 3 4 4 10 4s9-1 10-4c2-5-1-11-7-14z" fill="#e9c27a" stroke="#7a5426" strokeWidth="1.2"/><path d="M12 10h8" stroke="#7a5426" strokeWidth="1.6"/><circle cx="16" cy="19" r="3" fill="none" stroke="#7a5426" strokeWidth="1.2"/></svg> กระเป๋าของเจ้า</strong><button type="button" className="cl-link" disabled={total === 0} onClick={() => { setBag({}); setMessage(""); }}>ล้าง</button></div>
+          {total === 0 && <p className="cl-bag-empty">กระเป๋ายังว่าง · กด <b>+</b> บนการ์ดสาย หรือปุ่ม “ใส่กระเป๋า”</p>}
           {/* only the slot grid scrolls; frame, header, corners and scroll rail stay put */}
           <div className="cl-bag-scroll">
           <div className="cl-bag-grid">
@@ -128,7 +149,10 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
     <footer className="cl-footer">
       <FrameCorners /><Medallion />
       <p>อุปกรณ์รออยู่ในห้องแล้ว · เลือกสายให้ครบและถูกชนิด สายที่ไม่ได้นำไปจะไม่มีในห้อง · ต่อผิดติดต่อกัน {MAX_WRONG_STREAK} ครั้ง = ไม่ผ่าน</p>
-      <button type="button" className="cl-enter" disabled={total === 0} onClick={() => { soundEngine.play("mission_accept"); onConfirm(bag); }}>เข้าสู่ด่าน →</button>
+      <div className="cl-enter-wrap">
+        <button type="button" className="cl-enter" disabled={total === 0} onClick={() => { soundEngine.play("mission_accept"); onConfirm(bag); }}>เข้าสู่ด่าน →</button>
+        <small>{total === 0 ? "ใส่สายอย่างน้อย 1 เส้นก่อน" : `พร้อมออกเดินทาง · ${total} เส้น`}</small>
+      </div>
     </footer>
   </main>;
 }
