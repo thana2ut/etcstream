@@ -732,3 +732,4 @@
 
 /* Top bar looks the same on every page: brand name always in the brush face (interior pages set small text to Sarabun). */
 .academy-main-header .brand-thai { font-family: var(--font-brush) !important; }
+.academy-main-header .trainee-name, .academy-main-header .trainee-name strong { font-family: var(--font-thai) !important; }
