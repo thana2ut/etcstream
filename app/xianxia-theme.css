@@ -723,3 +723,9 @@
   .portal-heading,
   .modal-title { font-size: clamp(1.4rem, 6vw, 1.8rem); }
 }
+
+/* Interaction prompt: badge colour per key so E / F / hold read differently at a glance. */
+.prompt-action-key.key-F { background: linear-gradient(180deg, #b6f0c8, #4fae73); color: #072414; border-color: #9be6b4; }
+.prompt-action-key.key-hold { background: linear-gradient(180deg, #bfe9ff, #4a9fd1); color: #04202c; border-color: #9fd8f5; white-space: nowrap; }
+.prompt-action-pill.is-info { opacity: .85; }
+.prompt-action-pill.is-info span { color: #c9d6f2; }

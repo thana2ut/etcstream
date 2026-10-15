@@ -8,6 +8,17 @@ import { MAX_WRONG_STREAK } from "@/game/content/cable-catalog";
 
 import { useEffect, useState } from "react";
 
+type PromptKey = "E" | "F" | "hold";
+const KEY_LABEL: Record<PromptKey, string> = { E: "E", F: "F", hold: "E ค้าง" };
+const TOUCH_KEY: Record<PromptKey, string> = { E: "แตะ", F: "วาง", hold: "แตะค้าง" };
+/** Split "E · …" / "F · …" / "E ค้าง 2 วิ · …" into the key to show and the text; plain hints get no key. */
+function parsePrompt(instruction: string): { key: PromptKey | null; text: string } {
+  const hold = instruction.match(/^E ค้าง (\S+ วิ) · (.*)$/);
+  if (hold) return { key: "hold", text: `${hold[1]} · ${hold[2]}` };
+  const m = instruction.match(/^([EF]) · (.*)$/);
+  return m ? { key: m[1] as PromptKey, text: m[2] } : { key: null, text: instruction };
+}
+
 export function TrainingHud({ title, difficultyLabel, objective, touch }: { title: string; difficultyLabel?: string; objective?: string; touch: boolean }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const state = useTrainingStore();
@@ -42,6 +53,7 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
 
   // Interaction prompt text
   const instruction = targetInstruction(state, state.focusedTarget);
+  const prompt = parsePrompt(instruction);
 
   return (
     <>
@@ -119,9 +131,10 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
           </div>
         )}
 
-        <div className="prompt-action-pill">
-          <span className="prompt-action-key">{touch ? "แตะ" : "E"}</span>
-          <span>{instruction.replace(/^[EF] · /, "") || "โต้ตอบอุปกรณ์"}</span>
+        {/* The key badge follows the action: E pick up / connect / unplug, F put down, E-hold inspect; none for info only. */}
+        <div className={`prompt-action-pill${prompt.key ? "" : " is-info"}`}>
+          {prompt.key && <span className={`prompt-action-key key-${prompt.key}`}>{touch ? TOUCH_KEY[prompt.key] : KEY_LABEL[prompt.key]}</span>}
+          <span>{prompt.text || "โต้ตอบอุปกรณ์"}</span>
         </div>
       </div>
 

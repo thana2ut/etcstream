@@ -539,7 +539,7 @@ export function targetInstruction(state: TrainingState, target: TrainingTarget |
   if (target.kind === "end") {
     const def = cableDef(state, target.cableId);
     if (def.locked) return `${def.label} · ต่อกับ TX มาแล้ว`;
-    if (state.held) return feedbackCopy.training.alreadyHolding.detail;
+    if (state.held) return "F · วางสายที่ถืออยู่ก่อน (หรือนำไปต่อเข้าพอร์ต)";
     if (target.end === "a" && def.fixedA) return `E · หยิบ${def.label} พร้อมปลั๊กไปเสียบ TX`;
     const connector = def.ends[target.end === "a" ? 0 : 1];
     return state.cables[target.cableId][target.end].portId ? feedbackCopy.training.disconnectHint : `E · หยิบ${def.label} ทั้งเส้น · 1+E หัวสาย · 2+E ปลายสาย (${connector})`;
