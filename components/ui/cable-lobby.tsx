@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useCableBag } from "./use-cable-bag";
 import { CableInspector, CablePreview, CableView, CardCableScene, CatalogCanvas } from "./cable-model";
-import { CategoryIcon, FrameCorners, Medallion, OnAirPlaque, PagodaRoof, ScrollRail, Tassel } from "./lobby-ornaments";
+import { CategoryIcon } from "./lobby-ornaments";
 import { CABLE_CATALOG, CABLE_CATEGORIES, catalogById, MAX_WRONG_STREAK, type CableCategory, type CatalogCable, type ConnectorFamily } from "@/game/content/cable-catalog";
 import type { Scenario } from "@/game/training/scenarios";
 import { soundEngine } from "@/game/audio/sound-engine";
@@ -38,123 +39,140 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
   void scenario; // the room's devices come from the scenario; the bag itself is free-form
   const [category, setCategory] = useState<CableCategory>("video");
   const [selected, setSelected] = useState<CatalogCable>(CABLE_CATALOG[0]);
-  const [bag, setBag] = useState<Record<string, number>>({});
-  const [message, setMessage] = useState("");
   const [inspecting, setInspecting] = useState<CatalogCable | null>(null);
+  const [query, setQuery] = useState("");
+  const [view, setView] = useState<"grid" | "list">("grid");
+  const { bag, entries: bagEntries, total, kinds, add: addOne, remove: removeOne, clear, count } = useCableBag();
   // The trainee spends a while here: fetch the room's 3D models now so the level opens without hitches.
   useEffect(() => { preloadRoomModels(); }, []);
-  const total = Object.values(bag).reduce((a, b) => a + b, 0);
-  const used = Object.keys(bag).length;
-  const items = CABLE_CATALOG.filter((c) => c.category === category);
-  // Always at least 4 rows, plus one empty row beyond the last filled slot.
-  const slots = useMemo(() => Math.max(16, Math.ceil((used + 1) / 4) * 4), [used]);
 
-  const add = (c: CatalogCable) => {
-    setBag({ ...bag, [c.id]: (bag[c.id] ?? 0) + 1 }); setMessage(""); soundEngine.play("button_hover");
-  };
-  const remove = (c: CatalogCable) => {
-    if (!bag[c.id]) return;
-    const next = { ...bag, [c.id]: bag[c.id] - 1 };
-    if (next[c.id] <= 0) delete next[c.id];
-    setBag(next); setMessage("");
-  };
-  const bagEntries = Object.entries(bag).map(([id, n]) => ({ c: catalogById(id)!, n }));
+  // Search looks across every category; otherwise the active tab filters the catalog.
+  const q = query.trim().toLowerCase();
+  const items = q
+    ? CABLE_CATALOG.filter((c) => [c.name, c.ends, c.use, c.id].some((t) => t.toLowerCase().includes(q)))
+    : CABLE_CATALOG.filter((c) => c.category === category);
+  // Five slots per row, always one free row after the last filled slot (minimum two rows).
+  const slots = useMemo(() => Math.max(10, Math.ceil((kinds + 1) / 5) * 5), [kinds]);
   const packedIn = (cat: CableCategory) => bagEntries.filter((e) => e.c.category === cat).reduce((a, e) => a + e.n, 0);
   // Guide strip: a cable is always selected, so the trainee is either packing (3) or ready to enter (4).
   const step = total > 0 ? 4 : 3;
+
+  const add = (c: CatalogCable) => { addOne(c); soundEngine.play("button_hover"); };
+  const remove = (c: CatalogCable) => { removeOne(c); soundEngine.play("button_hover"); };
   const pick = (c: CatalogCable) => { setSelected(c); soundEngine.play("button_hover"); };
 
-  return <main className="cl-screen">
+  return <main className="cl-screen cl-v3">
     <div className="cl-bg" aria-hidden="true"><div className="cl-bg-art" /><div className="cl-bg-shade" /></div>
-    <OnAirPlaque />
     <header className="cl-header">
-      <button type="button" className="cl-back" onClick={onBack}><span className="cl-back-arrow" aria-hidden="true">↩</span> กลับหอภารกิจ</button>
+      <button type="button" className="cl-back" onClick={onBack}><span className="cl-back-arrow" aria-hidden="true">←</span> กลับหอภารกิจ</button>
       <div className="cl-title">
-        <span className="cl-eyebrow">ห้องเตรียมสาย · Cable Prep Lobby{playerName ? ` · ผู้ฝึก ${playerName}` : ""}</span>
-        <h1>{title} <small>{levelLabel}</small></h1>
-        {objective && <p>{objective}</p>}
+        <span className="cl-eyebrow">ห้องเตรียมสาย · Cable Prep Lobby{playerName ? ` | ผู้ฝึก: ${playerName}` : ""}</span>
+        <h1>{title}</h1>
+        {levelLabel && <p className="cl-level">{levelLabel}</p>}
+        {objective && <p className="cl-objective">{objective}</p>}
         <ol className="cl-steps" aria-label="ขั้นตอน">
-          {["เลือกหมวด", "เลือกสาย", "ใส่กระเป๋า", "เข้าสู่ด่าน"].map((t, i) => <li key={t} className={i + 1 < step ? "is-done" : i + 1 === step ? "is-now" : ""}><b>{i + 1}</b>{t}</li>)}
+          {["เลือกหมวด", "เลือกสาย", "ใส่กระเป๋า", "เข้าสู่ด่าน"].map((t, i) => <li key={t} className={i + 1 < step ? "is-done" : i + 1 === step ? "is-now" : ""} aria-current={i + 1 === step ? "step" : undefined}><b>{i + 1}</b>{t}</li>)}
         </ol>
       </div>
-      <div className="cl-capacity" aria-live="polite"><Tassel side="left" long /><Tassel side="right" long /><span>ในกระเป๋า</span><strong>{total}</strong><small>เส้น · {used} ชนิด</small></div>
+      <div className="cl-capacity" aria-live="polite"><span>ในกระเป๋า</span><strong>{total}</strong><small>เส้น · {kinds} ชนิด</small></div>
     </header>
 
     <section className="cl-body">
       <nav className="cl-tabs" aria-label="หมวดสาย">
-        {CABLE_CATEGORIES.map((cat) => <button key={cat.id} type="button" className={category === cat.id ? "is-on" : ""} onClick={() => setCategory(cat.id)} aria-pressed={category === cat.id}>
-          <span className="cl-tab-glyph"><CategoryIcon id={cat.id} /></span><span>{cat.label}</span>
+        {CABLE_CATEGORIES.map((cat) => <button key={cat.id} type="button" className={!q && category === cat.id ? "is-on" : ""} onClick={() => { setCategory(cat.id); setQuery(""); }} aria-pressed={!q && category === cat.id}>
+          <span className="cl-tab-glyph"><CategoryIcon id={cat.id} /></span><span className="cl-tab-label">{cat.label}</span>
           {packedIn(cat.id) > 0 && <em className="cl-tab-count" aria-label={`ใส่แล้ว ${packedIn(cat.id)} เส้น`}>{packedIn(cat.id)}</em>}
+          <span className="cl-tab-chev" aria-hidden="true">›</span>
         </button>)}
       </nav>
 
-      <div className="cl-catalog-wrap">
-      <div className="cl-catalog" role="list" aria-label="รายการสายในหมวด">
-        <FrameCorners />
-        {items.map((c) => <div key={c.id} role="listitem" className={`cl-slot ${selected.id === c.id ? "is-selected" : ""} ${bag[c.id] ? "is-packed" : ""}`}>
-          <button type="button" className="cl-slot-hit" onClick={() => pick(c)} onDoubleClick={() => add(c)} aria-pressed={selected.id === c.id} title={`${c.name} — กดเพื่อดู · ดับเบิลคลิกเพื่อใส่กระเป๋า`}>
-            <CableView className="cl-slot-3d"><CardCableScene cable={c} /></CableView>
-            <span className="cl-slot-name">{c.name}</span>
-            <span className="cl-slot-ends">{c.ends}</span>
-          </button>
-          {bag[c.id] ? <em className="cl-slot-count">×{bag[c.id]}</em> : null}
-          <button type="button" className="cl-slot-add" onClick={() => { setSelected(c); add(c); }} aria-label={`ใส่ ${c.name} ลงกระเป๋า`}>+</button>
-        </div>)}
-      </div>
+      <div className="cl-center">
+        <div className="cl-toolbar">
+          <div className="cl-viewtoggle" role="group" aria-label="รูปแบบการแสดง">
+            <button type="button" className={view === "grid" ? "is-on" : ""} aria-pressed={view === "grid"} onClick={() => setView("grid")} aria-label="แสดงแบบตาราง"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="3" width="6" height="6" rx="1.2" /><rect x="11" y="3" width="6" height="6" rx="1.2" /><rect x="3" y="11" width="6" height="6" rx="1.2" /><rect x="11" y="11" width="6" height="6" rx="1.2" /></svg></button>
+            <button type="button" className={view === "list" ? "is-on" : ""} aria-pressed={view === "list"} onClick={() => setView("list")} aria-label="แสดงแบบรายการ"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="4" width="2.5" height="2.5" rx=".6" /><rect x="7.5" y="4.4" width="9.5" height="1.7" rx=".8" /><rect x="3" y="8.8" width="2.5" height="2.5" rx=".6" /><rect x="7.5" y="9.2" width="9.5" height="1.7" rx=".8" /><rect x="3" y="13.6" width="2.5" height="2.5" rx=".6" /><rect x="7.5" y="14" width="9.5" height="1.7" rx=".8" /></svg></button>
+          </div>
+          <span className="cl-result-count">{q ? `ผลการค้นหา ${items.length} รายการ` : `${items.length} รายการ`}</span>
+          <label className="cl-search">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" /><path d="M13 13l4 4" /></svg>
+            <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="ค้นหาสาย..." aria-label="ค้นหาสาย" />
+            {query && <button type="button" onClick={() => setQuery("")} aria-label="ล้างคำค้น">✕</button>}
+          </label>
+        </div>
 
-        <CatalogCanvas />
+        <div className="cl-catalog-wrap">
+          <div className={`cl-catalog is-${view}`} role="list" aria-label={q ? "ผลการค้นหาสาย" : "รายการสายในหมวด"}>
+            {items.map((c) => <div key={c.id} role="listitem" className={`cl-slot ${selected.id === c.id ? "is-selected" : ""} ${count(c.id) ? "is-packed" : ""}`}>
+              <button type="button" className="cl-slot-hit" onClick={() => pick(c)} onDoubleClick={() => add(c)} aria-pressed={selected.id === c.id} title={`${c.name} — กดเพื่อดู · ดับเบิลคลิกเพื่อใส่กระเป๋า`}>
+                <CableView className="cl-slot-3d"><CardCableScene cable={c} /></CableView>
+                <span className="cl-slot-text">
+                  <span className="cl-slot-name">{c.name}</span>
+                  <span className="cl-slot-ends">{c.ends}</span>
+                  {view === "list" && <span className="cl-slot-use">{c.use}</span>}
+                </span>
+              </button>
+              {count(c.id) ? <em className="cl-slot-count">×{count(c.id)}</em> : null}
+              <button type="button" className="cl-slot-add" onClick={() => { setSelected(c); add(c); }} aria-label={`ใส่ ${c.name} ลงกระเป๋า`}>+</button>
+            </div>)}
+            {items.length === 0 && <p className="cl-empty">ไม่พบสายที่ตรงกับ “{query}” · ลองคำอื่น เช่น HDMI, XLR, SDI</p>}
+          </div>
+          <CatalogCanvas />
+        </div>
       </div>
 
       <aside className="cl-side">
         <div className="cl-detail">
-          <FrameCorners /><Tassel side="left" /><Tassel side="right" />
-          <PagodaRoof />
           <div className="cl-panel-title">รายละเอียดสาย</div>
-          <div className="cl-detail-head"><ConnectorIcon family={selected.family} color={selected.color} /><div><strong>{selected.name}</strong><small>{selected.id} · {selected.status}</small></div></div>
-          <button type="button" className="cl-preview-wrap" onClick={() => setInspecting(selected)} aria-label={`ดูโมเดล 3D ของ ${selected.name}`}>
-            <CablePreview cable={selected} />
-            <span className="cl-hold">กดเพื่อดูรายละเอียดเพิ่มเติม</span>
-          </button>
+          <div className="cl-detail-head">
+            <button type="button" className="cl-preview-wrap" onClick={() => setInspecting(selected)} aria-label={`ดูโมเดล 3D ของ ${selected.name}`} title="กดเพื่อดูโมเดล 3D แบบเต็มจอ">
+              <CablePreview cable={selected} />
+            </button>
+            <div><strong>{selected.name}</strong><small>{selected.id} · {selected.status}</small></div>
+          </div>
           <dl className="cl-facts">
             <div><dt>หัวต่อ</dt><dd>{selected.ends}</dd></div>
             <div><dt>ใช้ต่อ</dt><dd>{selected.use}</dd></div>
           </dl>
           <div className="cl-detail-actions">
             <div className="cl-stepper" role="group" aria-label="จำนวนในกระเป๋า">
-              <button type="button" onClick={() => remove(selected)} disabled={!bag[selected.id]} aria-label="นำออก 1 เส้น">−</button>
-              <output aria-live="polite">{bag[selected.id] ?? 0}</output>
+              <button type="button" onClick={() => remove(selected)} disabled={!count(selected.id)} aria-label="นำออก 1 เส้น">−</button>
+              <output aria-live="polite">{count(selected.id)}</output>
               <button type="button" onClick={() => add(selected)} aria-label="เพิ่ม 1 เส้น">+</button>
             </div>
             <button type="button" className="cl-btn is-primary" onClick={() => add(selected)}><span className="cl-plus">+</span> ใส่กระเป๋า</button>
           </div>
         </div>
         <div className="cl-bag">
-          <FrameCorners /><ScrollRail />
-          <div className="cl-bag-head"><strong><svg className="cl-pouch" viewBox="0 0 32 32" aria-hidden="true"><path d="M11 6h10l-2 4h-6z" fill="#c99a4a"/><path d="M13 10c-6 3-9 9-7 14 1 3 4 4 10 4s9-1 10-4c2-5-1-11-7-14z" fill="#e9c27a" stroke="#7a5426" strokeWidth="1.2"/><path d="M12 10h8" stroke="#7a5426" strokeWidth="1.6"/><circle cx="16" cy="19" r="3" fill="none" stroke="#7a5426" strokeWidth="1.2"/></svg> กระเป๋าของเจ้า</strong><button type="button" className="cl-link" disabled={total === 0} onClick={() => { setBag({}); setMessage(""); }}>ล้าง</button></div>
-          {total === 0 && <p className="cl-bag-empty">กระเป๋ายังว่าง · กด <b>+</b> บนการ์ดสาย หรือปุ่ม “ใส่กระเป๋า”</p>}
-          {/* only the slot grid scrolls; frame, header, corners and scroll rail stay put */}
+          <div className="cl-bag-head"><strong><svg className="cl-pouch" viewBox="0 0 32 32" aria-hidden="true"><path d="M11 6h10l-2 4h-6z" fill="#c99a4a"/><path d="M13 10c-6 3-9 9-7 14 1 3 4 4 10 4s9-1 10-4c2-5-1-11-7-14z" fill="#e9c27a" stroke="#7a5426" strokeWidth="1.2"/><path d="M12 10h8" stroke="#7a5426" strokeWidth="1.6"/><circle cx="16" cy="19" r="3" fill="none" stroke="#7a5426" strokeWidth="1.2"/></svg> กระเป๋าของเจ้า</strong><button type="button" className="cl-link" disabled={total === 0} onClick={clear}>ล้าง</button></div>
+          <p className="cl-bag-empty">{total === 0 ? <>กระเป๋ายังว่าง · กด <b>+</b> บนการ์ดสาย หรือปุ่ม “ใส่กระเป๋า”</> : <>กดช่องเพื่อดูรายละเอียด · <b>✕</b> นำออกทีละเส้น</>}</p>
           <div className="cl-bag-scroll">
-          <div className="cl-bag-grid">
-            {Array.from({ length: slots }, (_, i) => {
-              const e = bagEntries[i];
-              return <button key={i} type="button" className={`cl-bag-slot ${e ? "is-filled" : ""}`} disabled={!e} onClick={() => e && setSelected(e.c)} title={e ? `${e.c.name} ×${e.n}` : "ช่องว่าง"}>
-                {e && <><ConnectorIcon family={e.c.family} color={e.c.color} /><em>{e.n}</em></>}
-              </button>;
-            })}
+            <div className="cl-bag-grid">
+              {Array.from({ length: slots }, (_, i) => {
+                const e = bagEntries[i];
+                if (!e) return <span key={`empty-${i}`} className="cl-bag-slot is-empty" aria-hidden="true"><span className="cl-bag-plus">+</span></span>;
+                return <span key={e.c.id} className={`cl-bag-slot is-filled ${selected.id === e.c.id ? "is-selected" : ""}`}>
+                  <button type="button" className="cl-bag-hit" onClick={() => setSelected(e.c)} title={`${e.c.name} ×${e.n}`} aria-label={`${e.c.name} ${e.n} เส้น`}>
+                    <ConnectorIcon family={e.c.family} color={e.c.color} /><em>{e.n}</em>
+                  </button>
+                  <button type="button" className="cl-bag-remove" onClick={() => remove(e.c)} aria-label={`นำ ${e.c.name} ออก 1 เส้น`}>✕</button>
+                </span>;
+              })}
+            </div>
           </div>
-          </div>
-          {message && <p className="cl-msg" role="alert">{message}</p>}
         </div>
       </aside>
     </section>
 
     {inspecting && <CableInspector cable={inspecting} onClose={() => setInspecting(null)} />}
     <footer className="cl-footer">
-      <FrameCorners /><Medallion />
-      <p>อุปกรณ์รออยู่ในห้องแล้ว · เลือกสายให้ครบและถูกชนิด สายที่ไม่ได้นำไปจะไม่มีในห้อง · ต่อผิดติดต่อกัน {MAX_WRONG_STREAK} ครั้ง = ไม่ผ่าน</p>
+      <span className="cl-footer-icon" aria-hidden="true">!</span>
+      <div className="cl-footer-text">
+        <strong>เมื่อเลือกสายที่ต้องใช้ครบแล้ว ให้ใส่กระเป๋า และตรวจสอบจำนวนก่อนเข้าสู่ด่าน</strong>
+        <small>อุปกรณ์รออยู่ในห้องแล้ว · สายที่ไม่ได้นำไปจะไม่มีในห้อง · ต่อผิดติดต่อกัน {MAX_WRONG_STREAK} ครั้ง = ไม่ผ่าน</small>
+      </div>
       <div className="cl-enter-wrap">
+        <small className={total === 0 ? "" : "is-ready"} role="status">{total === 0 ? "ใส่สายอย่างน้อย 1 เส้นก่อน" : `พร้อมออกเดินทาง · ${total} เส้น`}</small>
         <button type="button" className="cl-enter" disabled={total === 0} onClick={() => { soundEngine.play("mission_accept"); onConfirm(bag); }}>เข้าสู่ด่าน →</button>
-        <small>{total === 0 ? "ใส่สายอย่างน้อย 1 เส้นก่อน" : `พร้อมออกเดินทาง · ${total} เส้น`}</small>
       </div>
     </footer>
   </main>;

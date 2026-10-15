@@ -1,9 +1,9 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useRef } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Suspense, useEffect, useMemo } from "react";
+import { Canvas } from "@react-three/fiber";
 import { Bounds, Center, OrbitControls, PerspectiveCamera, useGLTF, View } from "@react-three/drei";
-import { AdditiveBlending, CatmullRomCurve3, type Group, Vector3 } from "three";
+import { CatmullRomCurve3, Vector3 } from "three";
 import { PlugMesh } from "@/components/game/cable-plugs";
 import type { PlugStyle } from "@/game/training/scenarios";
 import type { CatalogCable } from "@/game/content/cable-catalog";
@@ -77,24 +77,6 @@ export function CableModel({ cable }: { cable: CatalogCable }) {
   return file ? <Suspense fallback={<PlaceholderCable cable={cable} />}><GlbCable url={file} /></Suspense> : <PlaceholderCable cable={cable} />;
 }
 
-/** Two glowing "spirit" ribbons spiralling around the cable (lobby styling, not part of the cable). */
-function SpiritGlow() {
-  const ref = useRef<Group>(null);
-  const curves = useMemo(() => [0, Math.PI].map((phase) => new CatmullRomCurve3(Array.from({ length: 40 }, (_, i) => {
-    const t = i / 39, a = phase + t * Math.PI * 3.2, r = 0.16 + 0.07 * Math.sin(t * Math.PI);
-    return new Vector3(-0.55 + t * 1.1, Math.sin(a) * r - 0.04, Math.cos(a) * r + 0.16);
-  }))), []);
-  useFrame((_, dt) => { if (ref.current) ref.current.rotation.x += dt * 0.6; });
-  return <group ref={ref} position={[0, -0.04, 0.16]}>
-    <group position={[0, 0.04, -0.16]}>
-      {curves.map((c, i) => <mesh key={i}>
-        <tubeGeometry args={[c, 120, i ? 0.006 : 0.01, 6, false]} />
-        <meshBasicMaterial color={i ? "#9b6bff" : "#4fe3ff"} transparent opacity={0.75} blending={AdditiveBlending} depthWrite={false} toneMapped={false} />
-      </mesh>)}
-    </group>
-  </group>;
-}
-
 function Stage({ cable, auto, margin = 1.2 }: { cable: CatalogCable; auto: boolean; margin?: number }) {
   return <>
     <hemisphereLight args={["#eef2ff", "#2b2733", 1.5]} />
@@ -102,7 +84,6 @@ function Stage({ cable, auto, margin = 1.2 }: { cable: CatalogCable; auto: boole
     <directionalLight position={[-2, 1.5, -1]} intensity={0.9} />
     <pointLight position={[0, 0.2, 0.6]} intensity={1.2} distance={3} color="#4fe3ff" />
     <Bounds fit clip observe margin={margin}><Center><CableModel key={cable.id} cable={cable} /></Center></Bounds>
-    {auto && <SpiritGlow />}
     <OrbitControls makeDefault enableDamping autoRotate={auto} autoRotateSpeed={1.6} minDistance={0.2} maxDistance={6} />
   </>;
 }
@@ -142,18 +123,19 @@ export function CableInspector({ cable, onClose }: { cable: CatalogCable; onClos
   </div>;
 }
 
-/** Slow-turning cable for one catalog card (rendered through the shared catalog canvas via drei <View>). */
+/** Cable for one catalog card (rendered through the shared catalog canvas via drei <View>). */
+/** Catalog cards show the cable at a fixed three-quarter angle (both plugs visible, never edge-on); the detail
+ *  preview and the full-screen inspector are where it turns. */
 function CardTurn({ cable }: { cable: CatalogCable }) {
-  const ref = useRef<Group>(null);
-  useFrame((_, dt) => { if (ref.current) ref.current.rotation.y += dt * 0.45; });
-  return <group ref={ref} rotation={[0.25, -0.5, 0]}><Center><CableModel cable={cable} /></Center><SpiritGlow /></group>;
+  return <group rotation={[0.55, 0, 0]}><Center><CableModel cable={cable} /></Center></group>;
 }
 
 export function CardCableScene({ cable }: { cable: CatalogCable }) {
   return <>
-    <PerspectiveCamera makeDefault position={[0, 0.18, 1.55]} fov={34} />
-    <hemisphereLight args={["#eef2ff", "#22203a", 1.4]} />
-    <directionalLight position={[1.5, 2, 2]} intensity={2} />
+    <PerspectiveCamera makeDefault position={[0, 0, 1.2]} fov={34} />
+    <hemisphereLight args={["#eef2ff", "#2a3050", 2.2]} />
+    <directionalLight position={[1.5, 2, 2]} intensity={2.8} />
+    <directionalLight position={[-1.5, 0.6, -1]} intensity={1.2} color="#9fd8ff" />
     <pointLight position={[0, 0.1, 0.7]} intensity={1.4} distance={3} color={cable.color} />
     <CardTurn cable={cable} />
   </>;
