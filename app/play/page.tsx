@@ -92,8 +92,10 @@ function PlayExperience() {
     ? `${scaleByVenue[mission.venueId]}-${difficulty.level}` as ScenarioId
     : "studio-full";
   const activeScenario = SCENARIOS[scenarioId];
+  // Load the scenario only when it actually changes: re-running this (dev hot reload, remounts) must not wipe the
+  // room and the bag the trainee packed in the cable-prep lobby.
   useEffect(() => {
-    resetTraining(scenarioId);
+    if (useTrainingStore.getState().scenarioId !== scenarioId) resetTraining(scenarioId);
   }, [resetTraining, scenarioId]);
 
   useEffect(() => {
