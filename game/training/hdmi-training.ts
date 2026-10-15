@@ -44,6 +44,8 @@ export interface TrainingState {
   notice: TrainingNotice | null;
   /** Mission cable-prep: leads the trainee did not pack (not rendered, cannot be used). */
   hiddenCables?: string[];
+  /** Leads currently inside the trainee's bag (packed, not in the room yet): not rendered, taken out one at a time. */
+  bagged?: string[];
 }
 
 export function scenarioOf(state: Pick<TrainingState, "scenarioId">): Scenario {
@@ -59,7 +61,7 @@ export function onWorkSurface(state: Pick<TrainingState, "scenarioId">, at: read
   return onSurface(layoutOf(state).work, at[0], at[2]);
 }
 
-export function initialTrainingState(scenarioId: ScenarioId = "hdmi-basic", hiddenCables: string[] = []): TrainingState {
+export function initialTrainingState(scenarioId: ScenarioId = "hdmi-basic", hiddenCables: string[] = [], bagged: string[] = []): TrainingState {
   const scenario = SCENARIOS[scenarioId];
   const cables: Record<CableId, CableState> = {};
   for (const cable of scenario.cables) {
@@ -83,6 +85,7 @@ export function initialTrainingState(scenarioId: ScenarioId = "hdmi-basic", hidd
     completed: false,
     notice: null,
     hiddenCables,
+    bagged,
   };
 }
 
@@ -406,14 +409,15 @@ export function interactWithTarget(state: TrainingState, target: TrainingTarget 
   };
 }
 
-/** Mission bag: put the lead in hand back (both plugs out, back to its storage spot); routes/actions are re-settled. */
+/** Bag: put the lead in hand back into the bag (both plugs out, out of the room); routes/actions are re-settled. */
 export function stowHeldCable(state: TrainingState): TrainingState {
   if (!state.held) return state;
   const def = cableDef(state, state.held.cableId);
   if (def.fixedA || def.locked) return { ...state, notice: notice("เก็บคืนไม่ได้", "สายไมค์นี้ติดกับตัวไมค์ ไม่ได้อยู่ในกระเป๋า", "error") };
   const cables = cloneCables(state.cables);
   cables[def.id] = { a: { portId: null, loosePosition: [...def.start[0]] }, b: { portId: null, loosePosition: [...def.start[1]] } };
-  return withCables(state, cables, { held: null, notice: notice("เก็บสายคืนกระเป๋าแล้ว", def.label, "info") });
+  const bagged = [...(state.bagged ?? []).filter((id) => id !== def.id), def.id];
+  return withCables(state, cables, { held: null, bagged, notice: notice("เก็บสายคืนกระเป๋าแล้ว", def.label, "info") });
 }
 
 export function dropHeldEnd(state: TrainingState, position: Point3): TrainingState {

@@ -10,12 +10,12 @@ import { MAX_WRONG_STREAK } from "@/game/content/cable-catalog";
 
 interface TrainingStore extends TrainingState {
   focusedTarget: TrainingTarget | null;
-  /** `hiddenCables`: mission leads not packed in the cable-prep lobby. */
-  reset: (scenarioId?: ScenarioId, hiddenCables?: string[]) => void;
+  /** `hiddenCables`: leads not packed in the cable-prep lobby. `bagged`: packed leads that start inside the bag. */
+  reset: (scenarioId?: ScenarioId, hiddenCables?: string[], bagged?: string[]) => void;
   /** Mission only: consecutive wrong connection attempts (5 = level failed). */
   wrongStreak: number;
   failed: boolean;
-  /** Mission bag: take a whole loose lead straight into the hands (same as E on it at the cable shelf). */
+  /** Bag: take one lead out of the bag straight into the hands (it leaves the bag until stowed again). */
   takeCable: (cableId: string) => boolean;
   /** Mission bag: return the lead in hand to the bag. */
   stowHeld: () => void;
@@ -56,14 +56,14 @@ export const useTrainingStore = create<TrainingStore>((set, get) => ({
   takeCable: (cableId) => {
     const state = get();
     const c = state.cables[cableId];
-    if (!c || state.hiddenCables?.includes(cableId)) return false;
+    if (!c || state.hiddenCables?.includes(cableId) || !state.bagged?.includes(cableId)) return false;
     if (state.held || state.heldItem) { set({ notice: { title: "มือไม่ว่าง", detail: "กด F เพื่อวางสิ่งที่ถืออยู่ก่อน แล้วค่อยหยิบสายจากกระเป๋า", tone: "error" } }); return false; }
     if (c.a.portId || c.b.portId) return false;
     const label = scenarioOf(state).cables.find((x) => x.id === cableId)?.label ?? "สาย";
-    set({ held: { cableId, end: "a" }, notice: { title: "หยิบสายจากกระเป๋าแล้ว", detail: `${label} · เล็งพอร์ตแล้วกด E เพื่อเสียบ`, tone: "info" } });
+    set({ held: { cableId, end: "a" }, bagged: state.bagged.filter((id) => id !== cableId), notice: { title: "หยิบสายจากกระเป๋าแล้ว", detail: `${label} · เล็งพอร์ตแล้วกด E เพื่อเสียบ`, tone: "info" } });
     return true;
   },
-  reset: (scenarioId, hiddenCables) => set((state) => ({ ...initialTrainingState(scenarioId ?? state.scenarioId, hiddenCables ?? []), wrongStreak: 0, failed: false, focusedTarget: null, heldTurn: 0, inspecting: null, inspectHoldStart: null, pickMode: "whole" })),
+  reset: (scenarioId, hiddenCables, bagged) => set((state) => ({ ...initialTrainingState(scenarioId ?? state.scenarioId, hiddenCables ?? [], bagged ?? []), wrongStreak: 0, failed: false, focusedTarget: null, heldTurn: 0, inspecting: null, inspectHoldStart: null, pickMode: "whole" })),
   focus: (target) => {
     if (targetKey(get().focusedTarget) !== targetKey(target)) set({ focusedTarget: target });
   },

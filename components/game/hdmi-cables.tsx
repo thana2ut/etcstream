@@ -133,6 +133,7 @@ function Cable({ id }: { id: CableId }) {
 export function HdmiCables() {
   const cables = useTrainingStore((state) => scenarioOf(state).cables);
   const hidden = useTrainingStore((state) => state.hiddenCables);
-  // Leads not packed in the mission cable-prep lobby are not in the room.
-  return <>{cables.filter((cable) => !hidden?.includes(cable.id)).map((cable) => <Cable key={cable.id} id={cable.id} />)}</>;
+  const bagged = useTrainingStore((state) => state.bagged);
+  // Leads not packed in the cable-prep lobby, and leads still inside the bag, are not in the room.
+  return <>{cables.filter((cable) => !hidden?.includes(cable.id) && !bagged?.includes(cable.id)).map((cable) => <Cable key={cable.id} id={cable.id} />)}</>;
 }

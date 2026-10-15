@@ -140,6 +140,12 @@ export function hiddenCablesFor(scenario: Scenario, bag: Record<string, number>)
   return hidden;
 }
 
+/** Scenario leads that come with this bag (packed and usable): they start the level inside the bag. */
+export function packedLeadsFor(scenario: Scenario, bag: Record<string, number>): string[] {
+  const hidden = new Set(hiddenCablesFor(scenario, bag));
+  return packableCables(scenario).filter((c) => !hidden.has(c.id)).map((c) => c.id);
+}
+
 /** Catalog ids of every lead the trainee can pack for this scenario (the cables laid out on its table). */
 export function packableCatalogIds(scenario: Scenario): string[] {
   return [...new Set(packableCables(scenario).map(catalogIdFor))];

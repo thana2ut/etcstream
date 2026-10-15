@@ -642,3 +642,40 @@
 /* empty bag slot: + drawn as an icon, exactly centred in its circle */
 .cl-screen.cl-v3 .cl-bag-plus { display: grid; place-items: center; padding: 0; line-height: 0; }
 .cl-screen.cl-v3 .cl-bag-plus svg { width: 12px; height: 12px; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; fill: none; }
+
+/* ───── In-room bag (BagPanel): real inventory with per-type status ───── */
+.cl-bag-badge { display: inline-grid; place-items: center; min-width: 22px; height: 22px; margin-left: 4px; padding: 0 6px; border-radius: 9999px; background: #ffe3a3; color: #2a1a06; font-size: .78rem; font-weight: 800; }
+.bag-card { width: min(560px, 94vw); max-height: min(78vh, 720px); display: flex; flex-direction: column; gap: 12px; }
+.bag-head { display: flex; align-items: center; justify-content: space-between; }
+.bag-head strong { font-size: 1.15rem; color: #ffe3a3; }
+.bag-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.bag-summary span { display: grid; justify-items: center; gap: 2px; padding: 8px 4px; border-radius: 10px; border: 1px solid rgba(140, 160, 210, .22); background: rgba(4, 8, 24, .55); font-size: .78rem; color: #93a3c4; }
+.bag-summary b { font-size: 1.35rem; line-height: 1.1; color: #fff; }
+.bag-summary span:first-child b { color: #4fd8ff; }
+.bag-hand { display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(231, 194, 124, .6); background: linear-gradient(90deg, rgba(60, 44, 20, .55), rgba(10, 16, 40, .9)); }
+.bag-hand .cl-icon { width: 44px; height: 44px; }
+.bag-hand strong { display: block; color: #ffe3a3; font-size: .95rem; }
+.bag-hand small { color: #b7c4de; font-size: .76rem; }
+.bag-list { list-style: none; margin: 0; padding: 0 4px 0 0; display: grid; gap: 8px; overflow-y: auto; min-height: 0; }
+.bag-row { display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(79, 216, 255, .35); background: rgba(10, 18, 44, .92); }
+.bag-row.is-out { border-color: rgba(140, 160, 210, .18); background: rgba(8, 12, 30, .85); }
+.bag-row.is-out .bag-row-main strong { color: #b7c4de; }
+.bag-row .cl-icon { width: 44px; height: 44px; }
+.bag-row-main { min-width: 0; display: grid; gap: 2px; }
+.bag-row-main strong { color: #fff; font-size: .95rem; line-height: 1.3; }
+.bag-row-main small { color: #93a3c4; font-size: .76rem; }
+.bag-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.bag-chips em { font-style: normal; font-size: .72rem; font-weight: 600; padding: 2px 8px; border-radius: 9999px; border: 1px solid; }
+.chip-bag { color: #4fd8ff; border-color: rgba(79, 216, 255, .5); background: rgba(10, 60, 90, .35); }
+.chip-zero { color: #6f7f9f; border-color: rgba(111, 127, 159, .35); }
+.chip-hand { color: #ffe3a3; border-color: rgba(231, 194, 124, .6); background: rgba(60, 44, 20, .4); }
+.chip-room { color: #c9d6f2; border-color: rgba(201, 214, 242, .35); }
+.chip-plug { color: #9be6b4; border-color: rgba(155, 230, 180, .5); background: rgba(20, 70, 40, .3); }
+.chip-spare { color: #ffb4b4; border-color: rgba(255, 140, 140, .4); }
+.bag-row-side { display: grid; justify-items: center; gap: 6px; }
+.bag-count { font-size: 1.2rem; font-weight: 800; color: #fff; }
+.bag-count small { font-size: .78rem; color: #93a3c4; font-weight: 600; }
+.bag-btn { min-width: 72px; padding: 7px 14px; border-radius: 9999px; border: 1.5px solid #4fd8ff; background: rgba(12, 74, 104, .9); color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+.bag-btn:hover:not(:disabled) { background: rgba(18, 96, 132, .95); }
+.bag-btn:disabled { opacity: .35; cursor: not-allowed; border-color: rgba(140, 160, 210, .35); background: rgba(8, 12, 30, .8); }
+.bag-btn.is-stow { border-color: #e7c27c; background: rgba(90, 64, 24, .85); }

@@ -23,8 +23,9 @@ import { MissionResultModal } from "@/components/ui/mission-result-modal";
 import { clearedCount, meritFor, rankFor } from "@/game/content/mission-ranks";
 import { soundEngine } from "@/game/audio/sound-engine";
 import { getSafePlayParams } from "@/game/security/route-validation";
-import { CableLobby, BagOverlay } from "@/components/ui/cable-lobby";
-import { bagUsage, catalogIdFor, hiddenCablesFor, MAX_WRONG_STREAK, packableCatalogIds } from "@/game/content/cable-catalog";
+import { CableLobby } from "@/components/ui/cable-lobby";
+import { BagPanel } from "@/components/game/bag-panel";
+import { hiddenCablesFor, MAX_WRONG_STREAK, packableCatalogIds, packedLeadsFor } from "@/game/content/cable-catalog";
 
 export default function Play() {
   return (
@@ -61,9 +62,8 @@ function PlayExperience() {
   const [bag, setBag] = useState<Record<string, number> | null>(null);
   const [bagOpen, setBagOpen] = useState(false);
   const trainingFailed = useTrainingStore((state) => state.failed);
-  // Re-render the bag panel when the lead in hand (or the cable layout) changes.
-  const heldCableId = useTrainingStore((state) => state.held?.cableId ?? null);
-  useTrainingStore((state) => state.cables);
+  // Leads still inside the bag (badge on the 🎒 button).
+  const bagCount = useTrainingStore((state) => state.bagged?.length ?? 0);
 
   useEffect(() => {
     setPlayPhase(showResultModal ? "result" : introOpen ? "intro" : "gameplay");
@@ -231,12 +231,6 @@ function PlayExperience() {
     startMission();
   };
 
-  // Packed leads still lying loose in the room (visible, neither end plugged) — what the bag can hand over.
-  const looseLeads = () => {
-    const st = useTrainingStore.getState();
-    return activeScenario.cables.filter((c) => !st.hiddenCables?.includes(c.id) && !c.fixedA && st.cables[c.id] && !st.cables[c.id].a.portId && !st.cables[c.id].b.portId && st.held?.cableId !== c.id);
-  };
-  const readyLeads = () => looseLeads().reduce<Record<string, number>>((m, c) => { const id = catalogIdFor(c); m[id] = (m[id] ?? 0) + 1; return m; }, {});
 
   const handleRetry = () => {
     resetTraining(scenarioId);
@@ -254,7 +248,7 @@ function PlayExperience() {
       playerName={player.nickname}
       only={validClassroom ? packableCatalogIds(activeScenario) : undefined}
       onBack={() => router.push(validClassroom ? "/academy" : "/missions")}
-      onConfirm={(packed) => { setBag(packed); resetTraining(scenarioId, hiddenCablesFor(activeScenario, packed)); setIntroOpen(true); }}
+      onConfirm={(packed) => { setBag(packed); resetTraining(scenarioId, hiddenCablesFor(activeScenario, packed), packedLeadsFor(activeScenario, packed)); setIntroOpen(true); }}
     />;
   }
 
@@ -306,16 +300,8 @@ function PlayExperience() {
           <InspectHoldRing />
           <EquipmentInspector />
           <TrainingHud title={currentTitle} difficultyLabel={difficultyLabel ?? undefined} objective={difficulty?.objective} touch={touch} />
-          {(routeMode === "mission" || validClassroom) && bag && <button type="button" className="cl-bag-button" onClick={() => { if (document.pointerLockElement) document.exitPointerLock(); setBagOpen(true); }}>🎒 กระเป๋า</button>}
-          {bagOpen && bag && <BagOverlay bag={bag} usage={bagUsage(activeScenario, bag)}
-            ready={readyLeads()}
-            holding={(() => { const def = heldCableId ? activeScenario.cables.find((c) => c.id === heldCableId) : null; return def && !def.fixedA ? { id: catalogIdFor(def), label: def.label } : null; })()}
-            onStow={() => useTrainingStore.getState().stowHeld()}
-            onTake={(catalogId) => {
-              const lead = looseLeads().find((c) => catalogIdFor(c) === catalogId);
-              if (lead && useTrainingStore.getState().takeCable(lead.id)) setBagOpen(false);
-            }}
-            onClose={() => setBagOpen(false)} />}
+          {(routeMode === "mission" || validClassroom) && bag && <button type="button" className="cl-bag-button" onClick={() => { if (document.pointerLockElement) document.exitPointerLock(); setBagOpen(true); }}>🎒 กระเป๋า <b className="cl-bag-badge">{bagCount}</b></button>}
+          {bagOpen && bag && <BagPanel bag={bag} onClose={() => setBagOpen(false)} />}
           {touch && !showExitConfirm && <TouchControls />}
 
           {/* Pointer lock capture prompt if not locked */}
