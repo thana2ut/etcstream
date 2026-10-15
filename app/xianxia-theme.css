@@ -737,3 +737,5 @@
 .academy-main-header .audio-popover-title { font-family: var(--font-thai) !important; font-weight: 700; }
 /* In-game HUD sits below the top bar (72px), level with the pause button. */
 .game-screen .hud-objective-panel { top: 84px; }
+/* Collapsed mission pill: vertically centred on the pause button (84px + 40/2 - 36/2). */
+.game-screen .hud-objective-mini-pill { top: 86px; }
