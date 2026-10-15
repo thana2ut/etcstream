@@ -35,8 +35,6 @@ export default function Play() {
 }
 
 function PlayExperience() {
-  // Temporary local end-to-end probe; removed after the browser run.
-  if (process.env.NODE_ENV === "development" && typeof window !== "undefined") (window as unknown as { __studioE2E?: typeof useTrainingStore }).__studioE2E = useTrainingStore;
   const { setPlayPhase } = useGameAudio();
   const router = useRouter();
   const searchParams = useSearchParams();
