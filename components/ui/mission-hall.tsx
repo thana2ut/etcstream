@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { getDifficultyMeta, getMissionBySlug, missionChapters } from "@/game/content/mission-catalog";
 import { isDifficultyUnlocked } from "@/game/persistence/mission-progress-repository";
@@ -25,7 +26,7 @@ export function MissionHall({ admin = false }: { admin?: boolean }) {
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
   const [selectedLevel, setSelectedLevel] = useState(1);
   const [error, setError] = useState("");
-  const detailRef = useRef<HTMLElement>(null);
+  const detailRef = useRef<HTMLDivElement>(null);
   const [rollIndex, setRollIndex] = useState<number | null>(null);
   const [rolling, setRolling] = useState(false);
   const [drawnLocal, setDrawnLocal] = useState<{ slug: string; rerolls: number } | null>(null);
@@ -35,7 +36,17 @@ export function MissionHall({ admin = false }: { admin?: boolean }) {
 
   useEffect(() => { hydrate(); }, [hydrate]);
   useEffect(() => { if (hydrated && !player) router.replace("/"); }, [hydrated, player, router]);
-  useEffect(() => { if (selectedSlug && !rolling) detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }, [selectedSlug, rolling]);
+  // The mission detail opens as its own page over the hall: start at its top, lock the hall behind it, ESC goes back.
+  const detailOpen = Boolean(selectedSlug) && !rolling;
+  useEffect(() => {
+    if (!detailOpen) return;
+    detailRef.current?.scrollTo({ top: 0 });
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setSelectedSlug(null); };
+    window.addEventListener("keydown", onKey);
+    return () => { document.body.style.overflow = prev; window.removeEventListener("keydown", onKey); };
+  }, [detailOpen, selectedSlug]);
 
   if (!hydrated || !player || !progress) {
     return <main className="fantasy-viewport mission-loading"><p>กำลังเปิดหอภารกิจ...</p></main>;
@@ -121,6 +132,7 @@ export function MissionHall({ admin = false }: { admin?: boolean }) {
           rolling={rolling} canDraw={canDraw} canReroll={canReroll} rerollsUsed={rerollsUsed} maxRerolls={MAX_REROLLS}
           drawnTitle={drawn ? getMissionBySlug(drawn)?.title ?? null : null} drawnCleared={drawn ? clearedOf(drawn) : 0}
           onRoll={() => spin(false)} onReroll={() => spin(true)}
+          onOpen={() => { if (!drawn) return; const m = getMissionBySlug(drawn); setSelectedSlug(drawn); setSelectedLevel(m?.difficulties.find((d) => !progress.completed[drawn]?.includes(d.level))?.level ?? 1); setError(""); soundEngine.play("mission_reveal"); }}
         />}
 
         <section className="mission-board-grid" aria-label="ภารกิจของสำนัก">
@@ -154,8 +166,13 @@ export function MissionHall({ admin = false }: { admin?: boolean }) {
           })}
         </section>
 
-        {selectedMission && (
-          <section ref={detailRef} className="mission-choice-panel glass-card gold-border-frame" aria-labelledby="selected-mission-title">
+        {/* Portal: the hall content is its own stacking context, so the detail page must live at <body> to cover the header. */}
+        {selectedMission && createPortal(
+          <div ref={detailRef} className="mission-detail-page" role="dialog" aria-modal="true" aria-labelledby="selected-mission-title">
+          <FantasyBackground variant="archive" image="/images/xianxia/bg-missions.webp" />
+          <div className="mission-detail-inner">
+          <button type="button" className="mission-detail-back" onClick={() => setSelectedSlug(null)}>← กลับหอภารกิจ</button>
+          <section className="mission-choice-panel glass-card gold-border-frame">
             <div className="mission-choice-intro">
               <span className="mission-hall-eyebrow">{admin ? "ตราภารกิจที่เลือก" : "✦ ภารกิจที่ได้รับ ✦"}</span>
               <h2 id="selected-mission-title">{selectedMission.title}</h2>
@@ -196,6 +213,9 @@ export function MissionHall({ admin = false }: { admin?: boolean }) {
             </div>
             {error && <p className="form-error" role="alert">{error}</p>}
           </section>
+          </div>
+          </div>,
+          document.body,
         )}
       </div>
     </main>

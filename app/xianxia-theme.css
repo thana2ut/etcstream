@@ -551,3 +551,17 @@
 .inspector-compact summary { cursor: pointer; color: var(--gold-400); font-size: .8rem; margin-top: 4px; }
 .inspector-compact p, .inspector-compact li { margin: 4px 0 0; color: var(--text-300); font-size: .82rem; line-height: 1.55; }
 .inspector-compact ul { margin: 0; padding-left: 18px; }
+
+/* Mission detail opens as its own page over the hall (levels + start button visible without hunting for them). */
+.mission-detail-page { position: fixed; inset: 0; z-index: 200; overflow-y: auto; background: #050d1a; animation: mission-detail-in .22s ease-out; }
+.mission-detail-inner { position: relative; z-index: 1; width: min(1100px, 100%); margin: 0 auto; padding: clamp(16px, 3vw, 32px) 16px 40px; display: flex; flex-direction: column; gap: 14px; min-height: 100%; justify-content: center; }
+.mission-detail-back { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 9999px; border: 1px solid rgba(233, 194, 122, .55); background: rgba(5, 15, 36, .85); color: #f3e2b6; font-weight: 700; cursor: pointer; }
+.mission-detail-back:hover { border-color: #ffe3a3; box-shadow: 0 0 14px rgba(245, 184, 66, .35); }
+.mission-detail-page .mission-choice-panel { margin-top: 0; }
+@keyframes mission-detail-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .mission-detail-page { animation: none; } }
+/* Start bar stays on screen while the levels scroll. */
+.mission-detail-page .mission-choice-footer { position: sticky; bottom: 0; z-index: 2; margin: 0 calc(-1 * clamp(20px, 3vw, 32px)) calc(-1 * clamp(20px, 3vw, 32px)); padding: 14px clamp(20px, 3vw, 32px); border-radius: 0 0 20px 20px; background: linear-gradient(180deg, rgba(5, 15, 36, .92), rgba(5, 15, 36, .99)); box-shadow: 0 -10px 24px rgba(0, 0, 0, .45); }
+@media (max-height: 820px) {
+  .mission-detail-inner { justify-content: flex-start; }
+}

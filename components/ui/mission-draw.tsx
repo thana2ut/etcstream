@@ -6,7 +6,7 @@ import { ActionButton } from "./action-buttons";
  * Top box of the mission hall: "รับภารกิจ" (and the one-time "ขอรับภารกิจใหม่ 0/1").
  * The draw itself is shown on the venue cards below — a highlight runs across them and stops on the assignment.
  */
-export function MissionDrawPanel({ rolling, canDraw, canReroll, rerollsUsed, maxRerolls, drawnTitle, drawnCleared, onRoll, onReroll }: {
+export function MissionDrawPanel({ rolling, canDraw, canReroll, rerollsUsed, maxRerolls, drawnTitle, drawnCleared, onRoll, onReroll, onOpen }: {
   rolling: boolean;
   canDraw: boolean;
   canReroll: boolean;
@@ -16,6 +16,8 @@ export function MissionDrawPanel({ rolling, canDraw, canReroll, rerollsUsed, max
   drawnCleared: number;
   onRoll: () => void;
   onReroll: () => void;
+  /** Opens the detail page of the current assignment (levels + start). */
+  onOpen: () => void;
 }) {
   const status = rolling
     ? "หอจารึกกำลังเลือกภารกิจให้เจ้า..."
@@ -33,7 +35,10 @@ export function MissionDrawPanel({ rolling, canDraw, canReroll, rerollsUsed, max
       {showReroll && !rolling && <small>{canReroll ? "ไม่ถูกใจ? ขอรับภารกิจใหม่ได้อีก 1 ครั้ง" : drawnCleared > 0 ? "เริ่มทำภารกิจนี้แล้ว — ขอใหม่ไม่ได้" : "ใช้สิทธิ์ขอใหม่ครบแล้ว — ต้องเริ่มภารกิจนี้เท่านั้น"}</small>}
     </div>
     <div className="mission-draw-actions">
-      <ActionButton variant="gold" size="lg" disabled={!canDraw || rolling} onClick={onRoll}>{rolling ? "กำลังสุ่ม..." : "รับภารกิจ"}</ActionButton>
+      {/* With an assignment in progress the main button opens it instead of sitting disabled. */}
+      {showReroll && !rolling
+        ? <ActionButton variant="gold" size="lg" onClick={onOpen}>เปิดภารกิจ</ActionButton>
+        : <ActionButton variant="gold" size="lg" disabled={!canDraw || rolling} onClick={onRoll}>{rolling ? "กำลังสุ่ม..." : "รับภารกิจ"}</ActionButton>}
       {showReroll && <ActionButton variant="cyan" size="md" disabled={!canReroll || rolling} onClick={onReroll}>ขอรับภารกิจใหม่ {rerollsUsed}/{maxRerolls}</ActionButton>}
     </div>
   </section>;
