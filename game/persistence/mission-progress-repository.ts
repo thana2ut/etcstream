@@ -4,6 +4,8 @@ export interface MissionSelection {
   slug: string;
   difficulty: number;
   acceptedAt: string;
+  /** Opened from the admin hall: kept even when the level is not unlocked yet (rooms can be worked on in any order). */
+  admin?: boolean;
 }
 
 export interface MissionProgressRecord {
@@ -39,10 +41,11 @@ function normalize(value: unknown, playerId: string): MissionProgressRecord | nu
   const mission = getMissionBySlug(typeof rawSelected?.slug === "string" ? rawSelected.slug : null);
   const level = rawSelected?.difficulty;
   const acceptedAt = rawSelected?.acceptedAt;
+  const admin = rawSelected?.admin === true;
   const selected = mission && typeof level === "number" && getDifficultyMeta(mission, level)
-    && isDifficultyUnlocked({ version: 1, playerId, selected: null, completed }, mission.slug, level)
+    && (admin || isDifficultyUnlocked({ version: 1, playerId, selected: null, completed }, mission.slug, level))
     && typeof acceptedAt === "string" && !Number.isNaN(Date.parse(acceptedAt))
-    ? { slug: mission.slug, difficulty: level, acceptedAt } : null;
+    ? { slug: mission.slug, difficulty: level, acceptedAt, ...(admin ? { admin: true } : {}) } : null;
   return { version: 1, playerId, selected, completed };
 }
 
@@ -66,7 +69,7 @@ export class LocalStorageMissionProgressRepository {
     const mission = getMissionBySlug(slug);
     const record = this.load(playerId);
     if (!mission || !getDifficultyMeta(mission, level) || (!ignoreLock && !isDifficultyUnlocked(record, slug, level))) return null;
-    const updated: MissionProgressRecord = { ...record, selected: { slug, difficulty: level, acceptedAt: new Date().toISOString() } };
+    const updated: MissionProgressRecord = { ...record, selected: { slug, difficulty: level, acceptedAt: new Date().toISOString(), ...(ignoreLock ? { admin: true } : {}) } };
     return this.save(updated) ? updated : null;
   }
 
