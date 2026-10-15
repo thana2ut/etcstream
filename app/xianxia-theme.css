@@ -739,3 +739,5 @@
 .game-screen .hud-objective-panel { top: 84px; }
 /* Collapsed mission pill: vertically centred on the pause button (84px + 40/2 - 36/2). */
 .game-screen .hud-objective-mini-pill { top: 86px; }
+/* Objective panel ends above the controls guide (top 84 + measured guide height + bottom 24 + gap 12): the two never overlap. */
+.game-screen .hud-objective-panel { max-height: calc(100vh - 84px - var(--guide-h, 255px) - 36px); }

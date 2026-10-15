@@ -1,10 +1,22 @@
 "use client";
 
-import React from "react";
+import { useEffect, useRef } from "react";
 
 export function ControlsGuide() {
+  // Publish the card's height (--guide-h) so the objective panel above it can stop short and never overlap.
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const root = document.documentElement;
+    const publish = () => root.style.setProperty("--guide-h", `${Math.ceil(el.getBoundingClientRect().height)}px`);
+    publish();
+    const ro = new ResizeObserver(publish);
+    ro.observe(el);
+    return () => { ro.disconnect(); root.style.removeProperty("--guide-h"); };
+  }, []);
   return (
-    <div className="controls-guide-card glass-panel" aria-label="คู่มือการควบคุม">
+    <div ref={ref} className="controls-guide-card glass-panel" aria-label="คู่มือการควบคุม">
       <div className="control-item">
         <div className="control-key key-mouse">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
