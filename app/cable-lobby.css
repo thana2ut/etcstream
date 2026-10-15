@@ -679,3 +679,7 @@
 .bag-btn:hover:not(:disabled) { background: rgba(18, 96, 132, .95); }
 .bag-btn:disabled { opacity: .35; cursor: not-allowed; border-color: rgba(140, 160, 210, .35); background: rgba(8, 12, 30, .8); }
 .bag-btn.is-stow { border-color: #e7c27c; background: rgba(90, 64, 24, .85); }
+/* Sidebar: tabs stack from the top with even spacing (a short list must not spread over the whole column). */
+.cl-screen.cl-v3 .cl-tabs { grid-auto-rows: minmax(52px, 68px); align-content: start; }
+.cl-screen.cl-v3 .cl-tabs button { height: auto; max-height: none; min-height: 0; }
+@media (max-height: 820px) and (min-width: 1001px) { .cl-screen.cl-v3 .cl-tabs { grid-auto-rows: minmax(46px, 56px); } }
