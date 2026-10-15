@@ -169,7 +169,7 @@ export function MissionHall({ admin = false }: { admin?: boolean }) {
         {/* Portal: the hall content is its own stacking context, so the detail page must live at <body> to cover the header. */}
         {selectedMission && createPortal(
           <div ref={detailRef} className="mission-detail-page" role="dialog" aria-modal="true" aria-labelledby="selected-mission-title">
-          <FantasyBackground variant="archive" image="/images/xianxia/bg-missions.webp" />
+          <FantasyBackground variant="archive" image="/images/xianxia/bg-mission-detail.webp" />
           <div className="mission-detail-inner">
           <button type="button" className="mission-detail-back" onClick={() => setSelectedSlug(null)}>← กลับหอภารกิจ</button>
           <section className="mission-choice-panel glass-card gold-border-frame">
