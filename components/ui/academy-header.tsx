@@ -3,6 +3,7 @@
 import { memo, useEffect, useRef, useState, useSyncExternalStore, type RefObject } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { BackButton } from "./back-button";
 import Image from "next/image";
 import { useAcademyStore } from "@/game/stores/academy-store";
 import { AudioControls } from "@/components/audio/audio-controls";
@@ -156,10 +157,11 @@ export const AcademyHeader = memo(function AcademyHeader({
             </div>
           </>;
           if (brandInert) return <div className={`${cls} is-inert`}>{inner}</div>;
-          // Away from the academy hall the brand is an exit straight back to it; on the hall itself it keeps the page's back.
-          if ((onBack || backHref) && pathname !== "/academy") return <Link href="/academy" className={`${cls} is-back`} title="กลับโถงสำนัก" aria-label="กลับโถงสำนัก">{inner}</Link>;
-          if (onBack) return <button type="button" className={`${cls} is-back`} onClick={onBack} title={backLabel} aria-label={`${backLabel} (สำนักวิถีแห่งสายสัญญาณ)`}>{inner}</button>;
-          if (backHref) return <Link href={backHref} className={`${cls} is-back`} title={backLabel} aria-label={backLabel}>{inner}</Link>;
+          // Pages with a way back show a back pill instead of the brand: away from the academy hall it exits straight
+          // to the hall; on the hall itself it keeps the page's own back (to the entry screen).
+          if ((onBack || backHref) && pathname !== "/academy") return <BackButton href="/academy" label="กลับโถงสำนัก" ariaLabel="กลับโถงสำนัก" />;
+          if (onBack) return <BackButton onClick={onBack} label={backLabel} ariaLabel={backLabel} />;
+          if (backHref) return <BackButton href={backHref} label={backLabel} ariaLabel={backLabel} />;
           return <Link href="/" className={cls}>{inner}</Link>;
         })()}
       </div>
