@@ -132,7 +132,7 @@ function CardTurn({ cable }: { cable: CatalogCable }) {
 
 export function CardCableScene({ cable }: { cable: CatalogCable }) {
   return <>
-    <PerspectiveCamera makeDefault position={[0, 0, 1.2]} fov={34} />
+    <PerspectiveCamera makeDefault position={[0, 0, 1.45]} fov={34} />
     <hemisphereLight args={["#eef2ff", "#2a3050", 2.2]} />
     <directionalLight position={[1.5, 2, 2]} intensity={2.8} />
     <directionalLight position={[-1.5, 0.6, -1]} intensity={1.2} color="#9fd8ff" />

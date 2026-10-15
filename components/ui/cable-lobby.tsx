@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useCableBag } from "./use-cable-bag";
 import { CableInspector, CablePreview, CableView, CardCableScene, CatalogCanvas } from "./cable-model";
 import { CategoryIcon } from "./lobby-ornaments";
@@ -60,6 +60,36 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
   const add = (c: CatalogCable) => { addOne(c); soundEngine.play("button_hover"); };
   const remove = (c: CatalogCable) => { removeOne(c); soundEngine.play("button_hover"); };
   const pick = (c: CatalogCable) => { setSelected(c); soundEngine.play("button_hover"); };
+  // The bag window shows whole rows only: its height snaps to N rows of slots for whatever space the column leaves.
+  const bagScroll = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = bagScroll.current, panel = el?.parentElement;
+    if (!el || !panel) return;
+    const fit = () => {
+      const grid = el.firstElementChild as HTMLElement | null;
+      if (!grid) return;
+      // Collapse first so the panel measures at its grid-given size, not at the size the old rows pushed it to.
+      el.style.height = "0px"; grid.style.gridAutoRows = "";
+      const slot = grid.firstElementChild as HTMLElement | null;
+      if (!slot) return;
+      // Base row height comes from CSS; rows stretch a little so N whole rows fill the panel with no leftover gap.
+      const gap = parseFloat(getComputedStyle(grid).rowGap) || 0, base = slot.offsetHeight;
+      const pads = parseFloat(getComputedStyle(el).paddingTop) + parseFloat(getComputedStyle(el).paddingBottom);
+      const pad = parseFloat(getComputedStyle(panel).paddingBottom) || 0;
+      const avail = panel.getBoundingClientRect().bottom - pad - el.getBoundingClientRect().top - pads;
+      const rows = Math.max(1, Math.floor((avail + gap) / (base + gap)));
+      const rowH = Math.min(base * 1.35, (avail - gap * (rows - 1)) / rows);
+      grid.style.gridAutoRows = `${rowH}px`;
+      el.style.height = `${rows * rowH + gap * (rows - 1) + pads}px`;
+    };
+    fit();
+    // Re-fit again on the next frame: media queries can change the base row height right after a resize.
+    const ro = new ResizeObserver(() => { fit(); requestAnimationFrame(fit); });
+    // Watch the whole lobby screen: the bag column itself can be held open by the rows it is about to resize.
+    ro.observe(panel.closest(".cl-screen") ?? panel);
+    window.addEventListener("resize", fit);
+    return () => { ro.disconnect(); window.removeEventListener("resize", fit); };
+  }, []);
 
   return <main className="cl-screen cl-v3">
     <div className="cl-bg" aria-hidden="true"><div className="cl-bg-art" /><div className="cl-bg-shade" /></div>
@@ -106,7 +136,8 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
               <button type="button" className="cl-slot-hit" onClick={() => pick(c)} onDoubleClick={() => add(c)} aria-pressed={selected.id === c.id} title={`${c.name} — กดเพื่อดู · ดับเบิลคลิกเพื่อใส่กระเป๋า`}>
                 <CableView className="cl-slot-3d"><CardCableScene cable={c} /></CableView>
                 <span className="cl-slot-text">
-                  <span className="cl-slot-name">{c.name}</span>
+                  {/* non-breaking hyphen: "Type-A" never splits across lines */}
+                  <span className="cl-slot-name">{c.name.replace(/-/g, "‑")}</span>
                   <span className="cl-slot-ends">{c.ends}</span>
                   {view === "list" && <span className="cl-slot-use">{c.use}</span>}
                 </span>
@@ -145,7 +176,7 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
         <div className="cl-bag">
           <div className="cl-bag-head"><strong><svg className="cl-pouch" viewBox="0 0 32 32" aria-hidden="true"><path d="M11 6h10l-2 4h-6z" fill="#c99a4a"/><path d="M13 10c-6 3-9 9-7 14 1 3 4 4 10 4s9-1 10-4c2-5-1-11-7-14z" fill="#e9c27a" stroke="#7a5426" strokeWidth="1.2"/><path d="M12 10h8" stroke="#7a5426" strokeWidth="1.6"/><circle cx="16" cy="19" r="3" fill="none" stroke="#7a5426" strokeWidth="1.2"/></svg> กระเป๋าของเจ้า</strong><button type="button" className="cl-link" disabled={total === 0} onClick={clear}>ล้าง</button></div>
           <p className="cl-bag-empty">{total === 0 ? <>กระเป๋ายังว่าง · กด <b>+</b> บนการ์ดสาย หรือปุ่ม “ใส่กระเป๋า”</> : <>กดช่องเพื่อดูรายละเอียด · <b>✕</b> นำออกทีละเส้น</>}</p>
-          <div className="cl-bag-scroll">
+          <div className="cl-bag-scroll" ref={bagScroll}>
             <div className="cl-bag-grid">
               {Array.from({ length: slots }, (_, i) => {
                 const e = bagEntries[i];
