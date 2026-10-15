@@ -82,7 +82,17 @@ export const CABLE_CATALOG: CatalogCable[] = [
 export const catalogById = (id: string) => CABLE_CATALOG.find((c) => c.id === id);
 
 /** Which catalog item a scenario lead is (by its connectors and the route it serves). */
+/** Classroom (studio-full) table leads whose connector pair alone would map to the wrong catalog entry. */
+const CLASSROOM_CATALOG_IDS: Record<string, string> = {
+  "trrs35-1": "AUD-TRRS-3.5",
+  "ts635-1": "AUD-TS-6.35",
+  "rca-35": "AUD-RCA-3.5",
+  "speaker-xlr": "AUD-XLR-LINE-BAL",
+  "usb-ac": "DATA-USB-MAGEWELL",
+};
+
 export function catalogIdFor(cable: CableDef): string {
+  if (CLASSROOM_CATALOG_IDS[cable.id]) return CLASSROOM_CATALOG_IDS[cable.id];
   const [a, b] = cable.ends;
   const p = cable.purpose ?? "";
   if (p === "distractor") return a === "HDMI" ? "VID-HDMI-A-A" : a === "SDI" ? "VID-SDI-3G" : a.startsWith("XLR") ? "AUD-XLR-MIC" : a === "3.5mm" ? "AUD-TRS-3.5" : a === "6.35mm" ? "AUD-TRS-6.35-BAL" : "DATA-USB-A-A";
@@ -128,6 +138,11 @@ export function hiddenCablesFor(scenario: Scenario, bag: Record<string, number>)
     else hidden.push(c.id);
   }
   return hidden;
+}
+
+/** Catalog ids of every lead the trainee can pack for this scenario (the cables laid out on its table). */
+export function packableCatalogIds(scenario: Scenario): string[] {
+  return [...new Set(packableCables(scenario).map(catalogIdFor))];
 }
 
 /** Per catalog item: how many of the bag's leads this level can actually use. */

@@ -32,13 +32,17 @@ export function ConnectorIcon({ family, color }: { family: ConnectorFamily; colo
  * the trainee packs the leads they think the job needs. Only packed leads appear in the room, so a wrong or short
  * selection makes the level impossible to finish. The bag has no size limit: it grows a row whenever it fills up.
  */
-export function CableLobby({ scenario, title, levelLabel, objective, playerName, onConfirm, onBack }: {
+export function CableLobby({ scenario, title, levelLabel, objective, playerName, only, onConfirm, onBack }: {
   scenario: Scenario; title: string; levelLabel: string; objective?: string; playerName?: string;
+  /** Limit the catalog to these catalog ids (e.g. the classroom: only the leads laid out on its table). */
+  only?: string[];
   onConfirm: (bag: Record<string, number>) => void; onBack: () => void;
 }) {
   void scenario; // the room's devices come from the scenario; the bag itself is free-form
-  const [category, setCategory] = useState<CableCategory>("video");
-  const [selected, setSelected] = useState<CatalogCable>(CABLE_CATALOG[0]);
+  const catalog = useMemo(() => (only ? CABLE_CATALOG.filter((c) => only.includes(c.id)) : CABLE_CATALOG), [only]);
+  const categories = useMemo(() => CABLE_CATEGORIES.filter((cat) => catalog.some((c) => c.category === cat.id)), [catalog]);
+  const [category, setCategory] = useState<CableCategory>(() => categories[0]?.id ?? "video");
+  const [selected, setSelected] = useState<CatalogCable>(() => catalog.find((c) => c.category === (categories[0]?.id ?? "video")) ?? catalog[0] ?? CABLE_CATALOG[0]);
   const [inspecting, setInspecting] = useState<CatalogCable | null>(null);
   const [query, setQuery] = useState("");
   const [view, setView] = useState<"grid" | "list">("grid");
@@ -49,8 +53,8 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
   // Search looks across every category; otherwise the active tab filters the catalog.
   const q = query.trim().toLowerCase();
   const items = q
-    ? CABLE_CATALOG.filter((c) => [c.name, c.ends, c.use, c.id].some((t) => t.toLowerCase().includes(q)))
-    : CABLE_CATALOG.filter((c) => c.category === category);
+    ? catalog.filter((c) => [c.name, c.ends, c.use, c.id].some((t) => t.toLowerCase().includes(q)))
+    : catalog.filter((c) => c.category === category);
   // Five slots per row, always one free row after the last filled slot (minimum two rows).
   const slots = useMemo(() => Math.max(10, Math.ceil((kinds + 1) / 5) * 5), [kinds]);
   const packedIn = (cat: CableCategory) => bagEntries.filter((e) => e.c.category === cat).reduce((a, e) => a + e.n, 0);
@@ -109,7 +113,7 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
 
     <section className="cl-body">
       <nav className="cl-tabs" aria-label="หมวดสาย">
-        {CABLE_CATEGORIES.map((cat) => <button key={cat.id} type="button" className={!q && category === cat.id ? "is-on" : ""} onClick={() => { setCategory(cat.id); setQuery(""); }} aria-pressed={!q && category === cat.id}>
+        {categories.map((cat) => <button key={cat.id} type="button" className={!q && category === cat.id ? "is-on" : ""} onClick={() => { setCategory(cat.id); setQuery(""); }} aria-pressed={!q && category === cat.id}>
           <span className="cl-tab-glyph"><CategoryIcon id={cat.id} /></span><span className="cl-tab-label">{cat.label}</span>
           {packedIn(cat.id) > 0 && <em className="cl-tab-count" aria-label={`ใส่แล้ว ${packedIn(cat.id)} เส้น`}>{packedIn(cat.id)}</em>}
           <span className="cl-tab-chev" aria-hidden="true">›</span>

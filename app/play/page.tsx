@@ -24,7 +24,7 @@ import { clearedCount, meritFor, rankFor } from "@/game/content/mission-ranks";
 import { soundEngine } from "@/game/audio/sound-engine";
 import { getSafePlayParams } from "@/game/security/route-validation";
 import { CableLobby, BagOverlay } from "@/components/ui/cable-lobby";
-import { bagUsage, catalogIdFor, hiddenCablesFor, MAX_WRONG_STREAK } from "@/game/content/cable-catalog";
+import { bagUsage, catalogIdFor, hiddenCablesFor, MAX_WRONG_STREAK, packableCatalogIds } from "@/game/content/cable-catalog";
 
 export default function Play() {
   return (
@@ -240,15 +240,20 @@ function PlayExperience() {
 
   const handleRetry = () => {
     resetTraining(scenarioId);
-    // Mission levels return to the cable-prep lobby for every new attempt.
-    if (routeMode === "mission") { setBag(null); setIntroOpen(true); }
+    // Mission levels and the classroom return to the cable-prep lobby for every new attempt.
+    if (routeMode === "mission" || validClassroom) { setBag(null); setIntroOpen(true); }
     setShowResultModal(false);
   };
 
-  if (routeMode === "mission" && validMission && bag === null) {
+  // Cable-prep lobby before every attempt. The classroom offers exactly the leads laid out on its table.
+  if (((routeMode === "mission" && validMission) || validClassroom) && bag === null) {
     return <CableLobby
-      scenario={activeScenario} title={currentTitle} levelLabel={difficultyLabel ?? ""} objective={difficulty?.objective} playerName={player.nickname}
-      onBack={() => router.push("/missions")}
+      scenario={activeScenario} title={currentTitle}
+      levelLabel={validClassroom ? "ห้องฝึกปราณสัญญาณ · ฝึกต่อระบบสตูดิโอ" : difficultyLabel ?? ""}
+      objective={validClassroom ? "เลือกสายจากโต๊ะสายในห้องฝึก ให้พอต่อกล้อง สวิตเชอร์ จอ เสียง และการบันทึก ครบทั้งระบบ" : difficulty?.objective}
+      playerName={player.nickname}
+      only={validClassroom ? packableCatalogIds(activeScenario) : undefined}
+      onBack={() => router.push(validClassroom ? "/academy" : "/missions")}
       onConfirm={(packed) => { setBag(packed); resetTraining(scenarioId, hiddenCablesFor(activeScenario, packed)); setIntroOpen(true); }}
     />;
   }
@@ -301,7 +306,7 @@ function PlayExperience() {
           <InspectHoldRing />
           <EquipmentInspector />
           <TrainingHud title={currentTitle} difficultyLabel={difficultyLabel ?? undefined} objective={difficulty?.objective} touch={touch} />
-          {routeMode === "mission" && bag && <button type="button" className="cl-bag-button" onClick={() => { if (document.pointerLockElement) document.exitPointerLock(); setBagOpen(true); }}>🎒 กระเป๋า</button>}
+          {(routeMode === "mission" || validClassroom) && bag && <button type="button" className="cl-bag-button" onClick={() => { if (document.pointerLockElement) document.exitPointerLock(); setBagOpen(true); }}>🎒 กระเป๋า</button>}
           {bagOpen && bag && <BagOverlay bag={bag} usage={bagUsage(activeScenario, bag)}
             ready={readyLeads()}
             holding={(() => { const def = heldCableId ? activeScenario.cables.find((c) => c.id === heldCableId) : null; return def && !def.fixedA ? { id: catalogIdFor(def), label: def.label } : null; })()}
