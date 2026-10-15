@@ -12,7 +12,8 @@ export const metadata: Metadata = {
   title: `${academyCopy.brand} | ${academyCopy.worldTitle}`,
   description: academyCopy.description,
   applicationName: academyCopy.brand,
-  icons: { icon: "/icon.png" },
+  // app/icon.png + app/apple-icon.png are picked up by Next's file conventions (favicon + iOS home-screen icon).
+  appleWebApp: { capable: true, title: "etcstream", statusBarStyle: "black-translucent" },
   openGraph: {
     title: `${academyCopy.brand} | ${academyCopy.worldTitle}`,
     description: academyCopy.description,
@@ -23,6 +24,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
+  themeColor: "#070b1e",
   interactiveWidget: "resizes-content",
 };
 
