@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { CylinderGeometry, DoubleSide } from "three";
-import { VenueLighting, BLACK_METAL, CHROME, Cyl, D, g, Instanced, merge, place, RB, Slab, STEEL, Tube, type Placement, type V3 } from "./kit";
+import { LightStand, VenueLighting, BLACK_METAL, CHROME, Cyl, D, g, Instanced, merge, place, RB, Slab, STEEL, Tube, type Placement, type V3 } from "./kit";
 import { CuboidCollider, RigidBody } from "@react-three/rapier";
 import { LAYOUTS } from "@/game/training/venue-layouts";
 import { LayoutColliders, LayoutFurniture } from "./layout-furniture";
@@ -155,6 +155,62 @@ function HangingMonitor({ p, yaw, i }: { p: V3; yaw: number; i: number }) {
   </group>;
 }
 
+/** Softbox on a stand (chroma key fill), aimed with yaw. */
+function StandSoftbox({ p, yaw, h = 2.2 }: { p: V3; yaw: number; h?: number }) {
+  const legs = [0, 1, 2].map((i) => i * (Math.PI * 2) / 3);
+  return <group position={p} rotation={[0, yaw, 0]}>
+    {legs.map((a, i) => <Tube key={i} pts={[[0, 0.6, 0], [Math.cos(a) * 0.5, 0.02, Math.sin(a) * 0.5]]} r={0.013} {...BLACK_METAL} />)}
+    <Cyl p={[0, (h + 0.6) / 2, 0]} rt={0.016} h={h - 0.6} {...STEEL} />
+    <group position={[0, h, 0]} rotation={[0.15, 0, 0]}>
+      <RB p={[0, 0, -0.14]} s={[0.14, 0.14, 0.14]} rad={0.02} c="#111" />
+      <RB p={[0, 0, 0.08]} s={[0.9, 0.9, 0.36]} rad={0.04} c="#141518" r={0.7} />
+      <Slab p={[0, 0, 0.27]} s={[0.84, 0.84, 0.005]} c="#ffffff" e="#fff6e6" ei={2.4} />
+    </group>
+  </group>;
+}
+/** Spotlight head hung from the grid, aimed at a target (visual only). */
+function GridSpot({ p, target }: { p: V3; target: V3 }) {
+  const dx = target[0] - p[0], dy = target[1] - p[1], dz = target[2] - p[2];
+  const yaw = Math.atan2(dx, dz), pitch = Math.atan2(-dy, Math.hypot(dx, dz));
+  return <group position={p}>
+    <Tube pts={[[0, 0.25, 0], [0, 0.05, 0]]} r={0.012} {...BLACK_METAL} />
+    <group rotation={[0, yaw, 0]}><group rotation={[pitch - Math.PI / 2, 0, 0]}>
+      <Cyl p={[0, -0.12, 0]} rt={0.09} rb={0.11} h={0.26} {...BLACK_METAL} />
+      <Cyl p={[0, -0.255, 0]} rt={0.085} h={0.005} c="#fff7e2" e="#fff0cc" ei={2.6} />
+    </group></group>
+  </group>;
+}
+/** Multiview monitor bridge for the production desk (three screens on a steel bar). */
+function MonitorBridge({ p }: { p: V3 }) {
+  return <group position={p}>
+    {[-0.9, 0.9].map((x) => <RB key={x} p={[x, 0.3, 0]} s={[0.04, 0.6, 0.04]} rad={0.01} {...BLACK_METAL} />)}
+    <RB p={[0, 0.6, 0]} s={[2.0, 0.04, 0.05]} rad={0.01} {...BLACK_METAL} />
+    {[-0.66, 0, 0.66].map((x, i) => <group key={x} position={[x, 0.86, 0]} rotation={[0, x * -0.25, 0]}>
+      <RB p={[0, 0, 0]} s={[0.62, 0.38, 0.04]} rad={0.01} c="#0a0a0c" />
+      <mesh position={[0, 0, 0.022]}><planeGeometry args={[0.58, 0.34]} /><meshBasicMaterial map={multiview(i)} toneMapped={false} /></mesh>
+    </group>)}
+  </group>;
+}
+/** Yellow/black rubber cable cover on the floor between two points. */
+function CableCover({ a, b }: { a: [number, number]; b: [number, number] }) {
+  const len = Math.hypot(b[0] - a[0], b[1] - a[1]), yaw = Math.atan2(b[0] - a[0], b[1] - a[1]);
+  return <group position={[(a[0] + b[0]) / 2, 0, (a[1] + b[1]) / 2]} rotation={[0, yaw, 0]}>
+    <RB p={[0, 0.025, 0]} s={[0.42, 0.05, len]} rad={0.02} c="#18191b" r={0.9} />
+    {[-0.17, 0.17].map((x) => <Slab key={x} p={[x, 0.051, 0]} s={[0.05, 0.002, len]} c="#e3b51e" r={0.7} />)}
+  </group>;
+}
+/** Cable cart: two shelves of coiled cables and a power reel. */
+function CableCart({ p, yaw }: { p: V3; yaw: number }) {
+  return <group position={p} rotation={[0, yaw, 0]}>
+    {[0.25, 0.7, 1.15].map((y) => <RB key={y} p={[0, y, 0]} s={[1.0, 0.03, 0.55]} rad={0.008} {...BLACK_METAL} c="#26282c" />)}
+    {[-1, 1].flatMap((a) => [-1, 1].map((b) => <RB key={`${a}${b}`} p={[a * 0.48, 0.6, b * 0.25]} s={[0.035, 1.2, 0.035]} rad={0.006} {...BLACK_METAL} />))}
+    {[[0.27, -0.25, "#e0702a"], [0.27, 0.15, "#141414"], [0.72, -0.25, "#2b5fd0"], [0.72, 0.15, "#d8c040"], [1.17, 0, "#141414"]].map(([y, x, c], i) => <mesh key={i} position={[Number(x), Number(y) + 0.06, 0]} rotation={[Math.PI / 2, 0, 0]}>
+      <torusGeometry args={[0.16, 0.035, 10, 28]} /><meshStandardMaterial color={String(c)} roughness={0.6} />
+    </mesh>)}
+    {[-1, 1].flatMap((a) => [-1, 1].map((b) => <Cyl key={`w${a}${b}`} p={[a * 0.44, 0.045, b * 0.22]} rt={0.045} h={0.03} rot={[0, 0, Math.PI / 2]} c="#141414" r={0.9} />))}
+  </group>;
+}
+
 /** Fresnel / profile fixture hung from the grid. */
 function useFresnels() {
   return useMemo(() => {
@@ -291,6 +347,23 @@ export function Studio() {
     <InterviewCorner p={[6.2, 0, -1.6]} yaw={-0.45} />
     <WoodSlatWall p={[x1 - 0.12, 0, -1.2]} w={4.2} h={3.6} rot={[0, -Math.PI / 2, 0]} />
     <DollyTrack p={[-2.2, 0, -0.6]} len={3.6} yaw={0.9} />
+    {/* chroma key fill: softboxes on stands around the green cyclorama */}
+    {([[-4.0, -1.0, 0.5], [4.0, -1.0, -0.5], [-2.2, -3.0, 0.9], [2.2, -3.0, -0.9]] as const).map(([x, z, ry], i) => <StandSoftbox key={i} p={[x, 0, z]} yaw={Math.PI + ry} />)}
+    <LightStand p={[-4.6, 0, 0.6]} h={2.6} />
+    <LightStand p={[4.6, 0, 0.6]} h={2.6} />
+    {/* denser grid: spots aimed at the news set, the presenter table and the interview corner */}
+    {([[-6.5, -0.5], [-5.0, 0.2], [-6.0, 1.0]] as const).map(([x, z], i) => <GridSpot key={`n${i}`} p={[x, h - 1.0, z]} target={[-6.3, 1.0, -2.1]} />)}
+    {([[-1.5, 0.5], [0, 0.0], [1.5, 0.5]] as const).map(([x, z], i) => <GridSpot key={`p${i}`} p={[x, h - 1.0, z]} target={[0, 1.0, -2.0]} />)}
+    {([[5.0, 0.5], [6.6, 0.2]] as const).map(([x, z], i) => <GridSpot key={`i${i}`} p={[x, h - 1.0, z]} target={[6.2, 0.8, -1.6]} />)}
+    <spotLight position={[-5.5, h - 1.0, 0.6]} target-position={[-6.3, 0.9, -2.1]} angle={0.55} penumbra={0.6} intensity={30} distance={10} color="#fff1dc" />
+    <spotLight position={[5.6, h - 1.0, 0.4]} target-position={[6.2, 0.6, -1.6]} angle={0.55} penumbra={0.7} intensity={18} distance={9} color="#ffd8a8" />
+    {/* production desk: multiview bridge at the far edge (screens face the operator) */}
+    <MonitorBridge p={[0, 0.76, 2.92]} />
+    {/* floor cable covers from the camera marks to the production desk, and a cable cart by the cable table */}
+    <CableCover a={[-3.0, 0.9]} b={[-1.2, 2.7]} />
+    <CableCover a={[3.0, 0.9]} b={[1.2, 2.7]} />
+    <CableCover a={[0, 1.4]} b={[0, 2.7]} />
+    <CableCart p={[-7.2, 0, 5.3]} yaw={Math.PI / 2} />
     {[[-3.2, 2.0, 0.35, 2], [3.2, 2.0, -0.35, 3], [0, -0.6, 0, 4]].map(([x, z, ry, i]) => <HangingMonitor key={i} p={[x, h - 2.1, z]} yaw={ry} i={i} />)}
     {/* cable reels and stacked road cases along the back wall */}
     {[-2.4, -1.4].map((x) => <group key={x} position={[x, 0, z1 - 0.6]}>
@@ -302,6 +375,8 @@ export function Studio() {
       <CuboidCollider position={[-6.3, 0.9, -2.1]} rotation={[0, 0.35, 0]} args={[1.95, 0.9, 1.35]} />
       <CuboidCollider position={[6.2, 0.5, -1.6]} rotation={[0, -0.45, 0]} args={[1.4, 0.5, 0.9]} />
       <CuboidCollider position={[-1.9, 0.4, z1 - 0.6]} args={[0.9, 0.4, 0.4]} />
+      <CuboidCollider position={[-7.2, 0.6, 5.3]} args={[0.3, 0.6, 0.52]} />
+      {([[-4.0, -1.0], [4.0, -1.0], [-2.2, -3.0], [2.2, -3.0], [-4.6, 0.6], [4.6, 0.6]] as const).map(([x, z]) => <CuboidCollider key={`${x}${z}`} position={[x, 1.1, z]} args={[0.3, 1.1, 0.3]} />)}
       <CuboidCollider position={[1.3, 0.7, z1 - 0.55]} args={[1.3, 0.7, 0.32]} />
     </RigidBody>
     <LayoutFurniture layout={LAYOUTS.studioMission} look={{ top: "#2b2e33", frame: { ...BLACK_METAL } }} />
