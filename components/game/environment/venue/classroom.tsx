@@ -205,8 +205,69 @@ function CeilingProjector({ p }: { p: V3 }) {
   </group>;
 }
 
+/** Teacher desk dressing: dark modesty panel, monitor, keyboard + mouse, gooseneck mic, office chair. */
+function TeacherDeskDressing({ x, z }: { x: number; z: number }) {
+  const top = 0.76;
+  return <group position={[x, 0, z]}>
+    <RB p={[0, 0.4, 0.37]} s={[1.86, 0.7, 0.03]} rad={0.006} c="#2f3338" r={0.6} />
+    {/* monitor on a stand at the back edge */}
+    <group position={[-0.1, top, -0.22]}>
+      <RB p={[0, 0.01, 0]} s={[0.24, 0.02, 0.18]} rad={0.006} {...BLACK_METAL} />
+      <RB p={[0, 0.17, -0.02]} s={[0.04, 0.3, 0.03]} rad={0.006} {...BLACK_METAL} />
+      <RB p={[0, 0.36, 0]} s={[0.6, 0.36, 0.03]} rad={0.01} c="#121316" r={0.4} />
+      <Slab p={[0, 0.36, 0.016]} s={[0.56, 0.32, 0.002]} c="#2a3550" e="#3d5aa0" ei={0.35} />
+    </group>
+    <RB p={[-0.1, top + 0.012, 0.06]} s={[0.42, 0.018, 0.13]} rad={0.005} c="#1c1d20" />
+    <RB p={[0.2, top + 0.012, 0.08]} s={[0.06, 0.018, 0.1]} rad={0.012} c="#1c1d20" />
+    <group position={[0.15, top, -0.2]}>
+      <Cyl p={[0, 0.01, 0]} rt={0.05} h={0.02} c="#1b1c1f" />
+      <Tube pts={[[0, 0.02, 0], [0, 0.2, 0.02], [0.02, 0.3, 0.09]]} r={0.006} c="#1b1c1f" />
+      <Cyl p={[0.02, 0.31, 0.1]} rt={0.012} h={0.05} rot={[0.9, 0, 0]} c="#111" />
+    </group>
+    {/* office chair behind the desk */}
+    <group position={[0.1, 0, -0.75]} rotation={[0, Math.PI, 0]}>
+      {[0, 1, 2, 3, 4].map((i) => { const a = (i / 5) * Math.PI * 2; return <Tube key={i} pts={[[0, 0.08, 0], [Math.cos(a) * 0.3, 0.05, Math.sin(a) * 0.3]]} r={0.014} {...BLACK_METAL} />; })}
+      <Cyl p={[0, 0.27, 0]} rt={0.025} h={0.38} {...CHROME} />
+      <RB p={[0, 0.48, 0]} s={[0.48, 0.07, 0.46]} rad={0.03} c="#1f2e55" r={0.7} />
+      <RB p={[0, 0.82, 0.22]} rot={[-0.1, 0, 0]} s={[0.46, 0.58, 0.06]} rad={0.03} c="#1f2e55" r={0.7} />
+    </group>
+  </group>;
+}
+/** Black flight case on casters (equipment storage on the floor). */
+function RoadCase({ p, s, yaw = 0 }: { p: V3; s: V3; yaw?: number }) {
+  const [w, h, d] = s;
+  return <group position={p} rotation={[0, yaw, 0]}>
+    <RB p={[0, 0.08 + (h - 0.08) / 2, 0]} s={[w, h - 0.08, d]} rad={0.02} map={tex.fabric("#1d1e21", [2, 2])} c="#ffffff" r={0.85} />
+    {[0.09, h - 0.02].map((y) => <RB key={y} p={[0, y, 0]} s={[w + 0.006, 0.02, d + 0.006]} rad={0.005} {...CHROME} c="#c4c8cc" />)}
+    {[-1, 1].flatMap((a) => [-1, 1].map((b) => <Ball key={`${a}${b}`} p={[a * w / 2, h - 0.02, b * d / 2]} r={0.025} {...CHROME} />))}
+    {[-w / 3, w / 3].map((x) => <RB key={x} p={[x, h * 0.6, d / 2 + 0.008]} s={[0.07, 0.08, 0.02]} rad={0.006} {...CHROME} />)}
+    {[-1, 1].flatMap((a) => [-1, 1].map((b) => <Cyl key={`w${a}${b}`} p={[a * (w / 2 - 0.08), 0.04, b * (d / 2 - 0.08)]} rt={0.04} h={0.03} rot={[0, 0, Math.PI / 2]} c="#141414" r={0.9} />))}
+  </group>;
+}
+/** Equipment table under the windows: wireless receivers, a small mixer, cases stored underneath. */
+function WindowGearTable({ x, z, len }: { x: number; z: number; len: number }) {
+  const h = 0.78, d = 0.6;
+  return <group position={[x, 0, z]}>
+    <RB p={[0, h - 0.02, 0]} s={[d, 0.04, len]} rad={0.01} map={tex.wood("#d9bf94", [1, Math.max(1, len)])} c="#ffffff" r={0.45} />
+    {[-1, 1].flatMap((a) => [-1, 1].map((b) => <RB key={`${a}${b}`} p={[a * (d / 2 - 0.04), (h - 0.04) / 2, b * (len / 2 - 0.05)]} s={[0.04, h - 0.04, 0.04]} rad={0.008} {...BLACK_METAL} />))}
+    <RB p={[0, 0.2, 0]} s={[d - 0.06, 0.025, len - 0.1]} rad={0.004} c="#2b2e33" m={0.4} />
+    {/* receivers, a 4-channel mixer, headphones */}
+    {[-0.8, -0.45].map((dz) => <group key={dz} position={[0.05, h, dz]}>
+      <RB p={[0, 0.035, 0]} s={[0.16, 0.06, 0.22]} rad={0.01} c="#1c1d20" />
+      {[-0.07, 0.07].map((a) => <Cyl key={a} p={[-0.04, 0.15, a]} rt={0.005} h={0.18} c="#111" />)}
+      <Ball p={[0.081, 0.045, 0.06]} r={0.006} c="#38ff6a" e="#38ff6a" ei={2.4} />
+    </group>)}
+    <group position={[0.05, h, 0.15]}>
+      <RB p={[0, 0.03, 0]} s={[0.3, 0.05, 0.36]} rad={0.012} c="#26282c" />
+      {[-0.09, -0.03, 0.03, 0.09].flatMap((dz) => [0.08, -0.02, -0.1].map((dx) => <Cyl key={`${dz}${dx}`} p={[dx, 0.065, dz]} rt={0.012} h={0.02} c={dx > 0 ? "#d8d8d8" : "#303236"} />))}
+    </group>
+    <mesh position={[0.1, h + 0.05, 0.7]} rotation={[Math.PI / 2, 0, 0]}><torusGeometry args={[0.09, 0.012, 8, 24, Math.PI]} /><meshStandardMaterial color="#141414" roughness={0.6} /></mesh>
+    {[-0.6, 0.35].map((dz) => <RoadCase key={dz} p={[0, 0.215, dz]} s={[0.5, 0.36, 0.7]} />)}
+  </group>;
+}
+
 export function Classroom() {
-  const floor = tex.tiles("#b9bcbf", "#9da1a5", 4, [W / 1.8, D / 1.8]);
+  const floor = tex.tiles("#8f9498", "#7b8085", 3, [W / 2.4, D / 2.4]);
   const wall = tex.paint("#e6e4df", [4, 2]);
   const lowerWall = tex.paint("#a9adb2", [6, 1]);
   const ceiling = tex.tiles("#e9e9e6", "#c9c9c4", 2, [W / 1.2, D / 1.2]);
@@ -224,7 +285,7 @@ export function Classroom() {
     <spotLight position={[0, H - 0.2, BACK + 2.2]} target-position={[0, 1.6, BACK]} angle={0.9} penumbra={0.7} intensity={6} distance={6} color="#fff1d8" />
 
     {/* shell: polished tile floor, white walls with a grey lower band and skirting, suspended ceiling */}
-    <Slab p={[0, -0.05, 0]} s={[W, 0.1, D]} map={floor} c="#ffffff" r={0.2} m={0.08} />
+    <Slab p={[0, -0.05, 0]} s={[W, 0.1, D]} map={floor} c="#ffffff" r={0.14} m={0.18} />
     <Slab p={[0, H + 0.02, 0]} s={[W, 0.04, D]} map={ceiling} c="#ffffff" r={0.9} />
     {([[0, BACK, W, 0], [0, D / 2, W, 0], [L, 0, D, 1], [R, 0, D, 1]] as const).map(([x, z, len, side], i) => <group key={i}>
       <Slab p={[x, H / 2, z]} s={side ? [0.1, H, len] : [len, H, 0.1]} map={wall} c="#ffffff" r={0.85} />
@@ -242,7 +303,7 @@ export function Classroom() {
       {Array.from({ length: Math.round(k(5.6) / 0.09) }, (_, i) => <RB key={i} p={[-k(2.8) + 0.045 + i * 0.09, H / 2 - 0.05, 0.065]} s={[0.05, H - 0.14, 0.03]} rad={0.006} map={slats} c="#ffffff" r={0.55} />)}
       {[-1, 1].map((sd) => <group key={sd}>
         {[0, 1].flatMap((col) => [0, 1].map((row) => <AcousticPanel key={`${col}${row}`} p={[sd * (k(3.35) + col * 1.02), 1.55 + row * 1.02, 0.05]} s={[0.98, 0.98]} c={(col + row) % 2 ? "#8f969c" : "#a7adb2"} />))}
-        <WallSpeaker p={[sd * k(4.75), H - 0.62, 0]} yaw={0} />
+        <WallSpeaker p={[sd * (k(2.8) + 0.45), H - 0.7, 0]} yaw={0} />
       </group>)}
       {/* projector screen centred over the teacher desk */}
       <RB p={[0, 2.98, 0.14]} s={[4.3, 0.12, 0.14]} rad={0.04} c="#f2f2f0" />
@@ -250,6 +311,7 @@ export function Classroom() {
       <Slab p={[0, 1.9, 0.135]} s={[3.9, 2.08, 0.004]} map={slide} c="#ffffff" e="#ffffff" ei={0.08} r={0.9} />
     </group>
     <TrackLights z={BACK + 1.0} xs={[-3.2, -1.6, 0, 1.6, 3.2]} />
+    <TeacherDeskDressing x={0} z={k(-3.0)} />
     <MobileWhiteboard p={[k(-3.1), 0, BACK + 0.95]} yaw={0.18} />
 
     {/* left wall: large windows with blinds, acoustic panel near the front, softbox beside the camera, AV cart */}
@@ -264,10 +326,12 @@ export function Classroom() {
       <Cyl p={[0.07, 0.13, -0.05]} rt={0.005} h={0.16} c="#111" />
       <Ball p={[0.06, 0.04, 0.071]} r={0.006} c="#38ff6a" e="#38ff6a" ei={2.4} />
     </group>)}
-    <Plant p={[L + 0.45, 0, k(-1.45)]} s={0.85} />
+    <WindowGearTable x={L + 0.42} z={k(-1.35)} len={2.4} />
+    <Plant p={[L + 0.45, 0, k(-2.95)]} s={0.85} />
 
     {/* right wall: tall steel shelving over the gear cabinet, blue / grey acoustic panels, door */}
     <StorageShelving x={R - 0.25} z={k(0.1)} len={2.9} />
+    <RoadCase p={[R - 0.55, 0, k(-1.65)]} s={[0.62, 0.72, 0.62]} yaw={0.15} />
     {[-3.55, -2.3, 2.0, 3.25].map((zb, i) => <AcousticPanel key={zb} p={[R - 0.08, 2.05, k(zb)]} rot={[0, -Math.PI / 2, 0]} s={[1.1, 1.6]} c={i % 2 ? "#5d78a8" : "#8f969c"} />)}
     <group position={[R - 0.06, 0, k(2.0) + 1.1]}>
       <RB p={[-0.02, 1.08, 0]} s={[0.06, 2.18, 1.12]} rad={0.012} c="#e9e6df" />
@@ -292,6 +356,9 @@ export function Classroom() {
       <CuboidCollider position={[k(-3.1), 0.95, BACK + 0.95]} args={[0.95, 0.95, 0.35]} />
       <CuboidCollider position={[k(-5.3), 0.5, k(3.45)]} args={[0.34, 0.5, 0.28]} />
       <CuboidCollider position={[k(-5.1), 1.1, k(1.45)]} args={[0.3, 1.1, 0.3]} />
+      <CuboidCollider position={[L + 0.42, 0.4, k(-1.35)]} args={[0.32, 0.4, 1.22]} />
+      <CuboidCollider position={[R - 0.55, 0.36, k(-1.65)]} args={[0.34, 0.36, 0.34]} />
+      <CuboidCollider position={[0.1, 0.5, k(-3.0) - 0.75]} args={[0.3, 0.5, 0.3]} />
     </RigidBody>
   </>;
 }
