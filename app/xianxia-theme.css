@@ -745,3 +745,7 @@
 .academy-main-header button.header-brand { appearance: none; background: none; border: 0; padding: 0; font: inherit; color: inherit; cursor: pointer; text-align: left; }
 .academy-main-header .header-brand.is-inert { cursor: default; }
 .academy-main-header .header-brand.is-inert:hover { transform: none; filter: none; }
+/* Objective panel: the frame stays put (corner brackets stay at the corners) and only the checklist scrolls. */
+.game-screen .hud-objective-panel { display: flex; flex-direction: column; overflow: hidden; }
+.game-screen .hud-objective-panel > * { flex: none; }
+.game-screen .hud-objective-panel > .hud-checklist { flex: 1 1 auto; min-height: 60px; max-height: none; overflow-y: auto; }
