@@ -64,6 +64,25 @@ function PlayExperience() {
   const trainingFailed = useTrainingStore((state) => state.failed);
   // Leads still inside the bag (badge on the 🎒 button).
   const bagCount = useTrainingStore((state) => state.bagged?.length ?? 0);
+  // R opens / closes the bag while playing (T rotates a held device, in the first-person controller).
+  const bagUsable = Boolean(bag) && !introOpen && !showResultModal && !showExitConfirm;
+  useEffect(() => {
+    if (!bagUsable) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code !== "KeyR" || e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+      const st = useTrainingStore.getState();
+      if (st.inspecting) return;
+      e.preventDefault();
+      setBagOpen((open) => {
+        if (!open && document.pointerLockElement) document.exitPointerLock();
+        return !open;
+      });
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [bagUsable]);
 
   useEffect(() => {
     setPlayPhase(showResultModal ? "result" : introOpen ? "intro" : "gameplay");
@@ -301,7 +320,7 @@ function PlayExperience() {
           <InspectHoldRing />
           <EquipmentInspector />
           <TrainingHud title={currentTitle} difficultyLabel={difficultyLabel ?? undefined} objective={difficulty?.objective} touch={touch} />
-          {(routeMode === "mission" || validClassroom) && bag && <button type="button" className="cl-bag-button" onClick={() => { if (document.pointerLockElement) document.exitPointerLock(); setBagOpen(true); }}>🎒 กระเป๋า <b className="cl-bag-badge">{bagCount}</b></button>}
+          {(routeMode === "mission" || validClassroom) && bag && <button type="button" className="cl-bag-button" onClick={() => { if (document.pointerLockElement) document.exitPointerLock(); setBagOpen(true); }} title="เปิดกระเป๋า (R)">🎒 กระเป๋า <b className="cl-bag-badge">{bagCount}</b></button>}
           {bagOpen && bag && <BagPanel bag={bag} onClose={() => setBagOpen(false)} />}
           {touch && !showExitConfirm && <TouchControls />}
 

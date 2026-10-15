@@ -27,7 +27,7 @@ interface TrainingStore extends TrainingState {
   pickMode: PickMode;
   setPickMode: (mode: PickMode) => void;
   drop: (position: Point3, facing?: number) => void;
-  /** Extra yaw (R key, 45° steps) applied to the held device when it is placed. */
+  /** Extra yaw (T key, 45° steps) applied to the held device when it is placed. */
   heldTurn: number;
   /** Device id open in the full-screen inspector (hold E for 5 s on a device). */
   inspecting: string | null;

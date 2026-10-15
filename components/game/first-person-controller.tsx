@@ -74,7 +74,8 @@ export function FirstPersonController({ active, fallbackLook, touch, onExitFallb
       if ([BINDINGS.forward, BINDINGS.back, BINDINGS.left, BINDINGS.right].includes(event.code as typeof BINDINGS.forward)) keys.current.add(event.code);
       if (event.repeat) return;
       if (event.code === BINDINGS.interact) beginInteract();
-      if (event.code === "KeyR") useTrainingStore.getState().turnHeld();
+      // T turns the held device 45° (R opens the bag, handled by the play page).
+      if (event.code === "KeyT") useTrainingStore.getState().turnHeld();
       // 1 / 2: arm "take head only" / "take tail only" for the next E on a cable (press again to cancel).
       if (event.code === "Digit1" || event.code === "Numpad1") useTrainingStore.getState().setPickMode("a");
       if (event.code === "Digit2" || event.code === "Numpad2") useTrainingStore.getState().setPickMode("b");
