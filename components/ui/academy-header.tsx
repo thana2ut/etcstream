@@ -4,7 +4,6 @@ import { useEffect, useRef, useState, useSyncExternalStore, type RefObject } fro
 import Link from "next/link";
 import Image from "next/image";
 import { useAcademyStore } from "@/game/stores/academy-store";
-import { BackButton } from "./back-button";
 import { AudioControls } from "@/components/audio/audio-controls";
 import { validateNickname } from "@/game/security/nickname-validation";
 
@@ -84,12 +83,8 @@ function useAutoHide(ref: RefObject<HTMLElement | null>) {
   return revealed;
 }
 
-export function AcademyHeader({
+export const AcademyHeader = memo(function AcademyHeader({
   traineeName,
-  backHref,
-  onBack,
-  backLabel = "ย้อนกลับ",
-  breadcrumb,
   hideBrandOnMobile,
   hidden = false,
 }: AcademyHeaderProps) {
@@ -140,10 +135,7 @@ export function AcademyHeader({
     <div className={`academy-header-handle ${revealed ? "" : "is-visible"}`} aria-hidden="true" />
     <header ref={headerRef} className={`academy-main-header is-autohide ${revealed ? "is-revealed" : ""}`}>
       <div className="header-left">
-        {/* If back navigation is requested */}
-        {onBack || backHref ? (
-          <BackButton onClick={onBack} href={backHref} label={backLabel} />
-        ) : null}
+        {/* Same bar on every page (brand left; trainee, sound, full screen right): no per-page back button. */}
 
         {/* Brand logo lockup */}
         <Link href="/" className={`header-brand ${hideBrandOnMobile ? "hide-mobile" : ""}`}>
@@ -155,11 +147,6 @@ export function AcademyHeader({
       </div>
 
       <div className="header-right">
-        {breadcrumb && (
-          <div className="header-breadcrumb">
-            <span className="crumb-text">{breadcrumb}</span>
-          </div>
-        )}
 
         {displayName && (
           <div className="header-trainee-pill" title={`ผู้ฝึก: ${displayName}`}>

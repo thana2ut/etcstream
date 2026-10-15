@@ -729,3 +729,6 @@
 .prompt-action-key.key-hold { background: linear-gradient(180deg, #bfe9ff, #4a9fd1); color: #04202c; border-color: #9fd8f5; white-space: nowrap; }
 .prompt-action-pill.is-info { opacity: .85; }
 .prompt-action-pill.is-info span { color: #c9d6f2; }
+
+/* Top bar looks the same on every page: brand name always in the brush face (interior pages set small text to Sarabun). */
+.academy-main-header .brand-thai { font-family: var(--font-brush) !important; }
