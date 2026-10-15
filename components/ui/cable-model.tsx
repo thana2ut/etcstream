@@ -160,11 +160,12 @@ export function CardCableScene({ cable }: { cable: CatalogCable }) {
 }
 
 /**
- * One WebGL canvas for every catalog card: each card holds a drei <View> slot and this canvas (laid exactly over the
- * card grid, clipped to it, pointer-events off) draws the cables into those slots.
+ * One WebGL canvas for every catalog card: each card holds a drei <View> slot and this canvas draws the cables into
+ * those slots. drei's offscreen test assumes the canvas starts at the viewport top, so the canvas covers the whole
+ * viewport (position: fixed) and `.cl-catalog-wrap` clips it to the card grid; pointer events pass through.
  */
 export function CatalogCanvas() {
-  return <Canvas className="cl-catalog-gl" dpr={[1, 1.25]} gl={{ alpha: true, antialias: true }} style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+  return <Canvas className="cl-catalog-gl" dpr={[1, 1.25]} gl={{ alpha: true, antialias: true }} style={{ position: "fixed", inset: 0, width: "100vw", height: "100vh", pointerEvents: "none" }}>
     <View.Port />
   </Canvas>;
 }

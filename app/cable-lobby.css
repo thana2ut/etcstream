@@ -276,3 +276,31 @@
 /* roof must stay inside the clipped side column */
 .cl-detail { margin-top: 40px; }
 .lo-roof { left: -6px; right: -6px; width: calc(100% + 12px); top: -42px; }
+
+/* Catalog + its single shared WebGL canvas (drei <View> slots in each card render through it). */
+.cl-catalog-wrap { position: relative; min-height: 0; display: flex; flex-direction: column; clip-path: inset(0 round 14px); }
+.cl-catalog-wrap > .cl-catalog { flex: 1; min-height: 0; }
+.cl-catalog-gl { z-index: 2; border-radius: 14px; }
+.cl-slot-3d { position: absolute; inset: 8px 8px 46px; pointer-events: none; }
+.cl-slot-name { position: relative; z-index: 3; }
+.cl-slot-count { z-index: 3; }
+
+/* Short screens (laptops ~720px tall): keep at least two rows of bag slots visible; the side column scrolls instead. */
+.cl-side { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(160px, 1fr); overflow-x: hidden; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #c99a4a transparent; }
+.cl-side::-webkit-scrollbar { display: block; width: 4px; }
+.cl-side::-webkit-scrollbar-thumb { border-radius: 4px; background: #c99a4a; }
+@media (max-height: 820px) {
+  .cl-detail { margin-top: 20px; padding-top: 8px; padding-bottom: 8px; }
+  .cl-preview { height: 76px; }
+  .cl-preview-wrap { margin: 6px 0 2px; }
+}
+
+/* Narrow screens (tablets / phones): stack tabs → catalog → detail + bag and let the body scroll as one column. */
+@media (max-width: 1000px) {
+  .cl-body { grid-template-rows: auto auto auto; }
+  .cl-catalog-wrap { height: clamp(320px, 52vh, 460px); }
+  .cl-side { overflow: visible; grid-template-rows: auto auto; padding: 0; margin: 0; }
+  .cl-bag { min-height: 0; }
+  .cl-bag-scroll { flex: none; max-height: 180px; }
+  .cl-footer p { font-size: .82rem; }
+}

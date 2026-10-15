@@ -77,6 +77,7 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
         </button>)}
       </nav>
 
+      <div className="cl-catalog-wrap">
       <div className="cl-catalog" role="list" aria-label="รายการสายในหมวด">
         <FrameCorners />
         {items.map((c) => <button key={c.id} type="button" role="listitem" className={`cl-slot ${selected.id === c.id ? "is-selected" : ""}`} onClick={() => setSelected(c)} onDoubleClick={() => add(c)} title={c.name}>
@@ -84,6 +85,9 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
           <span className="cl-slot-name">{c.name}</span>
           {bag[c.id] ? <em className="cl-slot-count">×{bag[c.id]}</em> : null}
         </button>)}
+      </div>
+
+        <CatalogCanvas />
       </div>
 
       <aside className="cl-side">
