@@ -29,8 +29,9 @@ export function GameCanvas({ venue, active, fallbackLook, touch, onExitFallback,
     }
   }, []);
   const scenario = useTrainingStore(scenarioOf);
-  const reviewItems = useTrainingStore((state) => state.items);
-  const views = reviewEnabled ? environmentViews(scenario, reviewItems) : [];
+  // Only the developer review surface needs item positions; players must not re-render the canvas on every move.
+  const reviewItems = useTrainingStore((state) => (reviewEnabled ? state.items : null));
+  const views = reviewEnabled && reviewItems ? environmentViews(scenario, reviewItems) : [];
   const reviewView = views[reviewIndex];
   useEffect(() => {
     let cancelled = false;

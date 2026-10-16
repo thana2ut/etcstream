@@ -1,0 +1,36 @@
+✔ 25 separately playable stages: 5 rooms × L1–L5, unique ids, tickets and validators (2.2971ms)
+✔ every named model carries source_url, verified_ports and asset_license; generics are labelled (0.5632ms)
+✔ XS-01 plays end-to-end to a certified/passed sign-off (14.2248ms)
+✔ XS-02 plays end-to-end to a certified/passed sign-off (7.3378ms)
+✔ XS-03 plays end-to-end to a certified/passed sign-off (8.5942ms)
+✔ XS-04 plays end-to-end to a certified/passed sign-off (15.5821ms)
+✔ XS-05 plays end-to-end to a certified/passed sign-off (62.7321ms)
+✔ ST-01 plays end-to-end to a certified/passed sign-off (1.9324ms)
+✔ ST-02 plays end-to-end to a certified/passed sign-off (17.1242ms)
+✔ ST-03 plays end-to-end to a certified/passed sign-off (6.1012ms)
+✔ ST-04 plays end-to-end to a certified/passed sign-off (11.8983ms)
+✔ ST-05 plays end-to-end to a certified/passed sign-off (153.4448ms)
+✔ AU-01 plays end-to-end to a certified/passed sign-off (4.971ms)
+✔ AU-02 plays end-to-end to a certified/passed sign-off (42.7679ms)
+✔ AU-03 plays end-to-end to a certified/passed sign-off (26.2731ms)
+✔ AU-04 plays end-to-end to a certified/passed sign-off (25.8369ms)
+✔ AU-05 plays end-to-end to a certified/passed sign-off (1587.2548ms)
+✔ OUT-01 plays end-to-end to a certified/passed sign-off (3.1026ms)
+✔ OUT-02 plays end-to-end to a certified/passed sign-off (16.022ms)
+✔ OUT-03 plays end-to-end to a certified/passed sign-off (14.4784ms)
+✔ OUT-04 plays end-to-end to a certified/passed sign-off (165.1243ms)
+✔ OUT-05 plays end-to-end to a certified/passed sign-off (423.053ms)
+✔ SP-01 plays end-to-end to a certified/passed sign-off (14.6544ms)
+✔ SP-02 plays end-to-end to a certified/passed sign-off (164.5223ms)
+✔ SP-03 plays end-to-end to a certified/passed sign-off (318.3338ms)
+✔ SP-04 plays end-to-end to a certified/passed sign-off (2919.4874ms)
+✔ SP-05 plays end-to-end to a certified/passed sign-off (4021.1027ms)
+✔ every L5 surprise fault (audio/video/network/recording) is recoverable end-to-end (12595.3993ms)
+ℹ tests 28
+ℹ suites 0
+ℹ pass 28
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 23519.2528

@@ -1,0 +1,102 @@
+[
+  {
+    "id": "XS-01",
+    "packableKinds": 1
+  },
+  {
+    "id": "XS-02",
+    "packableKinds": 4
+  },
+  {
+    "id": "XS-03",
+    "packableKinds": 3
+  },
+  {
+    "id": "XS-04",
+    "packableKinds": 4
+  },
+  {
+    "id": "XS-05",
+    "packableKinds": 8
+  },
+  {
+    "id": "ST-01",
+    "packableKinds": 1
+  },
+  {
+    "id": "ST-02",
+    "packableKinds": 4
+  },
+  {
+    "id": "ST-03",
+    "packableKinds": 1
+  },
+  {
+    "id": "ST-04",
+    "packableKinds": 3
+  },
+  {
+    "id": "ST-05",
+    "packableKinds": 8
+  },
+  {
+    "id": "AU-01",
+    "packableKinds": 2
+  },
+  {
+    "id": "AU-02",
+    "packableKinds": 5
+  },
+  {
+    "id": "AU-03",
+    "packableKinds": 2
+  },
+  {
+    "id": "AU-04",
+    "packableKinds": 3
+  },
+  {
+    "id": "AU-05",
+    "packableKinds": 9
+  },
+  {
+    "id": "OUT-01",
+    "packableKinds": 1
+  },
+  {
+    "id": "OUT-02",
+    "packableKinds": 4
+  },
+  {
+    "id": "OUT-03",
+    "packableKinds": 2
+  },
+  {
+    "id": "OUT-04",
+    "packableKinds": 1
+  },
+  {
+    "id": "OUT-05",
+    "packableKinds": 9
+  },
+  {
+    "id": "SP-01",
+    "packableKinds": 2
+  },
+  {
+    "id": "SP-02",
+    "packableKinds": 6
+  },
+  {
+    "id": "SP-03",
+    "packableKinds": 4
+  },
+  {
+    "id": "SP-04",
+    "packableKinds": 1
+  },
+  {
+    "id": "SP-05",
+    "packableKinds": 12
+  }
+]

@@ -18,15 +18,19 @@ import { VENUE_SCENARIOS } from "./venue-scenarios";
 
 export type Point3 = [number, number, number];
 export type Direction = "INPUT" | "OUTPUT";
-export type Connector = "HDMI" | "USB-A" | "USB-C" | "3.5mm" | "6.35mm" | "XLR" | "XLR-M" | "XLR-F" | "SDI" | "RCA" | "speakON" | "IEC" | "DisplayPort" | "DC" | "ETHERNET" | "FIBER" | "MULTICORE" | "GPI" | "RS422" | "XLR4" | "COMBO" | "USB-B";
+export type Connector = "HDMI" | "USB-A" | "USB-C" | "3.5mm" | "6.35mm" | "XLR" | "XLR-M" | "XLR-F" | "SDI" | "RCA" | "speakON" | "IEC" | "DisplayPort" | "DC" | "ETHERNET" | "FIBER" | "MULTICORE" | "GPI" | "RS422" | "XLR4" | "COMBO" | "USB-B" | "CONTROL";
 export type SignalType = "VIDEO_HDMI" | "VIDEO_SDI" | "AUDIO_ANALOG" | "AUDIO_BALANCED" | "USB_DATA" | "NETWORK" | "FIBER_VIDEO" | "AUDIO_MULTICORE" | "CONTROL" | "COMMS";
 /** Visual style of a plug end (see components/game/cable-plugs.tsx). */
-export type PlugStyle = "fiber" | "ethernet" | "hdmi" | "sdi" | "xlr-m" | "xlr-f" | "trs35" | "trrs35" | "ts635" | "trs635" | "speaker635" | "rca" | "usba" | "usba3" | "usbc" | "dp" | "iec" | "dc" | "lav" | "adapter35to635" | "adapter635to35";
+export type PlugStyle = "fiber" | "multicore" | "control" | "ethernet" | "hdmi" | "sdi" | "xlr-m" | "xlr-f" | "trs35" | "trrs35" | "ts635" | "trs635" | "speaker635" | "rca" | "usba" | "usba3" | "usbc" | "dp" | "iec" | "dc" | "lav" | "adapter35to635" | "adapter635to35";
 export type VenueScale = "xs" | "s" | "m" | "l" | "xl";
 export type ScenarioId = "hdmi-basic" | "studio-full" | `${VenueScale}-${1 | 2 | 3 | 4 | 5}`;
 export type PlaceableItemId = string;
 
 export interface PortDef {
+  linkRole?: "NETWORK_PEER" | "USB_HOST" | "USB_DEVICE" | "USB_STORAGE" | "POWER_ONLY" | "OPTICAL_MATCHED";
+  panel?: "rear" | "front" | "side" | "top";
+  /** Mission service-position candidate, not verified by a walk-path test. */
+  approach?: Point3;
   signalType?: SignalType;
   purpose?: string;
   label: string;
@@ -43,6 +47,9 @@ export interface PortDef {
 }
 
 export interface CableDef {
+  /** Mission-only identity and electrical role; legacy practice stays unchanged. */
+  stockRole?: "required" | "spare" | "distractor";
+  signalClass?: import("./sim/types").SignalClass;
   signalType?: SignalType;
   purpose?: string;
   id: string;
@@ -67,7 +74,9 @@ export type FlowGroup = "video" | "audio" | "capture" | "monitor";
 export interface Requirement { id: string; label: string; group: FlowGroup; from: string[]; to: string[]; verified: boolean }
 export interface ActionDef { id: string; label: string; doneLabel: string; group: FlowGroup; position: Point3; needs: string[]; onItem?: PlaceableItemId; source?: string }
 export interface DeviceDef {
-  status?: "CONFIRMED" | "PROVISIONAL" | "GENERIC TRAINING MODEL" | "UNKNOWN";
+  equipmentRole?: import("./sim/types").EquipmentDefinition["role"];
+  zoneLabel?: string;
+  status?: "CONFIRMED" | "PROVISIONAL" | "GENERIC TRAINING MODEL" | "UNKNOWN" | "DESIGN_REFERENCE";
   generic?: boolean;
   id: string; label: string; model: string; verified: boolean;
   kind: "camera" | "box" | "laptop" | "bodypack" | "mic" | "mixer";
@@ -78,8 +87,15 @@ export interface DeviceDef {
 /** Equipment the trainee carries from the equipment table (left) to its spot on the centre table. */
 export interface PlaceableDef { id: PlaceableItemId; label: string; start: Point3; zone: Point3; device?: DeviceDef;
   /** Human name of the operating position (venue layouts), shown when the player carries the item. */
-  zoneLabel?: string }
+  zoneLabel?: string;
+  /** Desk gear that starts installed at its station (can still be lifted, carried and set back). */
+  installed?: boolean }
 export interface Scenario {
+  /** Research reconciliation remains pending until the external locked appendix is supplied. */
+  selectedTopologyId?: string;
+  appendixReferenceIds?: string[];
+  referenceStatus?: "PENDING_VERIFICATION" | "DESIGN_REFERENCE" | "PROVISIONAL";
+  designIssues?: string[];
   /** Physical venue layout (game/training/venue-layouts.ts); defaults to the studio. */
   layout?: import("./venue-layouts").LayoutId;
   /** The job the trainee is doing in this venue (HUD). */

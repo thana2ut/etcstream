@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from
 import { useTrainingStore } from "@/game/stores/training-store";
 import { scenarioOf, simContext, stageScore, STAGE_ORDER } from "@/game/training/hdmi-training";
 import { MODELS } from "@/game/training/sim/equipment";
-import { ROOMS } from "@/game/training/sim/rooms";
+import { MISSION_ROOMS as ROOMS } from "@/game/training/sim/rooms";
 import { CONCEPTS } from "@/game/training/sim/library";
 import { PREFLIGHT } from "@/game/training/sim/stages";
 import { describe, portOf, testRoute, traceTo, validateLevel, type StageResult } from "@/game/training/sim/engine";
@@ -23,12 +23,12 @@ const TABS: [Tab, string][] = [["job", "ใบงาน"], ["devices", "อุ�
 const C = {
   panel: { position: "absolute", inset: "64px max(16px, calc(50vw - 560px)) 16px", zIndex: 60, display: "flex", flexDirection: "column", background: "rgba(6, 13, 26, 0.96)", border: "1px solid #3b5372", borderRadius: 10, color: "#e8eef6", fontFamily: "inherit", boxShadow: "0 18px 60px rgba(0,0,0,.55)" } as CSSProperties,
   head: { display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderBottom: "1px solid #24364d", flexWrap: "wrap" } as CSSProperties,
-  body: { flex: 1, overflow: "auto", padding: "12px 16px" } as CSSProperties,
-  btn: { background: "#15263d", color: "#e8eef6", borderWidth: 1, borderStyle: "solid", borderColor: "#3b5372", borderRadius: 6, padding: "6px 10px", cursor: "pointer", fontSize: "0.85em" } as CSSProperties,
+  body: { flex: 1, minHeight: 0, lineHeight: 1.65, overflowWrap: "anywhere", overflow: "auto", padding: "12px 16px" } as CSSProperties,
+  btn: { background: "#15263d", color: "#e8eef6", borderWidth: 1, borderStyle: "solid", borderColor: "#3b5372", borderRadius: 6, padding: "6px 10px", cursor: "pointer", fontSize: "0.95em", minHeight: 44 } as CSSProperties,
   on: { background: "#e7c98f", color: "#10131a", borderColor: "#e7c98f" } as CSSProperties,
   muted: { color: "#93a7bf" } as CSSProperties,
   card: { border: "1px solid #24364d", borderRadius: 8, padding: "10px 12px", marginBottom: 10, background: "rgba(20,34,54,.5)" } as CSSProperties,
-  table: { width: "100%", borderCollapse: "collapse", fontSize: "0.82em" } as CSSProperties,
+  table: { width: "100%", borderCollapse: "collapse", fontSize: "0.95em" } as CSSProperties,
 };
 const ok = (pass: boolean | undefined) => pass === undefined ? <span style={C.muted}>○ ยังไม่ทดสอบ</span> : pass ? <span style={{ color: "#5be39a" }}>✓ ผ่าน</span> : <span style={{ color: "#ff8a7a" }}>✗ ไม่ผ่าน</span>;
 function H({ children }: { children: ReactNode }) { return <h4 style={{ margin: "4px 0 8px", color: "#e7c98f", fontSize: "1em" }}>{children}</h4>; }
@@ -61,7 +61,7 @@ export function OperatorConsole() {
 
   return <div style={{ ...C.panel, fontSize: `${scale}rem` }} role="dialog" aria-label="แผงควบคุมอุปกรณ์">
     <div style={C.head}>
-      <strong style={{ color: "#e7c98f" }}>{stage.id} · {stage.title}</strong>
+      <strong style={{ color: "#e7c98f" }}>{stage.id} · {stage.title.split(" · ")[0]}</strong>
       <span style={C.muted}>{room.title} — {room.subtitle} · {simThai(stage.guidance)} · {stage.minutes}</span>
       <span style={{ marginLeft: "auto", display: "flex", gap: 6 }}>
         <button style={C.btn} onClick={() => setScale((v) => Math.max(0.85, +(v - 0.1).toFixed(2)))} aria-label="ลดขนาดข้อความ">A−</button>
@@ -74,6 +74,7 @@ export function OperatorConsole() {
       </nav>
     </div>
     <div style={C.body}>
+      {stage.room === "xl" && stage.level >= 4 && <p style={C.muted} role="status">การสำรองบางส่วน: แยกพอร์ตภาพ ตัวเข้ารหัส และเครือข่ายสองชุด แต่ยังใช้แหล่งผลิตและไฟเลี้ยงร่วมกัน</p>}
       {tab === "job" && <JobTab ctx={ctx} />}
       {tab === "devices" && <DevicesTab ctx={ctx} selected={device} onSelect={setDevice} />}
       {tab === "tests" && <div>
@@ -82,7 +83,8 @@ export function OperatorConsole() {
           {STAGE_ORDER.map((t, i) => <button key={t} style={C.btn} onClick={() => runTestUi(t)}>{i + 1}. {t === "physical" ? "การติดตั้งและสายสัญญาณ" : t === "signal" ? "สัญญาณ" : t === "rehearsal" ? "ซ้อมควบคุมงาน" : "สตรีมและบันทึก"} · {ok(sim.testsPassed[t])}</button>)}
         </div>
         {lastRun && <div style={C.card}>
-          <H>ผลทดสอบล่าสุด: {simThai(lastRun.stage)}</H>
+          <H>บันทึกผลทดสอบล่าสุด: {simThai(lastRun.stage)}</H>
+          <p style={C.muted}>เป็นผล ณ เวลาที่กดทดสอบ หากเปลี่ยนสายหรือการตั้งค่า ให้ดูสถานะปัจจุบันและทดสอบใหม่</p>
           <table style={C.table}><tbody>{lastRun.results.map((r) => <tr key={r.id} style={{ borderTop: "1px solid #24364d" }}>
             <td style={{ padding: 4, width: 90 }}>{ok(r.result.ok)}{r.critical ? " ★" : ""}</td>
             <td style={{ padding: 4 }}>{r.label}{!r.result.ok && <div style={C.muted}>สิ่งที่ยังไม่ผ่าน: {simThai(r.result.reason ?? "")}{!cert && r.result.fix ? <><br />วิธีแก้: {simThai(r.result.fix)}</> : null}</div>}</td>
@@ -92,7 +94,7 @@ export function OperatorConsole() {
         <H>ตรวจเส้นทางสัญญาณ (อุปกรณ์ → พอร์ต → สาย → อุปกรณ์ → พอร์ต)</H>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
           {Object.keys(devs).filter((d) => ["display", "speaker", "ingest", "recorder", "storage", "host", "switcher"].includes(MODELS[devs[d].model].role)).map((d) =>
-            <button key={d} style={{ ...C.btn, ...(traceDest === d ? C.on : {}) }} onClick={() => { setTraceDest(d); state.trace(d); }}>{devs[d].label}</button>)}
+            <button key={d} style={{ ...C.btn, ...(traceDest === d ? C.on : {}) }} onClick={() => { setTraceDest(d); state.trace(d); }}>{simThai(devs[d].label)}</button>)}
         </div>
         {traceDest && <TraceView ctx={ctx} dest={traceDest} cert={cert} />}
       </div>}
@@ -110,9 +112,9 @@ function JobTab({ ctx }: { ctx: EvalContext }) {
   const sim = state.sim!;
   const guided = stage.guidance === "guided" || stage.guidance === "partial";
   const layout = LAYOUTS[scenario.layout ?? "studio"];
-  const b = layout.bounds, W = 300, Hh = Math.round(W * (b.maxZ - b.minZ) / (b.maxX - b.minX));
+  const b = layout.bounds, W = 720, Hh = Math.round(W * (b.maxZ - b.minZ) / (b.maxX - b.minX));
   const px = (x: number) => ((x - b.minX) / (b.maxX - b.minX)) * W, pz = (z: number) => ((z - b.minZ) / (b.maxZ - b.minZ)) * Hh;
-  return <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0, 340px)", gap: 14 }}>
+  return <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))", gap: 14 }}>
     <div>
       <div style={C.card}><H>ใบงานจากผู้จัดการเวที</H><p style={{ margin: 0 }}>{stage.ticket}</p></div>
       <div style={C.card}><H>ตำแหน่งและหน้าที่ทีมงาน</H><ul style={{ margin: 0, paddingLeft: 18 }}>{stage.callSheet.map((x) => <li key={x}>{x}</li>)}</ul></div>
@@ -138,13 +140,30 @@ function JobTab({ ctx }: { ctx: EvalContext }) {
         {stage.preflight.length === 0 && !stage.weather && <span style={C.muted}>งานนี้ไม่มีรายการตรวจพื้นที่</span>}
       </div>
       <div style={C.card}><H>ผังพื้นที่มองจากด้านบน</H>
-        <svg viewBox={`0 0 ${W} ${Hh}`} width="100%" style={{ background: "#0b1626", borderRadius: 6 }} role="img" aria-label="ผังพื้นที่และตำแหน่งติดตั้งอุปกรณ์">
+        <div className="room-map-scroll" tabIndex={0} role="region" aria-label="ผังห้อง เลื่อนแนวนอนได้"><svg viewBox={`0 0 ${W} ${Hh}`} width={W} style={{ background: "#0b1626", borderRadius: 6 }} role="img" aria-label="ผังพื้นที่และตำแหน่งติดตั้งอุปกรณ์">
           {layout.furniture.map((f) => <rect key={f.id} x={px(f.center[0] - f.size[0] / 2)} y={pz(f.center[2] - f.size[2] / 2)} width={Math.max(1, (f.size[0] / (b.maxX - b.minX)) * W)} height={Math.max(1, (f.size[2] / (b.maxZ - b.minZ)) * Hh)} fill="#1e2c40" stroke="#2f4560" />)}
-          {scenario.devices.map((d) => { const placed = ctx.placed(d.id); const it = state.items[d.id]; const p = it ? it.position : d.position; return <g key={d.id}><circle cx={px(p[0])} cy={pz(p[2])} r={3.2} fill={placed ? "#e7c98f" : "#5f7894"} /><text x={px(p[0]) + 4} y={pz(p[2]) - 3} fontSize={6} fill="#c9d6e6">{d.id}</text></g>; })}
-        </svg>
-        <small style={C.muted}>● สีทอง = ติดตั้งประจำจุดแล้ว · สีเทา = ยังอยู่ในกล่อง</small>
+          {(() => {
+            const occupied = new Set<string>();
+            const cols = Math.floor(W / 40), rows = Math.floor(Hh / 40);
+            return scenario.devices.map((d, i) => {
+              const placed = ctx.placed(d.id), p = state.items[d.id]?.position ?? d.position;
+              const x = px(p[0]), y = pz(p[2]);
+              const cells = Array.from({ length: cols * rows }, (_, k) => ({ x: 20 + k % cols * 40, y: 20 + Math.floor(k / cols) * 40 }))
+                .filter((c) => !occupied.has(`${c.x}:${c.y}`))
+                .sort((a, b) => Math.hypot(a.x - x, a.y - y) - Math.hypot(b.x - x, b.y - y));
+              const label = cells[0] ?? { x, y };
+              occupied.add(`${label.x}:${label.y}`);
+              return <g key={d.id}><title>{i + 1}. {simThai(d.label)} — {placed ? "ติดตั้งแล้ว" : "ยังไม่ติดตั้ง"}</title>
+                <line x1={x} y1={y} x2={label.x} y2={label.y} stroke="#9db4ce" />
+                <circle cx={x} cy={y} r={3} fill="#fff" />
+                <circle cx={label.x} cy={label.y} r={16} fill={placed ? "#e7c98f" : "#253d58"} stroke="#d9e6f6" strokeDasharray={placed ? undefined : "3 2"} />
+                <text x={label.x} y={label.y} dy=".35em" textAnchor="middle" fontSize={15} fontWeight={700} fill={placed ? "#10131a" : "#fff"}>{i + 1}</text></g>;
+            });
+          })()}
+        </svg></div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 16px", marginTop: 6, fontSize: "0.85em", lineHeight: 1.5 }}><span><span style={{ color: "#e7c98f" }}>●</span> ติดตั้งประจำจุดแล้ว</span><span><span style={{ color: "#8aa3c0" }}>○</span> ยังไม่ติดตั้ง</span><span style={C.muted}>หมายเลขตรงกับรายการด้านล่าง เส้นชี้ตำแหน่งจริง</span></div>
       </div>
-      <div style={C.card}><H>จุดติดตั้ง</H>{scenario.devices.map((d) => <div key={d.id} style={{ fontSize: "0.82em" }}><b>{d.label}</b> — <span style={C.muted}>{scenario.placeables.find((p) => p.id === d.id)?.zoneLabel ?? "ตำแหน่งติดตั้งประจำ"}</span></div>)}</div>
+      <div style={C.card}><H>จุดติดตั้ง</H>{scenario.devices.map((d, i) => <div key={d.id} style={{ fontSize: "0.95em", marginBottom: 8 }}><b>{i + 1}. {simThai(d.label)}</b> <span>{ctx.placed(d.id) ? "(ติดตั้งแล้ว)" : "(ยังไม่ติดตั้ง)"}</span> — <span style={C.muted}>{scenario.placeables.find((p) => p.id === d.id)?.zoneLabel ?? "ตำแหน่งติดตั้งประจำ"}</span></div>)}</div>
     </div>
   </div>;
 }
@@ -157,19 +176,19 @@ function DevicesTab({ ctx, selected, onSelect }: { ctx: EvalContext; selected: s
   const inst = devs[id], m = MODELS[inst.model], v = ctx.view[id];
   const cert = scenario.stage!.guidance === "certification";
   const locked = state.sim!.locked;
-  return <div style={{ display: "grid", gridTemplateColumns: "220px minmax(0,1fr)", gap: 14 }}>
+  return <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 260px), 1fr))", gap: 14 }}>
     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
       {Object.keys(devs).map((d) => <button key={d} style={{ ...C.btn, textAlign: "left", ...(d === id ? C.on : {}) }} onClick={() => onSelect(d)}>
-        {ctx.view[d]?.powered || !MODELS[devs[d].model].needsPower ? "●" : "○"} {devs[d].label}</button>)}
+        {ctx.view[d]?.powered || !MODELS[devs[d].model].needsPower ? "●" : "○"} {simThai(devs[d].label)}</button>)}
     </div>
     <div>
       <div style={C.card}>
-        <H>{inst.label} · {m.name}</H>
+        <H>{simThai(inst.label)} · {simThai(m.name)}</H>
         <div style={C.muted}>{simThai(m.manufacturer)}{m.generic ? " (อุปกรณ์จำลองเพื่อฝึก)" : ""} · รหัสรุ่น {m.modelId}</div>
         {m.sourceUrl && <div style={{ fontSize: "0.8em" }}>แหล่งอ้างอิง: <a href={m.sourceUrl} target="_blank" rel="noreferrer" style={{ color: "#8be4f4" }}>{m.sourceUrl}</a></div>}
-        <div style={{ fontSize: "0.8em" }}>พอร์ตที่ตรวจสอบแล้ว: {m.verifiedPorts.join(" · ")}</div>
+        <div style={{ fontSize: "0.8em" }}>{m.generic ? "พอร์ตตามโปรไฟล์ฝึก" : "พอร์ตตามข้อมูลอ้างอิง"}: {m.verifiedPorts.join(" · ")}</div>
         <div style={{ fontSize: "0.8em", ...C.muted }}>สิทธิ์การใช้ชิ้นงาน: {m.assetLicense}</div>
-        {m.notes.map((n) => <div key={n} style={{ fontSize: "0.8em" }}>ⓘ {n}</div>)}
+        {m.notes.map((n) => <div key={n} style={{ fontSize: "0.8em" }}>ⓘ {simThai(n)}</div>)}
         <div style={{ marginTop: 6 }}>สถานะ: <b>{simThai(v?.status ?? "—")}</b>{v?.problem && !cert ? <span style={{ color: "#ff8a7a" }}> · {simThai(v.problem.text)}</span> : null}</div>
       </div>
       {m.controls.length > 0 && <div style={C.card}><H>การตั้งค่า</H>
@@ -183,7 +202,7 @@ function DevicesTab({ ctx, selected, onSelect }: { ctx: EvalContext; selected: s
       <div style={C.card}><H>พอร์ต ({m.ports.length}) — แผงหน้าและหลัง พร้อมชื่อกำกับ</H>
         <table style={C.table}><thead><tr style={C.muted}><th align="left">พอร์ต</th><th align="left">ทิศทาง</th><th align="left">หัวต่อ</th><th align="left">สัญญาณ</th><th align="left">ขณะนี้</th></tr></thead>
           <tbody>{m.ports.map((p) => { const gid = `${id}:${p.key}`; const used = ctx.edges.some((e) => e.from === gid || e.to === gid) || Object.values(state.cables).some((c) => c.a.portId === gid || c.b.portId === gid); const sig = p.dir === "OUTPUT" ? ctx.out[gid] : ctx.inp[gid];
-            return <tr key={p.key} title={p.tip} style={{ borderTop: "1px solid #24364d" }}><td style={{ padding: 3 }}><b>{p.name}</b><div style={C.muted}>{p.tip}</div></td><td>{p.dir === "INPUT" ? "◀ ขาเข้า" : "ขาออก ▶"}</td><td>{p.connector}</td><td>{p.sig}{p.channels ? ` ·${p.channels}ch` : ""}{p.formats ? ` · ${p.formats.join("/")}` : ""}</td><td>{used ? "ใช้งานอยู่" : "ว่าง"}{sig ? <div style={{ color: "#5be39a" }}>{simThai(describe(sig))}</div> : null}</td></tr>; })}</tbody></table>
+            return <tr key={p.key} title={p.tip} style={{ borderTop: "1px solid #24364d" }}><td style={{ padding: 3 }}><b>{p.name}</b><div style={C.muted}>{p.tip}</div></td><td>{["ETHERNET", "WAN"].includes(p.sig) ? "เครือข่ายสองทาง" : p.sig.startsWith("USB") ? p.sig === "USB_POWER" ? "ไฟเลี้ยงเท่านั้น" : m.role === "host" ? "USB HOST" : "USB DEVICE" : p.dir === "INPUT" ? "◀ ขาเข้า" : "ขาออก ▶"}</td><td>{p.connector}</td><td>{p.sig}{p.channels ? ` ·${p.channels}ch` : ""}{p.formats ? ` · ${p.formats.join("/")}` : ""}</td><td>{used ? "ใช้งานอยู่" : "ว่าง"}{sig ? <div style={{ color: "#5be39a" }}>{simThai(describe(sig))}</div> : null}</td></tr>; })}</tbody></table>
       </div>
     </div>
   </div>;
@@ -196,7 +215,7 @@ function TraceView({ ctx, dest, cert }: { ctx: EvalContext; dest: string; cert: 
     {hops.length === 0 && <span style={C.muted}>ยังไม่มีสายเชื่อมต่อเข้าปลายทางนี้</span>}
     <ol style={{ margin: 0, paddingLeft: 18, fontSize: "0.85em" }}>{hops.map((h, i) => <li key={i} style={{ color: h.ok ? "#cfe0f2" : "#ff8a7a" }}>{h.ok ? "✓" : "✗"} {h.port ? <>{h.node}: {h.port}</> : <b>{h.node}</b>} <span style={C.muted}>— {simThai(h.note)}</span></li>)}</ol>
     {first && <p style={{ marginBottom: 0 }}>จุดแรกที่พบปัญหา: <b>{first.node}</b> — {simThai(first.note)}{!cert && first.fix ? <><br />วิธีแก้: {simThai(first.fix)}</> : null}</p>}
-    {!first && hops.length > 0 && <p style={{ color: "#5be39a", marginBottom: 0 }}>✓ ไม่พบปัญหาตลอดเส้นทางนี้</p>}
+    {!first && hops.length > 0 && <p style={{ color: "#5be39a", marginBottom: 0 }}>✓ ไม่พบปัญหาในช่วงเส้นทางที่เลือก · ยังต้องตรวจต้นทางทุกช่องและทดสอบภารกิจทั้งระบบ</p>}
   </div>;
 }
 
@@ -211,14 +230,14 @@ function FlowTab({ ctx }: { ctx: EvalContext }) {
   for (const n of nodes) (byDepth[depth[n]] ??= []).push(n);
   // Long columns wrap into sub-columns of at most 6 boxes so the diagram stays readable.
   const cols: string[][] = byDepth.filter(Boolean).flatMap((col) => Array.from({ length: Math.ceil(col.length / 6) }, (_, i) => col.slice(i * 6, i * 6 + 6)));
-  const W = 170, Hh = 44, pos: Record<string, [number, number]> = {};
+  const W = 240, Hh = 110, pos: Record<string, [number, number]> = {};
   cols.forEach((col, c) => col.forEach((n, r) => { pos[n] = [20 + c * (W + 40), 20 + r * (Hh + 16)]; }));
   const width = Math.max(900, 40 + cols.length * (W + 40)), height = 40 + Math.max(...cols.map((c) => c.length)) * (Hh + 16);
   return <div>
-    <svg viewBox={`0 0 ${width} ${height}`} width="100%" style={{ background: "#0b1626", borderRadius: 8, minHeight: 200 }} role="img" aria-label="แผนผังสัญญาณจากสายที่ต่ออยู่จริง">
-      {ctx.edges.map((e) => { const a = pos[e.from.split(":")[0]], b = pos[e.to.split(":")[0]]; const live = Boolean(ctx.inp[e.to]); return <path key={e.cableId} d={`M${a[0] + W},${a[1] + Hh / 2} C${a[0] + W + 30},${a[1] + Hh / 2} ${b[0] - 30},${b[1] + Hh / 2} ${b[0]},${b[1] + Hh / 2}`} fill="ไม่มี" stroke={live ? "#5be39a" : "#ff8a7a"} strokeWidth={2} strokeDasharray={live ? undefined : "5 4"} />; })}
-      {nodes.map((n) => <g key={n}><rect x={pos[n][0]} y={pos[n][1]} width={W} height={Hh} rx={6} fill="#15263d" stroke={ctx.view[n]?.problem ? "#ff8a7a" : "#3b5372"} /><text x={pos[n][0] + 8} y={pos[n][1] + 17} fontSize={11} fill="#e8eef6">{devs[n].label.slice(0, 26)}</text><text x={pos[n][0] + 8} y={pos[n][1] + 33} fontSize={9} fill="#93a7bf">{simThai(ctx.view[n]?.status ?? "").slice(0, 32)}</text></g>)}
-    </svg>
+    <div className="room-map-scroll" tabIndex={0} role="region" aria-label="แผนผังสัญญาณ เลื่อนแนวนอนได้"><svg viewBox={`0 0 ${width} ${height}`} width={width} style={{ background: "#0b1626", borderRadius: 8, minHeight: 200 }} role="img" aria-label="แผนผังสัญญาณจากสายที่ต่ออยู่จริง">
+      {ctx.edges.map((e) => { const a = pos[e.from.split(":")[0]], b = pos[e.to.split(":")[0]]; const live = Boolean(ctx.inp[e.to]); return <path key={e.cableId} d={`M${a[0] + W},${a[1] + Hh / 2} C${a[0] + W + 30},${a[1] + Hh / 2} ${b[0] - 30},${b[1] + Hh / 2} ${b[0]},${b[1] + Hh / 2}`} fill="none" stroke={live ? "#5be39a" : "#ff8a7a"} strokeWidth={2} strokeDasharray={live ? undefined : "5 4"} />; })}
+      {nodes.map((n) => <g key={n}><title>{simThai(devs[n].label)} — {simThai(ctx.view[n]?.status ?? "")}</title><rect x={pos[n][0]} y={pos[n][1]} width={W} height={Hh} rx={6} fill="#15263d" stroke={ctx.view[n]?.problem ? "#ff8a7a" : "#3b5372"} /><foreignObject x={pos[n][0] + 10} y={pos[n][1] + 8} width={W - 20} height={Hh - 16}><div style={{ fontSize: 15, lineHeight: 1.5, overflowWrap: "anywhere", maxHeight: Hh - 16, overflowY: "auto" }}><strong>{simThai(devs[n].label)}</strong><div style={C.muted}>{simThai(ctx.view[n]?.status ?? "")}</div></div></foreignObject></g>)}
+    </svg></div>
     <small style={C.muted}>เส้นเขียวทึบ = มีสัญญาณผ่านสาย · เส้นแดงประ = ต่อสายแล้วแต่สัญญาณไม่ถูกต้อง แผนผังอัปเดตจากสายที่ต่อจริง</small>
     <table style={{ ...C.table, marginTop: 10 }}><tbody>{ctx.edges.map((e) => { const po = portOf(devs, e.from)!, pi = portOf(devs, e.to)!; const sig = ctx.inp[e.to]; return <tr key={e.cableId} style={{ borderTop: "1px solid #24364d" }}>
       <td style={{ padding: 3 }}>{devs[e.from.split(":")[0]].label} · {po.name}</td><td>→ [{scenario.cableMeta?.[e.cableId]?.label ?? e.cableId}] →</td><td>{devs[e.to.split(":")[0]].label} · {pi.name}</td><td style={{ color: sig ? "#5be39a" : "#ff8a7a" }}>{sig ? describe(sig) : "ไม่มีสัญญาณ"}</td></tr>; })}</tbody></table>
@@ -235,7 +254,7 @@ function ShowTab({ ctx }: { ctx: EvalContext }) {
   const cueLive = sim.testsPassed.signal && sim.cueIndex < stage.cues.length;
   return <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 14 }}>
     <div>
-      <div style={C.card}><H>Run-of-show</H>
+      <div style={C.card}><H>ลำดับการออกอากาศ</H>
         {stage.cues.length === 0 && <span style={C.muted}>งานนี้ไม่มีคิวสลับภาพ ให้ซ้อมด้วยการตรวจเสียงในรายการก่อนเริ่มงาน</span>}
         <ol style={{ margin: 0, paddingLeft: 18 }}>{stage.cues.map((c, i) => <li key={c.id} style={{ fontWeight: i === sim.cueIndex ? 700 : 400, color: i < sim.cueIndex ? "#5be39a" : i === sim.cueIndex ? "#e7c98f" : undefined }}>{i < sim.cueIndex ? "✓ " : i === sim.cueIndex && cueLive ? "▶ เตรียมพร้อม — " : ""}{c.call}</li>)}</ol>
         {!sim.testsPassed.signal && stage.cues.length > 0 && <p style={C.muted}>เริ่มนับคิวหลังผ่านการทดสอบสัญญาณ การซ้อมสลับภาพก่อนหน้านั้นจะไม่นับคะแนน</p>}
@@ -251,7 +270,7 @@ function ShowTab({ ctx }: { ctx: EvalContext }) {
     <div>
       <div style={C.card}><H>จอและมาตรวัดสัญญาณจำลอง</H>
         {Object.entries(ctx.view).filter(([d]) => ["display", "ingest", "speaker", "recorder", "storage", "host"].includes(MODELS[scenarioOf(state).simDevices![d].model].role)).map(([d, v]) =>
-          <div key={d} style={{ fontSize: "0.85em", margin: "3px 0" }}><b>{scenarioOf(state).simDevices![d].label}</b>: {v.picture ? `🖵 ${v.picture}` : ""} {v.audio?.length ? `🔊 ${v.audio.join(" + ")}` : ""} {v.recording ? "● กำลังบันทึก" : ""} {v.live ? "● กำลังถ่ายทอด" : ""} {v.feedback ? "⚠ เสียงหอน" : ""} <span style={C.muted}>({simThai(v.status)})</span></div>)}
+          <div key={d} style={{ fontSize: "0.85em", margin: "3px 0" }}><b>{scenarioOf(state).simDevices![d].label}</b>: {v.picture ? `🖵 ${simThai(v.picture)}` : ""} {v.audio?.length ? `🔊 ${simThai(v.audio.join(" + "))}` : ""} {v.recording ? "● กำลังบันทึก" : ""} {v.live ? "● กำลังถ่ายทอด" : ""} {v.feedback ? "⚠ เสียงหอน" : ""} <span style={C.muted}>({simThai(v.status)})</span></div>)}
       </div>
       <div style={C.card}><H>หลักฐานการทำงาน</H>
         {Object.values(scenarioOf(state).simDevices!).some((d) => d.model === "generic-test-ingest") && <div style={{ marginBottom: 6 }}><button style={C.btn} onClick={() => state.streamCheck(60)}>ทดสอบสตรีม 60 วินาที</button> <button style={C.btn} onClick={() => state.streamCheck(90)}>ทดสอบสตรีม 90 วินาที</button></div>}

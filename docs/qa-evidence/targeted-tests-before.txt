@@ -1,0 +1,99 @@
+✖ XS-05 plays end-to-end to a certified/passed sign-off (66.5868ms)
+✖ ST-05 plays end-to-end to a certified/passed sign-off (85.6784ms)
+✖ OUT-05 plays end-to-end to a certified/passed sign-off (147.6764ms)
+✖ SP-04 plays end-to-end to a certified/passed sign-off (1651.2156ms)
+✖ SP-05 plays end-to-end to a certified/passed sign-off (1255.7696ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 0
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4080.5421
+
+✖ failing tests:
+
+test at tests\production-sim.test.mjs:35:3
+✖ XS-05 plays end-to-end to a certified/passed sign-off (66.5868ms)
+  AssertionError [ERR_ASSERTION]: xs-5 rehearsal: ผ่านครบ 3 รายการ ⚠ เกิดปัญหาระหว่างออกอากาศ ให้ตรวจหาสาเหตุ
+      at solve (file:///D:/etcstream/tests/helpers/solver.mjs:136:10)
+      at TestContext.<anonymous> (file:///D:/etcstream/tests/production-sim.test.mjs:36:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\production-sim.test.mjs:35:3
+✖ ST-05 plays end-to-end to a certified/passed sign-off (85.6784ms)
+  AssertionError [ERR_ASSERTION]: s-5 rehearsal: ผ่านครบ 3 รายการ ⚠ เกิดปัญหาระหว่างออกอากาศ ให้ตรวจหาสาเหตุ
+      at solve (file:///D:/etcstream/tests/helpers/solver.mjs:136:10)
+      at TestContext.<anonymous> (file:///D:/etcstream/tests/production-sim.test.mjs:36:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\production-sim.test.mjs:35:3
+✖ OUT-05 plays end-to-end to a certified/passed sign-off (147.6764ms)
+  AssertionError [ERR_ASSERTION]: l-5 rehearsal: ผ่านครบ 2 รายการ ⚠ เกิดปัญหาระหว่างออกอากาศ ให้ตรวจหาสาเหตุ
+      at solve (file:///D:/etcstream/tests/helpers/solver.mjs:136:10)
+      at TestContext.<anonymous> (file:///D:/etcstream/tests/production-sim.test.mjs:36:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\production-sim.test.mjs:35:3
+✖ SP-04 plays end-to-end to a certified/passed sign-off (1651.2156ms)
+  AssertionError [ERR_ASSERTION]: xl-4 delivery: เครื่องบันทึกได้รับภาพรายการและกำลังบันทึก: ยังไม่บันทึกภาพรายการพร้อมเสียงครบ → 
+      at solve (file:///D:/etcstream/tests/helpers/solver.mjs:144:10)
+      at TestContext.<anonymous> (file:///D:/etcstream/tests/production-sim.test.mjs:36:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\production-sim.test.mjs:35:3
+✖ SP-05 plays end-to-end to a certified/passed sign-off (1255.7696ms)
+  AssertionError [ERR_ASSERTION]: xl-5 rehearsal: ผ่านครบ 2 รายการ ⚠ เกิดปัญหาระหว่างออกอากาศ ให้ตรวจหาสาเหตุ
+      at solve (file:///D:/etcstream/tests/helpers/solver.mjs:136:10)
+      at TestContext.<anonymous> (file:///D:/etcstream/tests/production-sim.test.mjs:36:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

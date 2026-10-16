@@ -1,6 +1,7 @@
 import type { DeviceInstance } from "./engine";
 import type { Spot } from "../venue-layouts";
 import { yawToward } from "../venue-layouts";
+import { reconcileRooms } from "./reference-rooms";
 import type { VenueScale } from "../scenarios";
 
 /**
@@ -32,7 +33,7 @@ export const ROOMS: Record<VenueScale, RoomDef> = {
     instances: {
       cam1: I("XS-CAM-01", "generic-hdmi-camera", "กล้องห้องเรียน", { content: "TEACHER CAM" }),
       slides: I("XS-LAP-01", "generic-laptop", "โน้ตบุ๊กผู้สอน", { content: "SLIDES" }),
-      sw: I("XS-SW-01", "generic-mini-switcher", "เครื่องสลับภาพขนาดเล็ก"),
+      sw: I("XS-SW-01", "bmd-atem-mini-pro", "เครื่องสลับภาพ ATEM Mini Pro"),
       lav: I("XS-LAV-01", "generic-lav-mic", "ไมค์หนีบปกผู้สอน", { voice: "TEACHER VOICE" }),
       tx: I("XS-TX-01", "generic-wireless-tx", "ตัวส่งไร้สาย TX"),
       rx: I("XS-RX-01", "generic-wireless-rx", "ตัวรับไร้สาย RX", { pairWith: "tx" }),
@@ -45,7 +46,7 @@ export const ROOMS: Record<VenueScale, RoomDef> = {
       cam1: "cam1", slides: "slides", monitor: "monitor",
       tx: at(0.5, 0.76, -2.7, 0, "โต๊ะครู — ตัวส่งไร้สาย TX"),
       lav: at(0.85, 0.76, -2.7, 0, "โต๊ะครู — ไมค์หนีบปก"),
-      pa: at(-4.9, 0, -3.7, 0.35, "หน้าห้องด้านซ้าย — ลำโพงแอ็กทีฟ"),
+      pa: at(-4.9, 0, -3.0, 0.35, "หน้าห้องด้านซ้าย — ลำโพงแอ็กทีฟพร้อมทางบริการ"),
       mix: at(2.9, 0.76, 2.95, 0, "โต๊ะผู้ควบคุมด้านหลัง — มิกเซอร์"),
       rx: at(3.15, 0.76, 3.05, 0, "โต๊ะผู้ควบคุมด้านหลัง — ตัวรับไร้สาย"),
       sw: at(3.5, 0.76, 2.85, 0, "โต๊ะผู้ควบคุมด้านหลัง — เครื่องสลับภาพ"),
@@ -91,7 +92,7 @@ export const ROOMS: Record<VenueScale, RoomDef> = {
       slides: I("M-LAP-01", "generic-laptop", "โน้ตบุ๊กนำเสนอ", { content: "SLIDES" }),
       convHS: I("M-CONV-HS", "bmd-micro-converter-hdmi-sdi-3g", "Micro Converter HDMI→SDI 3G"),
       convSH: I("M-CONV-SH", "bmd-micro-converter-sdi-hdmi-3g", "Micro Converter SDI→HDMI 3G"),
-      sw: I("M-SW-01", "generic-sdi-switcher", "เครื่องสลับภาพ 3G-SDI"),
+      sw: I("M-SW-01", "bmd-atem-television-studio-hd8-iso", "เครื่องสลับภาพ ATEM Television Studio HD8 ISO"),
       monitor: I("M-MV-01", "generic-sdi-monitor", "จอ Multiview FOH (SDI)"),
       display: I("M-STAGE-01", "generic-hdmi-monitor", "จอเวที (HDMI)"),
       podium: I("M-MIC-POD", "generic-dynamic-mic", "ไมค์โพเดียม", { voice: "PODIUM VOICE" }),
@@ -190,3 +191,5 @@ export const ROOMS: Record<VenueScale, RoomDef> = {
     portable: ["convHS", "convA", "convB", "phones", "amb"],
   },
 };
+
+export const MISSION_ROOMS = reconcileRooms(ROOMS);

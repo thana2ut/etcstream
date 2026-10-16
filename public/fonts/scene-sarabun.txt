@@ -1,0 +1,7 @@
+Sarabun Regular — Thai and Latin scene font
+Merged from the four Sarabun Regular subsets already downloaded by next/font in this project (640 cmap entries).
+No new font family was fetched. Original Sarabun outlines, metrics and shaping tables are retained.
+License: SIL Open Font License 1.1; original font metadata references http://scripts.sil.org/OFL.
+The earlier Kart/Geist composite and original assets are preserved for historical/decorative use.
+Regeneration: use fontTools.merge.Merger on all existing .next/static/media/*.woff2 with family Sarabun and weight 400; set flavor=None and save as scene-sarabun.ttf.
+FontTools/Brotli were used only as temporary build tools outside the repository; package.json was not changed.

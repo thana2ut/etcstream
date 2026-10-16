@@ -1,11 +1,14 @@
 "use client";
 
+import { SceneText as Text, EquipmentNameplate } from "@/components/game/scene-text";
+
 import { SCENE_FONT, sceneText } from "@/game/rendering/scene-font";
-import { Billboard, RoundedBox, Text } from "@react-three/drei";
+import { RoundedBox } from "@react-three/drei";
 import type { DeviceDef } from "@/game/training/scenarios";
 import { useTrainingStore } from "@/game/stores/training-store";
 import { requirementDone, scenarioOf, simContext } from "@/game/training/hdmi-training";
 import { venueScreenFeed } from "@/game/training/monitor-feed";
+import { MODELS } from "@/game/training/sim/equipment";
 
 const FONT = SCENE_FONT;
 
@@ -28,11 +31,8 @@ function Rod({ a, b, r = 0.012, c = "#22252a" }: { a: [number, number, number]; 
 }
 
 export function GenericLabel({ device, y }: { device: DeviceDef; y: number }) {
-  const tag = device.status === "CONFIRMED" ? device.model : device.status === "PROVISIONAL" ? "รุ่นรอยืนยัน" : device.status === "UNKNOWN" ? "รุ่นไม่ทราบ" : "แบบฝึก";
-  return <Billboard position={[0, y, 0]}>
-    <Text font={FONT} fontSize={0.05} color="#f6ddaa" anchorX="center" anchorY="bottom" outlineWidth={0.004} outlineColor="#000">{sceneText(device.label)}</Text>
-    <Text font={FONT} position={[0, -0.01, 0]} fontSize={0.028} color="#8be4f4" anchorX="center" anchorY="top" outlineWidth={0.003} outlineColor="#000">{sceneText(tag)}</Text>
-  </Billboard>;
+  const tag = device.status === "CONFIRMED" ? device.model : device.status === "PROVISIONAL" ? "รุ่นรอการยืนยัน" : device.status === "UNKNOWN" ? "ยังไม่ทราบรุ่น" : "อุปกรณ์แบบฝึก";
+  return <EquipmentNameplate title={device.label} subtitle={tag} y={y} deviceId={device.id} />;
 }
 
 function TripodCamera({ device }: { device: DeviceDef }) {
@@ -76,7 +76,7 @@ function Display({ device }: { device: DeviceDef }) {
     <group position={[0, floor ? 1.1 : wall ? 0 : 0.08, 0]}>
       <Rb p={[0, h / 2, 0]} s={[w, h, Math.max(d, 0.05)]} c="#0e1014" m={0.4} r={0.35} />
       <mesh position={[0, h / 2, d / 2 + 0.004]}><planeGeometry args={[w - 0.04, h - 0.04]} /><meshBasicMaterial color="#0c1a2c" toneMapped={false} /></mesh>
-      {feed && <Text font={FONT} position={[0, h / 2, d / 2 + 0.009]} fontSize={Math.min(w * 0.07, 0.06)} color="#c5d4e6" maxWidth={w - 0.06} textAlign="center">{sceneText(feed)}</Text>}
+      {feed && <Text font={FONT} position={[0, h / 2, d / 2 + 0.009]} fontSize={Math.min(w * 0.085, 0.075)} lineHeight={1.65} color="#e4edf8" outlineWidth={0.002} outlineColor="#06101e" maxWidth={w - 0.1} textAlign="center" anchorX="center" anchorY="middle">{sceneText(feed)}</Text>}
     </group>
   </group>;
 }
@@ -99,7 +99,7 @@ function RackUnit({ device }: { device: DeviceDef }) {
 function Desktop({ device }: { device: DeviceDef }) {
   const [w, h, d] = device.size;
   const mixer = device.kind === "mixer" || /Mixer|Console/.test(device.label);
-  const switcher = /Switcher/.test(device.label);
+  const switcher = device.equipmentRole === "switcher" || device.equipmentRole === "controller" || /Switcher/.test(device.label);
   return <group>
     <Rb p={[0, h / 2, 0]} s={[w, h, d]} c={device.color} />
     {(mixer || switcher) && <group position={[0, h + 0.004, 0]}>
@@ -127,7 +127,7 @@ function Laptop({ device }: { device: DeviceDef }) {
     <group position={[0, 0.024, -d / 2]} rotation={[-0.3, 0, 0]}>
       <Rb p={[0, d * 0.48, 0]} s={[w, d * 0.96, 0.014]} c="#c5c8cc" m={0.5} r={0.3} />
       <mesh position={[0, d * 0.48, 0.008]}><planeGeometry args={[w - 0.03, d * 0.88]} /><meshBasicMaterial color={classroom && !feed ? "#10151e" : "#1b3d6e"} toneMapped={false} /></mesh>
-      {classroom && feed && <Text font={FONT} position={[0, d * 0.48, 0.01]} fontSize={w * 0.065} maxWidth={w * 0.82} color="#e5eefb" textAlign="center">{sceneText(feed)}</Text>}
+      {classroom && feed && <Text font={FONT} position={[0, d * 0.48, 0.01]} fontSize={w * 0.075} lineHeight={1.65} maxWidth={w * 0.84} color="#eef4fc" textAlign="center" anchorX="center" anchorY="middle">{sceneText(feed)}</Text>}
     </group>
   </group>;
 }
@@ -178,7 +178,8 @@ function Speaker({ device }: { device: DeviceDef }) {
 export function GenericDevice({ device, bare = false }: { device: DeviceDef; bare?: boolean }) {
   const classroomDisplay = useTrainingStore((state) => {
     const scenario = scenarioOf(state);
-    return ["classroom", "auditorium", "outdoor", "stadium"].includes(scenario.layout ?? "") && scenario.simDevices?.[device.id]?.model === "generic-hdmi-monitor";
+    const instance = scenario.simDevices?.[device.id];
+    return Boolean(scenario.stage && instance && MODELS[instance.model]?.role === "display");
   });
   const [, h] = device.size;
   const kind = device.kind;

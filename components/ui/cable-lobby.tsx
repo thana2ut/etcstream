@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useCableBag } from "./use-cable-bag";
-import { CableInspector, CablePreview, CableView, CardCableScene, CatalogCanvas } from "./cable-model";
+import { createPortal } from "react-dom";
+import { checkMissionBag, venueCandidateStock, type BagProblem } from "@/game/content/mission-bag";
+import { CableInspector, CablePreview, CableThumbnail, CatalogCanvas } from "./cable-model";
 import { CategoryIcon } from "./lobby-ornaments";
 import { CABLE_CATALOG, CABLE_CATEGORIES, catalogById, MAX_WRONG_STREAK, type CableCategory, type CatalogCable, type ConnectorFamily } from "@/game/content/cable-catalog";
 import type { Scenario } from "@/game/training/scenarios";
@@ -29,17 +31,22 @@ export function ConnectorIcon({ family, color }: { family: ConnectorFamily; colo
 
 /**
  * ห้องเตรียมสาย (Cable Prep Lobby) — shown before every Mission Hall level. Devices are already in the venue;
- * the trainee packs the leads they think the job needs. Only packed leads appear in the room, so a wrong or short
- * selection makes the level impossible to finish. The bag has no size limit: it grows a row whenever it fills up.
+ * the trainee packs the leads they think the job needs. Mission stock not packed remains at the in-room rack.
+ * Legacy practice retains its original packing rules. The bag grows a row whenever it fills up.
  */
-export function CableLobby({ scenario, title, levelLabel, objective, playerName, only, onConfirm, onBack }: {
-  scenario: Scenario; title: string; levelLabel: string; objective?: string; playerName?: string;
+export function CableLobby({ scenario, title, levelLabel, objective, playerName, only, onConfirm, onBack, backLabel = "กลับหอภารกิจ" }: {
+  scenario: Scenario; title: string; levelLabel: string; objective?: string; playerName?: string; backLabel?: string;
   /** Limit the catalog to these catalog ids (e.g. the classroom: only the leads laid out on its table). */
   only?: string[];
   onConfirm: (bag: Record<string, number>) => void; onBack: () => void;
 }) {
-  void scenario; // the room's devices come from the scenario; the bag itself is free-form
-  const catalog = useMemo(() => (only ? CABLE_CATALOG.filter((c) => only.includes(c.id)) : CABLE_CATALOG), [only]);
+  const catalog = useMemo(() => {
+    // Missions list the venue's whole candidate pool (all five levels), never just this level's answer.
+    const allowed = scenario.stage ? Object.keys(venueCandidateStock(scenario)) : only;
+    return allowed ? CABLE_CATALOG.filter((c) => allowed.includes(c.id)) : CABLE_CATALOG;
+  }, [only, scenario]);
+  // Selectable caps come from the venue-wide training stock, so a cap never equals the answer count.
+  const stock = useMemo(() => venueCandidateStock(scenario), [scenario]);
   const categories = useMemo(() => CABLE_CATEGORIES.filter((cat) => catalog.some((c) => c.category === cat.id)), [catalog]);
   const [category, setCategory] = useState<CableCategory>(() => categories[0]?.id ?? "video");
   const [selected, setSelected] = useState<CatalogCable>(() => catalog.find((c) => c.category === (categories[0]?.id ?? "video")) ?? catalog[0] ?? CABLE_CATALOG[0]);
@@ -61,14 +68,24 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
   // Guide strip: a cable is always selected, so the trainee is either packing (3) or ready to enter (4).
   const step = total > 0 ? 4 : 3;
 
-  const add = (c: CatalogCable, n = 1) => { addOne(c, n); soundEngine.play("button_hover"); };
+  const add = (c: CatalogCable, n = 1) => {
+    const amount = scenario.stage ? Math.min(n, Math.max(0, (stock[c.id] ?? 0) - count(c.id))) : n;
+    if (amount > 0) { addOne(c, amount, scenario.stage ? stock[c.id] ?? 0 : undefined); soundEngine.play("button_hover"); }
+  };
   // Quantity picked in the detail stepper: only goes into the bag when "ใส่กระเป๋า" is pressed (resets to 1 per cable).
   const [draft, setDraft] = useState<{ id: string; n: number }>({ id: "", n: 1 });
-  const qty = draft.id === selected.id ? draft.n : 1;
-  const setQty = (n: number) => setDraft({ id: selected.id, n: Math.min(20, Math.max(1, n)) });
+  const remaining = scenario.stage ? Math.max(0, (stock[selected.id] ?? 0) - count(selected.id)) : 20;
+  const qty = Math.min(Math.max(1, remaining), draft.id === selected.id ? draft.n : 1);
+  const setQty = (n: number) => setDraft({ id: selected.id, n: Math.min(20, Math.max(1, remaining), Math.max(1, n)) });
   const putInBag = () => { add(selected, qty); setDraft({ id: selected.id, n: 1 }); };
   const remove = (c: CatalogCable) => { removeOne(c); soundEngine.play("button_hover"); };
   const pick = (c: CatalogCable) => { setSelected(c); soundEngine.play("button_hover"); };
+  const mission = Boolean(scenario.stage);
+  const canEnter = mission ? true : total > 0;
+  // Problem found by the last entry attempt: opens the centred red warning (one dialog per invalid click).
+  const [rejected, setRejected] = useState<BagProblem | null>(null);
+  const entering = useRef(false);
+  const enterBtn = useRef<HTMLButtonElement>(null);
   // The bag window shows whole rows only: its height snaps to N rows of slots for whatever space the column leaves.
   const bagScroll = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -107,7 +124,7 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
         <span className="cl-back-arrow" aria-hidden="true">
           <svg viewBox="0 0 20 20"><path d="m12.5 4.5-5 5.5 5 5.5" /></svg>
         </span>
-        <span>กลับหอภารกิจ</span>
+        <span>{backLabel}</span>
       </button>
       <div className="cl-title">
         <span className="cl-eyebrow">ห้องเตรียมสาย{playerName ? ` | ผู้ฝึก: ${playerName}` : ""}</span>
@@ -123,7 +140,11 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
 
     <section className="cl-body">
       <nav className="cl-tabs" aria-label="หมวดสาย">
-        {categories.map((cat) => <button key={cat.id} type="button" className={!q && category === cat.id ? "is-on" : ""} onClick={() => { setCategory(cat.id); setQuery(""); }} aria-pressed={!q && category === cat.id}>
+        {categories.map((cat) => <button key={cat.id} type="button" className={!q && category === cat.id ? "is-on" : ""} onClick={() => {
+          setCategory(cat.id); setQuery("");
+          const first = catalog.find((c) => c.category === cat.id);
+          if (selected.category !== cat.id && first) setSelected(first);
+        }} aria-pressed={!q && category === cat.id}>
           <span className="cl-tab-glyph"><CategoryIcon id={cat.id} /></span><span className="cl-tab-label">{cat.label}</span>
           {packedIn(cat.id) > 0 && <em className="cl-tab-count" aria-label={`ใส่แล้ว ${packedIn(cat.id)} เส้น`}>{packedIn(cat.id)}</em>}
           <span className="cl-tab-chev" aria-hidden="true">›</span>
@@ -148,7 +169,7 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
           <div className={`cl-catalog is-${view}`} role="list" aria-label={q ? "ผลการค้นหาสาย" : "รายการสายในหมวด"}>
             {items.map((c) => <div key={c.id} role="listitem" className={`cl-slot ${selected.id === c.id ? "is-selected" : ""} ${count(c.id) ? "is-packed" : ""}`}>
               <button type="button" className="cl-slot-hit" onClick={() => pick(c)} onDoubleClick={() => add(c)} aria-pressed={selected.id === c.id} title={`${c.name} — กดเพื่อดู · ดับเบิลคลิกเพื่อใส่กระเป๋า`}>
-                <CableView className="cl-slot-3d"><CardCableScene cable={c} /></CableView>
+                <CableThumbnail className="cl-slot-3d" cable={c} />
                 <span className="cl-slot-text">
                   {/* non-breaking hyphen: "Type-A" never splits across lines */}
                   <span className="cl-slot-name">{c.name.replace(/-/g, "‑")}</span>
@@ -173,7 +194,7 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
             </button>
             <div><strong>{selected.name}</strong><small>{selected.id} · {selected.status}</small></div>
           </div>
-          <dl className="cl-facts">
+          <dl className="cl-facts cl-facts-scroll" tabIndex={0} role="region" aria-label="หัวต่อและวิธีใช้สาย เลื่อนเพื่ออ่านข้อความทั้งหมด">
             <div><dt>หัวต่อ</dt><dd>{selected.ends}</dd></div>
             <div><dt>ใช้ต่อ</dt><dd>{selected.use}</dd></div>
           </dl>
@@ -181,9 +202,9 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
             <div className="cl-stepper" role="group" aria-label="จำนวนที่จะใส่กระเป๋า">
               <button type="button" onClick={() => setQty(qty - 1)} disabled={qty <= 1} aria-label="ลดจำนวน">−</button>
               <output aria-live="polite">{qty}</output>
-              <button type="button" onClick={() => setQty(qty + 1)} disabled={qty >= 20} aria-label="เพิ่มจำนวน">+</button>
+              <button type="button" onClick={() => setQty(qty + 1)} disabled={qty >= Math.min(20, remaining)} aria-label="เพิ่มจำนวน">+</button>
             </div>
-            <button type="button" className="cl-btn is-primary" onClick={putInBag}><span className="cl-plus">+</span> ใส่กระเป๋า{qty > 1 ? ` ${qty} เส้น` : ""}</button>
+            <button type="button" className="cl-btn is-primary" onClick={putInBag} disabled={remaining === 0}>{remaining === 0 ? "จัดครบแล้ว" : <><span className="cl-plus">+</span> ใส่กระเป๋า{qty > 1 ? ` ${qty} เส้น` : ""}</>}</button>
           </div>
         </div>
         <div className="cl-bag">
@@ -196,12 +217,13 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
                 if (!e) return <span key={`empty-${i}`} className="cl-bag-slot is-empty" aria-hidden="true"><span className="cl-bag-plus"><svg viewBox="0 0 16 16"><path d="M8 3.5v9M3.5 8h9" /></svg></span></span>;
                 return <span key={e.c.id} className={`cl-bag-slot is-filled ${selected.id === e.c.id ? "is-selected" : ""}`}>
                   <button type="button" className="cl-bag-hit" onClick={() => setSelected(e.c)} title={`${e.c.name} ×${e.n}`} aria-label={`${e.c.name} ${e.n} เส้น`}>
-                    <ConnectorIcon family={e.c.family} color={e.c.color} /><em>{e.n}</em>
+                    <CableThumbnail className="cl-bag-thumbnail" cable={e.c} /><em>{e.n}</em>
                   </button>
                   <button type="button" className="cl-bag-remove" onClick={() => remove(e.c)} aria-label={`นำ ${e.c.name} ออก 1 เส้น`}>✕</button>
                 </span>;
               })}
             </div>
+            <CatalogCanvas />
           </div>
         </div>
       </aside>
@@ -211,15 +233,77 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
     <footer className="cl-footer">
       <span className="cl-footer-icon" aria-hidden="true">!</span>
       <div className="cl-footer-text">
-        <strong>เมื่อเลือกสายที่ต้องใช้ครบแล้ว ให้ใส่กระเป๋า และตรวจสอบจำนวนก่อนเข้าสู่ด่าน</strong>
-        <small>อุปกรณ์รออยู่ในห้องแล้ว · สายที่ไม่ได้นำไปจะไม่มีในห้อง · ต่อผิดติดต่อกัน {MAX_WRONG_STREAK} ครั้ง = ไม่ผ่าน</small>
+        <strong>{mission ? "เลือกชนิดและจำนวนสายให้ตรงกับภารกิจ ระบบจะตรวจกระเป๋าก่อนเปิดประตูด่าน" : "ใส่สายอย่างน้อย 1 เส้นก่อนเข้าสู่ด่าน แล้วตรวจจำนวนให้ตรงกับงาน"}</strong>
+        <small>{scenario.stage
+          ? "อุปกรณ์รออยู่ในห้องแล้ว · สายที่ไม่ได้จัดใส่กระเป๋ายังหยิบได้จากจุดเก็บสาย · ผิดพลาดด้านการต่อสายครบ 3 ครั้ง จะพักเพื่อทบทวน"
+          : <>อุปกรณ์รออยู่ในห้องแล้ว · สายที่ไม่ได้นำไปจะไม่มีในห้อง · ต่อผิดติดต่อกัน {MAX_WRONG_STREAK} ครั้ง = ไม่ผ่าน</>}</small>
       </div>
       <div className="cl-enter-wrap">
-        <small className={total === 0 ? "" : "is-ready"} role="status">{total === 0 ? "ใส่สายอย่างน้อย 1 เส้นก่อน" : `พร้อมออกเดินทาง · ${total} เส้น`}</small>
-        <button type="button" className="cl-enter" disabled={total === 0} onClick={() => { soundEngine.play("mission_accept"); onConfirm(bag); }}>เข้าสู่ด่าน →</button>
+        <small id="cl-entry-status" className={total === 0 ? "" : "is-ready"} role="status">{mission ? total === 0 ? "จัดสายใส่กระเป๋าก่อน แล้วกดเข้าสู่ด่านเพื่อตรวจ" : `ในกระเป๋า ${total} เส้น · กดเข้าสู่ด่านเพื่อตรวจ` : total === 0 ? "ใส่สายอย่างน้อย 1 เส้นก่อนเข้าสู่ด่าน" : `พร้อมออกเดินทาง · ${total} เส้น`}</small>
+        <button ref={enterBtn} type="button" className="cl-enter" disabled={!canEnter} aria-describedby="cl-entry-status" onClick={() => {
+          if (!canEnter || entering.current) return;
+          if (mission) {
+            // Re-check the live bag at click time against THIS level; a rejected bag stays as it is for editing.
+            const result = checkMissionBag(scenario, bag);
+            if (!result.ok) { if (!rejected) { setRejected(result.problem); soundEngine.play("button_hover"); } return; }
+            entering.current = true;
+            soundEngine.play("mission_accept"); onConfirm({ ...bag });
+            return;
+          }
+          if (!Object.values(bag).some((n) => Number.isFinite(n) && n >= 1)) return;
+          entering.current = true;
+          soundEngine.play("mission_accept"); onConfirm(bag);
+        }}>เข้าสู่ด่าน →</button>
       </div>
     </footer>
+    {rejected && <BagWarning problem={rejected} onClose={() => { setRejected(null); requestAnimationFrame(() => enterBtn.current?.focus()); }} />}
   </main>;
+}
+
+/** Non-spoiler wording: says what kind of problem, never which cables or how many. */
+const WARNING: Record<BagProblem, { cue: string; text: string }> = {
+  empty: { cue: "กระเป๋ายังว่าง", text: "กระเป๋ายังว่างอยู่ โปรดเลือกสายที่เหมาะสมก่อนก้าวเข้าสู่ด่าน" },
+  missing: { cue: "เลือกสายไม่ครบ", text: "สายที่เลือกยังไม่ครบตามเงื่อนไขของภารกิจ โปรดกลับไปตรวจสอบกระเป๋าอีกครั้ง" },
+  wrong: { cue: "ชนิดสายไม่ตรง", text: "ชนิดหรือจำนวนสายที่เลือกไม่ตรงกับภารกิจ โปรดจัดกระเป๋าใหม่ก่อนเข้าสู่ด่าน" },
+  excess: { cue: "จำนวนสายไม่ถูกต้อง", text: "ชนิดหรือจำนวนสายที่เลือกไม่ตรงกับภารกิจ โปรดจัดกระเป๋าใหม่ก่อนเข้าสู่ด่าน" },
+  stock: { cue: "จำนวนสายไม่ถูกต้อง", text: "ชนิดหรือจำนวนสายที่เลือกไม่ตรงกับภารกิจ โปรดจัดกระเป๋าใหม่ก่อนเข้าสู่ด่าน" },
+};
+
+/** Centred red "broken formation" dialog for an invalid mission bag. Portalled to <body> above every layer. */
+function BagWarning({ problem, onClose }: { problem: BagProblem; onClose: () => void }) {
+  const box = useRef<HTMLDivElement>(null);
+  const back = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    back.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); onClose(); return; }
+      if (!box.current) return;
+      if (e.key !== "Tab") {
+        // Nothing behind the dialog reacts to the keyboard while it is open.
+        if (!box.current.contains(e.target as Node)) { e.preventDefault(); e.stopPropagation(); }
+        return;
+      }
+      // Keep keyboard focus inside the dialog.
+      const items = [...box.current.querySelectorAll<HTMLElement>("button")];
+      const i = items.indexOf(document.activeElement as HTMLElement);
+      e.preventDefault();
+      items[(i + (e.shiftKey ? -1 : 1) + items.length) % items.length]?.focus();
+    };
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, [onClose]);
+  const w = WARNING[problem];
+  return createPortal(<div className="cl-warn-veil">
+    <div ref={box} className="cl-warn" role="alertdialog" aria-modal="true" aria-labelledby="cl-warn-title" aria-describedby="cl-warn-text">
+      <div className="cl-warn-seal" aria-hidden="true">
+        <svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" strokeWidth="2.5" strokeDasharray="30 6 22 8" /><circle cx="32" cy="32" r="18" fill="none" stroke="currentColor" strokeWidth="1.5" opacity=".7" /><path d="M32 18v17M32 42v3" stroke="currentColor" strokeWidth="4" strokeLinecap="round" /></svg>
+      </div>
+      <span className="cl-warn-cue">{w.cue}</span>
+      <h2 id="cl-warn-title">ค่ายกลสายสัญญาณยังไม่สมบูรณ์</h2>
+      <p id="cl-warn-text">{w.text}</p>
+      <button ref={back} type="button" className="cl-warn-cta" onClick={onClose}>กลับไปจัดกระเป๋า</button>
+    </div>
+  </div>, document.body);
 }
 
 /** In-level bag viewer (🎒 button). Shows what was packed and how much of it this level can use. */
@@ -231,7 +315,7 @@ export function BagOverlay({ bag, usage, ready, holding, onTake, onStow, onClose
     <div className="cl-overlay-card" onClick={(e) => e.stopPropagation()}>
       <div className="cl-bag-head"><strong id="cl-bag-title">🎒 กระเป๋าสาย</strong><button type="button" className="cl-link" onClick={onClose}>ปิด ✕</button></div>
       {holding && (() => { const c = catalogById(holding.id); return <button type="button" className="cl-bag-pick cl-holding" onClick={onStow}>
-        {c ? <ConnectorIcon family={c.family} color={c.color} /> : <span />}
+        {c ? <CableThumbnail className="bag-cable-thumbnail" cable={c} /> : <span />}
         <div><strong>ถืออยู่: {c?.name ?? holding.label}</strong><small>หยิบผิดเส้น? เก็บคืนแล้วเลือกใหม่</small></div>
         <span className="cl-pick-state is-on"><b>เก็บคืนกระเป๋า</b></span>
       </button>; })()}
@@ -239,7 +323,7 @@ export function BagOverlay({ bag, usage, ready, holding, onTake, onStow, onClose
       <ul className="cl-bag-list">
         {entries.map(({ c, n, u, r }) => <li key={c.id}>
           <button type="button" className="cl-bag-pick" disabled={r === 0} onClick={() => onTake(c.id)} title={r ? `หยิบ ${c.name}` : u === 0 ? "ด่านนี้ไม่มีพอร์ตรองรับสายนี้" : "ใช้ครบแล้ว"}>
-            <ConnectorIcon family={c.family} color={c.color} />
+            <CableThumbnail className="bag-cable-thumbnail" cable={c} />
             <div><strong>{c.name}</strong><small>{c.ends}</small></div>
             <span className={`cl-pick-state ${r > 0 ? "is-on" : "is-off"}`}>
               {r > 0 ? <><b>เลือกได้</b>{r} เส้น</> : <><b>เลือกไม่ได้</b>{u === 0 ? "ด่านนี้ไม่ใช้" : `ต่อครบแล้ว ${u}/${n}`}</>}
@@ -247,6 +331,7 @@ export function BagOverlay({ bag, usage, ready, holding, onTake, onStow, onClose
           </button>
         </li>)}
       </ul>
+      <CatalogCanvas />
       <p className="cl-note"><span className="cl-key">คลิก</span> สายที่ “เลือกได้” เพื่อหยิบขึ้นมือ</p>
     </div>
   </div>;

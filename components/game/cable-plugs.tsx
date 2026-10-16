@@ -32,6 +32,10 @@ function Shaft({ r, len, rings, z0 }: { r: number; len: number; rings: number; z
 
 export function PlugMesh({ style, accent }: { style: PlugStyle; accent?: string }) {
   switch (style) {
+    case "multicore":
+      return <><Blk p={[0, 0, 0]} s={[0.14, 0.09, 0.12]} color="#4c5968" /><Rod z={0.1} r={0.04} len={0.1} color={BLACK} /></>;
+    case "control":
+      return <><Blk p={[0, 0, 0]} s={[0.09, 0.05, 0.12]} color="#754b8c" /><Rod z={0.1} r={0.02} len={0.1} color={BLACK} /></>;
     case "fiber":
       return <><Blk p={[0, 0, 0.02]} s={[0.08, 0.05, 0.14]} color="#176cbc" /><Blk p={[0, 0, -0.07]} s={[0.03, 0.03, 0.05]} color="#ece7d5" /><Rod z={0.12} r={0.02} len={0.08} color="#e99032" /></>;
     case "ethernet":

@@ -1,5 +1,7 @@
 "use client";
 
+import { SceneText as Text } from "@/components/game/scene-text";
+
 import { SCENE_FONT, sceneText } from "@/game/rendering/scene-font";
 
 import { useMemo } from "react";
@@ -11,7 +13,7 @@ import { LAYOUTS, VENUE_SCALE } from "@/game/training/venue-layouts";
 import { LayoutColliders, LayoutFurniture } from "./layout-furniture";
 import { AvCart, VenueLighting, Ball, BLACK_METAL, CHROME, Cyl, D as BASE_D, H, Lathe, RB, Slab, STEEL, Tube, W as BASE_W, type V3 } from "./kit";
 import { tex } from "./textures";
-import { Text } from "@react-three/drei";
+
 import { useTrainingStore } from "@/game/stores/training-store";
 import { venueScreenFeed, venueScreenLive } from "@/game/training/monitor-feed";
 
