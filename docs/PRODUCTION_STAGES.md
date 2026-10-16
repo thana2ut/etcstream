@@ -423,32 +423,32 @@ Magewell USB Capture HDMI Gen 2 · USB 3.0 (DEVICE → HOST)  ->  โน้ต�
 
 **Reward:** ใบอนุญาตถ่ายทอดสะพานจันทรา
 
-## AU · หอคอยกระจกแห่งภาพสลับ
-_หอประชุมใหญ่ · ถ่ายทอดงานไปหลายปลายทาง_
+## AU · หอคอยกระจกสลับภาพ
+_หอประชุมใหญ่ · กล้อง SDI สไลด์ เวที และเสียง PA/Broadcast แยกกัน_
 
-### AU-01 / L1 — จุดแสงบนจอใหญ่ (guided; 10–14 นาที)
+### AU-01 / L1 — กล้องหลักสู่จอเวที · Main Camera to Stage Display (guided; 10–12 นาที)
 
-**Ticket:** แสดงสไลด์ให้ผู้ชม โดยไม่แสดงจอรวมภาพของทีมเทคนิค
+**Ticket:** นำภาพกล้องกลางหลังห้องขึ้นจอเวที
 
 **Canonical graph**
 
 ```
-โน้ตบุ๊กนำเสนองาน · HDMI OUT  ->  Roland V-160HD · HDMI IN 1
-Roland V-160HD · HDMI OUT 1  ->  โปรเจกเตอร์สำหรับผู้ชม · HDMI IN 1
+กล้อง 1 กลางหลังห้อง · SDI OUT (3G)  ->  เครื่องสลับภาพ 3G-SDI · SDI IN 1
+เครื่องสลับภาพ 3G-SDI · SDI OUT 1  ->  Micro Converter SDI→HDMI 3G · SDI IN
+Micro Converter SDI→HDMI 3G · HDMI OUT  ->  จอเวที (HDMI) · HDMI IN
 ```
 
-**Operator configuration (ground truth):** slides.power = true; slides.present = true; sw.power = true; sw.hdmi-out-1 = PROGRAM; sw.pgm = HDMI 1; display.power = true; display.source = HDMI 1
+**Operator configuration (ground truth):** cam1.power = true; cam1.framing = Framed for assignment; sw.power = true; sw.pgm = SDI 1; sw.sdi-out-1 = PROGRAM; convSH.power = true; display.power = true
 
-**Run-of-show:** ลดไฟห้องครึ่งหนึ่ง … สลับสไลด์ → KEYNOTE SLIDES
+**Run-of-show:** เปิดงาน … กล้อง 1 → CAM1
 
 **Preflight:** ตรวจไฟเลี้ยงที่ติดป้ายแล้ว โดยไม่ทำงานกับไฟฟ้าหลัก; ยืนยันรูปแบบทั้งระบบ: 1080p50 · Rec.709 · 48 kHz
 
-**Objectives (13, ★ = critical gate):**
+**Objectives (12, ★ = critical gate):**
 
-- [signal · signal] โปรเจกเตอร์แสดงสไลด์ถูกต้อง ★
-- [signal · signal] ผู้ชมไม่เห็นตารางภาพของทีมควบคุม ★
-- [signal · config] กำหนด HDMI OUT 1 เป็น PROGRAM
-- [signal · config] เปิดโหมดนำเสนอแล้ว
+- [signal · signal] จอเวทีแสดงภาพกล้อง ★
+- [signal · config] ตัวแปลง SDI→HDMI มีไฟเลี้ยง
+- [signal · config] SDI OUT 1 กำหนดหน้าที่แล้ว
 - [physical · safety] ติดตั้งอุปกรณ์ที่ต้องใช้ครบทุกจุด
 - [physical · config] อุปกรณ์ที่ใช้งานผ่านการตรวจไฟเลี้ยงครบ
 - [physical · signal] ต่อสายตรงตามผังช่องสัญญาณ
@@ -459,217 +459,213 @@ Roland V-160HD · HDMI OUT 1  ->  โปรเจกเตอร์สำหร�
 - [delivery · evidence] คำถามทบทวนความเข้าใจ
 - [delivery · evidence] ตรวจรับงานและเก็บงาน ★
 
-**Pass criteria (spec):** โปรเจกเตอร์แสดงสไลด์; ไม่ส่งจอรวมภาพให้ผู้ชม
+**Pass criteria (spec):** ตัวแปลงมีไฟ รูปแบบถูก เลือกแหล่งภาพถูก และจอเวทีเลือกขาเข้าถูก; ภาพกล้องปรากฏบนจอเวที
 
-**Reward:** ตราจอใหญ่
+**Reward:** ตราแสงแรกบนเวที
 
-### AU-02 / L2 — เสียงทั่วหอประชุม (partial; 15–18 นาที)
+### AU-02 / L2 — เสียงโพเดียม PA และถ่ายทอด · Podium / PA / Broadcast Audio (partial; 12–15 นาที)
 
-**Ticket:** ทำให้ผู้ชมทั่วห้องได้ยินประกาศจากโพเดียมชัดเจนโดยไม่มีเสียงหอน
+**Ticket:** ให้เสียงโพเดียมดังในห้องและเข้าระบบถ่ายทอดแยกกัน
 
 **Canonical graph**
 
 ```
-ไมค์โพเดียม SM58 · XLR OUT  ->  Yamaha MG12XU · CH1 MIC/LINE IN
-Yamaha MG12XU · STEREO OUT L  ->  ลำโพงแอ็กทีฟซ้าย · LINE IN (XLR/TRS)
-Yamaha MG12XU · STEREO OUT R  ->  ลำโพงแอ็กทีฟขวา · LINE IN (XLR/TRS)
-โน้ตบุ๊กนำเสนองาน · HDMI OUT  ->  Roland V-160HD · HDMI IN 1
-Roland V-160HD · HDMI OUT 1  ->  โปรเจกเตอร์สำหรับผู้ชม · HDMI IN 1
+ไมค์โพเดียม · XLR OUT  ->  Stagebox อนาล็อก · MIC IN 1 (XLR)
+Stagebox อนาล็อก · MULTICORE OUT  ->  หางสายมัลติคอร์ FOH · MULTICORE IN
+หางสายมัลติคอร์ FOH · TAIL 1 (XLR)  ->  มิกเซอร์ FOH · CH 1 IN (XLR)
+มิกเซอร์ FOH · PA OUT L (XLR)  ->  ลำโพง PA ซ้าย · LINE IN (XLR/TRS)
+มิกเซอร์ FOH · PA OUT R (XLR)  ->  ลำโพง PA ขวา · LINE IN (XLR/TRS)
+มิกเซอร์ FOH · BROADCAST OUT L (XLR)  ->  เครื่องสลับภาพ 3G-SDI · AUDIO IN L (XLR, LINE)
+มิกเซอร์ FOH · BROADCAST OUT R (XLR)  ->  เครื่องสลับภาพ 3G-SDI · AUDIO IN R (XLR, LINE)
 ```
 
-**Operator configuration (ground truth):** mix.power = true; mix.ch1-gain = Nominal (peaks −18 dBFS); mix.ch1-on = true; mix.ch1-st = true; mix.ch1-hpf = true; mix.st-fader = Unity; mic.aim = At talker's mouth; paL.power = true; paL.level = Nominal; paL.aim = In front of the mic, aimed at audience; paR.power = true; paR.level = Nominal; paR.aim = In front of the mic, aimed at audience
+**Operator configuration (ground truth):** mix.power = true; mix.pa-fader = Unity; mix.bc-fader = Unity; mix.ch1-gain = Nominal (peaks −18 dBFS); mix.ch1-on = true; mix.ch1-pa = true; mix.ch1-bc = true; paL.power = true; paL.level = Nominal; paL.aim = In front of the mic, aimed at audience; paR.power = true; paR.level = Nominal; paR.aim = In front of the mic, aimed at audience; sw.power = true; sw.xlr-on = true
 
-**Start state:** pre-wired: โน้ตบุ๊กนำเสนองาน · HDMI OUT -> Roland V-160HD · HDMI IN 1; Roland V-160HD · HDMI OUT 1 -> โปรเจกเตอร์สำหรับผู้ชม · HDMI IN 1
+**Preflight:** ตรวจเสียงด้วยระดับพูดจริง เผื่อระดับก่อนเสียงแตก; ตั้งไมค์ระดับปาก หันหลบลำโพง
 
-**Start config:** slides.power = true; slides.present = true; sw.power = true; sw.hdmi-out-1 = PROGRAM; sw.pgm = HDMI 1; display.power = true; display.source = HDMI 1; mic.aim = Toward PA loudspeaker; paL.aim = Behind/aimed at the podium mic
+**Objectives (11, ★ = critical gate):**
 
-**Spares / decoys in the kit:** speakON → XLR สาย (ห้ามใช้); TRS 6.35 ม.m 5 ม.
-
-**Decoy devices:** amp
-
-**Preflight:** ตั้งไมค์ระดับปาก หันหลบลำโพง; ตรวจเสียงด้วยระดับพูดจริง เผื่อระดับก่อนเสียงแตก; เดินสายตามผนังหรือราง ไม่กีดขวางทางเดิน
-
-**Objectives (12, ★ = critical gate):**
-
-- [signal · signal] ได้ยินเสียงพูดชัดจากลำโพงทั้งสอง ★
-- [signal · quality] ไม่มีเสียงหอนในพื้นที่รับฟัง ★
-- [signal · signal] ระบบฉายภาพยังทำงาน
-- [rehearsal · evidence] ตรวจเสียงที่ตำแหน่งผู้ชมด้วยระดับเหมาะสมแล้ว
+- [signal · signal] เสียงโพเดียมออกลำโพงในห้อง ไม่หอน ★
+- [signal · signal] มิเตอร์ขาเข้า Broadcast ที่เครื่องสลับภาพขยับ ★
+- [physical · config] Broadcast เข้า L และ R ครบ
+- [rehearsal · evidence] ตรวจเสียงระดับพูดจริงแล้ว
 - [physical · safety] ติดตั้งอุปกรณ์ที่ต้องใช้ครบทุกจุด
 - [physical · config] อุปกรณ์ที่ใช้งานผ่านการตรวจไฟเลี้ยงครบ
 - [physical · signal] ต่อสายตรงตามผังช่องสัญญาณ
-- [physical · safety] ตั้งไมค์ระดับปาก หันหลบลำโพง
 - [physical · safety] ตรวจเสียงด้วยระดับพูดจริง เผื่อระดับก่อนเสียงแตก
-- [physical · safety] เดินสายตามผนังหรือราง ไม่กีดขวางทางเดิน
+- [physical · safety] ตั้งไมค์ระดับปาก หันหลบลำโพง
 - [delivery · evidence] คำถามทบทวนความเข้าใจ
 - [delivery · evidence] ตรวจรับงานและเก็บงาน ★
 
-**Pass criteria (spec):** เสียงพูดชัดทั่วพื้นที่รับฟัง; ไม่มีเสียงหอน; ระบบฉายภาพยังทำงาน
+**Pass criteria (spec):** พรีแอมป์ไมค์ถูกต้อง บัส PA/Broadcast แยกกัน; มิเตอร์ทั้งเสียงในห้องและขาเข้า Broadcast ขยับ
 
-**Reward:** เสียงแห่งหอประชุม
+**Reward:** ตราเสียงแห่งหอประชุม
 
-### AU-03 / L3 — สามภาพ สามปลายทาง (scenario; 18–22 นาที)
+### AU-03 / L3 — กล้องและสไลด์ · Cameras and Slides (scenario; 15–20 นาที)
 
-**Ticket:** ส่งสไลด์ให้ผู้ชม ส่งสไลด์ปัจจุบันให้ผู้บรรยาย และส่งจอรวมทุกแหล่งภาพให้ทีมควบคุมพร้อมกัน
+**Ticket:** ห้าแหล่งภาพต้องเลือกได้ทั้งหมด จอเวทีต้องแสดงภาพ PGM ที่สะอาด ไม่ใช่ Multiview
 
 **Canonical graph**
 
 ```
-โน้ตบุ๊กนำเสนองาน · HDMI OUT  ->  Roland V-160HD · HDMI IN 1
-กล้องภาพกว้าง (จุดควบคุมด้านหลัง) · 12G-SDI OUT  ->  Roland V-160HD · SDI IN 1
-Roland V-160HD · HDMI OUT 1  ->  โปรเจกเตอร์สำหรับผู้ชม · HDMI IN 1
-Roland V-160HD · HDMI OUT 2  ->  จอตรวจภาพผู้บรรยาย · HDMI IN
-Roland V-160HD · HDMI OUT 3  ->  จอรวมภาพจุดควบคุม · HDMI IN
+กล้อง 1 กลางหลังห้อง · SDI OUT (3G)  ->  เครื่องสลับภาพ 3G-SDI · SDI IN 1
+กล้อง 2 ซ้าย · SDI OUT (3G)  ->  เครื่องสลับภาพ 3G-SDI · SDI IN 2
+กล้อง 3 ขวา · SDI OUT (3G)  ->  เครื่องสลับภาพ 3G-SDI · SDI IN 3
+กล้อง PTZ (ติดตั้งถาวร) · SDI OUT (3G)  ->  เครื่องสลับภาพ 3G-SDI · SDI IN 4
+โน้ตบุ๊กนำเสนอ · HDMI OUT  ->  Micro Converter HDMI→SDI 3G · HDMI IN
+Micro Converter HDMI→SDI 3G · SDI OUT  ->  เครื่องสลับภาพ 3G-SDI · SDI IN 5
+เครื่องสลับภาพ 3G-SDI · MULTIVIEW SDI OUT  ->  จอ Multiview FOH (SDI) · SDI IN
+เครื่องสลับภาพ 3G-SDI · SDI OUT 1  ->  Micro Converter SDI→HDMI 3G · SDI IN
+Micro Converter SDI→HDMI 3G · HDMI OUT  ->  จอเวที (HDMI) · HDMI IN
 ```
 
-**Operator configuration (ground truth):** slides.power = true; slides.present = true; cam1.power = true; cam1.format = 1080p50; cam1.framing = Framed for assignment; sw.power = true; sw.hdmi-out-1 = PROGRAM; sw.hdmi-out-2 = AUX; sw.aux = HDMI 1; sw.hdmi-out-3 = MULTIVIEW; sw.labels = true; sw.pgm = HDMI 1; display.power = true; display.source = HDMI 1; conf.power = true; monitor.power = true
+**Operator configuration (ground truth):** cam1.power = true; cam1.framing = Framed for assignment; cam2.power = true; cam2.framing = Framed for assignment; cam3.power = true; cam3.framing = Framed for assignment; ptz.power = true; ptz.framing = Framed for assignment; slides.power = true; slides.present = true; slides.mute-audio = true; convHS.power = true; convSH.power = true; sw.power = true; sw.sdi-out-1 = AUX; sw.aux = PROGRAM; sw.pgm = SDI 1; monitor.power = true; display.power = true
 
-**Start config:** sw.hdmi-out-1 = PREVIEW; sw.pvw = SDI 1
-
-**Run-of-show:** ผู้บรรยายขึ้นเวที … ภาพกล้อง → CAM WIDE · สไลด์ → KEYNOTE SLIDES · ภาพกล้อง → CAM WIDE · สไลด์ → KEYNOTE SLIDES
+**Run-of-show:** เปิด … กล้อง 1 → CAM1 · สไลด์ → SLIDES · PTZ เวที → PTZ · กล้อง 2 → CAM2 · กล้อง 3 → CAM3 (preview before every TAKE)
 
 **Preflight:** เดินสายตามผนังหรือราง ไม่กีดขวางทางเดิน
 
-**Objectives (12, ★ = critical gate):**
+**Objectives (11, ★ = critical gate):**
 
-- [signal · signal] โปรเจกเตอร์ผู้ชมแสดงภาพออกอากาศ ★
-- [signal · signal] จอผู้บรรยายแสดงสไลด์ AUX แยกจากภาพออกอากาศ ★
-- [signal · signal] จอรวมภาพจุดควบคุมแสดงทุกแหล่งสัญญาณ ★
-- [signal · config] ตั้งชื่อแหล่งสัญญาณแล้ว
+- [signal · signal] จอ FOH เห็นครบห้าแหล่งภาพ ★
+- [signal · signal] จอเวทีแสดง PGM ที่สะอาด ไม่ใช่ Multiview ★
+- [rehearsal · evidence] เลือกครบทั้งห้าแหล่งภาพ
 - [physical · safety] ติดตั้งอุปกรณ์ที่ต้องใช้ครบทุกจุด
 - [physical · config] อุปกรณ์ที่ใช้งานผ่านการตรวจไฟเลี้ยงครบ
 - [physical · signal] ต่อสายตรงตามผังช่องสัญญาณ
 - [physical · safety] เดินสายตามผนังหรือราง ไม่กีดขวางทางเดิน
-- [rehearsal · evidence] ออกอากาศตามคิวครบ 4 คิว
+- [rehearsal · evidence] ออกอากาศตามคิวครบ 5 คิว
 - [rehearsal · quality] ไม่มีภาพดำออกอากาศระหว่างซ้อม
 - [delivery · evidence] คำถามทบทวนความเข้าใจ
 - [delivery · evidence] ตรวจรับงานและเก็บงาน ★
 
-**Pass criteria (spec):** ทั้งสามจอแสดงภาพถูกต้องพร้อมกัน; การสลับภาพไม่ทำให้จอรวมภาพหลุดไปยังผู้ชม
+**Pass criteria (spec):** ห้าแหล่งภาพเห็นและเลือกได้; จอเวทีแสดง PGM ที่กำหนด ไม่ใช่ MV
 
-**Reward:** ปริซึมสามภาพ
+**Reward:** ตราปริซึมห้าภาพ
 
-### AU-04 / L4 — เสียงสะท้อนในหอคอย (disruption; 20–25 นาที)
+### AU-04 / L4 — ซ่อมระบบหอประชุม · Auditorium Fault Repair (disruption; 18–22 นาที)
 
-**Ticket:** ส่งภาพและเสียงงานประชุมไปยังผู้ชมทดสอบส่วนตัวผ่าน OBS พร้อมรักษาเสียงในห้องให้ทำงานปกติ
+**Ticket:** ก่อนเริ่มงาน 15 นาที: จอเวทีดำ กล้อง 2 หาย และเสียงโพเดียมไม่เข้าระบบถ่ายทอด — คืนบทบาทพอร์ตและสัญญาณให้ถูก
 
 **Canonical graph**
 
 ```
-โน้ตบุ๊กนำเสนองาน · HDMI OUT  ->  Roland V-160HD · HDMI IN 1
-กล้องภาพกว้าง (จุดควบคุมด้านหลัง) · 12G-SDI OUT  ->  Roland V-160HD · SDI IN 1
-กล้องภาพใกล้ (ข้างเวที) · 12G-SDI OUT  ->  Roland V-160HD · SDI IN 2
-ไมค์โพเดียม SM58 · XLR OUT  ->  Yamaha MG12XU · CH1 MIC/LINE IN
-Yamaha MG12XU · STEREO OUT L  ->  ลำโพงแอ็กทีฟซ้าย · LINE IN (XLR/TRS)
-Yamaha MG12XU · STEREO OUT R  ->  ลำโพงแอ็กทีฟขวา · LINE IN (XLR/TRS)
-Yamaha MG12XU · GROUP OUT 1  ->  Roland V-160HD · AUDIO IN 1 (combo)
-Yamaha MG12XU · GROUP OUT 2  ->  Roland V-160HD · AUDIO IN 2 (combo)
-Roland V-160HD · HDMI OUT 1  ->  โปรเจกเตอร์สำหรับผู้ชม · HDMI IN 1
-Roland V-160HD · HDMI OUT 2  ->  จอตรวจภาพผู้บรรยาย · HDMI IN
-Roland V-160HD · USB STREAM  ->  คอมพิวเตอร์ OBS · USB-A 1 (capture)
-คอมพิวเตอร์ OBS · ETHERNET  ->  เราเตอร์เครือข่าย · LAN 1
-เราเตอร์เครือข่าย · WAN  ->  จุดรับสตรีมทดสอบส่วนตัว (WAN) · UPLINK IN
+กล้อง 1 กลางหลังห้อง · SDI OUT (3G)  ->  เครื่องสลับภาพ 3G-SDI · SDI IN 1
+กล้อง 2 ซ้าย · SDI OUT (3G)  ->  เครื่องสลับภาพ 3G-SDI · SDI IN 2
+กล้อง 3 ขวา · SDI OUT (3G)  ->  เครื่องสลับภาพ 3G-SDI · SDI IN 3
+กล้อง PTZ (ติดตั้งถาวร) · SDI OUT (3G)  ->  เครื่องสลับภาพ 3G-SDI · SDI IN 4
+โน้ตบุ๊กนำเสนอ · HDMI OUT  ->  Micro Converter HDMI→SDI 3G · HDMI IN
+Micro Converter HDMI→SDI 3G · SDI OUT  ->  เครื่องสลับภาพ 3G-SDI · SDI IN 5
+เครื่องสลับภาพ 3G-SDI · MULTIVIEW SDI OUT  ->  จอ Multiview FOH (SDI) · SDI IN
+เครื่องสลับภาพ 3G-SDI · SDI OUT 1  ->  Micro Converter SDI→HDMI 3G · SDI IN
+Micro Converter SDI→HDMI 3G · HDMI OUT  ->  จอเวที (HDMI) · HDMI IN
+ไมค์โพเดียม · XLR OUT  ->  Stagebox อนาล็อก · MIC IN 1 (XLR)
+Stagebox อนาล็อก · MULTICORE OUT  ->  หางสายมัลติคอร์ FOH · MULTICORE IN
+หางสายมัลติคอร์ FOH · TAIL 1 (XLR)  ->  มิกเซอร์ FOH · CH 1 IN (XLR)
+มิกเซอร์ FOH · BROADCAST OUT L (XLR)  ->  เครื่องสลับภาพ 3G-SDI · AUDIO IN L (XLR, LINE)
+มิกเซอร์ FOH · BROADCAST OUT R (XLR)  ->  เครื่องสลับภาพ 3G-SDI · AUDIO IN R (XLR, LINE)
 ```
 
-**Operator configuration (ground truth):** mix.ch1-grp = true; host.audio-src = USB capture embedded audio; host.stream = true; host.record = true; sw.emb-audio = OFF; slides.mute-audio = true
+**Operator configuration (ground truth):** convSH.power = true; sw.aux = PROGRAM; mix.ch1-bc = true
 
 **Start state:** fully pre-wired show
 
-**Start config:** slides.power = true; slides.present = true; cam1.power = true; cam1.framing = Framed for assignment; cam2.power = true; cam2.framing = Framed for assignment; mix.power = true; mix.ch1-gain = Nominal (peaks −18 dBFS); mix.ch1-on = true; mix.ch1-st = true; mix.ch1-hpf = true; mix.st-fader = Unity; mic.aim = At talker's mouth; paL.power = true; paL.level = Nominal; paL.aim = In front of the mic, aimed at audience; paR.power = true; paR.level = Nominal; paR.aim = In front of the mic, aimed at audience; mix.ch1-grp = true; mix.grp-fader = Unity; sw.power = true; sw.hdmi-out-1 = PROGRAM; sw.hdmi-out-2 = AUX; sw.aux = HDMI 1; sw.ain-mode = LINE; sw.ain-on = true; sw.pgm = SDI 1; sw.labels = true; display.power = true; display.source = HDMI 1; conf.power = true; host.power = true; host.video-src = USB video capture device; host.audio-src = USB capture embedded audio; host.stream-key = •••••••• (private test key); net.power = true; slides.mute-audio = false; sw.emb-audio = ON
+**Start config:** cam1.power = true; cam1.framing = Framed for assignment; cam2.power = true; cam2.framing = Framed for assignment; cam3.power = true; cam3.framing = Framed for assignment; ptz.power = true; ptz.framing = Framed for assignment; slides.power = true; slides.present = true; slides.mute-audio = true; convHS.power = true; convSH.power = true; sw.power = true; sw.sdi-out-1 = AUX; sw.aux = PROGRAM; sw.pgm = SDI 1; monitor.power = true; display.power = true; mix.power = true; mix.bc-fader = Unity; mix.ch1-gain = Nominal (peaks −18 dBFS); mix.ch1-on = true; mix.ch1-bc = true; sw.xlr-on = true
 
-**Seeded faults:** ไมค์ยังไม่ส่งเข้า GROUP 1-2 สตรีมเงียบแต่ลำโพงทำงาน [group-bus]; OBS รับไมค์ในเครื่องจนเสียงสะท้อน [obs-source]
+**Seeded faults:** กล้อง 2 เสียบเข้า REF IN แทน SDI IN [connector]; ตัวแปลง SDI→HDMI ไม่มีไฟเลี้ยง [power]; AUX เลือกแหล่งภาพผิด (กล้อง 3 แทน PROGRAM) [output-assign]; ไมค์โพเดียมส่งเข้า PA แทน Broadcast [group-bus]
 
-**Run-of-show:** ผู้แสดง … ภาพกว้าง → CAM WIDE · สไลด์ → KEYNOTE SLIDES · ภาพใกล้ → CAM CLOSE
+**Spares / decoys in the kit:** 3G-SDI 10 ม. (สำรอง); 3G-SDI 10 ม. (สำรอง); HDMI 2 ม. (สำรอง); XLR 5 ม. (สำรอง)
 
-**Preflight:** ทดสอบตบมือหรือสเลตเพื่อให้ภาพและเสียงตรงกัน; ยืนยันสิทธิ์และรหัสสตรีมทดสอบส่วนตัว โดยปกปิดรหัสและไม่เผยแพร่สาธารณะ
+**Run-of-show:** เริ่มงาน … กล้อง 2 → CAM2
 
-**Objectives (15, ★ = critical gate):**
+**Preflight:** ตรวจเสียงด้วยระดับพูดจริง เผื่อระดับก่อนเสียงแตก
 
-- [signal · signal] เสียงพูดในห้องคงที่ ไม่มีเสียงหอน
-- [delivery · signal] ผู้ชมทางไกลได้รับภาพออกอากาศและเสียงพูดไม่ซ้อน ★
-- [signal · signal] จอผู้บรรยายบนเวทียังทำงาน
-- [signal · quality] ป้องกันเสียงโน้ตบุ๊กซ้ำแล้ว
-- [delivery · evidence] บันทึกไฟล์ซ้อม OBS 60 วินาทีแล้ว
-- [delivery · diagnostics] วินิจฉัยและซ่อมเหตุขัดข้องจำลองแล้ว ★
+**Objectives (12, ★ = critical gate):**
+
+- [signal · signal] กล้อง 2 กลับเข้า SDI IN ที่ถูกต้อง ★
+- [signal · signal] จอเวทีแสดง PGM ★
+- [signal · signal] เสียงโพเดียมถึงขาเข้า Broadcast ★
+- [delivery · diagnostics] ตรวจหาและซ่อมจุดเสียครบ ★
 - [physical · safety] ติดตั้งอุปกรณ์ที่ต้องใช้ครบทุกจุด
 - [physical · config] อุปกรณ์ที่ใช้งานผ่านการตรวจไฟเลี้ยงครบ
 - [physical · signal] ต่อสายตรงตามผังช่องสัญญาณ
-- [physical · safety] ทดสอบตบมือหรือสเลตเพื่อให้ภาพและเสียงตรงกัน
-- [physical · safety] ยืนยันสิทธิ์และรหัสสตรีมทดสอบส่วนตัว โดยปกปิดรหัสและไม่เผยแพร่สาธารณะ
-- [rehearsal · evidence] ออกอากาศตามคิวครบ 3 คิว
+- [physical · safety] ตรวจเสียงด้วยระดับพูดจริง เผื่อระดับก่อนเสียงแตก
+- [rehearsal · evidence] ออกอากาศตามคิวครบ 1 คิว
 - [rehearsal · quality] ไม่มีภาพดำออกอากาศระหว่างซ้อม
 - [delivery · evidence] คำถามทบทวนความเข้าใจ
 - [delivery · evidence] ตรวจรับงานและเก็บงาน ★
 
-**Pass criteria (spec):** ซ้อม 60 วินาที ครบเสียงพูด สไลด์ และกล้อง; ไม่มีเสียงซ้อนหรือภาพออกอากาศดำ; จอผู้บรรยายยังทำงาน
+**Pass criteria (spec):** คืนบทบาทพอร์ตและสัญญาณถูกต้อง; ภาพถึงเวทีและเสียงถึงปลายทางที่ตั้งใจ
 
-**Reward:** ผู้พิทักษ์เสียงสะท้อน
+**Reward:** ตราผู้ซ่อมหอคอย
 
-### AU-05 / L5 — ประเมินปฏิบัติหอประชุม (certification; 30–40 นาที)
+### AU-05 / L5 — งานเต็มระบบ · Full Event (certification; 30–40 นาที)
 
-**Ticket:** ติดตั้งและควบคุมงานบรรยายจำลอง ทั้งจอผู้ชม จอผู้บรรยาย จอรวมภาพ ระบบเสียงในห้อง สตรีมส่วนตัว และการบันทึกในเครื่อง
+**Ticket:** จัดงานเต็มระบบ: ห้าแหล่งภาพ, จอเวทีจาก AUX, Multiview ที่ FOH, PGM สะอาดไป Capture/OBS และเครื่องบันทึกแยกขาออก, เสียงสามแหล่งผ่าน Stagebox แยก PA และ Broadcast
 
 **Canonical graph**
 
 ```
-โน้ตบุ๊กนำเสนองาน · HDMI OUT  ->  Roland V-160HD · HDMI IN 1
-กล้องภาพกว้าง (จุดควบคุมด้านหลัง) · 12G-SDI OUT  ->  Roland V-160HD · SDI IN 1
-กล้องภาพใกล้ (ข้างเวที) · 12G-SDI OUT  ->  Roland V-160HD · SDI IN 2
-ไมค์โพเดียม SM58 · XLR OUT  ->  Yamaha MG12XU · CH1 MIC/LINE IN
-Yamaha MG12XU · STEREO OUT L  ->  ลำโพงแอ็กทีฟซ้าย · LINE IN (XLR/TRS)
-Yamaha MG12XU · STEREO OUT R  ->  ลำโพงแอ็กทีฟขวา · LINE IN (XLR/TRS)
-Yamaha MG12XU · GROUP OUT 1  ->  Roland V-160HD · AUDIO IN 1 (combo)
-Yamaha MG12XU · GROUP OUT 2  ->  Roland V-160HD · AUDIO IN 2 (combo)
-Roland V-160HD · HDMI OUT 1  ->  โปรเจกเตอร์สำหรับผู้ชม · HDMI IN 1
-Roland V-160HD · HDMI OUT 2  ->  จอตรวจภาพผู้บรรยาย · HDMI IN
-Roland V-160HD · USB STREAM  ->  คอมพิวเตอร์ OBS · USB-A 1 (capture)
-คอมพิวเตอร์ OBS · ETHERNET  ->  เราเตอร์เครือข่าย · LAN 1
-เราเตอร์เครือข่าย · WAN  ->  จุดรับสตรีมทดสอบส่วนตัว (WAN) · UPLINK IN
-Roland V-160HD · HDMI OUT 3  ->  จอรวมภาพจุดควบคุม · HDMI IN
-Roland V-160HD · SDI OUT 1  ->  HyperDeck Studio HD Plus · SDI IN
-Yamaha MG12XU · PHONES  ->  หูฟังจุดควบคุม · PHONES PLUG (TRS)
+กล้อง 1 กลางหลังห้อง · SDI OUT (3G)  ->  เครื่องสลับภาพ 3G-SDI · SDI IN 1
+กล้อง 2 ซ้าย · SDI OUT (3G)  ->  เครื่องสลับภาพ 3G-SDI · SDI IN 2
+กล้อง 3 ขวา · SDI OUT (3G)  ->  เครื่องสลับภาพ 3G-SDI · SDI IN 3
+กล้อง PTZ (ติดตั้งถาวร) · SDI OUT (3G)  ->  เครื่องสลับภาพ 3G-SDI · SDI IN 4
+โน้ตบุ๊กนำเสนอ · HDMI OUT  ->  Micro Converter HDMI→SDI 3G · HDMI IN
+Micro Converter HDMI→SDI 3G · SDI OUT  ->  เครื่องสลับภาพ 3G-SDI · SDI IN 5
+เครื่องสลับภาพ 3G-SDI · MULTIVIEW SDI OUT  ->  จอ Multiview FOH (SDI) · SDI IN
+เครื่องสลับภาพ 3G-SDI · SDI OUT 1  ->  Micro Converter SDI→HDMI 3G · SDI IN
+Micro Converter SDI→HDMI 3G · HDMI OUT  ->  จอเวที (HDMI) · HDMI IN
+เครื่องสลับภาพ 3G-SDI · SDI OUT 2  ->  อุปกรณ์จับภาพ SDI → USB · SDI IN
+อุปกรณ์จับภาพ SDI → USB · USB 3.0 (DEVICE → HOST)  ->  คอมพิวเตอร์สตรีม OBS (จำลอง) · USB-A 1 (capture)
+เครื่องสลับภาพ 3G-SDI · SDI OUT 3  ->  HyperDeck Studio HD Plus · SDI IN
+ไมค์โพเดียม · XLR OUT  ->  Stagebox อนาล็อก · MIC IN 1 (XLR)
+ไมค์มือถือแบบสาย · XLR OUT  ->  Stagebox อนาล็อก · MIC IN 2 (XLR)
+ตัวรับไร้สาย RX · AUDIO OUT (XLR)  ->  Stagebox อนาล็อก · MIC IN 3 (XLR)
+ไมค์หนีบปกวิทยากร · LAV PLUG (3.5 mm)  ->  ตัวส่งไร้สาย TX · MIC IN (3.5 mm)
+Stagebox อนาล็อก · MULTICORE OUT  ->  หางสายมัลติคอร์ FOH · MULTICORE IN
+หางสายมัลติคอร์ FOH · TAIL 1 (XLR)  ->  มิกเซอร์ FOH · CH 1 IN (XLR)
+หางสายมัลติคอร์ FOH · TAIL 2 (XLR)  ->  มิกเซอร์ FOH · CH 2 IN (XLR)
+หางสายมัลติคอร์ FOH · TAIL 3 (XLR)  ->  มิกเซอร์ FOH · CH 3 IN (XLR)
+มิกเซอร์ FOH · PA OUT L (XLR)  ->  ลำโพง PA ซ้าย · LINE IN (XLR/TRS)
+มิกเซอร์ FOH · PA OUT R (XLR)  ->  ลำโพง PA ขวา · LINE IN (XLR/TRS)
+มิกเซอร์ FOH · BROADCAST OUT L (XLR)  ->  เครื่องสลับภาพ 3G-SDI · AUDIO IN L (XLR, LINE)
+มิกเซอร์ FOH · BROADCAST OUT R (XLR)  ->  เครื่องสลับภาพ 3G-SDI · AUDIO IN R (XLR, LINE)
 ```
 
-**Operator configuration (ground truth):** slides.power = true; slides.present = true; cam1.power = true; cam1.framing = Framed for assignment; cam2.power = true; cam2.framing = Framed for assignment; mix.power = true; mix.ch1-gain = Nominal (peaks −18 dBFS); mix.ch1-on = true; mix.ch1-st = true; mix.ch1-hpf = true; mix.st-fader = Unity; mic.aim = At talker's mouth; paL.power = true; paL.level = Nominal; paL.aim = In front of the mic, aimed at audience; paR.power = true; paR.level = Nominal; paR.aim = In front of the mic, aimed at audience; mix.ch1-grp = true; mix.grp-fader = Unity; sw.power = true; sw.hdmi-out-1 = PROGRAM; sw.hdmi-out-2 = AUX; sw.aux = HDMI 1; sw.ain-mode = LINE; sw.ain-on = true; sw.pgm = SDI 1; sw.labels = true; display.power = true; display.source = HDMI 1; conf.power = true; host.power = true; host.video-src = USB video capture device; host.audio-src = USB capture embedded audio; host.stream-key = •••••••• (private test key); net.power = true; cam1.format = 1080p50; cam2.format = 1080p50; sw.hdmi-out-3 = MULTIVIEW; sw.sdi-out-1 = PROGRAM; sw.emb-audio = OFF; slides.mute-audio = true; monitor.power = true; rec.power = true; rec.media = SD card mounted (512 GB free); rec.record = true; host.stream = true; net.uplink-test = true
+**Operator configuration (ground truth):** cam1.power = true; cam1.framing = Framed for assignment; cam2.power = true; cam2.framing = Framed for assignment; cam3.power = true; cam3.framing = Framed for assignment; ptz.power = true; ptz.framing = Framed for assignment; slides.power = true; slides.present = true; slides.mute-audio = true; convHS.power = true; convSH.power = true; sw.power = true; sw.sdi-out-1 = AUX; sw.aux = PROGRAM; sw.pgm = SDI 1; monitor.power = true; display.power = true; sw.sdi-out-2 = PROGRAM; sw.sdi-out-3 = PROGRAM; sw.xlr-on = true; sw.emb-audio = OFF; tx.power = true; rx.power = true; rx.rf = CH 1; rx.pair = Paired; mix.power = true; mix.pa-fader = Unity; mix.bc-fader = Unity; mix.ch1-gain = Nominal (peaks −18 dBFS); mix.ch1-on = true; mix.ch1-pa = true; mix.ch1-bc = true; mix.ch2-gain = Nominal (peaks −18 dBFS); mix.ch2-on = true; mix.ch2-pa = true; mix.ch2-bc = true; mix.ch3-gain = Nominal (peaks −18 dBFS); mix.ch3-on = true; mix.ch3-pa = true; mix.ch3-bc = true; paL.power = true; paL.level = Nominal; paL.aim = In front of the mic, aimed at audience; paR.power = true; paR.level = Nominal; paR.aim = In front of the mic, aimed at audience; host.power = true; host.video-src = USB video capture device; host.audio-src = USB capture embedded audio; rec.power = true; rec.media = SD card mounted (512 GB free); rec.record = true
 
-**Surprise fault pool (one, chosen from the attempt seed after rehearsal):** ขาออกผู้ชมถูกตั้งเป็นจอรวมภาพ; ไมค์หันเข้าลำโพงทำให้เสียงหอน; ขาดเสียง GROUP; สื่อเครื่องบันทึกเต็ม; อุปกรณ์รับภาพ OBS หลุด; สาย WAN หลุด
+**Surprise fault pool (one, chosen from the attempt seed after rehearsal):** AUX ไปจอเวทีถูกเปลี่ยนเป็นภาพกล้อง 3; ตัวแปลงไปจอเวทีไฟดับ; บัส Broadcast ถูกลดลง; สื่อบันทึกเต็ม; สาย USB ของ Capture หลุด
 
-**Spares / decoys in the kit:** speakON → XLR สาย (ห้ามใช้); HDMI 10 ม. (สำรอง); 3G-SDI 20 ม. (สำรอง)
+**Spares / decoys in the kit:** 3G-SDI 10 ม. (สำรอง); HDMI 2 ม. (สำรอง)
 
-**Decoy devices:** amp
+**Run-of-show:** เปิดงาน … สไลด์ → SLIDES · วิทยากร … กล้อง 1 → CAM1 · ภาพเวที … PTZ → PTZ · กล้อง 2 → CAM2 · กล้อง 3 → CAM3 (preview before every TAKE)
 
-**Run-of-show:** สไลด์เปิดงาน → KEYNOTE SLIDES · ผู้บรรยายขึ้นเวที — ภาพกว้าง → CAM WIDE · สไลด์ → KEYNOTE SLIDES · ภาพใกล้ → CAM CLOSE · ภาพปิดงาน → KEYNOTE SLIDES
+**Preflight:** ตรวจไฟเลี้ยงที่ติดป้ายแล้ว โดยไม่ทำงานกับไฟฟ้าหลัก; เดินสายตามผนังหรือราง ไม่กีดขวางทางเดิน; ตรวจเสียงด้วยระดับพูดจริง เผื่อระดับก่อนเสียงแตก; ตั้งไมค์ระดับปาก หันหลบลำโพง; ตรวจสื่อบันทึก: เชื่อมต่อแล้ว มีพื้นที่ว่าง และบันทึกไฟล์ทดสอบได้
 
-**Preflight:** เดินสายตามผนังหรือราง ไม่กีดขวางทางเดิน; ตั้งไมค์ระดับปาก หันหลบลำโพง; ตรวจเสียงด้วยระดับพูดจริง เผื่อระดับก่อนเสียงแตก; ทดสอบตบมือหรือสเลตเพื่อให้ภาพและเสียงตรงกัน; ยืนยันสิทธิ์และรหัสสตรีมทดสอบส่วนตัว โดยปกปิดรหัสและไม่เผยแพร่สาธารณะ; ตรวจสื่อบันทึก: เชื่อมต่อแล้ว มีพื้นที่ว่าง และบันทึกไฟล์ทดสอบได้; ประเมินความเสี่ยงแล้ว; แผนเก็บงาน: ปิดเครื่อง ม้วนสาย เก็บเข้ากล่อง
+**Objectives (18, ★ = critical gate):**
 
-**Objectives (22, ★ = critical gate):**
-
-- [signal · signal] จอผู้ชม จอผู้บรรยาย AUX และจอรวมภาพทำงานพร้อมกัน ★
-- [signal · signal] เสียงพูดในห้องไม่มีเสียงหอน ★
-- [delivery · signal] ผู้ชมทางไกลได้ยินเสียงและสตรีมทำงาน ★
-- [delivery · evidence] บันทึกและเก็บไฟล์ภาพออกอากาศในเครื่องแล้ว ★
-- [rehearsal · evidence] ใช้มุมกล้องแตกต่างกันสองมุม ★
-- [delivery · diagnostics] แก้ปัญหาที่ไม่คาดคิดจากต้นเหตุแล้ว ★
-- [delivery · safety] เริ่มถ่ายทอดหลังซ้อมเท่านั้น
+- [signal · signal] Multiview FOH เห็นครบห้าแหล่งภาพ ★
+- [signal · signal] จอเวทีแสดง PGM ที่สะอาด (จาก AUX) ★
+- [signal · signal] เสียงห้องอิสระ ได้ยินครบสามแหล่ง ไม่หอน ★
+- [delivery · signal] OBS ได้ PGM พร้อมเสียง Broadcast ฝัง ★
+- [delivery · evidence] เครื่องบันทึกบันทึกจาก PGM ที่ถูกต้อง ★
+- [delivery · diagnostics] แก้ปัญหาที่เกิดระหว่างงานได้ ★
 - [physical · safety] ติดตั้งอุปกรณ์ที่ต้องใช้ครบทุกจุด
 - [physical · config] อุปกรณ์ที่ใช้งานผ่านการตรวจไฟเลี้ยงครบ
 - [physical · signal] ต่อสายตรงตามผังช่องสัญญาณ ★
+- [physical · safety] ตรวจไฟเลี้ยงที่ติดป้ายแล้ว โดยไม่ทำงานกับไฟฟ้าหลัก
 - [physical · safety] เดินสายตามผนังหรือราง ไม่กีดขวางทางเดิน
-- [physical · safety] ตั้งไมค์ระดับปาก หันหลบลำโพง
 - [physical · safety] ตรวจเสียงด้วยระดับพูดจริง เผื่อระดับก่อนเสียงแตก
-- [physical · safety] ทดสอบตบมือหรือสเลตเพื่อให้ภาพและเสียงตรงกัน
-- [physical · safety] ยืนยันสิทธิ์และรหัสสตรีมทดสอบส่วนตัว โดยปกปิดรหัสและไม่เผยแพร่สาธารณะ
+- [physical · safety] ตั้งไมค์ระดับปาก หันหลบลำโพง
 - [physical · safety] ตรวจสื่อบันทึก: เชื่อมต่อแล้ว มีพื้นที่ว่าง และบันทึกไฟล์ทดสอบได้
-- [physical · safety] ประเมินความเสี่ยงแล้ว
-- [physical · safety] แผนเก็บงาน: ปิดเครื่อง ม้วนสาย เก็บเข้ากล่อง
 - [rehearsal · evidence] ออกอากาศตามคิวครบ 5 คิว ★
 - [rehearsal · quality] ไม่มีภาพดำออกอากาศระหว่างซ้อม
 - [delivery · evidence] คำถามทบทวนความเข้าใจ
 - [delivery · evidence] ตรวจรับงานและเก็บงาน ★
 
-**Pass criteria (spec):** จอผู้ชม จอผู้บรรยาย และจอรวมภาพทำงานพร้อมกัน; ได้ยินเสียงทั้งในห้องและทางไกล; ผู้ชมรับสตรีมได้; บันทึกไฟล์ในเครื่องแล้ว; เดินสายปลอดภัย; ใช้กล้องสองมุม; แก้ปัญหาจากต้นเหตุ; บันทึกคิวครบ
+**Pass criteria (spec):** เลือกแหล่งภาพ PGM สะอาด จอเวที และ MV ที่ FOH; เสียงห้องอิสระ และเสียง Broadcast ฝังใน PGM; เครื่องบันทึกทำงาน และ OBS พร้อม
 
-**Reward:** ผู้กำกับงานหอคอยแก้ว
+**Reward:** ผู้อำนวยการงานหอคอยกระจก
 
 ## OUT · คลังตราพอร์ตโบราณ
 _พื้นที่ถ่ายทอดกลางแจ้ง · พอร์ต ตัวแปลง การต่อสาย และความปลอดภัย_

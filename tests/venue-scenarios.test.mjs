@@ -268,13 +268,12 @@ test("SDI switcher takes HDMI sources only through explicit converters", () => {
 });
 
 test("a lead that physically fits but carries the wrong signal family is rejected atomically", () => {
-  let state = setUp("m-2");
-  state = attach(state, "x-spk", "a", "amp:spk-out");
-  state = act(state, { kind: "end", cableId: "x-spk", end: "b" });
+  let state = setUp("m-4");
+  state = attach(state, "x-sdi1", "a", "cam2:sdi-out");
+  state = act(state, { kind: "end", cableId: "x-sdi1", end: "b" });
   const before = structuredClone(state);
-  state = act(state, { kind: "port", portId: "paL:line-in" });
+  state = act(state, { kind: "port", portId: "sw:ref-in" });
   assert.equal(state.notice.tone, "error");
-  assert.match(state.notice.detail, /ระดับขับลำโพง/);
   assert.deepEqual(state.cables, before.cables); assert.deepEqual(state.held, before.held);
 });
 

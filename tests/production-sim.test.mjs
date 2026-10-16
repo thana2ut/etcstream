@@ -151,42 +151,35 @@ test("ST: unplugging the Capture USB stops OBS but not the multiview", () => {
 
 /* ───────── room 03 deterministic engineering tests ───────── */
 const AU = SCENARIOS["m-5"].simDevices;
-test("AU: LAN CONTROL → router never satisfies the ingest; USB STREAM → OBS host → host network does", () => {
-  let s = solve("m-5", { stopAt: "signal" });
-  s = setControl(s, "host", "stream", true);
-  assert.ok(simContext(s).view.wan.live);
-  const hostEth = SCENARIOS["m-5"].canonical.find((c) => c.from === "host:eth").cableId;
-  s = attach(s, hostEth, "a", "sw:lan");
-  assert.ok(!simContext(s).view.wan.live);
-  assert.equal(simContext(s).view.wan.problem.code, "NO_STREAM");
+test("AU: SDI into REF IN is rejected — reference is not a video input", () => {
+  assert.equal(canConnect(AU, "cam2:sdi-out", "sw:ref-in").code, "REF_NOT_VIDEO");
+  assert.ok(canConnect(AU, "cam2:sdi-out", "sw:sdi-in-2").ok);
 });
-test("AU: GROUP unassigned → house PA audible, remote viewer silent", () => {
-  let s = solve("m-5", { stopAt: "signal" });
-  s = setControl(setControl(s, "host", "stream", true), "mix", "ch1-grp", false);
-  const ctx = simContext(s);
-  assert.ok(ctx.view.paL.audio.includes("PRESENTER VOICE"));
-  assert.ok(!ctx.view.wan.audio.includes("PRESENTER VOICE"));
+test("AU: multicore mates only with multicore; SDI→HDMI converter is direction-specific", () => {
+  assert.ok(canConnect(AU, "stagebox:multicore", "tail:multicore").ok);
+  assert.ok(!canConnect(AU, "stagebox:multicore", "mix:in-1").ok);
+  assert.ok(!canConnect(AU, "sw:sdi-out-1", "convHS:hdmi-in").ok);
 });
-test("AU: three assigned HDMI outputs give PGM / AUX / MV simultaneously", () => {
-  let s = solve("m-3", { stopAt: "signal" });
-  s = setControl(s, "sw", "pgm", "SDI 1");
+test("AU: PA and Broadcast buses are separate — Broadcast send off keeps the room, silences OBS", () => {
+  let s = solve("m-5", { stopAt: "signal" });
+  s = setControl(s, "mix", "ch1-bc", false);
   const v = simContext(s).view;
-  assert.equal(v.display.picture, "CAM WIDE · STAGE");
-  assert.equal(v.conf.picture, "KEYNOTE SLIDES");
-  assert.match(v.monitor.picture, /^MULTIVIEW/);
+  assert.ok(v.paL.audio.includes("PODIUM VOICE"));
+  assert.ok(!(v.host.audio ?? []).includes("PODIUM VOICE"));
 });
-test("AU: Roland definition has its own rear ports (no ATEM single HDMI OUT); PA speaker output → line input rejected", () => {
-  const ports = MODELS["roland-v-160hd"].ports.map((p) => p.key);
-  assert.ok(ports.includes("hdmi-out-3") && ports.includes("lan") && !ports.includes("hdmi-out"));
-  assert.equal(canConnect(AU, "amp:spk-out", "sw:ain-1").code, "SPEAKER_LEVEL");
-  assert.equal(canConnect(AU, "mix:phones", "paL:line-in").code, "HEADPHONE_NOT_LINE");
-  assert.ok(canConnect(AU, "mix:st-l", "paL:line-in").ok);
-});
-test("AU: HyperDeck recording and stream status are independent", () => {
+test("AU: stage display follows AUX — MULTIVIEW stays on the FOH monitor", () => {
   let s = solve("m-5", { stopAt: "signal" });
-  s = setControl(setControl(s, "host", "stream", true), "rec", "record", true);
+  s = setControl(s, "sw", "pgm", "SDI 5");
+  const v = simContext(s).view;
+  assert.equal(v.display.picture, "SLIDES");
+  assert.match(v.monitor.picture, /^MULTIVIEW/);
+  s = setControl(s, "sw", "aux", "SDI 3");
+  assert.equal(simContext(s).view.display.picture, "CAM3 RIGHT");
+});
+test("AU: HyperDeck recording and OBS capture are independent outputs", () => {
+  let s = solve("m-5", { stopAt: "signal" });
   const full = simContext(setControl(s, "rec", "media", "SD card mounted · FULL (0 GB)"));
-  assert.ok(!full.view.rec.recording && full.view.wan.live);
+  assert.ok(!full.view.rec.recording && full.view.host.picture);
 });
 
 /* ───────── room 04 validation cases ───────── */

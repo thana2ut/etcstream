@@ -370,9 +370,55 @@ const HS5 = { modelId: "yamaha-hs5", manufacturer: "Yamaha", name: "Yamaha HS5 (
 const DYN_MIC = generic("generic-dynamic-mic", "ไมค์สายไดนามิก XLR (GENERIC TRAINING MODEL)", "mic", "mic", [0.212, 0.052, 0.052],
   [p("xlr-out", "XLR OUT", "OUTPUT", "XLR", "MIC", "ขาออกไมค์สมดุลระดับไมค์ ต้องเข้าพรีแอมป์", { channels: 1 })], [], ["ไมค์ไดนามิก ไม่ต้องใช้ไฟ Phantom"], false);
 
+/* ---------------- auditorium (M) — generic 1080p50 3G-SDI production kit per the 25-level wiring guide ---------------- */
+const SDI_CAM = generic("generic-sdi-camera", "กล้อง SDI 1080p50 (GENERIC TRAINING MODEL)", "source", "camera", [0.32, 1.5, 0.45],
+  [p("sdi-out", "SDI OUT (3G)", "OUTPUT", "SDI", "SDI", "ขาออกภาพ 3G-SDI 1080p50 พร้อมเสียงไมค์กล้องฝัง", { formats: ["1080p50"] })],
+  [power, sel("framing", "การจัดกรอบภาพ", ["Not framed", "Framed for assignment"], "จัดกรอบตามตำแหน่งที่ได้รับมอบหมาย"), tog("cam-audio", "ฝังเสียงไมค์กล้อง", "เสียงไมค์กล้องที่ฝังใน SDI", false)],
+  ["กล้อง SDI ทั่วไปตามคู่มือ: SDI OUT เท่านั้น"]);
+const SDI_PTZ = generic("generic-sdi-ptz", "กล้อง PTZ ติดตั้งถาวร ขาออก SDI (GENERIC TRAINING MODEL)", "source", "camera", [0.2, 0.25, 0.2],
+  [p("sdi-out", "SDI OUT (3G)", "OUTPUT", "SDI", "SDI", "ขาออกภาพ 3G-SDI 1080p50 จากกล้อง PTZ", { formats: ["1080p50"] })],
+  [power, sel("framing", "ตำแหน่ง Preset", ["Not framed", "Framed for assignment"], "เรียก Preset มุมเวที")], ["กล้อง PTZ ติดตั้งถาวร ไม่ต้องย้าย"]);
+const SDI_SWITCHER = generic("generic-sdi-switcher", "เครื่องสลับภาพ 3G-SDI (GENERIC TRAINING MODEL)", "switcher", "box", [0.62, 0.16, 0.38],
+  [...[1, 2, 3, 4, 5, 6].map((n) => p(`sdi-in-${n}`, `SDI IN ${n}`, "INPUT", "SDI", "SDI", `ขาเข้า 3G-SDI ${n} รับ 1080p50`, { formats: ["1080p50"] })),
+    p("ref-in", "REF IN (BNC)", "INPUT", "SDI", "REF", "ขาเข้าสัญญาณอ้างอิงเวลา (Reference/Genlock) ไม่ใช่ขาเข้าภาพ"),
+    ...[1, 2, 3].map((n) => p(`sdi-out-${n}`, `SDI OUT ${n}`, "OUTPUT", "SDI", "SDI", `ขาออก SDI ${n} กำหนดหน้าที่ได้: PROGRAM (clean) / AUX`)),
+    p("mv-out", "MULTIVIEW SDI OUT", "OUTPUT", "SDI", "SDI", "ขาออกรวมภาพสำหรับจอ FOH เท่านั้น"),
+    p("xlr-l", "AUDIO IN L (XLR, LINE)", "INPUT", "XLR", "LINE_BAL", "ขาเข้าเสียงไลน์สมดุลซ้าย จากบัส Broadcast", { channels: 1 }),
+    p("xlr-r", "AUDIO IN R (XLR, LINE)", "INPUT", "XLR", "LINE_BAL", "ขาเข้าเสียงไลน์สมดุลขวา จากบัส Broadcast", { channels: 1 })],
+  [power, sel("pgm", "PROGRAM (สลับภาพ)", ["Black", "SDI 1", "SDI 2", "SDI 3", "SDI 4", "SDI 5", "SDI 6"], "เลือกภาพออกอากาศ"),
+    sel("pvw", "PREVIEW", ["Black", "SDI 1", "SDI 2", "SDI 3", "SDI 4", "SDI 5", "SDI 6"], "เลือกภาพถัดไป"),
+    sel("aux", "แหล่งภาพ AUX", ["SDI 1", "SDI 2", "SDI 3", "SDI 4", "SDI 5", "SDI 6", "PROGRAM"], "AUX สำหรับจอเวที", "SDI 1"),
+    ...[1, 2, 3].map((n) => sel(`sdi-out-${n}`, `SDI OUT ${n} หน้าที่`, ["OFF", "PROGRAM", "AUX"], "กำหนดหน้าที่ขาออกแต่ละช่อง", "OFF")),
+    tog("xlr-on", "เปิด AUDIO IN L/R เข้ารายการ", "ฝังเสียง Broadcast ลงใน PGM"),
+    sel("emb-audio", "เสียงที่มากับ SDI", ["ON", "AFV", "OFF"], "เสียงไมค์กล้องที่ฝังมา", "OFF")],
+  ["โปรไฟล์ทั่วไป: SDI IN 1–6, SDI OUT 1–3 กำหนดหน้าที่, MULTIVIEW แยก, AUDIO IN L/R XLR", "REF IN เป็นสัญญาณอ้างอิง ไม่รับภาพ"]);
+const SDI_MON = generic("generic-sdi-monitor", "จอมอนิเตอร์ SDI ที่ FOH (GENERIC TRAINING MODEL)", "display", "box", [0.6, 0.36, 0.08],
+  [p("sdi-in", "SDI IN", "INPUT", "SDI", "SDI", "ขาเข้า 3G-SDI", { formats: ["1080p50"] })], [power], ["จอที่รับ SDI โดยตรง"]);
+const STAGEBOX = generic("generic-analog-stagebox", "Stagebox อนาล็อก ข้างเวที (GENERIC TRAINING MODEL)", "stagebox", "box", [0.5, 0.55, 0.45],
+  [...[1, 2, 3, 4].map((n) => p(`mic-in-${n}`, `MIC IN ${n} (XLR)`, "INPUT", "XLR", "MIC", `ช่องรับไมค์ ${n} บนเวที`, { channels: 1 })),
+    p("multicore", "MULTICORE OUT", "OUTPUT", "MULTICORE", "MULTICORE", "ปลายสายมัลติคอร์ไปยัง FOH (ช่องตรงกัน 1:1)", { channels: 4 })],
+  [], ["อนาล็อกพาสซีฟ ช่อง 1 ที่เวที = ช่อง 1 ที่หางสาย FOH"], false);
+const SNAKE_TAIL = generic("generic-snake-tail", "หางสายมัลติคอร์ที่ FOH (GENERIC TRAINING MODEL)", "snake-tail", "box", [0.3, 0.12, 0.2],
+  [p("multicore", "MULTICORE IN", "INPUT", "MULTICORE", "MULTICORE", "ปลายสายมัลติคอร์จากเวที", { channels: 4 }),
+    ...[1, 2, 3, 4].map((n) => p(`tail-${n}`, `TAIL ${n} (XLR)`, "OUTPUT", "XLR", "MIC", `หางสาย XLR ช่อง ${n} ไปยังมิกเซอร์`, { channels: 1 }))],
+  [], ["หางสายแต่ละช่องตรงกับ MIC IN ที่ Stagebox"], false);
+const FOH_MIXER = generic("generic-foh-mixer", "มิกเซอร์ FOH (GENERIC TRAINING MODEL)", "mixer", "mixer", [0.6, 0.12, 0.45],
+  [...[1, 2, 3, 4].map((n) => p(`in-${n}`, `CH ${n} IN (XLR)`, "INPUT", "XLR", "MIC", `ช่องเข้า ${n} มีพรีแอมป์`, { channels: 1, panel: "front" })),
+    p("pa-l", "PA OUT L (XLR)", "OUTPUT", "XLR", "LINE_BAL", "บัสลำโพงห้อง ซ้าย", { channels: 1 }), p("pa-r", "PA OUT R (XLR)", "OUTPUT", "XLR", "LINE_BAL", "บัสลำโพงห้อง ขวา", { channels: 1 }),
+    p("bc-l", "BROADCAST OUT L (XLR)", "OUTPUT", "XLR", "LINE_BAL", "บัสถ่ายทอด ซ้าย (แยกจาก PA)", { channels: 1 }), p("bc-r", "BROADCAST OUT R (XLR)", "OUTPUT", "XLR", "LINE_BAL", "บัสถ่ายทอด ขวา (แยกจาก PA)", { channels: 1 })],
+  [power, ...[1, 2, 3].flatMap((n) => [
+      sel(`ch${n}-gain`, `CH${n} GAIN`, ["Minimum", "Nominal (peaks −18 dBFS)", "Too hot (clips)"], "ตั้งพรีแอมป์ให้พีกต่ำกว่าจุดคลิป"),
+      tog(`ch${n}-on`, `CH${n} ON`, "ยกเลิก Mute"), tog(`ch${n}-pa`, `CH${n} → PA`, "ส่งเข้าบัสลำโพงห้อง"), tog(`ch${n}-bc`, `CH${n} → BROADCAST`, "ส่งเข้าบัสถ่ายทอด")]),
+    sel("pa-fader", "เฟดเดอร์ PA", ["Down", "Unity"], "ระดับบัส PA", "Down"), sel("bc-fader", "เฟดเดอร์ BROADCAST", ["Down", "Unity"], "ระดับบัสถ่ายทอด", "Down")],
+  ["บัส PA และ Broadcast แยกกันจริง", "แผงควบคุมจำลองแสดง CH1–CH3"]);
+const SDI_CAPTURE = generic("generic-sdi-usb-capture", "อุปกรณ์จับภาพ SDI → USB (GENERIC TRAINING MODEL)", "capture", "box", [0.15, 0.04, 0.1],
+  [p("sdi-in", "SDI IN", "INPUT", "SDI", "SDI", "รับ PGM ทาง 3G-SDI", { formats: ["1080p50"] }),
+    p("usb", "USB 3.0 (DEVICE → HOST)", "OUTPUT", "USB-A", "USB_UVC", "ส่งภาพและเสียงเข้า USB HOST ของคอมพิวเตอร์")],
+  [], ["อุปกรณ์จับภาพทั่วไป SDI IN + USB DEVICE"], false);
+
 export const MODELS: Record<string, EquipmentDefinition> = Object.fromEntries([
   SM58, AMBIENCE_MIC, MG12XU, STUDIO_CAM, ATEM_MINI_PRO_ISO, HD8_ISO, CONSTELLATION, V160HD, CONV_HS, CONV_SH, VIDEOHUB, HYPERDECK, STREAM_ENC,
-  HDMI_CAM, LAPTOP, DOCCAM, MINI_SWITCHER, STUDIO_SWITCHER, MAGEWELL, HS5, DYN_MIC, LAV_MIC, WIRELESS_TX, WIRELESS_RX, MIXER_4CH, GFX_PC, PROJECTOR, MONITOR, PA, HEADPHONES, SSD, ROUTER, INGEST, OBS_HOST, AUDIO_IF, POWER_AMP,
+  HDMI_CAM, LAPTOP, DOCCAM, MINI_SWITCHER, STUDIO_SWITCHER, SDI_CAM, SDI_PTZ, SDI_SWITCHER, SDI_MON, STAGEBOX, SNAKE_TAIL, FOH_MIXER, SDI_CAPTURE, MAGEWELL, HS5, DYN_MIC, LAV_MIC, WIRELESS_TX, WIRELESS_RX, MIXER_4CH, GFX_PC, PROJECTOR, MONITOR, PA, HEADPHONES, SSD, ROUTER, INGEST, OBS_HOST, AUDIO_IF, POWER_AMP,
 ].map((m) => [m.modelId, m]));
 
 export function portDef(modelId: string, key: string): PortDefinition | undefined {

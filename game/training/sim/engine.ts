@@ -55,6 +55,8 @@ export function canConnect(devices: Record<string, DeviceInstance>, a: string, b
   if (s === "HEADPHONE" && t === "HEADPHONE") return verdict(true, "OK", "เชื่อมต่อแล้ว", `${out.name} → ${inp.name}`, "speaker-level");
   if (s === "HEADPHONE" && t !== "HEADPHONE") return verdict(false, "HEADPHONE_NOT_LINE", "ขาออกหูฟังใช้ป้อนระบบนี้ไม่ได้", "PHONES ใช้ขยายเสียงสำหรับหูฟัง ให้ป้อนลำโพงและเครื่องสลับภาพจากขาออกไลน์ STEREO หรือ GROUP", "speaker-level");
   if (t === "HEADPHONE" && s !== "HEADPHONE") return verdict(false, "NOT_HEADPHONE", "แหล่งสัญญาณหูฟังไม่ถูกต้อง", "ต่อหูฟังที่ PHONES ของเครื่องผสมเสียง", "connector");
+  if (t === "REF") return verdict(false, "REF_NOT_VIDEO", "REF IN ไม่ใช่ขาเข้าภาพ", `${inp.name} รับสัญญาณอ้างอิงเวลา (Genlock) เท่านั้น ภาพ SDI ต้องเข้า SDI IN`, "connector");
+  if (s === "MULTICORE" || t === "MULTICORE") return s === t ? verdict(true, "OK", "เชื่อมต่อแล้ว", `${out.name} → ${inp.name}`, "connector") : verdict(false, "MULTICORE_ONLY", "ต้องต่อมัลติคอร์คู่กัน", "ปลายมัลติคอร์ต่อได้กับปลายมัลติคอร์อีกด้านเท่านั้น", "connector");
   const video = (x: string) => x === "HDMI" || x === "SDI";
   if (video(s) || video(t)) {
     if (s !== t) return verdict(false, "VIDEO_CLASS", `${s} ≠ ${t}`, `สัญญาณ ${s} เข้า ${t} ไม่ได้หากไม่มีตัวแปลงที่มีไฟเลี้ยงและถูกทิศทาง`, "converter-direction");
@@ -179,7 +181,43 @@ function processDevice(id: string, devices: Record<string, DeviceInstance>, inp:
       if (cfg(id, "aim") === "Toward PA loudspeaker") view.status = "หัวไมค์หันเข้าหาลำโพง";
       break;
     }
+    case "stagebox": {
+      const dead = Number(cfg(id, "dead-ch") ?? 0);
+      const ch: Record<number, AudioSignal | undefined> = {};
+      for (const n of [1, 2, 3, 4]) { const sg = I(`mic-in-${n}`) as AudioSignal | undefined; if (sg && n !== dead) ch[n] = sg; if (sg && n === dead) problem("DEAD_CH", "connector", `ช่อง MIC IN ${n} ของ Stagebox เสีย`, "ย้ายไมค์ไปช่องว่างที่ Stagebox และหางสายช่องเดียวกันที่ FOH"); }
+      out[P("multicore")] = { kind: "audio", cls: "MULTICORE", sources: uniq(Object.values(ch).flatMap((x) => x?.sources ?? [])), clip: false, via: [], ch };
+      view.audio = out[P("multicore")]!.kind === "audio" ? (out[P("multicore")] as AudioSignal).sources : [];
+      view.status = `ช่องที่มีสัญญาณ: ${Object.keys(ch).join(", ") || "—"}`;
+      break;
+    }
+    case "snake-tail": {
+      const mc = I("multicore") as AudioSignal | undefined;
+      for (const n of [1, 2, 3, 4]) { const sg = mc?.ch?.[n]; if (sg) out[P(`tail-${n}`)] = { ...sg, via: [] }; }
+      view.status = mc ? "รับมัลติคอร์จากเวที" : "ยังไม่ต่อมัลติคอร์";
+      break;
+    }
     case "mixer": {
+      if (inst.model === "generic-foh-mixer") {
+        const chans = [1, 2, 3].map((n) => {
+          const sg = I(`in-${n}`) as AudioSignal | undefined;
+          const gain = String(cfg(id, `ch${n}-gain`));
+          return { n, s: sg, gain, live: sg?.kind === "audio" && cfg(id, `ch${n}-on`) === true && !gain.startsWith("Minimum") };
+        });
+        const bus = (key: "pa" | "bc", fader: string): AudioSignal => {
+          const used = fader === "Unity" ? chans.filter((c) => c.live && cfg(id, `ch${c.n}-${key}`) === true) : [];
+          return { kind: "audio", cls: "LINE_BAL", sources: uniq(used.flatMap((c) => c.s!.sources)), clip: used.some((c) => c.gain.startsWith("Too hot") || c.s!.clip), via: [] };
+        };
+        const pa = bus("pa", String(cfg(id, "pa-fader"))), bc = bus("bc", String(cfg(id, "bc-fader")));
+        out[P("pa-l")] = pa; out[P("pa-r")] = pa; out[P("bc-l")] = bc; out[P("bc-r")] = bc;
+        view.audio = uniq([...pa.sources, ...bc.sources]); view.clip = pa.clip || bc.clip;
+        for (const c of chans) {
+          if (c.s && cfg(id, `ch${c.n}-on`) !== true) problem("MUTED", "mute", `CH${c.n} ถูก Mute อยู่`, `เปิด CH${c.n} ON`);
+          if (c.s && c.gain.startsWith("Minimum")) problem("NO_GAIN", "clipping", `Gain ของ CH${c.n} ต่ำสุด`, "เพิ่ม Gain เป็น Nominal");
+          if (c.live && c.gain.startsWith("Too hot")) problem("CLIP", "clipping", `CH${c.n} คลิป`, "ลด Gain เป็น Nominal");
+        }
+        view.status = `PA: ${pa.sources.join(" + ") || "—"} · BROADCAST: ${bc.sources.join(" + ") || "—"}`;
+        break;
+      }
       if (inst.model === "generic-4ch-mixer") {
         const chans = [1, 2, 3].map((n) => {
           const sg = I(`in-${n}`) as AudioSignal | undefined;
@@ -291,6 +329,7 @@ function processDevice(id: string, devices: Record<string, DeviceInstance>, inp:
       if (inst.model === "bmd-atem-2me-constellation-hd") analog(["aud-l", "aud-r"], "analog-on");
       if (inst.model === "roland-v-160hd") analog(["ain-1", "ain-2"], "ain-on", "ain-mode");
       if (inst.model === "generic-mini-switcher" || inst.model === "generic-studio-switcher") analog(["audio-in"], "ain-on");
+      if (inst.model === "generic-sdi-switcher") analog(["xlr-l", "xlr-r"], "xlr-on");
       const emb = String(cfg(id, "emb-audio"));
       if (emb === "ON") for (const s of Object.values(valid)) audio.push(...s.audio);
       if (emb === "AFV" && pgmKey && valid[pgmKey]) audio.push(...valid[pgmKey].audio);
@@ -305,7 +344,7 @@ function processDevice(id: string, devices: Record<string, DeviceInstance>, inp:
         if (v === "MULTIVIEW") return mvContent;
         if (v === "PREVIEW") return pvw;
         if (v === "CAM RETURN") return `RETURN ${pgm}`;
-        if (v === "AUX") { const k2 = inputKeyFromOption(m, String(cfg(id, "aux"))); return k2 && valid[k2] ? valid[k2].content : "BLACK"; }
+        if (v === "AUX") { if (cfg(id, "aux") === "PROGRAM") return pgm; const k2 = inputKeyFromOption(m, String(cfg(id, "aux"))); return k2 && valid[k2] ? valid[k2].content : "BLACK"; }
         return undefined;
       };
       const vs = (cls: "HDMI" | "SDI", content: string | undefined): VideoSignal | undefined => content === undefined ? undefined : { kind: "video", cls, format: DEFAULT_FORMAT, content, audio: content.startsWith("MULTIVIEW") ? [] : pgmAudio, via: [] };
@@ -442,7 +481,7 @@ function processDevice(id: string, devices: Record<string, DeviceInstance>, inp:
       break;
     }
     case "capture": {
-      const s = I("hdmi-in") as VideoSignal | undefined;
+      const s = (I("hdmi-in") ?? I("sdi-in")) as VideoSignal | undefined;
       if (s?.kind === "video") { out[P("usb")] = { kind: "usb", cls: "USB_UVC", content: s.content, audio: s.audio, via: [] }; view.picture = s.content; view.audio = s.audio; view.status = `จับภาพ: ${s.content}`; }
       else { view.status = "ไม่มีสัญญาณ HDMI"; problem("NO_INPUT", "output-assign", "อุปกรณ์จับภาพไม่มีสัญญาณ HDMI เข้า", "ต่อ PGM OUT ของเครื่องสลับภาพเข้า HDMI IN"); }
       break;

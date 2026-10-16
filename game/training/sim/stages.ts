@@ -363,129 +363,138 @@ function studio(): StageManifest[] {
   return [L1, L2, L3, L4, L5];
 }
 
-/* ══════════════════════════ ROOM 03 · AUDITORIUM (Roland V-160HD) ══════════════════════════ */
+/* ══════════════════════════ ROOM 03 · AUDITORIUM (M) — EduStream 25-level wiring guide ══════════════════════════
+ * Generic 1080p50 3G-SDI switcher (SDI IN1–6, REF IN, SDI OUT1–3 assignable PGM/AUX, MV SDI, AUDIO IN L/R XLR), SDI cameras + PTZ,
+ * Blackmagic direction-specific Micro Converters, analog stagebox + multicore + FOH tail, FOH mixer with separate PA and Broadcast L/R. */
+const mCams = (ids: string[]) => ids.flatMap((d) => C(d, { power: true, framing: "Framed for assignment" }));
+const mFoh = (chs: number[], pa: boolean, bc: boolean) => [...C("mix", { power: true, ...(pa ? { "pa-fader": "Unity" } : {}), ...(bc ? { "bc-fader": "Unity" } : {}) }),
+  ...chs.flatMap((n) => C("mix", { [`ch${n}-gain`]: "Nominal (peaks −18 dBFS)", [`ch${n}-on`]: true, ...(pa ? { [`ch${n}-pa`]: true } : {}), ...(bc ? { [`ch${n}-bc`]: true } : {}) }))];
+const mPa = [...C("paL", { power: true, level: "Nominal", aim: "In front of the mic, aimed at audience" }), ...C("paR", { power: true, level: "Nominal", aim: "In front of the mic, aimed at audience" })];
+const mVideo3: [string, string][] = [["cam1:sdi-out", "sw:sdi-in-1"], ["cam2:sdi-out", "sw:sdi-in-2"], ["cam3:sdi-out", "sw:sdi-in-3"], ["ptz:sdi-out", "sw:sdi-in-4"],
+  ["slides:hdmi-out", "convHS:hdmi-in"], ["convHS:sdi-out", "sw:sdi-in-5"], ["sw:mv-out", "monitor:sdi-in"], ["sw:sdi-out-1", "convSH:sdi-in"], ["convSH:hdmi-out", "display:hdmi-in"]];
+const mVideoCfg = [...mCams(["cam1", "cam2", "cam3", "ptz"]), ...C("slides", { power: true, present: true, "mute-audio": true }), ...C("convHS", { power: true }), ...C("convSH", { power: true }),
+  ...C("sw", { power: true, "sdi-out-1": "AUX", aux: "PROGRAM", pgm: "SDI 1" }), ...C("monitor", { power: true }), ...C("display", { power: true })];
+
 function auditorium(): StageManifest[] {
   CURRENT_ROOM = "m";
   const room = "m" as const;
-  const projection: Pair[] = [["slides:hdmi-out", "sw:hdmi-in-1"], ["sw:hdmi-out-1", "display:hdmi-in-1"]];
-  const projOk = [...C("slides", { power: true, present: true }), ...C("sw", { power: true, "hdmi-out-1": "PROGRAM", pgm: "HDMI 1" }), ...C("display", { power: true, source: "HDMI 1" })];
-  const mixer = [...C("mix", { power: true, "ch1-gain": "Nominal (peaks −18 dBFS)", "ch1-on": true, "ch1-st": true, "ch1-hpf": true, "st-fader": "Unity" }), ...C("mic", { aim: "At talker's mouth" }), ...C("paL", { power: true, level: "Nominal", aim: "In front of the mic, aimed at audience" }), ...C("paR", { power: true, level: "Nominal", aim: "In front of the mic, aimed at audience" })];
-  const pa: Pair[] = [["mic:xlr-out", "mix:mic-1"], ["mix:st-l", "paL:line-in"], ["mix:st-r", "paR:line-in"]];
   const L1 = finish(room, {
-    id: "AU-01", level: 1, title: "จุดแสงบนจอใหญ่", subtitle: "ฝึกพร้อมคำแนะนำ · ตั้งค่าขาออกส่งภาพให้ผู้ชม", guidance: "guided", minutes: "10–14 นาที",
-    ticket: "แสดงสไลด์ให้ผู้ชม โดยไม่แสดงจอรวมภาพของทีมเทคนิค",
-    callSheet: ["โน้ตบุ๊กนำเสนอ: โต๊ะซ้ายเวที", "V-160HD: โต๊ะควบคุมภาพ", "แผงรับสัญญาณโปรเจกเตอร์: ขวาเวที"],
-    briefing: ["HDMI OUT 1 ของ V-160HD เลือกหน้าที่ได้ วันนี้เริ่มที่จอรวมภาพ MULTIVIEW", "PREVIEW คือภาพเตรียม ส่วน PROGRAM คือภาพที่ผู้ชมเห็น"],
-    devices: ["slides", "sw", "display"],
-    solution: projection,
-    solutionConfig: [...projOk, ...C("site", { "power-check": true, format: true })],
-    cues: [cue("c1", "ลดไฟห้องครึ่งหนึ่ง … สลับสไลด์", "KEYNOTE SLIDES")],
+    id: "AU-01", level: 1, title: "กล้องหลักสู่จอเวที · Main Camera to Stage Display", subtitle: "ฝึกพร้อมคำแนะนำ · SDI → เครื่องสลับภาพ → ตัวแปลง SDI→HDMI → จอเวที", guidance: "guided", minutes: "10–12 นาที",
+    ticket: "นำภาพกล้องกลางหลังห้องขึ้นจอเวที",
+    callSheet: ["กล้อง 1 กลางหลังห้อง", "เครื่องสลับภาพที่ FOH", "ตัวแปลง SDI→HDMI ข้างเวทีขวา → จอเวที"],
+    briefing: ["SDI เส้นที่ 1: กล้อง SDI OUT → Switcher SDI IN 1", "SDI เส้นที่ 2: Switcher SDI OUT 1 (ตั้งเป็น AUX/PGM) → Converter SDI IN", "HDMI: Converter HDMI OUT → จอเวที HDMI IN — ตัวแปลงต้องมีไฟเลี้ยงและหันทิศถูก"],
+    devices: ["cam1", "sw", "convSH", "display"],
+    solution: [["cam1:sdi-out", "sw:sdi-in-1"], ["sw:sdi-out-1", "convSH:sdi-in"], ["convSH:hdmi-out", "display:hdmi-in"]],
+    solutionConfig: [...mCams(["cam1"]), ...C("sw", { power: true, pgm: "SDI 1", "sdi-out-1": "PROGRAM" }), ...C("convSH", { power: true }), ...C("display", { power: true }), ...C("site", { "power-check": true, format: true })],
+    cues: [cue("c1", "เปิดงาน … กล้อง 1", "CAM1")],
     obj: [
-      o("proj", "โปรเจกเตอร์แสดงสไลด์ถูกต้อง", "signal", "signal", "output-assign", shows("display", "KEYNOTE SLIDES", "Projector"), true),
-      o("no-mv", "ผู้ชมไม่เห็นตารางภาพของทีมควบคุม", "signal", "signal", "output-assign", notShows("display", "MULTIVIEW", "ผู้ชมเห็นจอรวมภาพ", "กำหนด HDMI OUT 1 เป็น PROGRAM"), true),
-      o("assign", "กำหนด HDMI OUT 1 เป็น PROGRAM", "config", "signal", "output-assign", cfgIs("sw", "hdmi-out-1", "PROGRAM", "กำหนดขาออก HDMI OUT 1 เป็น PROGRAM")),
-      o("present", "เปิดโหมดนำเสนอแล้ว", "config", "signal", "output-assign", cfgIs("slides", "present", true, "เริ่มแสดงสไลด์")),
+      o("stage", "จอเวทีแสดงภาพกล้อง", "signal", "signal", "converter-direction", shows("display", "CAM1", "จอเวที"), true),
+      o("conv", "ตัวแปลง SDI→HDMI มีไฟเลี้ยง", "config", "signal", "power", cfgIs("convSH", "power", true, "เปิดไฟเลี้ยงตัวแปลง (USB-C power)")),
+      o("out", "SDI OUT 1 กำหนดหน้าที่แล้ว", "config", "signal", "output-assign", (c) => c.cfg("sw", "sdi-out-1") === "OFF" ? { ok: false, reason: "SDI OUT 1 ยังปิดอยู่", fix: "ตั้ง SDI OUT 1 เป็น PROGRAM หรือ AUX" } : { ok: true }),
     ],
-    preflight: ["power-check", "format"], quiz: quiz("output-assign"), reward: "ตราจอใหญ่",
-    passCriteria: ["โปรเจกเตอร์แสดงสไลด์", "ไม่ส่งจอรวมภาพให้ผู้ชม"],
+    preflight: ["power-check", "format"], quiz: quiz("converter-direction"), reward: "ตราแสงแรกบนเวที",
+    passCriteria: ["ตัวแปลงมีไฟ รูปแบบถูก เลือกแหล่งภาพถูก และจอเวทีเลือกขาเข้าถูก", "ภาพกล้องปรากฏบนจอเวที"],
   });
   const L2 = finish(room, {
-    id: "AU-02", level: 2, title: "เสียงทั่วหอประชุม", subtitle: "คำแนะนำบางส่วน · ระบบเสียงและการป้องกันเสียงหอน", guidance: "partial", minutes: "15–18 นาที",
-    ticket: "ทำให้ผู้ชมทั่วห้องได้ยินประกาศจากโพเดียมชัดเจนโดยไม่มีเสียงหอน",
-    callSheet: ["SM58 ที่โพเดียม", "MG12XU ที่จุดควบคุมเสียง", "ลำโพงแอ็กทีฟหน้าเวทีซ้ายและขวา"],
-    briefing: ["ลำโพงรับระดับ LINE จาก STEREO OUT L/R โดยแยกสายแต่ละข้าง", "ขาออกหูฟัง PHONES และขาออกลำโพงจากแอมป์ไม่ใช่สัญญาณป้อนลำโพงแอ็กทีฟ", "แก้ตำแหน่งไมค์และลำโพงก่อนเพิ่มระดับเสียง"],
-    devices: ["mic", "mix", "paL", "paR", "slides", "sw", "display", "amp"],
-    decoys: ["amp"],
-    solution: [...pa, ...projection],
-    prewired: projection,
-    extraCables: cables(["x-spk", "speakON → XLR สาย (ห้ามใช้)", ["speakON", "XLR-M"], 5], ["x-trs", "TRS 6.35 ม.m 5 ม.", ["6.35mm", "6.35mm"], 5]),
-    startConfig: [...projOk, ...C("mic", { aim: "Toward PA loudspeaker" }), ...C("paL", { aim: "Behind/aimed at the podium mic" })],
-    solutionConfig: [...mixer, ...C("site", { "mic-place": true, soundcheck: true, "cable-route": true })],
+    id: "AU-02", level: 2, title: "เสียงโพเดียม PA และถ่ายทอด · Podium / PA / Broadcast Audio", subtitle: "ฝึกพร้อมคำแนะนำบางส่วน · Stagebox → มัลติคอร์ → FOH แยกบัส PA/Broadcast", guidance: "partial", minutes: "12–15 นาที",
+    ticket: "ให้เสียงโพเดียมดังในห้องและเข้าระบบถ่ายทอดแยกกัน",
+    callSheet: ["ไมค์โพเดียม → Stagebox ช่อง 1", "มัลติคอร์ Stagebox → หางสาย FOH", "PA L/R → ลำโพง · Broadcast L/R → เครื่องสลับภาพ"],
+    briefing: ["สาย XLR 6 เส้น + มัลติคอร์ 1 เส้น", "บัส PA และ Broadcast แยกกัน ห้ามใช้บัสเดียวกัน"],
+    devices: ["podium", "stagebox", "tail", "mix", "paL", "paR", "sw"],
+    solution: [["podium:xlr-out", "stagebox:mic-in-1"], ["stagebox:multicore", "tail:multicore"], ["tail:tail-1", "mix:in-1"], ["mix:pa-l", "paL:line-in"], ["mix:pa-r", "paR:line-in"], ["mix:bc-l", "sw:xlr-l"], ["mix:bc-r", "sw:xlr-r"]],
+    solutionConfig: [...mFoh([1], true, true), ...mPa, ...C("sw", { power: true, "xlr-on": true }), ...C("site", { soundcheck: true, "mic-place": true })],
     cues: [],
     obj: [
-      o("house", "ได้ยินเสียงพูดชัดจากลำโพงทั้งสอง", "signal", "signal", "speaker-level", all(hears("paL", ["PRESENTER VOICE"]), hears("paR", ["PRESENTER VOICE"])), true),
-      o("no-howl", "ไม่มีเสียงหอนในพื้นที่รับฟัง", "quality", "signal", "feedback", noFeedback(["paL", "paR"]), true),
-      o("proj", "ระบบฉายภาพยังทำงาน", "signal", "signal", "output-assign", shows("display", "KEYNOTE SLIDES")),
-      o("walk", "ตรวจเสียงที่ตำแหน่งผู้ชมด้วยระดับเหมาะสมแล้ว", "evidence", "rehearsal", "feedback", all(site("soundcheck", PREFLIGHT.soundcheck), cfgIs("paL", "level", "Nominal", "ตั้งลำโพงระดับเหมาะสม"), cfgIs("paR", "level", "Nominal", "ตั้งลำโพงระดับเหมาะสม"))),
+      o("pa", "เสียงโพเดียมออกลำโพงในห้อง ไม่หอน", "signal", "signal", "speaker-level", all(hears("paL", ["PODIUM VOICE"]), hears("paR", ["PODIUM VOICE"]), noFeedback(["paL", "paR"])), true),
+      o("bc", "มิเตอร์ขาเข้า Broadcast ที่เครื่องสลับภาพขยับ", "signal", "signal", "group-bus", hears("sw", ["PODIUM VOICE"]), true),
+      o("lr", "Broadcast เข้า L และ R ครบ", "config", "physical", "connector", all(edge("mix:bc-l", "sw:xlr-l"), edge("mix:bc-r", "sw:xlr-r"))),
+      o("soundcheck", "ตรวจเสียงระดับพูดจริงแล้ว", "evidence", "rehearsal", "clipping", site("soundcheck", PREFLIGHT.soundcheck)),
     ],
-    preflight: ["mic-place", "soundcheck", "cable-route"], quiz: quiz("feedback"), reward: "เสียงแห่งหอประชุม",
-    passCriteria: ["เสียงพูดชัดทั่วพื้นที่รับฟัง", "ไม่มีเสียงหอน", "ระบบฉายภาพยังทำงาน"],
+    preflight: ["soundcheck", "mic-place"], quiz: quiz("group-bus"), reward: "ตราเสียงแห่งหอประชุม",
+    passCriteria: ["พรีแอมป์ไมค์ถูกต้อง บัส PA/Broadcast แยกกัน", "มิเตอร์ทั้งเสียงในห้องและขาเข้า Broadcast ขยับ"],
   });
-  const three: Pair[] = [["slides:hdmi-out", "sw:hdmi-in-1"], ["cam1:sdi-out", "sw:sdi-in-1"], ["sw:hdmi-out-1", "display:hdmi-in-1"], ["sw:hdmi-out-2", "conf:hdmi-in"], ["sw:hdmi-out-3", "monitor:hdmi-in"]];
-  const threeCfg = [...C("sw", { "hdmi-out-1": "PROGRAM", "hdmi-out-2": "AUX", aux: "HDMI 1", "hdmi-out-3": "MULTIVIEW", labels: true })];
   const L3 = finish(room, {
-    id: "AU-03", level: 3, title: "สามภาพ สามปลายทาง", subtitle: "สถานการณ์ฝึก · แยกภาพออกอากาศ ภาพเสริม และจอรวมภาพ", guidance: "scenario", minutes: "18–22 นาที",
-    ticket: "ส่งสไลด์ให้ผู้ชม ส่งสไลด์ปัจจุบันให้ผู้บรรยาย และส่งจอรวมทุกแหล่งภาพให้ทีมควบคุมพร้อมกัน",
-    callSheet: ["กล้องกว้างหลังห้อง → SDI IN 1", "จอผู้บรรยายด้านหน้าขวาเวที หันเข้าหาผู้บรรยาย"],
-    briefing: ["การแยกสาย PGM ไม่ทำให้ได้ภาพต่างกันสามภาพ ต้องกำหนดขาออกแยกอิสระสามชุด"],
-    devices: ["slides", "cam1", "sw", "display", "conf", "monitor"],
-    solution: three,
-    startConfig: [...C("sw", { "hdmi-out-1": "PREVIEW", pvw: "SDI 1" })],
-    solutionConfig: [...C("slides", { power: true, present: true }), ...C("cam1", { power: true, format: "1080p50", framing: "Framed for assignment" }), ...C("sw", { power: true }), ...threeCfg, ...C("sw", { pgm: "HDMI 1" }), ...C("display", { power: true, source: "HDMI 1" }), ...C("conf", { power: true }), ...C("monitor", { power: true }), ...C("site", { "cable-route": true })],
-    cues: [cue("c1", "ผู้บรรยายขึ้นเวที … ภาพกล้อง", "CAM WIDE"), cue("c2", "สไลด์", "KEYNOTE SLIDES"), cue("c3", "ภาพกล้อง", "CAM WIDE"), cue("c4", "สไลด์", "KEYNOTE SLIDES")],
+    id: "AU-03", level: 3, title: "กล้องและสไลด์ · Cameras and Slides", subtitle: "สถานการณ์ · ห้าแหล่งภาพ จอ FOH และจอเวทีแยกกัน", guidance: "scenario", minutes: "15–20 นาที",
+    ticket: "ห้าแหล่งภาพต้องเลือกได้ทั้งหมด จอเวทีต้องแสดงภาพ PGM ที่สะอาด ไม่ใช่ Multiview",
+    callSheet: ["กล้อง 1–3 + PTZ → SDI IN 1–4", "โน้ตบุ๊ก → HDMI→SDI → SDI IN 5", "MV → จอ FOH (SDI) · AUX → SDI→HDMI → จอเวที"],
+    briefing: ["SDI 7 เส้น HDMI 2 เส้น วางแผนเอง"],
+    devices: ["cam1", "cam2", "cam3", "ptz", "slides", "convHS", "sw", "monitor", "convSH", "display"],
+    solution: mVideo3,
+    solutionConfig: [...mVideoCfg, ...C("site", { "cable-route": true })],
+    previewBeforeTake: true,
+    cues: [cue("c1", "เปิด … กล้อง 1", "CAM1"), cue("c2", "สไลด์", "SLIDES"), cue("c3", "PTZ เวที", "PTZ"), cue("c4", "กล้อง 2", "CAM2"), cue("c5", "กล้อง 3", "CAM3")],
     obj: [
-      o("aud", "โปรเจกเตอร์ผู้ชมแสดงภาพออกอากาศ", "signal", "signal", "output-assign", all(mirrorsProgram("display", "sw"), notShows("display", "MULTIVIEW", "จอรวมภาพหลุดไปยังผู้ชม", "ตั้ง OUT 1 เป็น PROGRAM")), true),
-      o("conf", "จอผู้บรรยายแสดงสไลด์ AUX แยกจากภาพออกอากาศ", "signal", "signal", "output-assign", all(shows("conf", "KEYNOTE SLIDES"), cfgIs("sw", "hdmi-out-2", "AUX", "ตั้ง OUT 2 เป็น AUX และเลือก AUX รับ HDMI 1")), true),
-      o("mv", "จอรวมภาพจุดควบคุมแสดงทุกแหล่งสัญญาณ", "signal", "signal", "output-assign", showsAll("monitor", ["MULTIVIEW", "KEYNOTE SLIDES", "CAM WIDE"]), true),
-      o("labels", "ตั้งชื่อแหล่งสัญญาณแล้ว", "config", "signal", "output-assign", cfgIs("sw", "labels", true, "ตั้งชื่อแหล่งสัญญาณ")),
+      o("mv5", "จอ FOH เห็นครบห้าแหล่งภาพ", "signal", "signal", "output-assign", showsAll("monitor", ["CAM1", "CAM2", "CAM3", "PTZ", "SLIDES"]), true),
+      o("stage", "จอเวทีแสดง PGM ที่สะอาด ไม่ใช่ Multiview", "signal", "signal", "output-assign", all(mirrorsProgram("display", "sw"), notShows("display", "MULTIVIEW", "จอเวทีแสดง Multiview", "ส่ง AUX/PGM ไปจอเวที ไม่ใช่ MV")), true),
+      o("five", "เลือกครบทั้งห้าแหล่งภาพ", "evidence", "rehearsal", "output-assign", historyHas(["CAM1", "CAM2", "CAM3", "PTZ", "SLIDES"])),
     ],
-    preflight: ["cable-route"], quiz: quiz("output-assign"), reward: "ปริซึมสามภาพ",
-    passCriteria: ["ทั้งสามจอแสดงภาพถูกต้องพร้อมกัน", "การสลับภาพไม่ทำให้จอรวมภาพหลุดไปยังผู้ชม"],
+    preflight: ["cable-route"], quiz: quiz("output-assign"), reward: "ตราปริซึมห้าภาพ",
+    passCriteria: ["ห้าแหล่งภาพเห็นและเลือกได้", "จอเวทีแสดง PGM ที่กำหนด ไม่ใช่ MV"],
   });
-  const stream: Pair[] = [["sw:usb", "host:usb-1"], ["host:eth", "net:lan-1"], ["net:wan", "wan:wan-in"]];
-  const L4Pairs: Pair[] = [["slides:hdmi-out", "sw:hdmi-in-1"], ["cam1:sdi-out", "sw:sdi-in-1"], ["cam2:sdi-out", "sw:sdi-in-2"], ...pa, ["mix:grp-1", "sw:ain-1"], ["mix:grp-2", "sw:ain-2"], ["sw:hdmi-out-1", "display:hdmi-in-1"], ["sw:hdmi-out-2", "conf:hdmi-in"], ...stream];
-  const L4Working = [...C("slides", { power: true, present: true }), ...C("cam1", { power: true, framing: "Framed for assignment" }), ...C("cam2", { power: true, framing: "Framed for assignment" }), ...mixer,
-    ...C("mix", { "ch1-grp": true, "grp-fader": "Unity" }), ...C("sw", { power: true, "hdmi-out-1": "PROGRAM", "hdmi-out-2": "AUX", aux: "HDMI 1", "ain-mode": "LINE", "ain-on": true, pgm: "SDI 1", labels: true }),
-    ...C("display", { power: true, source: "HDMI 1" }), ...C("conf", { power: true }), ...C("host", { power: true, "video-src": "USB video capture device", "audio-src": "USB capture embedded audio", "stream-key": "•••••••• (private test key)" }), ...C("net", { power: true })];
+  const m4Pairs: [string, string][] = [...mVideo3, ["podium:xlr-out", "stagebox:mic-in-1"], ["stagebox:multicore", "tail:multicore"], ["tail:tail-1", "mix:in-1"], ["mix:bc-l", "sw:xlr-l"], ["mix:bc-r", "sw:xlr-r"]];
   const L4 = finish(room, {
-    id: "AU-04", level: 4, title: "เสียงสะท้อนในหอคอย", subtitle: "แก้เหตุขัดข้อง · เสียงในห้องและเสียงถ่ายทอด", guidance: "disruption", minutes: "20–25 นาที",
-    ticket: "ส่งภาพและเสียงงานประชุมไปยังผู้ชมทดสอบส่วนตัวผ่าน OBS พร้อมรักษาเสียงในห้องให้ทำงานปกติ",
-    callSheet: ["GROUP 1/2 = เสียงสตรีม → V-160HD AUDIO IN 1/2 แบบ LINE", "USB STREAM → เครื่อง OBS → Ethernet เครื่อง → เราเตอร์ → จุดรับสตรีม", "LAN CONTROL ใช้ควบคุมเท่านั้น"],
-    briefing: ["ตรวจแยกทั้งเสียงในห้อง ภาพออกอากาศ มาตรวัด OBS และผู้ชมทางไกล แล้วแก้ที่ต้นเหตุ"],
-    devices: ["slides", "cam1", "cam2", "sw", "mic", "mix", "paL", "paR", "display", "conf", "host", "net", "wan"],
-    solution: L4Pairs, prewired: "all",
-    startConfig: [...L4Working, ...C("slides", { "mute-audio": false }), ...C("sw", { "emb-audio": "ON" })],
-    faults: [cfgFault("f-grp", "ไมค์ยังไม่ส่งเข้า GROUP 1-2 สตรีมเงียบแต่ลำโพงทำงาน", "group-bus", "mix", "ch1-grp", false, 1), cfgFault("f-obs", "OBS รับไมค์ในเครื่องจนเสียงสะท้อน", "obs-source", "host", "audio-src", "Built-in laptop mic", 3)],
-    solutionConfig: [...C("mix", { "ch1-grp": true }), ...C("host", { "audio-src": "USB capture embedded audio", stream: true, record: true }), ...C("sw", { "emb-audio": "OFF" }), ...C("slides", { "mute-audio": true }), ...C("site", { clap: true, permission: true })],
-    cues: [cue("c1", "ผู้แสดง … ภาพกว้าง", "CAM WIDE"), cue("c2", "สไลด์", "KEYNOTE SLIDES"), cue("c3", "ภาพใกล้", "CAM CLOSE")],
-    obj: [
-      o("house", "เสียงพูดในห้องคงที่ ไม่มีเสียงหอน", "signal", "signal", "feedback", all(hears("paL", ["PRESENTER VOICE"]), noFeedback(["paL", "paR"]))),
-      o("viewer", "ผู้ชมทางไกลได้รับภาพออกอากาศและเสียงพูดไม่ซ้อน", "signal", "delivery", "group-bus", live("wan", "sw", ["PRESENTER VOICE"]), true),
-      o("conf", "จอผู้บรรยายบนเวทียังทำงาน", "signal", "signal", "output-assign", shows("conf", "KEYNOTE SLIDES")),
-      o("dedup", "ป้องกันเสียงโน้ตบุ๊กซ้ำแล้ว", "quality", "signal", "afv-doubling", (c) => (c.view.sw?.audio ?? []).includes("LAPTOP SYSTEM SOUNDS") ? { ok: false, reason: "เสียงระบบโน้ตบุ๊กเข้าชุดเสียงสตรีม", fix: "ปิดเสียงโน้ตบุ๊กหรือปิดเสียงฝังใน V-160HD" } : { ok: true }),
-      o("rec60", "บันทึกไฟล์ซ้อม OBS 60 วินาทีแล้ว", "evidence", "delivery", "storage", evidence("OBS", "หยุดบันทึก OBS สมบูรณ์")),
-      o("recovered", "วินิจฉัยและซ่อมเหตุขัดข้องจำลองแล้ว", "diagnostics", "delivery", "group-bus", faultsRecovered(), true),
+    id: "AU-04", level: 4, title: "ซ่อมระบบหอประชุม · Auditorium Fault Repair", subtitle: "แก้ปัญหา · ภาพและเสียงหายก่อนเริ่มงาน", guidance: "disruption", minutes: "18–22 นาที",
+    ticket: "ก่อนเริ่มงาน 15 นาที: จอเวทีดำ กล้อง 2 หาย และเสียงโพเดียมไม่เข้าระบบถ่ายทอด — คืนบทบาทพอร์ตและสัญญาณให้ถูก",
+    callSheet: ["มีสาย SDI/HDMI/XLR สำรองในชุด", "ตรวจทีละจุดด้วย Trace"],
+    briefing: ["ไม่มีปุ่มซ่อมทั้งหมด ต้องแก้ที่สาเหตุทีละจุด"],
+    devices: ["cam1", "cam2", "cam3", "ptz", "slides", "convHS", "sw", "monitor", "convSH", "display", "podium", "stagebox", "tail", "mix"],
+    solution: m4Pairs, prewired: "all",
+    extraCables: cables(["x-sdi1", "3G-SDI 10 ม. (สำรอง)", ["SDI", "SDI"], 10, 100], ["x-sdi2", "3G-SDI 10 ม. (สำรอง)", ["SDI", "SDI"], 10, 100], ["x-hdmi", "HDMI 2 ม. (สำรอง)", ["HDMI", "HDMI"], 2], ["x-xlr", "XLR 5 ม. (สำรอง)", ["XLR-F", "XLR-M"], 5]),
+    startConfig: [...mVideoCfg, ...mFoh([1], false, true), ...C("sw", { "xlr-on": true })],
+    faults: [
+      { id: "f-ref", label: "กล้อง 2 เสียบเข้า REF IN แทน SDI IN", concept: "connector", order: 1, repatch: { pair: ["cam2:sdi-out", "sw:sdi-in-2"], to: "sw:ref-in" }, cleared: (c) => c.edges.some((e) => e.from === "cam2:sdi-out" && e.to === "sw:sdi-in-2") },
+      cfgFault("f-conv", "ตัวแปลง SDI→HDMI ไม่มีไฟเลี้ยง", "power", "convSH", "power", false, 3),
+      cfgFault("f-aux", "AUX เลือกแหล่งภาพผิด (กล้อง 3 แทน PROGRAM)", "output-assign", "sw", "aux", "SDI 3", 2),
+      cfgFault("f-bus", "ไมค์โพเดียมส่งเข้า PA แทน Broadcast", "group-bus", "mix", "ch1-bc", false, 2),
     ],
-    preflight: ["clap", "permission"], quiz: quiz("group-bus"), reward: "ผู้พิทักษ์เสียงสะท้อน",
-    passCriteria: ["ซ้อม 60 วินาที ครบเสียงพูด สไลด์ และกล้อง", "ไม่มีเสียงซ้อนหรือภาพออกอากาศดำ", "จอผู้บรรยายยังทำงาน"],
+    solutionConfig: [...C("convSH", { power: true }), ...C("sw", { aux: "PROGRAM" }), ...C("mix", { "ch1-bc": true }), ...C("site", { soundcheck: true })],
+    cues: [cue("c1", "เริ่มงาน … กล้อง 2", "CAM2")],
+    obj: [
+      o("cam2", "กล้อง 2 กลับเข้า SDI IN ที่ถูกต้อง", "signal", "signal", "connector", inputCarries("sw:sdi-in-2", "CAM2"), true),
+      o("stage", "จอเวทีแสดง PGM", "signal", "signal", "output-assign", mirrorsProgram("display", "sw"), true),
+      o("bc", "เสียงโพเดียมถึงขาเข้า Broadcast", "signal", "signal", "group-bus", hears("sw", ["PODIUM VOICE"]), true),
+      o("recovered", "ตรวจหาและซ่อมจุดเสียครบ", "diagnostics", "delivery", "direction", faultsRecovered(), true),
+    ],
+    preflight: ["soundcheck"], quiz: quiz("connector"), reward: "ตราผู้ซ่อมหอคอย",
+    passCriteria: ["คืนบทบาทพอร์ตและสัญญาณถูกต้อง", "ภาพถึงเวทีและเสียงถึงปลายทางที่ตั้งใจ"],
   });
   const L5 = finish(room, {
-    id: "AU-05", level: 5, title: "ประเมินปฏิบัติหอประชุม", subtitle: "ประเมินทักษะ · จัดงานบรรยายจากจุดควบคุมว่าง", guidance: "certification", minutes: "30–40 นาที",
-    ticket: "ติดตั้งและควบคุมงานบรรยายจำลอง ทั้งจอผู้ชม จอผู้บรรยาย จอรวมภาพ ระบบเสียงในห้อง สตรีมส่วนตัว และการบันทึกในเครื่อง",
-    callSheet: ["สไลด์เปิด → กล้องผู้บรรยาย → สไลด์ → ภาพใกล้ → ภาพปิด", "เครื่องบันทึก: ตู้จุดควบคุม"],
-    briefing: ["ไม่มีคำใบ้ จะเกิดปัญหาไม่คาดคิดหนึ่งครั้งหลังซ้อม"],
-    devices: ["slides", "cam1", "cam2", "sw", "mic", "mix", "paL", "paR", "display", "conf", "monitor", "host", "rec", "net", "wan", "amp", "phones"],
-    decoys: ["amp"],
-    solution: [...L4Pairs, ["sw:hdmi-out-3", "monitor:hdmi-in"], ["sw:sdi-out-1", "rec:sdi-in"], ["mix:phones", "phones:in"]],
-    extraCables: cables(["x-spk", "speakON → XLR สาย (ห้ามใช้)", ["speakON", "XLR-M"], 5], ["x-hdmi", "HDMI 10 ม. (สำรอง)", ["HDMI", "HDMI"], 10], ["x-sdi", "3G-SDI 20 ม. (สำรอง)", ["SDI", "SDI"], 20, 70]),
-    solutionConfig: [...L4Working, ...C("cam1", { format: "1080p50" }), ...C("cam2", { format: "1080p50" }), ...C("sw", { "hdmi-out-3": "MULTIVIEW", "sdi-out-1": "PROGRAM", "emb-audio": "OFF" }), ...C("slides", { "mute-audio": true }), ...C("monitor", { power: true }),
-      ...C("rec", { power: true, media: "SD card mounted (512 GB free)", record: true }), ...C("host", { stream: true }), ...C("net", { "uplink-test": true }),
-      ...C("site", { "cable-route": true, "mic-place": true, soundcheck: true, clap: true, permission: true, storage: true, risk: true, teardown: true })],
-    surpriseFaults: [cfgFault("s-mv", "ขาออกผู้ชมถูกตั้งเป็นจอรวมภาพ", "output-assign", "sw", "hdmi-out-1", "MULTIVIEW", 3), cfgFault("s-fb", "ไมค์หันเข้าลำโพงทำให้เสียงหอน", "feedback", "mic", "aim", "Toward PA loudspeaker", 1),
-      cfgFault("s-grp", "ขาดเสียง GROUP", "group-bus", "mix", "ch1-grp", false, 1), cfgFault("s-full", "สื่อเครื่องบันทึกเต็ม", "storage", "rec", "media", "SD card mounted · FULL (0 GB)", 4),
-      unplugFault("s-usb", "อุปกรณ์รับภาพ OBS หลุด", "usb-role", ["sw:usb", "host:usb-1"], 2), unplugFault("s-wan", "สาย WAN หลุด", "wan", ["net:wan", "wan:wan-in"], 5)],
-    cues: [cue("c1", "สไลด์เปิดงาน", "KEYNOTE SLIDES"), cue("c2", "ผู้บรรยายขึ้นเวที — ภาพกว้าง", "CAM WIDE"), cue("c3", "สไลด์", "KEYNOTE SLIDES"), cue("c4", "ภาพใกล้", "CAM CLOSE"), cue("c5", "ภาพปิดงาน", "KEYNOTE SLIDES")],
-    obj: [
-      o("three-dest", "จอผู้ชม จอผู้บรรยาย AUX และจอรวมภาพทำงานพร้อมกัน", "signal", "signal", "output-assign", all(mirrorsProgram("display", "sw"), notShows("display", "MULTIVIEW", "ส่งจอรวมภาพให้ผู้ชม", "ตั้ง OUT 1 เป็น PROGRAM"), shows("conf", "KEYNOTE SLIDES"), shows("monitor", "MULTIVIEW")), true),
-      o("room", "เสียงพูดในห้องไม่มีเสียงหอน", "signal", "signal", "feedback", all(hears("paL", ["PRESENTER VOICE"]), hears("paR", ["PRESENTER VOICE"]), noFeedback(["paL", "paR"])), true),
-      o("remote", "ผู้ชมทางไกลได้ยินเสียงและสตรีมทำงาน", "signal", "delivery", "group-bus", live("wan", "sw", ["PRESENTER VOICE"]), true),
-      o("rec", "บันทึกและเก็บไฟล์ภาพออกอากาศในเครื่องแล้ว", "evidence", "delivery", "storage", all(recording("rec"), evidence("rec · ", "ปิดไฟล์คลิป HyperDeck แล้ว")), true),
-      o("angles", "ใช้มุมกล้องแตกต่างกันสองมุม", "evidence", "rehearsal", "direction", historyHas(["CAM WIDE", "CAM CLOSE"]), true),
-      o("recovered", "แก้ปัญหาที่ไม่คาดคิดจากต้นเหตุแล้ว", "diagnostics", "delivery", "direction", faultsRecovered(), true),
-      o("no-early", "เริ่มถ่ายทอดหลังซ้อมเท่านั้น", "safety", "delivery", "stream-key", (c) => c.sim.log.some((l) => l.code === "EARLY_STREAM") ? { ok: false, reason: "เริ่มสตรีมก่อนผ่านการซ้อม", fix: "ซ้อมให้ผ่านก่อน" } : { ok: true }),
+    id: "AU-05", level: 5, title: "งานเต็มระบบ · Full Event", subtitle: "ภาคปฏิบัติ · กล้อง สไลด์ เวที FOH เสียงห้อง/ถ่ายทอด บันทึก และ OBS", guidance: "certification", minutes: "30–40 นาที",
+    ticket: "จัดงานเต็มระบบ: ห้าแหล่งภาพ, จอเวทีจาก AUX, Multiview ที่ FOH, PGM สะอาดไป Capture/OBS และเครื่องบันทึกแยกขาออก, เสียงสามแหล่งผ่าน Stagebox แยก PA และ Broadcast",
+    callSheet: ["ลำดับรายการ: สไลด์ → กล้อง 1 → PTZ → กล้อง 2 → กล้อง 3", "สามแหล่งเสียง: โพเดียม ไมค์มือถือ ไมค์ไร้สาย"],
+    briefing: ["ไม่มีคำใบ้ หลังซ้อมจะมีปัญหาเกิดขึ้นหนึ่งอย่าง"],
+    devices: ["cam1", "cam2", "cam3", "ptz", "slides", "convHS", "sw", "monitor", "convSH", "display", "podium", "hand", "lav", "tx", "rx", "stagebox", "tail", "mix", "paL", "paR", "capture", "host", "rec"],
+    solution: [...mVideo3, ["sw:sdi-out-2", "capture:sdi-in"], ["capture:usb", "host:usb-1"], ["sw:sdi-out-3", "rec:sdi-in"],
+      ["podium:xlr-out", "stagebox:mic-in-1"], ["hand:xlr-out", "stagebox:mic-in-2"], ["rx:audio-out", "stagebox:mic-in-3"], ["lav:out", "tx:mic-in"], ["stagebox:multicore", "tail:multicore"],
+      ["tail:tail-1", "mix:in-1"], ["tail:tail-2", "mix:in-2"], ["tail:tail-3", "mix:in-3"], ["mix:pa-l", "paL:line-in"], ["mix:pa-r", "paR:line-in"], ["mix:bc-l", "sw:xlr-l"], ["mix:bc-r", "sw:xlr-r"]],
+    extraCables: cables(["x-sdi", "3G-SDI 10 ม. (สำรอง)", ["SDI", "SDI"], 10, 100], ["x-hdmi", "HDMI 2 ม. (สำรอง)", ["HDMI", "HDMI"], 2]),
+    solutionConfig: [...mVideoCfg, ...C("sw", { "sdi-out-2": "PROGRAM", "sdi-out-3": "PROGRAM", "xlr-on": true, "emb-audio": "OFF" }),
+      ...C("tx", { power: true }), ...C("rx", { power: true, rf: "CH 1", pair: "Paired" }), ...mFoh([1, 2, 3], true, true), ...mPa,
+      ...C("host", { power: true, "video-src": "USB video capture device", "audio-src": "USB capture embedded audio" }), ...C("rec", { power: true, media: "SD card mounted (512 GB free)", record: true }),
+      ...C("site", { "power-check": true, "cable-route": true, soundcheck: true, "mic-place": true, storage: true })],
+    surpriseFaults: [
+      cfgFault("s-mv", "AUX ไปจอเวทีถูกเปลี่ยนเป็นภาพกล้อง 3", "output-assign", "sw", "aux", "SDI 3", 2),
+      cfgFault("s-conv", "ตัวแปลงไปจอเวทีไฟดับ", "power", "convSH", "power", false, 3),
+      cfgFault("s-bc", "บัส Broadcast ถูกลดลง", "group-bus", "mix", "bc-fader", "Down", 1),
+      cfgFault("s-full", "สื่อบันทึกเต็ม", "storage", "rec", "media", "SD card mounted · FULL (0 GB)", 4),
+      unplugFault("s-usb", "สาย USB ของ Capture หลุด", "usb-role", ["capture:usb", "host:usb-1"], 3),
     ],
-    preflight: ["cable-route", "mic-place", "soundcheck", "clap", "permission", "storage", "risk", "teardown"], quiz: quiz("eth-role"), reward: "ผู้กำกับงานหอคอยแก้ว",
-    passCriteria: ["จอผู้ชม จอผู้บรรยาย และจอรวมภาพทำงานพร้อมกัน", "ได้ยินเสียงทั้งในห้องและทางไกล", "ผู้ชมรับสตรีมได้", "บันทึกไฟล์ในเครื่องแล้ว", "เดินสายปลอดภัย", "ใช้กล้องสองมุม", "แก้ปัญหาจากต้นเหตุ", "บันทึกคิวครบ"],
+    previewBeforeTake: true,
+    cues: [cue("c1", "เปิดงาน … สไลด์", "SLIDES"), cue("c2", "วิทยากร … กล้อง 1", "CAM1"), cue("c3", "ภาพเวที … PTZ", "PTZ"), cue("c4", "กล้อง 2", "CAM2"), cue("c5", "กล้อง 3", "CAM3")],
+    obj: [
+      o("mv5", "Multiview FOH เห็นครบห้าแหล่งภาพ", "signal", "signal", "output-assign", showsAll("monitor", ["CAM1", "CAM2", "CAM3", "PTZ", "SLIDES"]), true),
+      o("stage", "จอเวทีแสดง PGM ที่สะอาด (จาก AUX)", "signal", "signal", "output-assign", all(mirrorsProgram("display", "sw"), notShows("display", "MULTIVIEW", "จอเวทีแสดง Multiview", "ส่ง AUX ไปจอเวที")), true),
+      o("room", "เสียงห้องอิสระ ได้ยินครบสามแหล่ง ไม่หอน", "signal", "signal", "feedback", all(hears("paL", ["PODIUM VOICE", "HANDHELD VOICE", "SPEAKER VOICE"]), noFeedback(["paL", "paR"])), true),
+      o("obs", "OBS ได้ PGM พร้อมเสียง Broadcast ฝัง", "signal", "delivery", "embedded-audio", (c) => {
+        const v = c.view.host;
+        if (v?.picture !== c.view.sw?.picture) return { ok: false, reason: v?.problem?.text ?? "OBS ไม่ได้รับ PGM", fix: "PGM SDI → Capture → USB HOST และเลือกแหล่งใน OBS" };
+        return hears("host", ["PODIUM VOICE", "HANDHELD VOICE", "SPEAKER VOICE"])(c);
+      }, true),
+      o("rec", "เครื่องบันทึกบันทึกจาก PGM ที่ถูกต้อง", "evidence", "delivery", "storage", all(recording("rec"), evidence("rec · ", "บันทึกและปิดไฟล์เรียบร้อย")), true),
+      o("recovered", "แก้ปัญหาที่เกิดระหว่างงานได้", "diagnostics", "delivery", "direction", faultsRecovered(), true),
+    ],
+    preflight: ["power-check", "cable-route", "soundcheck", "mic-place", "storage"], quiz: quiz("output-assign"), reward: "ผู้อำนวยการงานหอคอยกระจก",
+    passCriteria: ["เลือกแหล่งภาพ PGM สะอาด จอเวที และ MV ที่ FOH", "เสียงห้องอิสระ และเสียง Broadcast ฝังใน PGM", "เครื่องบันทึกทำงาน และ OBS พร้อม"],
   });
   return [L1, L2, L3, L4, L5];
 }

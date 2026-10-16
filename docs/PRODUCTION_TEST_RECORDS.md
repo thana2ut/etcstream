@@ -16,9 +16,9 @@ _Generated 2026-10-16 by `node scripts/generate-production-docs.mjs` — every s
 | ST-05 | COMPLETED | 100 | CERTIFIED | 4 | s-mute | 4/4 |
 | AU-01 | COMPLETED | 100 | CERTIFIED | 1 | — | 1/1 |
 | AU-02 | COMPLETED | 100 | CERTIFIED | 0 | — | 0/0 |
-| AU-03 | COMPLETED | 100 | CERTIFIED | 4 | — | 4/4 |
-| AU-04 | COMPLETED | 100 | CERTIFIED | 6 | f-grp, f-obs | 3/3 |
-| AU-05 | COMPLETED | 100 | CERTIFIED | 8 | s-mv | 5/5 |
+| AU-03 | COMPLETED | 100 | CERTIFIED | 5 | — | 5/5 |
+| AU-04 | COMPLETED | 100 | CERTIFIED | 1 | f-ref, f-aux, f-bus, f-conv | 1/1 |
+| AU-05 | COMPLETED | 100 | CERTIFIED | 6 | s-bc | 5/5 |
 | OUT-01 | COMPLETED | 100 | CERTIFIED | 0 | — | 0/0 |
 | OUT-02 | COMPLETED | 100 | CERTIFIED | 0 | — | 0/0 |
 | OUT-03 | COMPLETED | 100 | CERTIFIED | 0 | — | 0/0 |

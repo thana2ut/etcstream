@@ -24,7 +24,9 @@ export type SignalClass =
   | "USB_STORAGE"   // USB mass storage (recording media)
   | "USB_POWER"     // USB-C power / configuration only (micro converters)
   | "ETHERNET"      // RJ45 Ethernet; control vs stream decided by the device
-  | "WAN";          // Internet hand-off (ISP / test ingest uplink)
+  | "WAN"           // Internet hand-off (ISP / test ingest uplink)
+  | "MULTICORE"     // analog multicore snake (channels 1:1)
+  | "REF";          // reference / genlock BNC — never program video
 
 export type VideoFormat = "1080p50" | "1080p60" | "2160p50" | "720p50";
 export const HD_FORMATS: VideoFormat[] = ["720p50", "1080p50", "1080p60"];
@@ -65,7 +67,7 @@ export interface EquipmentDefinition {
   assetLicense: string;
   /** Needs power before it emits anything (abstracted safe power task, never mains wiring). */
   needsPower: boolean;
-  role: "source" | "mic" | "mixer" | "converter" | "router" | "switcher" | "encoder" | "host" | "display" | "speaker" | "recorder" | "storage" | "network" | "ingest" | "interface" | "safety" | "decoy" | "wireless-tx" | "wireless-rx" | "capture";
+  role: "source" | "mic" | "mixer" | "converter" | "router" | "switcher" | "encoder" | "host" | "display" | "speaker" | "recorder" | "storage" | "network" | "ingest" | "interface" | "safety" | "decoy" | "wireless-tx" | "wireless-rx" | "capture" | "stagebox" | "snake-tail";
   ports: PortDefinition[];
   controls: ControlDefinition[];
   /** Device-level notes surfaced in Inspect Mode (what it is NOT). */
@@ -82,7 +84,7 @@ export type DeviceConfig = Record<string, ControlValue>;
 
 /** What travels along an edge. Video carries provenance (content) and embedded audio sources. */
 export interface VideoSignal { kind: "video"; cls: "HDMI" | "SDI"; format: VideoFormat; content: string; audio: string[]; via: string[] }
-export interface AudioSignal { kind: "audio"; cls: SignalClass; sources: string[]; clip: boolean; via: string[] }
+export interface AudioSignal { kind: "audio"; cls: SignalClass; sources: string[]; clip: boolean; via: string[]; /** multicore: per-channel signals */ ch?: Record<number, AudioSignal | undefined> }
 export interface UsbSignal { kind: "usb"; cls: "USB_UVC" | "USB_UAC" | "USB_STORAGE"; content?: string; audio: string[]; via: string[] }
 export interface NetSignal { kind: "net"; role: "control" | "stream"; content?: string; audio: string[]; via: string[]; keyOk: boolean }
 export type Signal = VideoSignal | AudioSignal | UsbSignal | NetSignal;
