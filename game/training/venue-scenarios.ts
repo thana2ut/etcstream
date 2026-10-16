@@ -16,7 +16,7 @@ import type { StageManifest } from "./sim/types";
  * Free practice (`studio-full`) and `hdmi-basic` are defined in scenarios.ts and are not built here.
  */
 const LAYOUT_BY_SCALE: Record<VenueScale, LayoutId> = { xs: "classroom", s: "studioMission", m: "auditorium", l: "outdoor", xl: "stadium" };
-export const LEVEL_TITLES = ["Guided", "Partially guided", "Scenario", "Live disruption", "Practical certification"];
+export const LEVEL_TITLES = ["ฝึกพร้อมคำแนะนำ", "ฝึกพร้อมคำแนะนำบางส่วน", "สถานการณ์ฝึก", "แก้เหตุขัดข้อง", "ประเมินทักษะปฏิบัติ"];
 const SCALES: VenueScale[] = ["xs", "s", "m", "l", "xl"];
 const PLUGS: Partial<Record<Connector, PlugStyle>> = { HDMI: "hdmi", SDI: "sdi", "XLR-F": "xlr-f", "XLR-M": "xlr-m", "3.5mm": "trs35", "6.35mm": "trs635", "USB-A": "usba3", "USB-B": "usba", "USB-C": "usbc", ETHERNET: "ethernet", speakON: "speaker635" };
 const plug = (c: Connector): PlugStyle => PLUGS[c] ?? "dp";
@@ -52,7 +52,7 @@ export function buildVenueScenario(scale: VenueScale, level: 1 | 2 | 3 | 4 | 5):
     if (m.role === "ingest") size.splice(0, 3, 0.4, 0.9, 0.4);
     if (scale === "xl" && ["enc", "net", "wan", "rec"].includes(id)) size.splice(0, 3, 0.56, 1.7, 0.56);
     return {
-      id, label: `${inst.label} (${inst.tag})`, model: m.generic ? `Generic Training Device · ${m.name}` : m.name,
+      id, label: `${inst.label} (${inst.tag})`, model: m.generic ? `อุปกรณ์จำลองเพื่อฝึก · ${m.name}` : m.name,
       status: m.generic ? "GENERIC TRAINING MODEL" : "CONFIRMED", generic: m.generic, verified: !m.generic,
       kind: m.kind, position: [0, 0.78, 0], size, color: m.role === "switcher" ? "#1d2633" : m.role === "mixer" ? "#22262c" : "#263345",
     };
@@ -73,7 +73,7 @@ export function buildVenueScenario(scale: VenueScale, level: 1 | 2 | 3 | 4 | 5):
     const m = MODELS[simDevices[d.id].model];
     for (const p of m.ports) ports[`${d.id}:${p.key}`] = { device: d.id, label: `${d.label.replace(/ \(.*\)$/, "")} ${p.name}`, direction: p.dir, connector: p.connector, purpose: p.tip, position: [0, 0, 0], radius: 0.03, ...(movable.has(d.id) ? { requiresItem: d.id } : {}) };
   }
-  placePorts(devices, ports);
+  placePorts(devices, ports, (scale === "xs" || scale === "m" || scale === "l" || scale === "xl") ? new Set(stage.devices.filter((id) => room.instances[id].model === "generic-hdmi-monitor")) : undefined);
 
   // Cable kit: one lead per documented patch (type + length tag only) plus spares and decoys.
   const cables: CableDef[] = [];
@@ -87,13 +87,14 @@ export function buildVenueScenario(scale: VenueScale, level: 1 | 2 | 3 | 4 | 5):
     const lengthM = leadLength(run, ends[0]);
     const ratedM = ends[0] === "SDI" ? 100 : ends[0] === "HDMI" ? 10 : undefined;
     const type = TYPE_NAME[ends[0]] ?? ends[0];
-    const label = `${type}${ends[0] === ends[1] ? "" : ` → ${TYPE_NAME[ends[1]] ?? ends[1]}`} ${lengthM} m${ends[0] === "SDI" ? " · tested (sim validated 100 m at 3G)" : ""}`;
+    const label = simDevices[from.split(":")[0]].model === "generic-lav-mic" ? "สายไมค์ Lavalier 3.5 mm (ต่อเข้า TX)" : `${type}${ends[0] === ends[1] ? "" : ` → ${TYPE_NAME[ends[1]] ?? ends[1]}`} ${lengthM} m${ends[0] === "SDI" ? " · ทดสอบแล้ว (จำลองระยะ 100 ม. ที่ 3G)" : ""}`;
     const id = `lead-${i + 1}`;
     leadFor[`${from}>${to}`] = id;
     // Purpose drives the prep-lobby catalog type (mic vs line vs PA feed vs uplink); it is never shown as a route.
     const so = MODELS[simDevices[from.split(":")[0]].model].ports.find((x) => `${from.split(":")[0]}:${x.key}` === from)!;
     const ti = MODELS[simDevices[to.split(":")[0]].model];
-    const purpose = so.sig === "MIC" ? "mic" : so.sig === "HEADPHONE" ? "phones" : so.sig === "LINE_BAL" ? (ti.role === "speaker" ? "mix-pa" : "mix-bc") : so.sig === "WAN" ? "destination" : "lead";
+    const srcModel = simDevices[from.split(":")[0]].model;
+    const purpose = srcModel === "generic-lav-mic" ? "lav-1" : srcModel === "generic-wireless-rx" ? "rx-mix" : so.sig === "MIC" ? "mic" : so.sig === "HEADPHONE" ? "phones" : so.sig === "LINE_BAL" ? (ti.role === "speaker" ? "mix-pa" : "mix-bc") : so.sig === "WAN" ? "destination" : "lead";
     cables.push({ id, label, ends, plugs: [plug(ends[0]), plug(ends[1])], color: COLOR[ends[0]] ?? "#72aadd", start: [[0, 0, 0], [0, 0, 0]], purpose });
     cableMeta[id] = { id, label, lengthM, ratedM };
   });
@@ -133,7 +134,7 @@ export function buildVenueScenario(scale: VenueScale, level: 1 | 2 | 3 | 4 | 5):
     if (f.repatch) {
       const [from, to] = f.repatch.pair;
       initial = initial.filter((c) => !(c.from === from && c.to === to));
-      initial.push({ cableId: f.repatch.cable ?? leadFor[`${from}>${to}`], from: f.repatch.from ?? from, to });
+      initial.push({ cableId: f.repatch.cable ?? leadFor[`${from}>${to}`], from: f.repatch.from ?? from, to: f.repatch.to ?? to });
     }
   }
 
@@ -149,8 +150,8 @@ export function buildVenueScenario(scale: VenueScale, level: 1 | 2 | 3 | 4 | 5):
     initialConnections: initial,
     faults: guided ? (stage.faults ?? []).map((f) => f.label) : [],
     assumptions: [
-      "Generic Training Devices only model the ports the room specification defines; named models list their manufacturer source in Inspect Mode.",
-      "OBS, stream keys, ingest, WAN and weather are local deterministic simulations — no real streaming, credentials or mains work.",
+      "อุปกรณ์ฝึกจำลองมีพอร์ตตามข้อกำหนดห้อง รุ่นสินค้าที่ระบุชื่อมีแหล่งอ้างอิงผู้ผลิตในหน้าดูรายละเอียด",
+      "OBS รหัสสตรีม จุดรับ WAN และสภาพอากาศจำลองในเครื่อง ไม่มีการสตรีมจริง ใช้ข้อมูลรับรองจริง หรืองานไฟฟ้าหลัก",
       "Exercise format: 1080p50 · Rec.709 · 48 kHz unless a stage says otherwise.",
     ],
     stage, simDevices, cableMeta,
@@ -164,11 +165,11 @@ function groupOf(p: PortDef): "video" | "audio" | "capture" | "monitor" {
 }
 
 /** Sockets sit on the device face toward the operator; tall gear exposes them at working height. */
-function placePorts(devices: DeviceDef[], ports: Record<string, PortDef>) {
+function placePorts(devices: DeviceDef[], ports: Record<string, PortDef>, classroomDisplays?: ReadonlySet<string>) {
   const turnBy = (yaw: number, x: number, z: number): [number, number] => [x * Math.cos(yaw) + z * Math.sin(yaw), -x * Math.sin(yaw) + z * Math.cos(yaw)];
   for (const d of devices) {
     const owned = Object.values(ports).filter((p) => p.device === d.id);
-    const display = d.kind === "box" && /Monitor|Screen|Display|Projector|Ingest/.test(d.label) && !/Converter|Encoder|Router|Interface/.test(d.label);
+    const display = classroomDisplays?.has(d.id) || d.kind === "box" && /Monitor|Screen|Display|Projector|Ingest/.test(d.label) && !/Converter|Encoder|Router|Interface/.test(d.label);
     const perRow = d.kind === "camera" ? 2 : Math.max(1, Math.min(6, Math.floor(d.size[0] / 0.07)));
     const rows = Math.ceil(owned.length / perRow);
     owned.forEach((p, j) => {

@@ -69,10 +69,10 @@ export const useTrainingStore = create<TrainingStore>((set, get) => ({
     const state = get();
     const c = state.cables[cableId];
     if (!c || state.hiddenCables?.includes(cableId) || !state.bagged?.includes(cableId)) return false;
-    if (state.held || state.heldItem) { set({ notice: { title: "Hands full", detail: "Press F to set down what you hold, then take a lead from the bag", tone: "error" } }); return false; }
+    if (state.held || state.heldItem) { set({ notice: { title: "มือไม่ว่าง", detail: "กด F เพื่อวางสิ่งที่ถืออยู่ก่อน แล้วค่อยหยิบสายจากกระเป๋า", tone: "error" } }); return false; }
     if (c.a.portId || c.b.portId) return false;
-    const label = scenarioOf(state).cables.find((x) => x.id === cableId)?.label ?? "Lead";
-    set({ held: { cableId, end: "a" }, bagged: state.bagged.filter((id) => id !== cableId), notice: { title: "Lead taken from the bag", detail: `${label} · aim at a port and press E to plug in`, tone: "info" } });
+    const label = scenarioOf(state).cables.find((x) => x.id === cableId)?.label ?? "สาย";
+    set({ held: { cableId, end: "a" }, bagged: state.bagged.filter((id) => id !== cableId), notice: { title: "หยิบสายจากกระเป๋าแล้ว", detail: `${label} · เล็งพอร์ตแล้วกด E เพื่อเสียบ`, tone: "info" } });
     return true;
   },
   reset: (scenarioId, hiddenCables, bagged) => set((state) => ({ ...initialTrainingState(scenarioId ?? state.scenarioId, hiddenCables ?? [], bagged ?? []), wrongStreak: 0, failed: false, focusedTarget: null, heldTurn: 0, inspecting: null, consoleOpen: false, inspectHoldStart: null, pickMode: "whole" })),

@@ -28,7 +28,7 @@ function Rod({ a, b, r = 0.012, c = "#22252a" }: { a: [number, number, number]; 
 }
 
 export function GenericLabel({ device, y }: { device: DeviceDef; y: number }) {
-  const tag = device.status === "CONFIRMED" ? device.model : device.status === "PROVISIONAL" ? "model to verify" : device.status === "UNKNOWN" ? "model unknown" : "training stand-in";
+  const tag = device.status === "CONFIRMED" ? device.model : device.status === "PROVISIONAL" ? "รุ่นรอยืนยัน" : device.status === "UNKNOWN" ? "รุ่นไม่ทราบ" : "แบบฝึก";
   return <Billboard position={[0, y, 0]}>
     <Text font={FONT} fontSize={0.05} color="#f6ddaa" anchorX="center" anchorY="bottom" outlineWidth={0.004} outlineColor="#000">{sceneText(device.label)}</Text>
     <Text font={FONT} position={[0, -0.01, 0]} fontSize={0.028} color="#8be4f4" anchorX="center" anchorY="top" outlineWidth={0.003} outlineColor="#000">{sceneText(tag)}</Text>
@@ -111,12 +111,23 @@ function Desktop({ device }: { device: DeviceDef }) {
 }
 
 function Laptop({ device }: { device: DeviceDef }) {
+  const classroom = useTrainingStore((state) => ["classroom", "auditorium", "outdoor", "stadium"].includes(scenarioOf(state).layout ?? ""));
+  const feed = useTrainingStore((state) => {
+    if (!["classroom", "auditorium", "outdoor", "stadium"].includes(scenarioOf(state).layout ?? "")) return "";
+    const view = simContext(state)?.view[device.id];
+    return view?.powered ? view.picture ?? "พร้อมนำเสนอ" : "";
+  });
   const [w, , d] = device.size;
   return <group>
     <Rb p={[0, 0.012, 0]} s={[w, 0.024, d]} c="#c5c8cc" m={0.5} r={0.3} />
+    {classroom && <>
+      {Array.from({ length: 4 }, (_, row) => Array.from({ length: 9 }, (_, col) => <Rb key={`${row}-${col}`} p={[(col - 4) * w * 0.087, 0.026, -d * 0.28 + row * d * 0.1]} s={[w * 0.07, 0.004, d * 0.065]} c="#303742" r={0.8} />))}
+      <Rb p={[0, 0.026, d * 0.28]} s={[w * 0.32, 0.003, d * 0.2]} c="#9ba2ab" r={0.65} />
+    </>}
     <group position={[0, 0.024, -d / 2]} rotation={[-0.3, 0, 0]}>
       <Rb p={[0, d * 0.48, 0]} s={[w, d * 0.96, 0.014]} c="#c5c8cc" m={0.5} r={0.3} />
-      <mesh position={[0, d * 0.48, 0.008]}><planeGeometry args={[w - 0.03, d * 0.88]} /><meshBasicMaterial color="#1b3d6e" toneMapped={false} /></mesh>
+      <mesh position={[0, d * 0.48, 0.008]}><planeGeometry args={[w - 0.03, d * 0.88]} /><meshBasicMaterial color={classroom && !feed ? "#10151e" : "#1b3d6e"} toneMapped={false} /></mesh>
+      {classroom && feed && <Text font={FONT} position={[0, d * 0.48, 0.01]} fontSize={w * 0.065} maxWidth={w * 0.82} color="#e5eefb" textAlign="center">{sceneText(feed)}</Text>}
     </group>
   </group>;
 }
@@ -165,11 +176,15 @@ function Speaker({ device }: { device: DeviceDef }) {
 }
 
 export function GenericDevice({ device, bare = false }: { device: DeviceDef; bare?: boolean }) {
+  const classroomDisplay = useTrainingStore((state) => {
+    const scenario = scenarioOf(state);
+    return ["classroom", "auditorium", "outdoor", "stadium"].includes(scenario.layout ?? "") && scenario.simDevices?.[device.id]?.model === "generic-hdmi-monitor";
+  });
   const [, h] = device.size;
   const kind = device.kind;
   const tall = device.size[1] >= 0.8 && kind === "box";
   // Large monitors are still screens; height alone must not turn them into a rack.
-  const display = kind === "box" && /Monitor|Wall|TV|Screen|Display|Destination|Projector/.test(device.label) && !/Processor|Converter|Encoder|Router|Interface/.test(device.label);
+  const display = classroomDisplay || kind === "box" && /Monitor|Wall|TV|Screen|Display|Destination|Projector/.test(device.label) && !/Processor|Converter|Encoder|Router|Interface/.test(device.label);
   let body, labelY;
   if (kind === "camera") { body = <TripodCamera device={device} />; labelY = 1.68; }
   else if (["speaker", "pa"].includes(device.id) && device.generic) { body = <Speaker device={device} />; labelY = h + 0.12; }

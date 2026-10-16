@@ -16,16 +16,16 @@ export function ControlsGuide() {
     return () => { ro.disconnect(); root.style.removeProperty("--guide-h"); };
   }, []);
   return (
-    <div ref={ref} className="controls-guide-card glass-panel" aria-label="Controls guide">
+    <div ref={ref} className="controls-guide-card glass-panel" aria-label="คู่มือการควบคุม">
       <div className="control-item">
         <div className="control-key key-mouse">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <rect x="5" y="2" width="14" height="20" rx="7" />
             <line x1="12" y1="6" x2="12" y2="10" />
           </svg>
-          <span>Mouse</span>
+          <span>เมาส์</span>
         </div>
-        <span className="control-desc">Look around</span>
+        <span className="control-desc">มองรอบตัว</span>
       </div>
 
       <div className="control-item">
@@ -35,12 +35,12 @@ export function ControlsGuide() {
           <span className="control-key">S</span>
           <span className="control-key">D</span>
         </div>
-        <span className="control-desc">Move</span>
+        <span className="control-desc">เคลื่อนที่</span>
       </div>
 
       <div className="control-item">
         <span className="control-key">E</span>
-        <span className="control-desc">Take whole lead / plug / unplug</span>
+        <span className="control-desc">หยิบทั้งเส้น / ต่อ / ถอดสาย</span>
       </div>
 
       <div className="control-item">
@@ -48,27 +48,27 @@ export function ControlsGuide() {
           <span className="control-key">1</span>
           <span className="control-key">2</span>
         </div>
-        <span className="control-desc">+E take head / tail only</span>
+        <span className="control-desc">+E หยิบหัวสาย / ปลายสาย</span>
       </div>
 
       <div className="control-item">
         <span className="control-key">F</span>
-        <span className="control-desc">Set down what you hold</span>
+        <span className="control-desc">วางสายที่ถือ</span>
       </div>
 
       <div className="control-item">
         <span className="control-key">R</span>
-        <span className="control-desc">Open / close the bag</span>
+        <span className="control-desc">เปิด / ปิดกระเป๋า</span>
       </div>
 
       <div className="control-item">
         <span className="control-key">T</span>
-        <span className="control-desc">Turn held device 45°</span>
+        <span className="control-desc">หมุนอุปกรณ์ที่ถือ 45°</span>
       </div>
 
       <div className="control-item">
         <span className="control-key key-sm">ESC</span>
-        <span className="control-desc">Release the mouse</span>
+        <span className="control-desc">ปล่อยเมาส์</span>
       </div>
     </div>
   );

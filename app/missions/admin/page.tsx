@@ -65,7 +65,7 @@ export default function MissionHallAdminPage() {
     const ok = (await sha256(value.trim().replace(/\.+$/, ""))) === ADMIN_HASH;
     setBusy(false);
     setValue("");
-    if (!ok) { setError("Incorrect password"); return; }
+    if (!ok) { setError("รหัสผ่านไม่ถูกต้อง"); return; }
     setUnlocked(true);
   };
 
@@ -73,15 +73,15 @@ export default function MissionHallAdminPage() {
     <main className="fantasy-viewport mission-hall-page" style={{ justifyContent: "center", alignItems: "center" }}>
       <FantasyBackground variant="archive" image="/images/xianxia/bg-missions.webp" />
       <form className="admin-gate glass-card gold-border-frame" onSubmit={submit} aria-labelledby="admin-gate-title">
-        <span className="mission-hall-eyebrow">◈ Mission Hall · Admin ◈</span>
-        <h1 id="admin-gate-title">Enter the admin password</h1>
+        <span className="mission-hall-eyebrow">◈ หอจารึกแห่งภารกิจ · ผู้ดูแล ◈</span>
+        <h1 id="admin-gate-title">ใส่รหัสผ่านผู้ดูแล</h1>
         <input
           type="password" inputMode="numeric" autoComplete="current-password" autoFocus
-          aria-label="Admin password" value={value} maxLength={64}
+          aria-label="รหัสผ่านผู้ดูแล" value={value} maxLength={64}
           onChange={(e) => { setValue(e.target.value); setError(""); }}
         />
         {error && <p className="form-error" role="alert">{error}</p>}
-        <ActionButton variant="gold" size="md" type="submit" disabled={busy || !value}>Enter admin mode</ActionButton>
+        <ActionButton variant="gold" size="md" type="submit" disabled={busy || !value}>เข้าสู่โหมดผู้ดูแล</ActionButton>
       </form>
     </main>
   );

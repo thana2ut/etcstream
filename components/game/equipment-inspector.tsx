@@ -17,7 +17,7 @@ import { SamsungTv } from "./equipment/samsung-tv";
 export function InspectHoldRing() {
   const start = useTrainingStore((state) => state.inspectHoldStart);
   if (start === null) return null;
-  return <div className="inspect-hold" aria-hidden="true"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" style={{ animationDuration: `${INSPECT_HOLD_MS}ms` }} /></svg><span>Hold to inspect</span></div>;
+  return <div className="inspect-hold" aria-hidden="true"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" style={{ animationDuration: `${INSPECT_HOLD_MS}ms` }} /></svg><span>ค้างไว้เพื่อดูรายละเอียด</span></div>;
 }
 
 /** Full-screen orbit view of one device plus learning notes and its port list. */
@@ -42,15 +42,15 @@ export function EquipmentInspector() {
 
   // Mission Hall: a compact, optional card beside the 3D room (the room stays the main interface). ESC / ✕ closes it.
   if (scenario.venueScale) return <aside className="inspector-compact glass-card" role="dialog" aria-labelledby="inspector-title">
-    <button type="button" className="inspector-close" onClick={() => close(null)} aria-label="Close equipment info">✕</button>
-    <span className="inspector-role">{info?.role ?? "Equipment"}</span>
+    <button type="button" className="inspector-close" onClick={() => close(null)} aria-label="ปิดข้อมูลอุปกรณ์">✕</button>
+    <span className="inspector-role">{info?.role ?? "อุปกรณ์"}</span>
     <h2 id="inspector-title">{device?.label ?? id}</h2>
     <strong className="inspector-model">{info?.model ?? device?.model}</strong>
-    <details open><summary>What it is / what it is for</summary><p>{info?.summary ?? "Equipment in this stage"}</p></details>
-    {info && info.facts.length > 0 && <details><summary>Key facts</summary><ul>{info.facts.map((f) => <li key={f}>{f}</li>)}</ul></details>}
-    {ports.length > 0 && <details><summary>Ports ({ports.length})</summary><ul>{[...inputs, ...outputs].map((p) => <li key={p.label}>{p.label} · {p.direction}</li>)}</ul></details>}
-    {info && <details open><summary>In this stage</summary><p>{info.inThisRoom}</p></details>}
-    <p className="inspector-unverified">Data status: {device?.status ?? "GENERIC TRAINING MODEL"} · 3D model is an original training stand-in{info && info.unverified.length > 0 ? ` · unverified: ${info.unverified.join(", ")}` : ""}</p>
+    <details open><summary>คืออะไร / ใช้ทำอะไร</summary><p>{info?.summary ?? "อุปกรณ์ในระบบของด่านนี้"}</p></details>
+    {info && info.facts.length > 0 && <details><summary>ควรรู้</summary><ul>{info.facts.map((f) => <li key={f}>{f}</li>)}</ul></details>}
+    {ports.length > 0 && <details><summary>พอร์ต ({ports.length})</summary><ul>{[...inputs, ...outputs].map((p) => <li key={p.label}>{p.label} · {p.direction === "INPUT" ? "ขาเข้า" : "ขาออก"}</li>)}</ul></details>}
+    {info && <details open><summary>ในด่านนี้</summary><p>{info.inThisRoom}</p></details>}
+    <p className="inspector-unverified">สถานะข้อมูล: {device?.status === "CONFIRMED" ? "ตรวจสอบข้อมูลแล้ว" : "อุปกรณ์จำลองเพื่อฝึก"} · โมเดล 3D เป็นตัวแทนชั่วคราว (รอปั้นโมเดลจริง){info && info.unverified.length > 0 ? ` · ยังไม่ยืนยัน: ${info.unverified.join(", ")}` : ""}</p>
   </aside>;
 
   return <div className="inspector-overlay" role="dialog" aria-modal="true" aria-labelledby="inspector-title">
@@ -65,25 +65,25 @@ export function EquipmentInspector() {
         </Bounds>
         <OrbitControls makeDefault enableDamping minDistance={0.35} maxDistance={8} minPolarAngle={Math.PI * 0.08} maxPolarAngle={Math.PI * 0.92} />
       </Canvas>
-      <p className="inspector-hint">Drag to rotate · scroll to zoom · ESC closes</p>
+      <p className="inspector-hint">ลากเพื่อหมุน · เลื่อนล้อเมาส์เพื่อซูม · ESC ปิด</p>
     </div>
     <aside className="inspector-panel glass-card">
-      <button type="button" className="inspector-close" onClick={() => close(null)} aria-label="Close the equipment view">✕</button>
-      <span className="inspector-role">{info?.role ?? "Equipment"}</span>
+      <button type="button" className="inspector-close" onClick={() => close(null)} aria-label="ปิดหน้าดูอุปกรณ์">✕</button>
+      <span className="inspector-role">{info?.role ?? "อุปกรณ์"}</span>
       <h2 id="inspector-title">{info?.name ?? device?.label ?? id}</h2>
       <strong className="inspector-model">{info?.model ?? device?.model}</strong>
-      {device?.status && <p>{device.status} · {device.generic ? "Generic Training Device stand-in, not a product replica" : ""}</p>}
+      {device?.status && <p>{device.status === "CONFIRMED" ? "ตรวจสอบข้อมูลแล้ว" : "อุปกรณ์จำลองเพื่อฝึก"} · {device.generic ? "โมเดลฝึกแทน ยังไม่ใช่โมเดลสินค้าเหมือนจริง" : ""}</p>}
       {info && <p>{info.summary}</p>}
-      {info && info.facts.length > 0 && <><h3>Key facts</h3><ul>{info.facts.map((f) => <li key={f}>{f}</li>)}</ul></>}
-      {info && <><h3>{scenario.venueScale ? "In this stage" : "In this practice room"}</h3><p className="inspector-flow">{info.inThisRoom}</p></>}
+      {info && info.facts.length > 0 && <><h3>ควรรู้</h3><ul>{info.facts.map((f) => <li key={f}>{f}</li>)}</ul></>}
+      {info && <><h3>{scenario.venueScale ? "ในด่านนี้" : "ในห้องฝึกนี้"}</h3><p className="inspector-flow">{info.inThisRoom}</p></>}
       {ports.length > 0 && <>
-        <h3>Ports ({ports.length})</h3>
+        <h3>พอร์ต ({ports.length})</h3>
         <div className="inspector-ports">
-          {inputs.length > 0 && <div><em>INPUT</em>{inputs.map((p) => <span key={p.label}>{p.label}</span>)}</div>}
-          {outputs.length > 0 && <div><em>OUTPUT</em>{outputs.map((p) => <span key={p.label}>{p.label}</span>)}</div>}
+          {inputs.length > 0 && <div><em>ขาเข้า</em>{inputs.map((p) => <span key={p.label}>{p.label}</span>)}</div>}
+          {outputs.length > 0 && <div><em>ขาออก</em>{outputs.map((p) => <span key={p.label}>{p.label}</span>)}</div>}
         </div>
       </>}
-      {info && info.unverified.length > 0 && <p className="inspector-unverified">Not yet verified against the real unit: {info.unverified.join(" · ")}</p>}
+      {info && info.unverified.length > 0 && <p className="inspector-unverified">ยังไม่ยืนยันกับของจริง: {info.unverified.join(" · ")}</p>}
     </aside>
   </div>;
 }

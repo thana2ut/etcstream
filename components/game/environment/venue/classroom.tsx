@@ -2,7 +2,11 @@
 
 import { SCENE_FONT, sceneText } from "@/game/rendering/scene-font";
 
-import { CuboidCollider, RigidBody } from "@react-three/rapier";
+import { useMemo } from "react";
+import { Object3D } from "three";
+import { GenericDevice } from "../../equipment/generic-device";
+import { scenarioOf } from "@/game/training/hdmi-training";
+import { CuboidCollider, CylinderCollider, RigidBody } from "@react-three/rapier";
 import { LAYOUTS, VENUE_SCALE } from "@/game/training/venue-layouts";
 import { LayoutColliders, LayoutFurniture } from "./layout-furniture";
 import { AvCart, VenueLighting, Ball, BLACK_METAL, CHROME, Cyl, D as BASE_D, H, Lathe, RB, Slab, STEEL, Tube, W as BASE_W, type V3 } from "./kit";
@@ -12,7 +16,7 @@ import { useTrainingStore } from "@/game/stores/training-store";
 import { venueScreenFeed, venueScreenLive } from "@/game/training/monitor-feed";
 
 /**
- * Mission classroom (chapter 01) — modern media-training classroom, built to the reference concept
+ * Mission classroom (บทที่ 01) — modern media-training classroom, built to the reference concept
  * (art/reference/venues/classroom-01/02, docs/VENUE_VISUAL_REFERENCES.md):
  *  front: wood-slat feature wall, centred projector screen over the teacher desk, grey acoustic panels, corner speakers,
  *         track lights, mobile whiteboard (left), classroom TV on a stand (right, layout furniture)
@@ -34,7 +38,7 @@ function ProjectionSurface() {
   return <group position={[0, 1.9, BACK + 0.195]}>
     <Slab p={[0, 0, 0]} s={[3.9, 2.08, 0.004]} c={ready ? "#263d60" : "#d1d2cf"} r={0.9} />
     <Text font={SCENE_FONT} position={[0, 0, 0.006]} fontSize={0.12} color={ready ? "#e5efff" : "#454c53"} textAlign="center">
-      {sceneText(ready ? `Simulated picture from the real patch\n${feed}` : `No picture from the system\n${feed}`)}
+      {sceneText(ready ? `ภาพจำลองจากสัญญาณจริง\n${feed}` : "ยังไม่มีภาพจากระบบ\nตรวจสายและเลือก Program")}
     </Text>
   </group>;
 }
@@ -56,7 +60,7 @@ function Window({ z }: { z: number }) {
   const x = L + 0.06;
   const wd = 2.3, ht = 1.75, cy = 1.72;
   return <group>
-    <Slab p={[x + 0.005, cy, z]} rot={[0, Math.PI / 2, 0]} s={[wd, ht, 0.01]} map={windowView()} c="#ffffff" e="#ffffff" ei={0.6} />
+    <Slab p={[x + 0.005, cy, z]} rot={[0, Math.PI / 2, 0]} s={[wd, ht, 0.01]} map={windowView()} c="#ffffff" e="#ffffff" ei={0.12} />
     {[ht / 2, -ht / 2].map((dy) => <RB key={dy} p={[x + 0.03, cy + dy, z]} s={[0.06, 0.06, wd + 0.06]} rad={0.008} {...CHROME} c="#c9cdd2" />)}
     {[-wd / 2, -wd / 6, wd / 6, wd / 2].map((dz) => <RB key={dz} p={[x + 0.03, cy, z + dz]} s={[0.06, ht, 0.05]} rad={0.008} {...CHROME} c="#c9cdd2" />)}
     <RB p={[x + 0.09, cy - ht / 2 - 0.03, z]} s={[0.18, 0.04, wd + 0.1]} rad={0.01} c="#ecebe6" />
@@ -130,27 +134,61 @@ function Plant({ p, s = 1 }: { p: V3; s?: number }) {
   </group>;
 }
 /** Softbox on a light stand beside the camera, aimed at the teaching area. */
-function Softbox({ p, yaw }: { p: V3; yaw: number }) {
-  const legs = [0, 1, 2].map((i) => i * (Math.PI * 2) / 3);
-  return <group position={p} rotation={[0, yaw, 0]}>
-    {legs.map((a, i) => <Tube key={i} pts={[[0, 0.6, 0], [Math.cos(a) * 0.45, 0.02, Math.sin(a) * 0.45]]} r={0.012} {...BLACK_METAL} />)}
-    <Cyl p={[0, 1.15, 0]} rt={0.016} h={1.1} {...STEEL} />
-    <Cyl p={[0, 1.95, 0]} rt={0.012} h={0.6} {...STEEL} />
-    <group position={[0, 2.2, 0]} rotation={[0.2, 0, 0]}>
-      <RB p={[0, 0, -0.12]} s={[0.12, 0.12, 0.12]} rad={0.02} c="#111" />
-      <Lathe p={[0, 0, 0.02]} rot={[Math.PI / 2, 0, Math.PI / 4]} seg={4} prof={[[0.06, -0.12], [0.5, 0.2], [0.5, 0.22], [0.06, -0.1]]} c="#1b1c20" r={0.7} />
-      <Slab p={[0, 0, 0.23]} s={[0.66, 0.66, 0.005]} c="#ffffff" e="#fff8ea" ei={2.0} />
+function Softbox({ p, intensity = 8 }: { p: V3; intensity?: number }) {
+  const target = useMemo(() => {
+    const t = new Object3D(); t.position.set(0.1, 1.2, k(-3.72)); return t;
+  }, []);
+  const dx = target.position.x - p[0], dz = target.position.z - p[2];
+  const yaw = Math.atan2(dx, dz), pitch = Math.atan2(2.15 - target.position.y, Math.hypot(dx, dz));
+  return <>
+    <group position={p} rotation={[0, yaw, 0]}>
+      {[0, 1, 2].map((i) => { const a = i * Math.PI * 2 / 3; return <Tube key={i} pts={[[0, 0.4, 0], [Math.cos(a) * 0.38, 0.025, Math.sin(a) * 0.38]]} r={0.012} {...BLACK_METAL} />; })}
+      <Cyl p={[0, 1.07, 0]} rt={0.016} h={2.09} {...STEEL} />
+      <Cyl p={[0, 1.55, 0]} rt={0.025} h={0.05} {...BLACK_METAL} />
+      <group position={[0, 2.15, 0]} rotation={[pitch, 0, 0]}>
+        <RB p={[0, 0, -0.1]} s={[0.14, 0.14, 0.18]} rad={0.02} {...BLACK_METAL} />
+        <RB p={[0, 0, 0.025]} s={[0.7, 0.52, 0.18]} rad={0.035} c="#25272b" r={0.85} />
+        <Slab p={[0, 0, 0.12]} s={[0.64, 0.46, 0.008]} c="#fffdf7" e="#f7f8ff" ei={0.65} />
+        <Tube pts={[[-0.4, 0.1, 0], [-0.4, -0.32, 0], [0.4, -0.32, 0], [0.4, 0.1, 0]]} r={0.012} {...BLACK_METAL} />
+      </group>
     </group>
+    <primitive object={target} />
+    <spotLight position={[p[0], 2.15, p[2]]} target={target} angle={0.55} penumbra={0.85} intensity={intensity} distance={12} color="#f7f8ff" />
+  </>;
+}
+
+/** The camera is installed even in the introductory laptop-only exercise. */
+function InstalledClassroomCamera() {
+  const active = useTrainingStore((state) => scenarioOf(state).devices.some((d) => d.id === "cam1"));
+  const spot = LAYOUTS.classroom.places.cam1;
+  if (active) return null;
+  return <group position={spot.p} rotation={[0, spot.yaw, 0]}>
+    <GenericDevice bare device={{ id: "cam1", label: "กล้องผู้สอน", model: "กล้องฝึก HDMI", verified: false, generic: true, kind: "camera", size: [0.32, 1.5, 0.45], color: "#263345", position: spot.p }} />
+    <RigidBody type="fixed" colliders={false}><CylinderCollider position={[0, 0.5, 0]} args={[0.5, 0.36]} /></RigidBody>
   </group>;
 }
+
+/** Confidence repeater shares the projector's evaluated input, including no-signal and power states. */
+function ClassroomConfidenceScreen() {
+  const feed = useTrainingStore((state) => venueScreenFeed(state, "monitor"));
+  const [x, , z] = LAYOUTS.classroom.places.monitor.p;
+  return <group position={[x, 0, z]}>
+    <Cyl p={[0, 1.22, -0.04]} rt={0.018} h={0.48} {...BLACK_METAL} />
+    <RB p={[0, 1.55, -0.04]} s={[0.92, 0.55, 0.06]} rad={0.018} c="#20252c" />
+    <Slab p={[0, 1.55, -0.006]} s={[0.86, 0.49, 0.004]} c="#101b2a" />
+    <Text font={SCENE_FONT} position={[0, 1.55, 0]} fontSize={0.047} maxWidth={0.8} color="#dce8f4" textAlign="center">{sceneText(feed)}</Text>
+    <Text font={SCENE_FONT} position={[0, 1.9, 0]} fontSize={0.05} color="#384556">จอตรวจภาพโปรเจกเตอร์</Text>
+  </group>;
+}
+
 /** Mobile whiteboard on a steel frame with casters. */
 function MobileWhiteboard({ p, yaw }: { p: V3; yaw: number }) {
   return <group position={p} rotation={[0, yaw, 0]}>
     <RB p={[0, 1.45, 0]} s={[1.8, 1.1, 0.04]} rad={0.015} {...CHROME} c="#c8ccd1" />
     <Slab p={[0, 1.45, 0.022]} s={[1.74, 1.04, 0.004]} c="#fbfbf8" r={0.12} />
-    <Text font={SCENE_FONT} position={[0, 1.78, 0.027]} fontSize={0.07} color="#1d4fb0">{sceneText("HDMI 101 | picture signal practice")}</Text>
-    <Text font={SCENE_FONT} position={[0, 1.45, 0.027]} fontSize={0.065} color="#283a4d">{sceneText("CAMERA -> SWITCHER -> MONITOR")}</Text>
-    <Text font={SCENE_FONT} position={[0, 1.15, 0.027]} fontSize={0.045} color="#1e7a3a">{sceneText("Patch OUTPUT to INPUT, then check Program")}</Text>
+    <Text font={SCENE_FONT} position={[0, 1.78, 0.027]} fontSize={0.07} color="#1d4fb0">{sceneText("HDMI 101 | ฝึกต่อสัญญาณภาพ")}</Text>
+    <Text font={SCENE_FONT} position={[0, 1.45, 0.027]} fontSize={0.065} color="#283a4d">{sceneText("กล้อง → เครื่องสลับภาพ → จอ")}</Text>
+    <Text font={SCENE_FONT} position={[0, 1.15, 0.027]} fontSize={0.045} color="#1e7a3a">{sceneText("ต่อขาออก → ขาเข้า แล้วตรวจภาพออกอากาศ")}</Text>
     <RB p={[0, 0.87, 0.05]} s={[1.6, 0.03, 0.08]} rad={0.01} {...CHROME} c="#b8bdc3" />
     {[-0.93, 0.93].map((x) => <group key={x}>
       <RB p={[x, 0.95, 0]} s={[0.04, 1.9, 0.04]} rad={0.01} {...STEEL} />
@@ -255,13 +293,13 @@ export function Classroom() {
 
   return <>
     <color attach="background" args={["#e3e6e9"]} />
-    <VenueLighting mood="classroom" intensity={0.5} />
-    <hemisphereLight args={["#f4f6fa", "#77746f", 0.32]} />
+    <VenueLighting mood="classroom" intensity={0.45} />
+    <hemisphereLight args={["#f4f6fa", "#77746f", 0.5]} />
     <ambientLight intensity={0.04} />
     {/* daylight through the window wall (left) */}
-    <directionalLight position={[-12, 5, 1]} target-position={[0, 0, 0]} intensity={1.7} color="#fff3df" castShadow shadow-mapSize={[2048, 2048]} shadow-camera-left={-11} shadow-camera-right={11} shadow-camera-top={9} shadow-camera-bottom={-9} shadow-normalBias={0.03} />
-    {[-2.4, 1.6].map((z) => <pointLight key={z} position={[0, H - 0.4, k(z)]} intensity={2.2} distance={11} color="#f3f6ff" />)}
-    <spotLight position={[0, H - 0.2, BACK + 2.2]} target-position={[0, 1.6, BACK]} angle={0.9} penumbra={0.7} intensity={6} distance={6} color="#fff1d8" />
+    <directionalLight position={[-12, 5, 1]} target-position={[0, 0, 0]} intensity={0.95} color="#f8f9ff" castShadow shadow-mapSize={[2048, 2048]} shadow-camera-left={-11} shadow-camera-right={11} shadow-camera-top={9} shadow-camera-bottom={-9} shadow-normalBias={0.03} />
+    {/* Broad ceiling fill avoids the bright point-light patches on the suspended tiles. */}
+    <directionalLight position={[0, 8, 3]} intensity={0.45} color="#f3f6ff" />
 
     {/* shell: polished tile floor, white walls with a grey lower band and skirting, suspended ceiling */}
     <Slab p={[0, -0.05, 0]} s={[W, 0.1, D]} map={floor} c="#ffffff" r={0.32} m={0.08} />
@@ -297,7 +335,10 @@ export function Classroom() {
     {/* left wall: large windows with blinds, acoustic panel near the front, softbox beside the camera, AV cart */}
     {[-2.75, 0, 2.75].map((z) => <Window key={z} z={k(z)} />)}
     <AcousticPanel p={[L + 0.08, 1.9, BACK + 0.9]} rot={[0, Math.PI / 2, 0]} s={[1.0, 1.6]} c="#5d78a8" />
-    <Softbox p={[k(-5.1), 0, k(1.45)]} yaw={Math.atan2(-(0 - k(-5.1)), -(k(-3.0) - k(1.45)))} />
+    <InstalledClassroomCamera />
+    <ClassroomConfidenceScreen />
+    <Softbox p={[-7.1, 0, -4.65]} intensity={8} />
+    <Softbox p={[4.6, 0, -4.1]} intensity={4} />
     <AvCart p={[k(-5.3), 0, k(3.45)]} frame={STEEL} />
     {/* wireless receivers + small mixer on the cart */}
     {[-0.16, 0.12].map((dz, i) => <group key={dz} position={[k(-5.3) + (i ? 0.1 : -0.12), 0.86, k(3.45) + dz]}>
@@ -335,7 +376,8 @@ export function Classroom() {
     <RigidBody type="fixed" colliders={false}>
       <CuboidCollider position={[k(-3.1), 0.95, BACK + 0.95]} args={[0.95, 0.95, 0.35]} />
       <CuboidCollider position={[k(-5.3), 0.5, k(3.45)]} args={[0.34, 0.5, 0.28]} />
-      <CuboidCollider position={[k(-5.1), 1.1, k(1.45)]} args={[0.3, 1.1, 0.3]} />
+      <CuboidCollider position={[-7.1, 1.1, -4.65]} args={[0.26, 1.1, 0.26]} />
+      <CuboidCollider position={[4.6, 1.1, -4.1]} args={[0.26, 1.1, 0.26]} />
       <CuboidCollider position={[L + 0.42, 0.4, k(-1.35)]} args={[0.32, 0.4, 1.22]} />
       <CuboidCollider position={[R - 0.55, 0.36, k(-1.65)]} args={[0.34, 0.36, 0.34]} />
       <CuboidCollider position={[0.1, 0.5, k(-3.0) - 1.05]} args={[0.3, 0.5, 0.3]} />

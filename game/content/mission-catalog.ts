@@ -23,182 +23,182 @@ export interface MissionChapter {
 /* <generated:stages> */
 const GENERATED: Record<"xs" | "s" | "m" | "l" | "xl", { title: string; subtitle: string; levels: MissionDifficulty[] }> = {
   "xs": {
-    "title": "The Gate of First Images",
-    "subtitle": "Classroom · Teaching & Hybrid-Lesson Production",
+    "title": "ห้องประตูแรกแห่งภาพ",
+    "subtitle": "ห้องเรียน · ระบบสอนและห้องเรียนแบบไฮบริด",
     "levels": [
       {
         "level": 1,
-        "title": "CL-01 · Wake the First Image",
-        "flavor": "Guided · laptop to projector through the switcher · 10–12 min",
-        "objective": "Show the lesson laptop on the classroom screen — and never the operator multiview."
+        "title": "XS-01 · เส้นทางภาพ · Video Path",
+        "flavor": "ฝึกพร้อมคำแนะนำ · กล้อง → เครื่องสลับภาพ → จอหน้าห้อง · 8–10 นาที",
+        "objective": "นำภาพจากกล้องห้องเรียนขึ้นจอหน้าห้องผ่านเครื่องสลับภาพ"
       },
       {
         "level": 2,
-        "title": "CL-02 · The Teacher Appears",
-        "flavor": "Guided · two sources, clean cuts · 12–15 min",
-        "objective": "Show the instructor and cut to a slide without ever cutting to black."
+        "title": "XS-02 · เส้นทางเสียง · Audio Path",
+        "flavor": "ฝึกพร้อมคำแนะนำบางส่วน · ไมค์ไร้สาย → มิกเซอร์ → ลำโพงแอ็กทีฟ · 10–12 นาที",
+        "objective": "ให้เสียงผู้สอนจากไมค์หนีบปกดังออกลำโพงหน้าห้องอย่างชัดเจน ไม่หอน"
       },
       {
         "level": 3,
-        "title": "CL-03 · Written Under the Lantern",
-        "flavor": "Scenario · three-source lecture · 15–18 min",
-        "objective": "Teach with a camera, slides and a document camera — every word readable."
+        "title": "XS-03 · สลับสองแหล่งภาพ · Two-Source Switching",
+        "flavor": "สถานการณ์ · สลับกล้องและสไลด์ด้วยเครื่องสลับภาพ · 10–14 นาที",
+        "objective": "ผู้สอนจะเริ่มด้วยภาพตัวเองแล้วไปสไลด์ — สลับด้วยเครื่องสลับภาพ ห้ามสลับด้วยการถอดสาย"
       },
       {
         "level": 4,
-        "title": "CL-04 · The Vanished Voice",
-        "flavor": "Disruption · OBS workstation fault-finding · 18–22 min",
-        "objective": "Deliver the remote classroom feed through OBS. Students hear nothing and lips are out of sync — fix it."
+        "title": "XS-04 · ซ่อมพอร์ตและการจับภาพ · Port and Capture Repair",
+        "flavor": "แก้ปัญหา · ห้องเรียนออนไลน์ใช้งานไม่ได้ · 12–16 นาที",
+        "objective": "คาบเรียนออนไลน์กำลังจะเริ่ม แต่ OBS ไม่มีภาพและเสียง และจอหน้าห้องผิด — หาจุดเสียแล้วซ่อมทางกายภาพ"
       },
       {
         "level": 5,
-        "title": "CL-05 · Classroom Practical Certification",
-        "flavor": "Certification · hybrid lesson from storage to sign-off · 25–35 min",
-        "objective": "Prepare and operate a real hybrid lesson: teacher, slide deck and handout, audio, local projection, ISO recording and a private mock livestream."
+        "title": "XS-05 · ห้องเรียนไฮบริดครบระบบ · Full Hybrid Classroom",
+        "flavor": "ภาคปฏิบัติ · ประกอบและใช้งานห้องเรียนไฮบริดเอง · 20–25 นาที",
+        "objective": "จัดห้องเรียนไฮบริดครบระบบ: กล้องและสไลด์ขึ้นจอหน้าห้องและ OBS, เสียงผู้สอนออกลำโพงในห้อง และส่งเข้าสตรีมแยกบัส โดยเสียงใน OBS ไม่ซ้อน"
       }
     ]
   },
   "s": {
-    "title": "The Moon Bridge of Sound",
-    "subtitle": "Studio · Interview & Multi-camera Broadcast",
+    "title": "สะพานจันทราแห่งเสียง",
+    "subtitle": "สตูดิโอ · สัมภาษณ์และถ่ายทอดหลายกล้อง",
     "levels": [
       {
         "level": 1,
-        "title": "ST-01 · Hear the Voice",
-        "flavor": "Guided · single mic to the mixer · 10–12 min",
-        "objective": "Make the host's spoken voice clear at the mixer."
+        "title": "ST-01 · ได้ยินเสียงแรก",
+        "flavor": "ฝึกพร้อมคำแนะนำ · ต่อไมโครโฟนเข้าเครื่องผสมเสียง · 10–12 นาที",
+        "objective": "ทำให้ได้ยินเสียงพูดของพิธีกรอย่างชัดเจนที่เครื่องผสมเสียง"
       },
       {
         "level": 2,
-        "title": "ST-02 · Twin Voices Under Moonlight",
-        "flavor": "Partial · two independently adjustable mics · 13–16 min",
-        "objective": "Host and guest must be independently adjustable."
+        "title": "ST-02 · สองเสียงใต้แสงจันทร์",
+        "flavor": "คำแนะนำบางส่วน · ปรับไมโครโฟนสองตัวแยกกัน · 13–16 นาที",
+        "objective": "จัดระบบให้ปรับเสียงพิธีกรและแขกรับเชิญแยกจากกันได้"
       },
       {
         "level": 3,
-        "title": "ST-03 · The Three-Lens Council",
-        "flavor": "Scenario · three cameras + sound into SDI · 18–22 min",
-        "objective": "Shoot host, guest and the two-shot."
+        "title": "ST-03 · สภาสามเลนส์",
+        "flavor": "สถานการณ์ฝึก · รวมภาพสามกล้องและเสียงผ่าน SDI · 18–22 นาที",
+        "objective": "ถ่ายภาพพิธีกร แขกรับเชิญ และภาพทั้งสองคน"
       },
       {
         "level": 4,
-        "title": "ST-04 · The Silent Return",
-        "flavor": "Disruption · SDI, monitoring and return fault isolation · 20–25 min",
-        "objective": "The guest camera disappears and the director cannot monitor the show."
+        "title": "ST-04 · สัญญาณกลับที่เงียบหาย",
+        "flavor": "แก้เหตุขัดข้อง · แยกปัญหา SDI จอตรวจภาพ และสัญญาณกลับ · 20–25 นาที",
+        "objective": "แก้ภาพกล้องแขกรับเชิญที่หายไปและจอผู้กำกับที่ตรวจรายการไม่ได้"
       },
       {
         "level": 5,
-        "title": "ST-05 · Studio Practical Certification",
-        "flavor": "Certification · five-minute two-person interview · 30–40 min",
-        "objective": "Produce a 5-minute two-person interview from a blank studio: three angles, independently gained mics, multiview + PGM confidence, ISO + PGM recording and a private stream."
+        "title": "ST-05 · ประเมินปฏิบัติสตูดิโอ",
+        "flavor": "ประเมินทักษะ · สัมภาษณ์สองคนห้านาที · 30–40 นาที",
+        "objective": "ผลิตรายการสัมภาษณ์สองคน 5 นาทีจากสตูดิโอว่าง ด้วยสามมุมกล้อง ไมค์ที่ปรับแยกได้ จอรวมภาพและภาพออกอากาศ การบันทึกแยกกล้องและสตรีมส่วนตัว"
       }
     ]
   },
   "m": {
-    "title": "The Glass Tower of Switched Images",
-    "subtitle": "Auditorium · Multi-destination Live Event",
+    "title": "หอคอยกระจกแห่งภาพสลับ",
+    "subtitle": "หอประชุมใหญ่ · ถ่ายทอดงานไปหลายปลายทาง",
     "levels": [
       {
         "level": 1,
-        "title": "AU-01 · Light the Great Screen",
-        "flavor": "Guided · one configurable output to the audience · 10–14 min",
-        "objective": "Show slides to the audience without showing the tech multiview."
+        "title": "AU-01 · จุดแสงบนจอใหญ่",
+        "flavor": "ฝึกพร้อมคำแนะนำ · ตั้งค่าขาออกส่งภาพให้ผู้ชม · 10–14 นาที",
+        "objective": "แสดงสไลด์ให้ผู้ชม โดยไม่แสดงจอรวมภาพของทีมเทคนิค"
       },
       {
         "level": 2,
-        "title": "AU-02 · Voice Across the Hall",
-        "flavor": "Partial · PA and feedback safety · 15–18 min",
-        "objective": "Make the podium announcement heard across the hall — without howling."
+        "title": "AU-02 · เสียงทั่วหอประชุม",
+        "flavor": "คำแนะนำบางส่วน · ระบบเสียงและการป้องกันเสียงหอน · 15–18 นาที",
+        "objective": "ทำให้ผู้ชมทั่วห้องได้ยินประกาศจากโพเดียมชัดเจนโดยไม่มีเสียงหอน"
       },
       {
         "level": 3,
-        "title": "AU-03 · Three Views, Three Destinations",
-        "flavor": "Scenario · independent PGM / AUX / multiview · 18–22 min",
-        "objective": "Slides on the audience screen, current slides on the confidence screen, all sources on the FOH multiview — simultaneously."
+        "title": "AU-03 · สามภาพ สามปลายทาง",
+        "flavor": "สถานการณ์ฝึก · แยกภาพออกอากาศ ภาพเสริม และจอรวมภาพ · 18–22 นาที",
+        "objective": "ส่งสไลด์ให้ผู้ชม ส่งสไลด์ปัจจุบันให้ผู้บรรยาย และส่งจอรวมทุกแหล่งภาพให้ทีมควบคุมพร้อมกัน"
       },
       {
         "level": 4,
-        "title": "AU-04 · The Echo in the Tower",
-        "flavor": "Disruption · FOH vs broadcast audio · 20–25 min",
-        "objective": "Send the hall performance to the private OBS test viewer while keeping the house PA stable."
+        "title": "AU-04 · เสียงสะท้อนในหอคอย",
+        "flavor": "แก้เหตุขัดข้อง · เสียงในห้องและเสียงถ่ายทอด · 20–25 นาที",
+        "objective": "ส่งภาพและเสียงงานประชุมไปยังผู้ชมทดสอบส่วนตัวผ่าน OBS พร้อมรักษาเสียงในห้องให้ทำงานปกติ"
       },
       {
         "level": 5,
-        "title": "AU-05 · Auditorium Practical Certification",
-        "flavor": "Certification · keynote event from empty FOH · 30–40 min",
-        "objective": "Set up and operate a simulated keynote from an empty FOH: audience PGM, performer confidence, FOH multiview, house PA, private stream and local recording."
+        "title": "AU-05 · ประเมินปฏิบัติหอประชุม",
+        "flavor": "ประเมินทักษะ · จัดงานบรรยายจากจุดควบคุมว่าง · 30–40 นาที",
+        "objective": "ติดตั้งและควบคุมงานบรรยายจำลอง ทั้งจอผู้ชม จอผู้บรรยาย จอรวมภาพ ระบบเสียงในห้อง สตรีมส่วนตัว และการบันทึกในเครื่อง"
       }
     ]
   },
   "l": {
-    "title": "The Vault of Ancient Port Seals",
-    "subtitle": "Outdoor Production Compound · Ports, Conversion, Patch & Safety",
+    "title": "คลังตราพอร์ตโบราณ",
+    "subtitle": "พื้นที่ถ่ายทอดกลางแจ้ง · พอร์ต ตัวแปลง การต่อสาย และความปลอดภัย",
     "levels": [
       {
         "level": 1,
-        "title": "OUT-01 · Name the Sacred Ports",
-        "flavor": "Guided · connector literacy & converter direction · 10–12 min",
-        "objective": "Get Camera A's SDI picture onto the field HDMI monitor with the correct direction-specific converter."
+        "title": "OUT-01 · รู้จักพอร์ตศักดิ์สิทธิ์",
+        "flavor": "ฝึกพร้อมคำแนะนำ · หัวต่อและทิศทางตัวแปลง · 10–12 นาที",
+        "objective": "ส่งภาพ SDI จากกล้อง A ไปยังจอ HDMI ภาคสนามด้วยตัวแปลงที่ตรงทิศทาง"
       },
       {
         "level": 2,
-        "title": "OUT-02 · Cross the Cable Path",
-        "flavor": "Partial · rated SDI runs and public-crossing safety · 15–18 min",
-        "objective": "Two field cameras, one control shelter, one public walkway. Bring both pictures in — safely."
+        "title": "OUT-02 · ข้ามเส้นทางสาย",
+        "flavor": "คำแนะนำบางส่วน · ระยะสาย SDI และความปลอดภัยทางเดิน · 15–18 นาที",
+        "objective": "ส่งภาพจากกล้องภาคสนามสองตัวไปยังจุดควบคุม โดยจัดสายข้ามทางเดินสาธารณะอย่างปลอดภัย"
       },
       {
         "level": 3,
-        "title": "OUT-03 · Read the Router Seals",
-        "flavor": "Scenario · conversion and Videohub crosspoints · 18–22 min",
-        "objective": "Laptop slides and Camera A into the switcher through the Videohub: OUT 1 ← IN 1 to SDI IN 3, OUT 2 ← IN 2 to SDI IN 1."
+        "title": "OUT-03 · อ่านตราเราเตอร์",
+        "flavor": "สถานการณ์ฝึก · ตัวแปลงและการเลือกเส้นทาง Videohub · 18–22 นาที",
+        "objective": "ส่งภาพโน้ตบุ๊กและกล้อง A ผ่าน Videohub โดยกำหนด OUT 1 ← IN 1 ไป SDI IN 3 และ OUT 2 ← IN 2 ไป SDI IN 1"
       },
       {
         "level": 4,
-        "title": "OUT-04 · The Broken Long Run",
-        "flavor": "Disruption · fault diagnosis and transmission · 22–27 min",
-        "objective": "The portable webcast is faulted. Restore it in a sensible order: safety → source → patch → monitor → record → WAN → ingest."
+        "title": "OUT-04 · สายไกลที่ขัดข้อง",
+        "flavor": "แก้เหตุขัดข้อง · วินิจฉัยระบบและการส่งสัญญาณ · 22–27 นาที",
+        "objective": "กู้ระบบถ่ายทอดเคลื่อนที่ตามลำดับ: ความปลอดภัย → ต้นทาง → การต่อสาย → จอ → การบันทึก → อินเทอร์เน็ต → จุดรับสตรีม"
       },
       {
         "level": 5,
-        "title": "OUT-05 · Field Rigging Practical Certification",
-        "flavor": "Certification · weather-safe portable broadcast · 35–45 min",
-        "objective": "Build and run a weather-safe interview/demo production from packed gear: two cameras + presentation, voice mix, MV/PGM, ISO record, Internet stream and a fallback network plan."
+        "title": "OUT-05 · ประเมินปฏิบัติงานภาคสนาม",
+        "flavor": "ประเมินทักษะ · ถ่ายทอดเคลื่อนที่อย่างปลอดภัยต่อสภาพอากาศ · 35–45 นาที",
+        "objective": "ติดตั้งระบบสัมภาษณ์และสาธิตจากกล่องอุปกรณ์ ทั้งสองกล้อง งานนำเสนอ เสียง จอตรวจภาพ บันทึกแยกกล้อง สตรีม และแผนเครือข่ายสำรอง"
       }
     ]
   },
   "xl": {
-    "title": "The Throne of Broadcast",
-    "subtitle": "Sports Stadium · Multi-camera Outside Broadcast",
+    "title": "บัลลังก์จอมถ่ายทอด",
+    "subtitle": "สนามกีฬา · ถ่ายทอดนอกสถานที่ด้วยหลายกล้อง",
     "levels": [
       {
         "level": 1,
-        "title": "SP-01 · The First Field View",
-        "flavor": "Guided · main camera to the director's multiview · 12–15 min",
-        "objective": "See the entire playing area on the director's monitor."
+        "title": "SP-01 · ภาพแรกจากสนาม",
+        "flavor": "ฝึกพร้อมคำแนะนำ · ส่งกล้องหลักไปยังจอรวมภาพผู้กำกับ · 12–15 นาที",
+        "objective": "แสดงพื้นที่แข่งขันทั้งหมดบนจอผู้กำกับ"
       },
       {
         "level": 2,
-        "title": "SP-02 · Eyes Around the Arena",
-        "flavor": "Partial · three-camera coverage on cue · 16–20 min",
-        "objective": "Follow a play from wide → sideline → finish."
+        "title": "SP-02 · สายตารอบสนาม",
+        "flavor": "คำแนะนำบางส่วน · ควบคุมสามกล้องตามคิว · 16–20 นาที",
+        "objective": "ติดตามการแข่งขันจากภาพกว้าง → ริมสนาม → หน้าประตู"
       },
       {
         "level": 3,
-        "title": "SP-03 · The Score Is Written",
-        "flavor": "Scenario · commentary mix + licensed score graphics · 20–25 min",
-        "objective": "Make a comprehensible live sports program: two voices over controlled ambience, and a correct score card."
+        "title": "SP-03 · บันทึกผลการแข่งขัน",
+        "flavor": "สถานการณ์ฝึก · เสียงผู้บรรยายและกราฟิกคะแนนที่มีสิทธิ์ใช้ · 20–25 นาที",
+        "objective": "ผลิตรายการกีฬาที่ฟังชัด ด้วยเสียงผู้บรรยายสองคน เสียงบรรยากาศที่เหมาะสม และกราฟิกคะแนนถูกต้อง"
       },
       {
         "level": 4,
-        "title": "SP-04 · The Broken Transmission",
-        "flavor": "Disruption · switcher → encoder → WAN → viewer · 24–30 min",
-        "objective": "Put the sports program on a private remote viewer and preserve local PGM recording."
+        "title": "SP-04 · การถ่ายทอดที่สะดุด",
+        "flavor": "แก้เหตุขัดข้อง · เครื่องสลับภาพ → ตัวเข้ารหัส → อินเทอร์เน็ต → ผู้ชม · 24–30 นาที",
+        "objective": "ส่งรายการกีฬาไปยังผู้ชมทดสอบส่วนตัว พร้อมรักษาการบันทึกภาพออกอากาศในเครื่อง"
       },
       {
         "level": 5,
-        "title": "SP-05 · Sports Outside Broadcast Practical Certification",
-        "flavor": "Certification · complete mock live football broadcast · 40–50 min",
-        "objective": "From unsorted cases to handoff: four cameras, two commentators and ambience, verified live score, independent MV/PGM, tested recording and a separate hardware encoder to a private viewer."
+        "title": "SP-05 · ประเมินปฏิบัติถ่ายทอดกีฬานอกสถานที่",
+        "flavor": "ประเมินทักษะ · ถ่ายทอดฟุตบอลจำลองครบระบบ · 40–50 นาที",
+        "objective": "จัดระบบจากกล่องอุปกรณ์จนส่งมอบงาน: สี่กล้อง ผู้บรรยายสองคน เสียงบรรยากาศ คะแนนที่ตรวจสอบแล้ว จอรวมภาพและภาพออกอากาศแยกกัน การบันทึก และตัวเข้ารหัสส่งไปยังผู้ชมส่วนตัว"
       }
     ]
   }
@@ -212,26 +212,26 @@ const chapter = (n: number, slug: string, room: keyof typeof GENERATED, venueId:
 
 /** Five rooms × five stages (game/training/sim/stages.ts). Slugs are stable: saved progress keys depend on them. */
 export const missionChapters: readonly MissionChapter[] = [
-  chapter(1, "gate-of-first-light", "xs", "classroom", "Classroom", "Teaching & hybrid lesson",
-    "Your first post as a production trainee: bring a lesson to life — slides, teacher camera and document camera on the projector, clean speech, an ISO recording and a private mock livestream.",
-    "A glowing stone gate over a real classroom AV desk"),
-  chapter(2, "moonbridge-of-echoes", "s", "studio", "Studio", "Interview & multi-camera broadcast",
-    "Run sound and vision for a three-camera interview: microphones, SDI cameras, multiview and PGM confidence, ISO recording and a private stream.",
-    "A moonlit bridge over the studio cable canal — it carries no signal by magic"),
-  chapter(3, "mirror-tower-of-switching", "m", "auditorium", "Auditorium", "Multi-destination live event",
-    "Feed different pictures to different destinations — audience PGM, performer confidence and FOH multiview — while the house PA and the stream mix stay independent.",
-    "A glass tower motif above a practical FOH booth"),
-  chapter(4, "archive-of-ancient-ports", "l", "outdoor", "Outdoor compound", "Ports, conversion, patch & field safety",
-    "Read every connector seal, convert in the right direction, patch through a router and keep a field broadcast safe — weather and power are GO/NO-GO decisions.",
-    "Engraved connector seals on inspection pedestals"),
-  chapter(5, "throne-of-the-grand-transmission", "xl", "stadium", "Stadium", "Multi-camera outside broadcast",
-    "The final trial: a four-camera sports broadcast with commentary, a verified score, independent MV/PGM, local recording and a separate hardware encoder to a private viewer.",
-    "A throne behind the OB director console — never in the optical path"),
+  chapter(1, "gate-of-first-light", "xs", "classroom", "ห้องเรียน", "การสอนและบทเรียนแบบผสมผสาน",
+    "ภารกิจแรกของผู้ฝึกผลิตรายการ: ส่งสไลด์ ภาพผู้สอน และกล้องเอกสารขึ้นโปรเจกเตอร์ จัดเสียงชัด บันทึกแยกกล้อง และสตรีมจำลองส่วนตัว",
+    "ประตูศิลาเรืองแสงเหนือโต๊ะภาพและเสียงห้องเรียน"),
+  chapter(2, "moonbridge-of-echoes", "s", "studio", "สตูดิโอ", "สัมภาษณ์และถ่ายทอดหลายกล้อง",
+    "ควบคุมภาพและเสียงสัมภาษณ์สามกล้อง ทั้งไมโครโฟน กล้อง SDI จอรวมภาพ จอตรวจภาพออกอากาศ บันทึกแยกกล้อง และสตรีมส่วนตัว",
+    "สะพานแสงจันทร์เหนือรางสายในสตูดิโอ สัญญาณต้องผ่านสายจริง"),
+  chapter(3, "mirror-tower-of-switching", "m", "auditorium", "หอประชุมใหญ่", "ถ่ายทอดงานไปหลายปลายทาง",
+    "ส่งภาพต่างกันไปยังจอผู้ชม จอผู้บรรยาย และจอรวมภาพทีมควบคุม พร้อมแยกเสียงในห้องจากเสียงสตรีม",
+    "ลวดลายหอคอยแก้วเหนือจุดควบคุมที่ใช้งานได้"),
+  chapter(4, "archive-of-ancient-ports", "l", "outdoor", "พื้นที่กิจกรรมกลางแจ้ง", "พอร์ต ตัวแปลง การต่อสาย และความปลอดภัยภาคสนาม",
+    "อ่านหัวต่อทุกชนิด ใช้ตัวแปลงถูกทิศ ต่อผ่านเราเตอร์ และจัดงานภาคสนามปลอดภัย โดยประเมินอากาศและไฟเลี้ยงก่อนตัดสินใจเริ่มหรือหยุดงาน",
+    "ตรารูปหัวต่อสลักบนแท่นตรวจอุปกรณ์"),
+  chapter(5, "throne-of-the-grand-transmission", "xl", "stadium", "สนามกีฬา", "ถ่ายทอดนอกสถานที่ด้วยหลายกล้อง",
+    "บททดสอบสุดท้าย: ถ่ายทอดกีฬาสี่กล้อง พร้อมเสียงบรรยาย คะแนนที่ตรวจสอบแล้ว จอรวมภาพและภาพออกอากาศแยกกัน บันทึกในเครื่อง และตัวเข้ารหัสแยกส่งให้ผู้ชมส่วนตัว",
+    "บัลลังก์หลังโต๊ะผู้กำกับถ่ายทอด ไม่บังแนวกล้อง"),
 ];
 
 export const getMissionBySlug = (slug: string | null | undefined) => missionChapters.find((mission) => mission.slug === slug) ?? null;
 export const getDifficultyMeta = (mission: MissionChapter, level: number) => mission.difficulties.find((difficulty) => difficulty.level === level) ?? null;
 export const getMissionDifficultyLabel = (mission: MissionChapter, level: number) => {
   const difficulty = getDifficultyMeta(mission, level);
-  return difficulty ? `Level ${level} · ${difficulty.title}` : "";
+  return difficulty ? `ระดับ ${level} · ${difficulty.title}` : "";
 };

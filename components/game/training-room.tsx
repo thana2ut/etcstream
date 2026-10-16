@@ -42,7 +42,7 @@ const CONNECTOR_NAME: Record<string, string> = {
 
 /**
  * Port marker: an elliptical ring in the device colour at the jack, plus a faint "x-ray" ring so it is never lost
- * behind the device body. The name tag ("device · port · IN/OUT") is drawn on top of everything:
+ * behind the device body. The name tag ("อุปกรณ์ · พอร์ต · IN/OUT") is drawn on top of everything:
  * on the port being aimed at, and — while a cable end is held — on every port that plug physically fits (green ✓).
  * Ports the held plug cannot enter fade out, so the right jack stands out without revealing the route.
  */
@@ -100,7 +100,7 @@ function Port({ id }: { id: string }) {
   const plug = CONNECTOR_NAME[port.connector] ?? port.connector;
   const dir = port.direction === "INPUT" ? "IN" : "OUT";
   const showTag = focused;
-  const tag = `${fits === true ? "✓ fits · " : ""}${port.label.replace(/\s*\([^)]*\)\s*$/, "")} · ${plug} · ${dir}`;
+  const tag = `${fits === true ? "✓ เสียบได้ · " : ""}${port.label.replace(/\s*\([^)]*\)\s*$/, "")} · ${plug} · ${dir}`;
   const tagSize = focused ? 0.026 : 0.019;
   const tagWidth = Math.min(0.9, tag.length * tagSize * 0.58 + 0.05);
   const [mx, my, mz, yaw, flat] = at.split(",").map(Number);
@@ -198,7 +198,11 @@ function ScenarioScreen({ deviceId }: { deviceId: string }) {
 }
 
 function ScenarioMonitor() {
-  const ids = useTrainingStore((state) => scenarioOf(state).devices.filter((d) => d.id === "monitor" || d.id === "display").map((d) => d.id).join("|"));
+  const ids = useTrainingStore((state) => {
+    const scenario = scenarioOf(state);
+    // Stadium destinations already show evaluated status on their physical screens.
+    return scenario.layout === "stadium" ? "" : scenario.devices.filter((d) => d.id === "monitor" || d.id === "display").map((d) => d.id).join("|");
+  });
   return <>{ids.split("|").filter(Boolean).map((id) => <ScenarioScreen key={id} deviceId={id} />)}</>;
 }
 
@@ -206,7 +210,7 @@ function ScenarioMonitor() {
 export const VENUE_SCENE_ONLY = false;
 
 /** Thai zone signs over the main work areas of a mission venue (storage, control desk, cameras, stage side, stream, racks). */
-const ZONE_SIGNS: [string, string][] = [["cam1", "Camera position"], ["enc", "Encoder rack"], ["vh", "Dry rack / router"], ["mic1", "Commentary booth"], ["paL", "Stage front PA"], ["host", "Stream workstation"]];
+const ZONE_SIGNS: [string, string][] = [["cam1", "จุดกล้อง"], ["stagebox", "ข้างเวที / Stagebox"], ["encoder", "จุดสตรีม"], ["router", "ตู้ Rack"], ["mic0", "จุดเสียง / ผู้บรรยาย"], ["fiber-tx", "จุดส่งสัญญาณ Fiber"]];
 function ZoneSign({ text, at, compact = false }: { text: string; at: [number, number, number]; compact?: boolean }) {
   return <Billboard position={at} scale={compact ? 0.6 : 1}>
     <mesh><planeGeometry args={[1.4, 0.35]} /><meshBasicMaterial color="#e7c98f" /></mesh>
@@ -220,11 +224,19 @@ function ZoneSigns() {
   const signs = useTrainingStore((state) => {
     const layout = layoutOf(state);
     const list: { text: string; at: [number, number, number] }[] = [
-      { text: "Equipment cases", at: [layout.equipment.center[0], layout.equipment.center[1] + 1.25, layout.equipment.center[2]] },
-      { text: "Cable store", at: [layout.cables.center[0], layout.cables.center[1] + 1.25, layout.cables.center[2]] },
-      { text: "Control desk", at: [layout.work.center[0], layout.work.center[1] + 1.55, layout.work.center[2]] },
+      { text: "คลังอุปกรณ์", at: [layout.equipment.center[0], layout.equipment.center[1] + 1.25, layout.equipment.center[2]] },
+      { text: "คลังสาย", at: [layout.cables.center[0], layout.cables.center[1] + 1.25, layout.cables.center[2]] },
+      { text: "โต๊ะควบคุม", at: [layout.work.center[0], layout.work.center[1] + 1.55, layout.work.center[2]] },
     ];
-    for (const [id, text] of ZONE_SIGNS) { const p = layout.places[id]?.p; if (p) list.push({ text, at: [p[0], Math.max(p[1], 0) + 2.3, p[2]] }); }
+    const zoneSigns: [string, string][] = layout.id === "outdoor" ? [
+      ["cam1", "กล้อง A · ตะวันออก"], ["cam2", "กล้อง B · ตะวันตก"], ["cam3", "กล้อง C · ภาพรวม"],
+      ["mic", "จุดพิธีกรและไมค์"], ["vh", "ตู้รวมสัญญาณภาพ"], ["wan", "จุดรับสตรีมทดสอบ"],
+    ] : layout.id === "stadium" ? [
+      ["cam1", "กล้อง 1 · ภาพกว้าง"], ["cam2", "กล้อง 2 · ริมสนาม"], ["cam4", "กล้อง 3 · มุมท้ายสนาม"], ["cam3", "กล้อง 4 · ผู้ชม"],
+      ["sw", "โต๊ะผู้กำกับภาพ"], ["replay", "โต๊ะเล่นคลิป"], ["graphics", "โต๊ะกราฟิก"], ["mix", "โต๊ะควบคุมเสียง"],
+      ["mic0", "โต๊ะผู้บรรยาย"], ["encoder", "ตู้ส่งสตรีม"],
+    ] : ZONE_SIGNS;
+    for (const [id, text] of zoneSigns) { const p = layout.places[id]?.p; if (p) list.push({ text, at: [p[0], Math.max(p[1], 0) + 2.3, p[2]] }); }
     return JSON.stringify(list);
   });
   return <>{(JSON.parse(signs) as { text: string; at: [number, number, number] }[]).map((s) => <ZoneSign key={s.text} text={s.text} at={s.at} compact={compact} />)}</>;
@@ -242,7 +254,7 @@ function WirelessLink({ tx }: { tx: string }) {
   const mid: [number, number, number] = [(ax + bx) / 2, Math.max(ay, by) + 0.25, (az + bz) / 2];
   return <group>
     <Line points={[[ax, ay, az], mid, [bx, by, bz]]} color="#62dce9" lineWidth={2} dashed dashSize={0.05} gapSize={0.04} transparent opacity={0.85} />
-    <Billboard position={mid}><Text font={ROOM_FONT} fontSize={0.035} color="#94edfa" anchorX="center">{sceneText(`${tx.toUpperCase()} ⟶ RX · wireless`)}</Text></Billboard>
+    <Billboard position={mid}><Text font={ROOM_FONT} fontSize={0.035} color="#94edfa" anchorX="center">{sceneText(`${tx.toUpperCase()} ⟶ RX · ไร้สาย`)}</Text></Billboard>
   </group>;
 }
 

@@ -52,7 +52,7 @@ export default function Academy() {
       <AcademyHeader
         traineeName={player.nickname}
         onBack={handleBackToEntry}
-        backLabel="Back"
+        backLabel="ย้อนกลับ"
       />
 
       {/* Main Content Area */}
@@ -61,14 +61,14 @@ export default function Academy() {
         <div className="chamber-hero-header">
           <h1 className="chamber-title">{copy.academy.eyebrow}</h1>
           <p className="chamber-desc">
-            Welcome, trainee <strong>{player.nickname}</strong>. Two paths begin here:
-            one for free practice, the other into missions that turn practice into real production experience.
+            ยินดีต้อนรับ ผู้ฝึก<strong>{player.nickname}</strong> ณ สถานที่แห่งนี้มีสองเส้นทาง
+            เส้นทางหนึ่งเพื่อฝึกฝนตนเอง อีกเส้นทางจะนำนักไปสู่ภารกิจที่เปลี่ยนทุกจังหวะการฝึกให้กลายเป็นประสบการณ์จริง
           </p>
         </div>
 
-        {/* Dual Path Cards (practice vs missions) */}
-        <section className="dual-paths-grid" aria-label="Choose a training path">
-          {/* Left: practice room */}
+        {/* Dual Path Cards (โหมดห้องเรียน vs รับภารกิจ) */}
+        <section className="dual-paths-grid" aria-label="เลือกเส้นทางแห่งการฝึก">
+          {/* Left: ห้องฝึกปราณสัญญาณ (โหมดห้องเรียน) */}
           <article className="path-portal-card portal-cyan glass-card scholar-door-frame">
             <div className="portal-arch-artwork">
               <div className="portal-arcane-art portal-arcane-classroom" aria-hidden="true"><span>⌁</span></div>
@@ -81,7 +81,7 @@ export default function Academy() {
               <h2 className="portal-heading">{copy.academy.classroom.subtitle}</h2>
               <span className="portal-subtitle">{copy.academy.classroom.title}</span>
               <p className="portal-desc">
-                Free practice with no timer — try things until you truly understand them.
+                ฝึกได้อิสระ ไม่มีเวลา สอนชัด ลองถูกเพื่อความเข้าใจที่แท้จริง
               </p>
               <ActionButton variant="cyan" size="md" onClick={enterClassroom}>
                 {copy.academy.classroom.action}
@@ -89,7 +89,7 @@ export default function Academy() {
             </div>
           </article>
 
-          {/* Right: Mission Hall */}
+          {/* Right: หอจารึกแห่งภารกิจ (รับภารกิจ) */}
           <article className="path-portal-card portal-violet glass-card scholar-door-frame">
             <div className="portal-arch-artwork">
               <div className="portal-arcane-art portal-arcane-mission" aria-hidden="true"><span>✦</span></div>
@@ -100,12 +100,12 @@ export default function Academy() {
             </div>
             <div className="portal-content-body">
               <h2 className="portal-heading">{copy.academy.mission.subtitle}</h2>
-              <span className="portal-subtitle">Take an academy mission</span>
+              <span className="portal-subtitle">รับภารกิจสำนัก</span>
               <p className="portal-desc">
-                Five production rooms, five levels each — climb from guided to certification.
+                เลือกบทภารกิจที่เจ้าสนใจ แล้วไต่ระดับบททดสอบทีละขั้น
               </p>
               <ActionButton variant="gold" size="md" href="/missions">
-                Open the Mission Hall
+                เปิดหอภารกิจ
               </ActionButton>
             </div>
           </article>

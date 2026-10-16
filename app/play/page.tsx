@@ -125,7 +125,7 @@ function PlayExperience() {
     hydrate();
   }, [hydrate]);
 
-  // The classroom (Signal Practice Room) runs the full studio signal flow; missions keep the HDMI slice.
+  // The classroom (ห้องฝึกปราณสัญญาณ) runs the full studio signal flow; missions keep the HDMI slice.
   const scaleByVenue: Record<string, VenueScale> = { classroom: "xs", studio: "s", auditorium: "m", outdoor: "l", stadium: "xl" };
   const scenarioId: ScenarioId = routeMode === "mission" && mission && difficulty
     ? `${scaleByVenue[mission.venueId]}-${difficulty.level}` as ScenarioId
@@ -229,10 +229,10 @@ function PlayExperience() {
     );
   }
 
-  const currentTitle = validMission && mission ? mission.title : "Full studio signal flow";
+  const currentTitle = validMission && mission ? mission.title : "ระบบสตูดิโอครบเส้นทาง";
   const difficultyLabel = validMission && mission ? getMissionDifficultyLabel(mission, difficultyLevel) : null;
-  const introSteps = activeScenario.requirements.map(r => [r.label, "Patch OUTPUT → INPUT with a lead of the matching signal type", r.id]);
-  const schematicNodes = [["SOURCE", "Cameras / mics"], ["ROUTING", "Switcher / Mixer"], ["DESTINATION", "Monitor / Record / Stream"]];
+  const introSteps = activeScenario.requirements.map(r => [r.label, "ต่อ OUTPUT → INPUT ด้วยสายที่ตรงชนิดสัญญาณ", r.id]);
+  const schematicNodes = [["ต้นทาง", "กล้อง / ไมค์"], ["ประมวลผล", "เครื่องสลับภาพ / ผสมเสียง"], ["ปลายทาง", "จอ / รับภาพ / ถ่ายทอด"]];
 
   async function lockPointer() {
     if (touch || introOpen || showExitConfirm) return;
@@ -294,8 +294,8 @@ function PlayExperience() {
   if (((routeMode === "mission" && validMission) || validClassroom) && bag === null) {
     return <CableLobby
       scenario={activeScenario} title={currentTitle}
-      levelLabel={validClassroom ? "Signal Practice Room · studio patching" : difficultyLabel ?? ""}
-      objective={validClassroom ? "Pick enough leads from the cable table to patch cameras, switcher, monitor, sound and capture" : difficulty?.objective}
+      levelLabel={validClassroom ? "ห้องฝึกปราณสัญญาณ · ฝึกต่อระบบสตูดิโอ" : difficultyLabel ?? ""}
+      objective={validClassroom ? "เลือกสายจากโต๊ะสายในห้องฝึก ให้พอต่อกล้อง สวิตเชอร์ จอ เสียง และการบันทึก ครบทั้งระบบ" : difficulty?.objective}
       playerName={player.nickname}
       only={validClassroom ? packableCatalogIds(activeScenario) : undefined}
       onBack={() => router.push(validClassroom ? "/academy" : "/missions")}
@@ -328,13 +328,13 @@ function PlayExperience() {
             ? () => router.push("/academy")
             : handleTriggerGameplayBack
         }
-        backLabel="Back"
+        backLabel="ย้อนกลับ"
         brandInert={!introOpen && !showResultModal}
-        breadcrumb={difficultyLabel ? `${mission?.title} > ${difficultyLabel}` : "Signal Practice Room"}
+        breadcrumb={difficultyLabel ? `${mission?.title} > ${difficultyLabel}` : "ห้องฝึกปราณสัญญาณ"}
       />
       {/* While playing the top bar is gone; this small pause button is the way out (opens the exit confirmation). */}
       {!introOpen && !showResultModal && !showExitConfirm && (
-        <button type="button" className="game-pause-btn" onClick={handleTriggerGameplayBack} aria-label="Pause / leave the stage" title="Pause / leave the stage">
+        <button type="button" className="game-pause-btn" onClick={handleTriggerGameplayBack} aria-label="หยุดเกม / ออกจากด่าน" title="หยุดเกม / ออกจากด่าน">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg>
         </button>
       )}
@@ -351,9 +351,9 @@ function PlayExperience() {
           <InspectHoldRing />
           <EquipmentInspector />
           <TrainingHud title={currentTitle} difficultyLabel={difficultyLabel ?? undefined} objective={difficulty?.objective} touch={touch} />
-          {(routeMode === "mission" || validClassroom) && bag && <button type="button" className="cl-bag-button" onClick={() => { if (document.pointerLockElement) document.exitPointerLock(); setBagOpen(true); }} title="Open the bag (R)">🎒 Bag <b className="cl-bag-badge">{bagCount}</b></button>}
+          {(routeMode === "mission" || validClassroom) && bag && <button type="button" className="cl-bag-button" onClick={() => { if (document.pointerLockElement) document.exitPointerLock(); setBagOpen(true); }} title="เปิดกระเป๋า (R)">🎒 กระเป๋า <b className="cl-bag-badge">{bagCount}</b></button>}
           {bagOpen && bag && <BagPanel bag={bag} onClose={() => setBagOpen(false)} />}
-          {hasStage && <button type="button" className="cl-bag-button" style={{ top: "auto", bottom: 86 }} onClick={() => { if (document.pointerLockElement) document.exitPointerLock(); useTrainingStore.getState().setConsoleOpen(true); }} title="Operator Console (C)">🎛 Console (C)</button>}
+          {hasStage && <button type="button" className="cl-bag-button" style={{ top: "auto", bottom: 86 }} onClick={() => { if (document.pointerLockElement) document.exitPointerLock(); useTrainingStore.getState().setConsoleOpen(true); }} title="คอนโซลควบคุม (C)">🎛 คอนโซล (C)</button>}
           <OperatorConsole />
           <ReviewOverlay />
           {touch && !showExitConfirm && <TouchControls />}
@@ -373,7 +373,7 @@ function PlayExperience() {
               }}
               onClick={lockPointer}
             >
-              Click to control the view
+              คลิกเพื่อควบคุมมุมมอง
             </button>
           )}
 
@@ -399,20 +399,20 @@ function PlayExperience() {
         </>
       )}
 
-      {/* REF 08: PLAY INTRO STATE (before entering) */}
+      {/* REF 08: PLAY INTRO STATE (ก่อนเข้าสู่ห้องฝึก) */}
       {introOpen && (
         <div className="instructions-modal-backdrop" style={{ background: "rgba(2, 6, 18, 0.9)" }}>
           <section className="play-intro-wrapper glass-card technical-panel gold-border-frame with-corner-runes" aria-labelledby="play-intro-title">
             <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: "16px" }}>
-              <BackButton onClick={handleBackFromIntro} label="Back" />
+              <BackButton onClick={handleBackFromIntro} label="ย้อนกลับ" />
             </div>
 
             <div className="play-intro-grid">
               {/* Left Info Panel */}
               <div className="intro-info-card">
                 <div className="intro-room-badge">
-                  <Image src="/images/xianxia/emblem.webp" alt="etcstream logo" width={35} height={30} className="brand-sigil intro-sigil" />
-                  <strong>{validMission ? "Mission Hall" : "Signal Practice Room"}</strong>
+                  <Image src="/images/xianxia/emblem.webp" alt="โลโก้ etcstream" width={35} height={30} className="brand-sigil intro-sigil" />
+                  <strong>ห้องฝึกปราณสัญญาณ</strong>
                 </div>
 
                 <h1 id="play-intro-title" className="intro-mode-title">{currentTitle}</h1>
@@ -422,9 +422,9 @@ function PlayExperience() {
                 <p className="intro-narrative">
                   {mission && validMission
                     ? `${mission.description} ${difficulty?.flavor ?? ""}`
-                    : "Build the complete studio chain: cameras and microphones, through the mixer and video switcher, to the capture card, computer, OBS and monitor."}
+                    : "ฝึกประกอบระบบสตูดิโอครบเส้นทาง ตั้งแต่กล้องและไมโครโฟน ผ่าน Mixer และ Video Switcher ไปยัง Capture Card, Computer, OBS และ Monitor จนครบทุกเงื่อนไข"}
                 </p>
-                {difficulty && validMission && <p className="intro-narrative"><strong>Job ticket:</strong> {difficulty.objective}</p>}
+                {difficulty && validMission && <p className="intro-narrative"><strong>เป้าหมายระดับนี้:</strong> {difficulty.objective}</p>}
 
                 <div className="intro-target-steps">
                   {introSteps.map(([title, detail, id], index) => <div className="target-step-item" key={id ?? `${index}-${title}`}>
@@ -437,14 +437,14 @@ function PlayExperience() {
                 </div>
 
                 <ActionButton variant="gold" size="lg" onClick={handleStartPlay}>
-                  {validMission ? "Start mission" : "Start practice"}
+                  {validMission ? "เริ่มภารกิจ" : "เริ่มการฝึก"}
                 </ActionButton>
               </div>
 
               {/* Right Stylized Graphic (Pedestals in Celestial Arch) */}
               <div className="intro-preview-card glass-panel scholar-framed-preview">
                 <div className="preview-artwork-wrap">
-                  <div className="lesson-schematic" aria-label={validMission ? "Signal path: source, processing, destination" : "Complete studio signal path"}>
+                  <div className="lesson-schematic" aria-label={validMission ? "เส้นทางสัญญาณ กล้องไปเครื่องสลับภาพไปจอ" : "เส้นทางระบบสตูดิโอครบวงจร"}>
                     {schematicNodes.map(([title, detail], index) => <div key={title} style={{ display: "contents" }}>
                       {index > 0 && <div className="schematic-link" aria-hidden="true">⟶</div>}
                       <div className="schematic-node"><span>{String(index + 1).padStart(2, "0")}</span><strong>{title}</strong><small>{detail}</small></div>
@@ -454,7 +454,7 @@ function PlayExperience() {
                 </div>
                 <div className="preview-caption-bar">
                   <span className="sparkle">✦</span>
-                  <span>{validMission ? "Signal path: source ➔ processing ➔ destination · press C in the room for the Operator Console" : "Studio system: picture and sound ➔ mix/switch ➔ record and stream"}</span>
+                  <span>{validMission ? "เส้นทางสัญญาณตามขนาดสถานที่: ต้นทาง ➔ ประมวลผล ➔ ปลายทาง" : "ระบบสตูดิโอ: ภาพและเสียง ➔ ผสม/สลับ ➔ บันทึกและถ่ายทอด"}</span>
                   <span className="sparkle">✦</span>
                 </div>
               </div>
@@ -467,32 +467,32 @@ function PlayExperience() {
       {showExitConfirm && (
         <div className="exit-confirm-backdrop" role="dialog" aria-modal="true">
           <div className="exit-confirm-modal glass-card dialog-panel gold-border-frame with-corner-runes">
-            <h2 className="exit-confirm-title">Leave the training?</h2>
+            <h2 className="exit-confirm-title">ออกจากการฝึกหรือไม่?</h2>
             <p className="exit-confirm-desc">
-              “Progress in this attempt may be lost, but your trainee record and missions are kept.”
+              “ความคืบหน้าในรอบนี้อาจถูกยกเลิก แต่ข้อมูลผู้ฝึกและภารกิจของเจ้าจะยังคงอยู่”
             </p>
             <div className="exit-confirm-actions">
               <ActionButton variant="glass" size="md" onClick={handleCancelExit} arrow={false}>
-                Keep training
+                ฝึกต่อ
               </ActionButton>
               <ActionButton variant="danger" size="md" onClick={handleConfirmExit}>
-                Leave the room
+                ออกจากห้องฝึก
               </ActionButton>
             </div>
           </div>
         </div>
       )}
 
-      {/* REF 10: RESULT MODAL (on mission success) */}
+      {/* REF 10: RESULT MODAL (เมื่อสำเร็จภารกิจ) */}
       {/* Mission: too many wrong connections in a row = level not passed. */}
       {routeMode === "mission" && trainingFailed && !showResultModal && (
         <div className="exit-confirm-backdrop" role="dialog" aria-modal="true" aria-labelledby="fail-title">
           <div className="exit-confirm-modal glass-card dialog-panel gold-border-frame with-corner-runes">
-            <h2 id="fail-title" className="exit-confirm-title">Stage failed</h2>
-            <p className="exit-confirm-desc">{MAX_WRONG_STREAK} wrong connections in a row — check OUTPUT → INPUT direction, signal type and the leads you packed, then try again</p>
+            <h2 id="fail-title" className="exit-confirm-title">ไม่ผ่านด่าน</h2>
+            <p className="exit-confirm-desc">ต่อสายผิดติดต่อกัน {MAX_WRONG_STREAK} ครั้ง — ตรวจทิศทาง OUTPUT → INPUT ชนิดสัญญาณ และสายที่เลือกมาแล้วลองใหม่</p>
             <div className="exit-confirm-actions">
-              <ActionButton variant="glass" size="md" arrow={false} onClick={() => router.push("/missions")}>Back to the Mission Hall</ActionButton>
-              <ActionButton variant="gold" size="md" onClick={handleRetry}>Back to cable prep</ActionButton>
+              <ActionButton variant="glass" size="md" arrow={false} onClick={() => router.push("/missions")}>กลับหอภารกิจ</ActionButton>
+              <ActionButton variant="gold" size="md" onClick={handleRetry}>กลับห้องเตรียมสาย</ActionButton>
             </div>
           </div>
         </div>

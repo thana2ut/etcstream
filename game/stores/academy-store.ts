@@ -81,7 +81,7 @@ export const useAcademyStore = create<AcademyState>((set, get) => ({
     const selected = progress?.selected;
     if (player?.currentMode === "challenge" && selected) {
       const updated = missionProgressRepository.complete(player.playerId, selected.slug, selected.difficulty);
-      set({ missionState: "completed", progress: updated ?? progress, progressError: updated ? "" : "Could not save progress — check your browser settings" });
+      set({ missionState: "completed", progress: updated ?? progress, progressError: updated ? "" : "บันทึกความคืบหน้าไม่ได้ โปรดตรวจการตั้งค่าเบราว์เซอร์" });
     } else {
       set({ missionState: "completed", progressError: "" });
     }

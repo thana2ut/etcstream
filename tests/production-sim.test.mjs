@@ -17,10 +17,17 @@ test("every named model carries source_url, verified_ports and asset_license; ge
     else assert.match(m.sourceUrl, /^https:\/\/(www\.)?(blackmagicdesign|proav\.roland|usa\.yamaha|shure)\./, m.modelId);
   }
 });
-test("in-game stage content is English (no Thai script)", () => {
-  const thai = /[฀-๿]/;
-  for (const s of STAGES) for (const text of [s.title, s.subtitle, s.ticket, ...s.callSheet, ...s.briefing, ...s.passCriteria, s.reward, ...s.objectives.map((o) => o.label), ...s.cues.map((c) => c.call)]) assert.ok(!thai.test(text), `${s.id}: ${text}`);
-  for (const id of STAGE_IDS) { const sc = SCENARIOS[id]; for (const t of [...sc.devices.map((d) => d.label), ...Object.values(sc.ports).map((p) => p.label), ...sc.cables.map((c) => c.label), ...sc.placeables.map((p) => p.zoneLabel ?? "")]) assert.ok(!thai.test(t), `${id}: ${t}`); }
+test("all 25 stages present Thai instructions while retaining simulator identifiers", () => {
+  const thai = /[ก-๙]/;
+  for (const stage of STAGES) {
+    for (const text of [stage.title, stage.subtitle, stage.ticket, ...stage.briefing, ...stage.passCriteria, stage.reward, ...stage.objectives.map((o) => o.label), ...stage.cues.map((c) => c.call)]) {
+      assert.match(text, thai, `${stage.id}: ${text}`);
+    }
+    assert.match(stage.id, /^(XS|ST|AU|OUT|SP)-0[1-5]$/);
+    for (const setting of stage.solutionConfig) {
+      if (typeof setting.value === "string") assert.ok(!thai.test(setting.value), `${stage.id}: simulator value translated`);
+    }
+  }
 });
 
 /* ───────── five verified mission records per room (all 25 complete end-to-end) ───────── */
@@ -28,7 +35,7 @@ for (const id of STAGE_IDS) {
   test(`${SCENARIOS[id].stage.id} plays end-to-end to a certified/passed sign-off`, () => {
     const state = solve(id);
     assert.ok(state.completed, `${id}: ${state.notice?.title} ${state.notice?.detail}`);
-    assert.match(state.notice.title, /^(CERTIFIED|PASS)/);
+    assert.match(state.notice.title, /^ผ่าน/);
   });
 }
 test("every L5 surprise fault (audio/video/network/recording) is recoverable end-to-end", () => {
@@ -59,50 +66,50 @@ test("L5 certifications reveal no route checklist and never pre-wire", () => {
   }
 });
 
-/* ───────── room 01 acceptance tests T1–T6 ───────── */
+/* ───────── room 01 (XS classroom) acceptance tests — EduStream 25-level wiring guide ───────── */
 const XS = SCENARIOS["xs-5"].simDevices;
-test("CL T1: laptop HDMI OUT → ATEM HDMI IN 2 accepted; ATEM HDMI OUT → laptop HDMI OUT rejected", () => {
-  assert.ok(canConnect(XS, "slides:hdmi-out", "sw:hdmi-in-2").ok);
-  const v = canConnect(XS, "sw:hdmi-out", "slides:hdmi-out");
-  assert.equal(v.code, "OUTPUT_TO_OUTPUT");
+test("XS: source OUTPUT → switcher INPUT accepted; PROGRAM OUT → camera OUT rejected (output-to-output)", () => {
+  assert.ok(canConnect(XS, "cam1:hdmi-out", "sw:hdmi-in-1").ok);
+  assert.equal(canConnect(XS, "sw:hdmi-pgm-out", "cam1:hdmi-out").code, "OUTPUT_TO_OUTPUT");
+  assert.ok(canConnect(XS, "sw:usb", "host:usb-1").ok, "USB WEBCAM DEVICE → notebook USB HOST");
 });
-test("CL T2: one ATEM HDMI output cannot be Program to the projector and Multiview at once", () => {
-  let s = solve("xs-1", { stopAt: "signal" });
-  s = setControl(s, "sw", "hdmi-out", "MULTIVIEW");
-  assert.match(simContext(s).view.monitor.picture, /MULTIVIEW/);
+test("XS: HDMI PROGRAM OUT and USB WEBCAM are independent — front display and OBS both follow source changes", () => {
+  let s = solve("xs-5", { stopAt: "signal" });
+  for (const opt of ["HDMI 1", "HDMI 2", "HDMI 1"]) {
+    s = setControl(s, "sw", "pgm", opt);
+    const v = simContext(s).view;
+    assert.equal(v.monitor.picture, v.sw.picture);
+    assert.equal(v.host.picture, v.sw.picture);
+  }
+});
+test("XS: wireless TX → RX has no cable; RX outputs audio only when paired on the same RF channel", () => {
+  assert.ok(!MODELS["generic-wireless-tx"].ports.some((x) => x.dir === "OUTPUT"), "no physical TX→RX cord");
+  let s = solve("xs-2", { stopAt: "signal" });
+  assert.ok(simContext(s).view.mix.audio.includes("TEACHER VOICE"));
+  assert.ok(!simContext(setControl(s, "rx", "pair", "Not paired")).view.mix.audio.includes("TEACHER VOICE"));
+  assert.equal(simContext(setControl(s, "rx", "rf", "CH 2")).view.rx.problem.code, "RF_CHANNEL");
+});
+test("XS: MAIN/PA and STREAM/AUX are separate buses — room PA audible while the stream is silent", () => {
+  let s = solve("xs-5", { stopAt: "signal" });
+  s = setControl(s, "mix", "ch1-aux", false);
+  const v = simContext(s).view;
+  assert.ok(v.pa.audio.includes("TEACHER VOICE"));
+  assert.ok(!(v.host.audio ?? []).includes("TEACHER VOICE"));
+});
+test("XS: camera HDMI audio left ON doubles the voice in OBS (no double-counting allowed)", () => {
+  let s = solve("xs-5", { stopAt: "signal" });
+  assert.deepEqual(simContext(s).view.host.audio, ["TEACHER VOICE"]);
+  s = setControl(s, "sw", "emb-audio", "ON");
+  assert.ok(simContext(s).view.host.audio.some((a) => a.startsWith("CAM MIC")));
   assert.equal(runTest(s, "signal").sim.testsPassed.signal, false);
 });
-test("CL T3: USB-C is one port — webcam host and SSD cannot both be connected", () => {
-  let s = solve("xs-5", { stopAt: "signal" });
-  const lead = SCENARIOS["xs-5"].cables.find((c) => c.id === "x-usbca");
-  s = act(s, { kind: "end", cableId: lead.id, end: "a" });
-  s = act(s, { kind: "port", portId: "sw:usb" });
-  assert.notEqual(s.cables[lead.id].a.portId, "sw:usb");
-});
-test("CL T4: no WAN → stream fails but projector works; no SSD → ISO fails but projector works", () => {
-  let s = solve("xs-5", { stopAt: "signal" });
-  s = setControl(setControl(s, "sw", "stream", true), "sw", "record", true);
-  let ctx = simContext(s);
-  assert.ok(ctx.view.wan.live && ctx.view.ssd.recording);
-  const wanLead = SCENARIOS["xs-5"].canonical.find((c) => c.from === "net:wan").cableId;
-  let noWan = act(s, { kind: "end", cableId: wanLead, end: "b" }); noWan = dropHeldEnd(noWan, [0, 0.8, 0]);
-  ctx = simContext(noWan);
-  assert.ok(!ctx.view.wan.live && ctx.view.monitor.picture && ctx.view.ssd.recording);
-  const noSsd = setControl(s, "ssd", "state", "Not mounted");
-  ctx = simContext(noSsd);
-  assert.ok(!ctx.view.ssd.recording && ctx.view.wan.live && ctx.view.monitor.picture);
-});
-test("CL T5: pro balanced line straight into the ATEM 3.5 mm input is rejected; the interface with −12 dB works", () => {
-  assert.equal(canConnect(XS, "mix:st-l", "sw:mic-1").code, "PRO_TO_CONSUMER");
-  let s = solve("xs-5", { stopAt: "signal" });
-  assert.ok(!simContext(s).view.sw.clip);
-  s = setControl(s, "adapt", "atten", "0 dB (bypass)");
-  assert.ok(simContext(s).view.sw.clip);
-});
-test("CL T6: L5 viewer follows the changing Program with the mixed voice", () => {
-  let s = solve("xs-5", { stopAt: "signal" });
-  s = setControl(s, "sw", "stream", true);
-  for (const opt of ["HDMI 1", "HDMI 2", "HDMI 3"]) { s = setControl(s, "sw", "pgm", opt); const v = simContext(s).view.wan; assert.equal(v.picture, simContext(s).view.sw.picture); assert.ok(v.audio.includes("TEACHER VOICE")); }
+test("XS: removing a mandatory link breaks the completed graph (no connected-count completion)", () => {
+  const s = solve("xs-5");
+  assert.ok(s.completed);
+  const lead = SCENARIOS["xs-5"].canonical.find((c) => c.from === "mix:aux-out").cableId;
+  const cut = dropHeldEnd(act(s, { kind: "end", cableId: lead, end: "b" }), [0, 0.8, 0]);
+  assert.ok(!(simContext(cut).view.host.audio ?? []).includes("TEACHER VOICE"));
+  assert.equal(runTest(cut, "signal").sim.testsPassed.signal, false);
 });
 
 /* ───────── room 02 programmatic tests ───────── */
@@ -299,7 +306,7 @@ test("three meaningful errors pause the mission; the targeted mini check resumes
   for (let i = 0; i < 3; i++) s = act(s, { kind: "port", portId: "cam1:sdi-ret" });
   assert.ok(s.sim.paused);
   assert.equal(s.sim.reviewConcept, "return-feed");
-  assert.match(setControl(s, "cam1", "format", "1080p50").notice.title, /paused/i);
+  assert.match(setControl(s, "cam1", "format", "1080p50").notice.title, /พักภารกิจ/);
   s = answerReview(s, (s.sim.reviewConcept && 1));
   assert.ok(!s.sim.paused && s.sim.errors === 0);
 });

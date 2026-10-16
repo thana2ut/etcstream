@@ -1,3 +1,5 @@
+import { simThai } from "@/game/content/sim-thai";
+
 /** Local Kart Thai + Geist Latin composite; original font files and Thai shaping tables stay intact. */
 export const SCENE_FONT = "/fonts/scene-thai-latin.ttf";
 export const SCENE_FONT_FAMILY = "EtcstreamSceneThai";
@@ -11,7 +13,7 @@ const SYMBOLS: Record<string, string> = {
   "‑": "-", "–": "-", "—": "-", "…": "...", "≥": ">=", "≤": "<=", "−": "-", "×": "x", "≈": "~",
 };
 export function sceneText(text: string): string {
-  return text.replace(/[→⟶←↔·Ω✓✔°‑–—…≥≤−×≈]/gu, (symbol) => SYMBOLS[symbol]).replace(/[ \t]{2,}/gu, " ");
+  return simThai(text).replace(/[→⟶←↔·Ω✓✔°‑–—…≥≤−×≈]/gu, (symbol) => SYMBOLS[symbol]).replace(/[ \t]{2,}/gu, " ");
 }
 
 let pending: Promise<void> | null = null;

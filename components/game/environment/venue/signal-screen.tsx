@@ -6,7 +6,7 @@ import { venueScreenFeed } from "@/game/training/monitor-feed";
 import { SCENE_FONT, sceneText } from "@/game/rendering/scene-font";
 
 /** An architectural repeater of a playable destination; never a baked successful feed. */
-export function SignalScreen({ device, width, height, title = "Simulated feed" }: { device: string; width: number; height: number; title?: string }) {
+export function SignalScreen({ device, width, height, title = "สัญญาณจำลอง" }: { device: string; width: number; height: number; title?: string }) {
   const feed = useTrainingStore((state) => venueScreenFeed(state, device));
   return <group>
     <mesh><planeGeometry args={[width, height]} /><meshBasicMaterial color="#091321" toneMapped={false} /></mesh>

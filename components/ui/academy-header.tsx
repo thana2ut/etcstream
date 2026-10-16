@@ -93,7 +93,7 @@ export const AcademyHeader = memo(function AcademyHeader({
   hidden = false,
   onBack,
   backHref,
-  backLabel = "Back",
+  backLabel = "ย้อนกลับ",
   brandInert = false,
 }: AcademyHeaderProps) {
   const storePlayer = useAcademyStore((s) => s.player);
@@ -151,15 +151,15 @@ export const AcademyHeader = memo(function AcademyHeader({
         {(() => {
           const cls = `header-brand ${hideBrandOnMobile ? "hide-mobile" : ""}`;
           const inner = <>
-            <Image src="/images/xianxia/emblem.webp" alt="etcstream logo" width={56} height={48} className="header-brand-logo" priority />
+            <Image src="/images/xianxia/emblem.webp" alt="โลโก้ etcstream" width={56} height={48} className="header-brand-logo" priority />
             <div className="brand-text-block">
-              <small className="brand-thai">Academy of the Signal Path</small>
+              <small className="brand-thai">สำนักวิถีแห่งสายสัญญาณ</small>
             </div>
           </>;
           if (brandInert) return <div className={`${cls} is-inert`}>{inner}</div>;
           // Pages with a way back show a back pill instead of the brand: away from the academy hall it exits straight
           // to the hall; on the hall itself it keeps the page's own back (to the entry screen).
-          if ((onBack || backHref) && pathname !== "/academy") return <BackButton href="/academy" label="Back to the hall" ariaLabel="Back to the hall" />;
+          if ((onBack || backHref) && pathname !== "/academy") return <BackButton href="/academy" label="กลับโถงสำนัก" ariaLabel="กลับโถงสำนัก" />;
           if (onBack) return <BackButton onClick={onBack} label={backLabel} ariaLabel={backLabel} />;
           if (backHref) return <BackButton href={backHref} label={backLabel} ariaLabel={backLabel} />;
           return <Link href="/" className={cls}>{inner}</Link>;
@@ -169,13 +169,13 @@ export const AcademyHeader = memo(function AcademyHeader({
       <div className="header-right">
 
         {displayName && (
-          <div className="header-trainee-pill" title={`Trainee: ${displayName}`}>
+          <div className="header-trainee-pill" title={`ผู้ฝึก: ${displayName}`}>
             <div className="trainee-avatar">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm0 12c-5.33 0-8 2.67-8 5v1h16v-1c0-2.33-2.67-5-8-5z" />
               </svg>
             </div>
-            <span className="trainee-name">Trainee: <strong>{displayName}</strong></span>
+            <span className="trainee-name">ผู้ฝึก: <strong>{displayName}</strong></span>
           </div>
         )}
 
@@ -185,8 +185,8 @@ export const AcademyHeader = memo(function AcademyHeader({
           <button
             type="button"
             className="action-icon-btn"
-            title={isFullscreen ? "Exit full screen" : "Full screen"}
-            aria-label={isFullscreen ? "Exit full screen" : "Full screen"}
+            title={isFullscreen ? "ออกจากเต็มจอ" : "เต็มจอ"}
+            aria-label={isFullscreen ? "ออกจากเต็มจอ" : "เต็มจอ"}
             onClick={toggleFullscreen}
           >
             {isFullscreen ? (

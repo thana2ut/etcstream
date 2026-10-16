@@ -1,6 +1,13 @@
 "use client";
 
-import { SignalScreen } from "./signal-screen";
+import { DeviceVisual } from "../../equipment/device-visual";
+import { Hcx2000Model } from "../../equipment/hc-x2000";
+import { useTrainingStore } from "@/game/stores/training-store";
+import { scenarioOf } from "@/game/training/hdmi-training";
+import { ROOMS } from "@/game/training/sim/rooms";
+import { MODELS } from "@/game/training/sim/equipment";
+import { Text } from "@react-three/drei";
+import { SCENE_FONT } from "@/game/rendering/scene-font";
 import { SCENE_CANVAS_FONT } from "@/game/rendering/scene-font";
 import { useMemo } from "react";
 import { CuboidCollider, RigidBody } from "@react-three/rapier";
@@ -16,7 +23,7 @@ const L = LAYOUTS.outdoor;
 // The field site is enlarged with its layout (VENUE_SCALE, a game-design choice); tent, stage dressing and props follow.
 const K = VENUE_SCALE.outdoor, k = (v: number) => +(v * K).toFixed(3);
 const STAGE = L.furniture.find((f) => f.kind === "stage")!;
-const TENT = { x0: k(1.9), x1: k(6.1), z0: k(6.6), z1: k(10.9), eave: 2.6, peak: 3.6 };
+const TENT = { x0: k(0.8), x1: k(7.2), z0: k(6.6), z1: k(10.9), eave: 2.6, peak: 3.6 };
 const CROWD_RAILS: Placement[] = [-6.5, -4.6, 4.6, 6.5].map((x) => ({ p: [x, 0, 4.1] as V3 }));
 const FIELD_FURNITURE = { ...L, furniture: L.furniture.filter((f) => f.kind !== "chairBlock") };
 
@@ -41,7 +48,7 @@ function bannerTexture() {
 function facadeSign() {
   return tex.sign("facade-sign", 1024, 160, (c, w, h) => {
     c.fillStyle = "#f4efe6"; c.fillRect(0, 0, w, h);
-    c.fillStyle = "#7a2a20"; c.font = `bold 80px ${THAI}`; c.textAlign = "center"; c.fillText("Student Activity Centre", w / 2, 108);
+    c.fillStyle = "#7a2a20"; c.font = `bold 80px ${THAI}`; c.textAlign = "center"; c.fillText("อาคารกิจกรรมนักศึกษา", w / 2, 108);
   });
 }
 
@@ -204,7 +211,7 @@ function EventSeating() {
     { geo: merge([place(g.rbox([0.42, 0.045, 0.4], 0.012), [0, 0.46, 0]), place(g.rbox([0.42, 0.36, 0.04], 0.02), [0, 0.71, 0.18], [-0.1, 0, 0])]), mat: { c: "#eeeef0", r: 0.55 } },
     { geo: merge([-1, 1].flatMap((x) => [-1, 1].map((z) => place(g.cyl(0.012, 0.012, 0.45, 8), [x * 0.17, 0.225, z * 0.16])))), mat: CHROME },
   ], []);
-  const at = useMemo<Placement[]>(() => L.furniture.filter((f) => f.kind === "chairBlock").flatMap((f) => [-1, 0, 1].map((v) => ({ p: [f.center[0] + v * 0.52, 0, f.center[2]] as V3 }))), []);
+  const at = useMemo<Placement[]>(() => L.furniture.filter((f) => f.kind === "chairBlock").flatMap((f) => [-1, 0, 1].map((v) => ({ p: [f.center[0] + v * 0.52, 0, f.center[2]] as V3 }))).concat(["operator1", "operator2"].map((id) => ({ p: L.places[id].p }))), []);
   return <Instanced parts={parts} at={at} />;
 }
 
@@ -254,6 +261,37 @@ function LampPost({ p }: { p: V3 }) {
   </group>;
 }
 
+/** Permanent installed kit keeps each labelled station furnished in introductory stages.
+ * Active equipment, including stored portable items, is rendered only by the gameplay system. */
+function InstalledOutdoorEquipment() {
+  const active = useTrainingStore((state) => `|${scenarioOf(state).devices.map((d) => d.id).join("|")}|`);
+  const ids = ["cam1", "cam2", "cam3", "sw", "mix", "lap", "mic", "vh", "net", "pgm"];
+  return <>{ids.map((id) => {
+    if (active.includes(`|${id}|`)) return null;
+    const spot = L.places[id];
+    const inst = ROOMS.l.instances[id];
+    const model = inst ? MODELS[inst.model] : undefined;
+    return <group key={id} position={spot.p} rotation={[0, spot.yaw, 0]}>
+      {id === "cam3" ? <Hcx2000Model /> : model && <DeviceVisual bare device={{
+        id, label: model.role === "display" ? `${inst.label} · Monitor` : inst.label, model: model.name, generic: model.generic, verified: !model.generic,
+        kind: model.kind, size: [...model.size], position: spot.p, color: "#263345",
+      }} />}
+      <Text font={SCENE_FONT} position={[0, id.startsWith("cam") ? 1.78 : (model?.size[1] ?? 0.2) + 0.18, 0]} fontSize={0.038} maxWidth={0.7} color="#ead8af" outlineWidth={0.002} outlineColor="#14202b">{id.startsWith("cam") ? id === "cam3" ? "กล้องสำรองประจำพื้นที่" : "กล้องประจำจุด · ใช้ตามระดับฝึก" : "อุปกรณ์ประจำพื้นที่ · ใช้ตามระดับฝึก"}</Text>
+    </group>;
+  })}</>;
+}
+
+/** Shared station coordinates also drive physical supports and their collision bodies. */
+function OutdoorStationSupports() {
+  const mic = L.places.mic.p;
+  const stageTop = STAGE.size[1];
+  return <>
+    <Cyl p={[mic[0], stageTop + 0.025, mic[2]]} rt={0.17} h={0.05} {...BLACK_METAL} />
+    <Cyl p={[mic[0], (stageTop + mic[1]) / 2, mic[2]]} rt={0.014} h={mic[1] - stageTop} {...CHROME} />
+    <RB p={[mic[0], mic[1] - 0.01, mic[2]]} s={[0.08, 0.025, 0.035]} rad={0.005} {...BLACK_METAL} />
+  </>;
+}
+
 export function Outdoor() {
   const tree = useTree();
   const barrier = useBarrier();
@@ -293,6 +331,7 @@ export function Outdoor() {
     <Slab p={[k(-10.3), -0.035, k(15)]} s={[4, 0.1, 6]} map={tex.concrete([2, 3])} c="#ffffff" r={0.95} />
 
     <Canopy />
+    <Canopy tent={{ x0: k(-10.5), x1: k(-5.1), z0: k(7.4), z1: k(10.2), eave: 2.5, peak: 3.4 }} />
     <Building />
     <Instanced parts={tree} at={trees} />
     <Instanced parts={barrier} at={barriers} />
@@ -304,14 +343,9 @@ export function Outdoor() {
     <RigidBody type="fixed" colliders={false}>
       {CROWD_RAILS.map(({ p }, i) => <CuboidCollider key={i} position={[p[0], 0.55, p[2]]} args={[0.925, 0.55, 0.1]} />)}
     </RigidBody>
-    {/* Raised monitor bridge keeps the original tabletop controls reachable. */}
-    {[-1.25, 1.25].map((x) => <group key={`foh-monitor-${x}`} position={[L.work.center[0] + x, L.work.center[1], L.work.center[2] - 0.33]}>
-      <RB p={[0, 0.08, 0]} s={[0.32, 0.035, 0.2]} rad={0.01} {...BLACK_METAL} />
-      <RB p={[0, 0.3, -0.04]} s={[0.04, 0.44, 0.04]} rad={0.006} {...BLACK_METAL} />
-      <RB p={[0, 0.63, -0.04]} s={[0.92, 0.54, 0.05]} rad={0.018} c="#15191f" />
-      <group position={[0, 0.63, -0.011]}><SignalScreen device="monitor" width={0.85} height={0.47} title="FOH • SIM" /></group>
-    </group>)}
     <StageRig />
+    <InstalledOutdoorEquipment />
+    <OutdoorStationSupports />
     <EventSeating />
     {/* Side technical tents and delay towers are outside the walkable perimeter. */}
     {[-1, 1].map((v) => <group key={`technical-${v}`}>

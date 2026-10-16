@@ -1,3 +1,4 @@
+import { simThai } from "./sim-thai";
 import type { Scenario } from "@/game/training/scenarios";
 import { MODELS } from "@/game/training/sim/equipment";
 
@@ -8,11 +9,11 @@ export function simEquipmentInfo(scenario: Scenario, id: string) {
   const m = MODELS[inst.model];
   const station = scenario.placeables.find((p) => p.id === id)?.zoneLabel;
   return {
-    name: inst.label, model: `${m.manufacturer} · ${m.name}`,
-    role: m.generic ? "Generic Training Device" : m.manufacturer,
+    name: inst.label, model: `${simThai(m.manufacturer)} · ${m.name}`,
+    role: m.generic ? "อุปกรณ์จำลองเพื่อฝึก" : m.manufacturer,
     summary: m.notes[0] ?? m.name,
-    facts: [...m.verifiedPorts.map((p) => `Port: ${p}`), ...m.notes.slice(1), ...(m.sourceUrl ? [`Source: ${m.sourceUrl}`] : []), `Asset licence: ${m.assetLicense}`],
-    inThisRoom: `${inst.label}${station ? ` — station: ${station}` : ""}. Open the Operator Console (C) for live status, ports and controls.`,
+    facts: [...m.verifiedPorts.map((p) => `พอร์ต: ${p}`), ...m.notes.slice(1), ...(m.sourceUrl ? [`แหล่งอ้างอิง: ${m.sourceUrl}`] : []), `สิทธิ์การใช้ชิ้นงาน: ${m.assetLicense}`],
+    inThisRoom: `${inst.label}${station ? ` — จุดติดตั้ง: ${station}` : ""} เปิดแผงควบคุม (C) เพื่อดูสถานะ พอร์ต และการตั้งค่า`,
     unverified: [] as string[],
   };
 }

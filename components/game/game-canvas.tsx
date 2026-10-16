@@ -44,14 +44,14 @@ export function GameCanvas({ venue, active, fallbackLook, touch, onExitFallback,
   const layout = useTrainingStore((state) => scenarioOf(state).layout) ?? venue;
   const hasShadows = Boolean(layout);
   if (fontStatus !== "ready") return <div role={fontStatus === "error" ? "alert" : "status"} style={{ position: "absolute", inset: 0, display: "grid", placeContent: "center", gap: "1rem", color: "#fff1d0", background: "#101522", textAlign: "center" }}>
-    <p>{fontStatus === "error" ? "Could not load the scene font — please try again" : "Preparing scene text…"}</p>
-    {fontStatus === "error" && <button type="button" onClick={() => { setFontStatus("loading"); setFontAttempt((v) => v + 1); }}>Reload the font</button>}
+    <p>{fontStatus === "error" ? "โหลดฟอนต์ภาษาไทยไม่สำเร็จ กรุณาลองอีกครั้ง" : "กำลังเตรียมข้อความภาษาไทย…"}</p>
+    {fontStatus === "error" && <button type="button" onClick={() => { setFontStatus("loading"); setFontAttempt((v) => v + 1); }}>ลองโหลดฟอนต์อีกครั้ง</button>}
   </div>;
-  return <>{reviewEnabled && <aside aria-label="Environment review" style={{ position: "absolute", top: 80, right: 12, zIndex: 100, padding: 10, maxWidth: 300, background: "#101522ee", color: "white" }}>
-    <label>Review view <select aria-label="Review view" value={reviewIndex} onChange={(event) => setReviewIndex(Number(event.target.value))}>
-      <option value={-1}>Back to walking</option>{views.map((view, i) => <option key={view.id} value={i}>{view.label}</option>)}
+  return <>{reviewEnabled && <aside aria-label="ตรวจสภาพแวดล้อม" style={{ position: "absolute", top: 80, right: 12, zIndex: 100, padding: 10, maxWidth: 300, background: "#101522ee", color: "white" }}>
+    <label>มุมตรวจฉาก <select aria-label="มุมตรวจฉาก" value={reviewIndex} onChange={(event) => setReviewIndex(Number(event.target.value))}>
+      <option value={-1}>กลับไปเดินตรวจ</option>{views.map((view, i) => <option key={view.id} value={i}>{view.label}</option>)}
     </select></label>
-    <p style={{ fontSize: 12 }}>{reviewView?.id ?? "Walking with normal controls"} · review cameras never change score or mission state</p>
+    <p style={{ fontSize: 12 }}>{reviewView?.id ?? "เดินด้วยระบบควบคุมปกติ"} · กล้องตรวจไม่เปลี่ยนคะแนนหรือภารกิจ</p>
   </aside>}<Canvas frameloop={active || reviewView ? "always" : "demand"} shadows={hasShadows ? "percentage" : false} gl={{ antialias: true, powerPreference: "high-performance", stencil: false }} camera={{ fov: 67, near: 0.1, far: 140, position: [0, 1.65, 3] }} dpr={dpr} onPointerDown={(event) => {
     const canvas = event.nativeEvent.target;
     if (active && !reviewView && !fallbackLook && !touch && !document.pointerLockElement && canvas instanceof HTMLCanvasElement) {

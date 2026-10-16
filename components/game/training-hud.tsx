@@ -9,11 +9,11 @@ import { MAX_WRONG_STREAK } from "@/game/content/cable-catalog";
 import { useEffect, useState } from "react";
 
 type PromptKey = "E" | "F" | "hold";
-const KEY_LABEL: Record<PromptKey, string> = { E: "E", F: "F", hold: "Hold E" };
-const TOUCH_KEY: Record<PromptKey, string> = { E: "Tap", F: "Drop", hold: "Hold" };
-/** Split "E · …" / "F · …" / "E hold 2 s · …" into the key to show and the text; plain hints get no key. */
+const KEY_LABEL: Record<PromptKey, string> = { E: "E", F: "F", hold: "E ค้าง" };
+const TOUCH_KEY: Record<PromptKey, string> = { E: "แตะ", F: "วาง", hold: "แตะค้าง" };
+/** Split "E · …" / "F · …" / "E ค้าง 2 วิ · …" into the key to show and the text; plain hints get no key. */
 function parsePrompt(instruction: string): { key: PromptKey | null; text: string } {
-  const hold = instruction.match(/^E hold (\S+ s) · (.*)$/);
+  const hold = instruction.match(/^E ค้าง (\S+ วิ) · (.*)$/);
   if (hold) return { key: "hold", text: `${hold[1]} · ${hold[2]}` };
   const m = instruction.match(/^([EF]) · (.*)$/);
   return m ? { key: m[1] as PromptKey, text: m[2] } : { key: null, text: instruction };
@@ -37,10 +37,10 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
   const total = trainingTotal(state);
   // Checklist in signal-flow order: each group lists its cable routes, then its procedural steps.
   const GROUPS: { id: FlowGroup; title: string }[] = [
-    { id: "video", title: "VIDEO INPUT" },
-    { id: "audio", title: "AUDIO INPUT" },
-    { id: "capture", title: "CAPTURE / STREAM" },
-    { id: "monitor", title: "MONITORING" },
+    { id: "video", title: "ภาพ · VIDEO INPUT" },
+    { id: "audio", title: "เสียง · AUDIO INPUT" },
+    { id: "capture", title: "บันทึก · CAPTURE / OBS" },
+    { id: "monitor", title: "ตรวจ · MONITORING" },
   ];
   const rows = GROUPS.map((group) => ({
     ...group,
@@ -63,22 +63,22 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
           type="button"
           className="hud-objective-mini-pill"
           onClick={() => setIsCollapsed(false)}
-          aria-label="Open the mission panel"
+          aria-label="เปิดแผงภารกิจ"
         >
           <span className="mini-pill-glyph">◈</span>
-          <span className="mini-pill-text">Mission ({progress}/{total})</span>
+          <span className="mini-pill-text">ภารกิจ ({progress}/{total})</span>
           <span className="mini-pill-arrow">▾</span>
         </button>
       ) : (
-        <aside className="hud-objective-panel glass-card hud-panel" aria-label="Current mission">
+        <aside className="hud-objective-panel glass-card hud-panel" aria-label="ภารกิจปัจจุบัน">
           <div className="hud-panel-top-row">
             <h3 className="hud-panel-title">{title}</h3>
             <button
               type="button"
               className="hud-collapse-btn"
               onClick={() => setIsCollapsed(true)}
-              title="Collapse the mission panel"
-              aria-label="Collapse the mission panel"
+              title="ย่อแผงภารกิจ"
+              aria-label="ย่อแผงภารกิจ"
             >
               −
             </button>
@@ -86,17 +86,17 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
           {difficultyLabel && <strong className="mission-level-label">{difficultyLabel}</strong>}
           {/* Mission levels keep the panel compact like free practice: title, progress, grouped checklist. */}
           {objective && !scenario.venueScale && <p className="hud-panel-sub">{objective}</p>}
-          {scenario.job && !scenario.venueScale && <p className="hud-panel-sub">Job: {scenario.job}</p>}
-          {pickMode !== "whole" && <p className="hud-pick-mode" role="status">{`Mode ${pickMode === "a" ? 1 : 2} · ${touch ? "aim at a cable and tap Use" : "press E on a cable"} to take only its ${pickMode === "a" ? "head" : "tail"}`} ({touch ? "tap the same number again" : "press the number again"} to cancel)</p>}
-          {scenario.venueScale && state.heldItem && <p className="hud-panel-sub" role="status">Carrying: {scenario.placeables.find((p) => p.id === state.heldItem)?.label} → take it to {scenario.placeables.find((p) => p.id === state.heldItem)?.zoneLabel ?? "its station"}</p>}
+          {scenario.job && !scenario.venueScale && <p className="hud-panel-sub">งาน: {scenario.job}</p>}
+          {pickMode !== "whole" && <p className="hud-pick-mode" role="status">{`โหมด ${pickMode === "a" ? 1 : 2} · ${touch ? "เล็งสายแล้วแตะปุ่มใช้งาน" : "กด E ที่สาย"}เพื่อหยิบเฉพาะ${pickMode === "a" ? "หัวสาย" : "ปลายสาย"}`} ({touch ? "แตะปุ่มเลขเดิมซ้ำ" : "กดเลขซ้ำ"}เพื่อยกเลิก)</p>}
+          {scenario.venueScale && state.heldItem && <p className="hud-panel-sub" role="status">กำลังถือ: {scenario.placeables.find((p) => p.id === state.heldItem)?.label} → นำไปที่ {scenario.placeables.find((p) => p.id === state.heldItem)?.zoneLabel ?? "ตำแหน่งใช้งาน"}</p>}
           <div className="hud-panel-sub">
             <span>◈</span>
-            <span>Progress: {progress}/{total} checks</span>
+            <span>ความคืบหน้า: {progress}/{total} ขั้น</span>
           </div>
           {scenario.venueScale && !state.completed && (state.sim
-            ? <p className="hud-panel-sub" role="status" style={{ color: state.sim.errors >= 2 ? "var(--danger)" : undefined }}>Errors before targeted review: {state.sim.errors}/3 · press C for the Operator Console</p>
-            : <p className="hud-panel-sub" role="status" style={{ color: state.wrongStreak >= 3 ? "var(--danger)" : undefined }}>Wrong connections in a row: {state.wrongStreak}/{MAX_WRONG_STREAK}</p>)}
-          {scenario.venueScale && state.completed && <p className="hud-panel-sub" role="status" style={{ color: "var(--success)", fontWeight: 700 }}>✓ Stage passed — every condition met</p>}
+            ? <p className="hud-panel-sub" role="status" style={{ color: state.sim.errors >= 2 ? "var(--danger)" : undefined }}>ผิดพลาดก่อนทบทวน: {state.sim.errors}/3 · กด C เปิดคอนโซลควบคุม</p>
+            : <p className="hud-panel-sub" role="status" style={{ color: state.wrongStreak >= 3 ? "var(--danger)" : undefined }}>ต่อผิดติดต่อกัน: {state.wrongStreak}/{MAX_WRONG_STREAK}</p>)}
+          {scenario.venueScale && state.completed && <p className="hud-panel-sub" role="status" style={{ color: "var(--success)", fontWeight: 700 }}>✓ ผ่านด่านแล้ว — ครบทุกเงื่อนไข</p>}
 
           <div className="hud-checklist">
             {rows.map((group) => (
@@ -112,12 +112,12 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
             ))}
             {scenario.id === "hdmi-basic" && (
               <div className="hud-check-item">
-                <div><span>Check for a picture</span></div>
+                <div><span>ตรวจหาสัญญาณภาพ</span></div>
                 <div className={`hud-checkbox-square ${state.completed ? "is-done" : ""}`}>{state.completed && <span>✓</span>}</div>
               </div>
             )}
             {scenario.venueScale && scenario.faults?.map((fault) => <small className="hud-check-note" key={fault}>⚠ {fault}</small>)}
-            {rows.length > 1 && <small className="hud-check-note">{scenario.venueScale ? "Generic devices are labelled training stand-ins; named models list their manufacturer source in the console." : "* Provisional route — verify against the real room cabling"}</small>}
+            {rows.length > 1 && <small className="hud-check-note">{scenario.venueScale ? "อุปกรณ์เป็นแบบจำลองเพื่อฝึกเส้นทาง รุ่นและพอร์ตที่ระบุว่ารอยืนยันยังต้องตรวจของจริง" : "* เส้นทางชั่วคราว รอตรวจสายจริงในห้อง"}</small>}
           </div>
         </aside>
       )}
@@ -129,14 +129,14 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
       <div className={`interaction-prompt-center${touch ? " is-touch" : ""}`} role="status">
         {(state.held || state.heldItem) && (
           <div className="prompt-holding-pill">
-            <span>{heldCable ? `Holding ${heldCable.label}` : `Holding ${state.items[state.heldItem!].label}`} · {touch ? "use Drop to set it down · Turn rotates 45°" : "aim at a surface and press F to set down · T turns 45°"}</span>
+            <span>{heldCable ? `กำลังถือ${heldCable.label}` : `กำลังถือ${state.items[state.heldItem!].label}`} · {touch ? "ใช้ปุ่มวางบนโต๊ะกลาง · ปุ่มหมุนปรับครั้งละ 45°" : "เล็งจุดบนโต๊ะกลางแล้วกด F วาง · T หมุน 45°"}</span>
           </div>
         )}
 
         {/* The key badge follows the action: E pick up / connect / unplug, F put down, E-hold inspect; none for info only. */}
         <div className={`prompt-action-pill${prompt.key ? "" : " is-info"}`}>
           {prompt.key && <span className={`prompt-action-key key-${prompt.key}`}>{touch ? TOUCH_KEY[prompt.key] : KEY_LABEL[prompt.key]}</span>}
-          <span>{prompt.text || "Interact"}</span>
+          <span>{prompt.text || "โต้ตอบอุปกรณ์"}</span>
         </div>
       </div>
 

@@ -57,6 +57,27 @@ test("classroom long patched leads descend to the floor and retain their exact s
   }
 });
 
+test("classroom laptop faces its teacher seat and the camera frames the teacher", () => {
+  const { LAYOUTS } = load("../game/training/venue-layouts.ts");
+  const layout = LAYOUTS.classroom, desk = layout.furniture.find((f) => f.id === "xs-teacher");
+  const teacher = [0.1, desk.center[2] - 1.05];
+  for (const level of [1, 2, 3, 4, 5]) {
+    const scenario = SCENARIOS[`xs-${level}`];
+    const laptop = scenario.devices.find((d) => d.id === "slides");
+    if (!laptop) continue;
+    const dx = teacher[0] - laptop.position[0], dz = teacher[1] - laptop.position[2];
+    assert.ok((Math.sin(laptop.yaw) * dx + Math.cos(laptop.yaw) * dz) / Math.hypot(dx, dz) > 0.98, "screen front must face the teacher");
+    const port = scenario.ports["slides:hdmi-out"];
+    assert.ok(port.position[0] > laptop.position[0], "HDMI follows the rotated laptop side");
+    const camera = scenario.devices.find((d) => d.id === "cam1");
+    if (camera) {
+      assert.deepEqual(camera.position, layout.places.cam1.p);
+      const cx = teacher[0] - camera.position[0], cz = teacher[1] - camera.position[2];
+      assert.ok((-Math.sin(camera.yaw) * cx - Math.cos(camera.yaw) * cz) / Math.hypot(cx, cz) > 0.99);
+    }
+  }
+});
+
 test("classroom stored bodies do not overlap along the cabinet and student chairs have blockers", () => {
   const { LAYOUTS, layoutObstacles } = load("../game/training/venue-layouts.ts");
   const scenario = SCENARIOS["xs-5"];
@@ -121,6 +142,27 @@ test("studio cameras cover the interview set from three distinct angles and stor
   }
 });
 
+test("studio camera marks, active cameras and microphone stands share operating positions", () => {
+  const { LAYOUTS } = load("../game/training/venue-layouts.ts");
+  const layout = LAYOUTS.studioMission;
+  for (const level of [1, 2, 3, 4, 5]) {
+    const scenario = SCENARIOS[`s-${level}`];
+    for (const id of ["cam1", "cam2", "cam3", "micH", "micG"]) {
+      const device = scenario.devices.find((d) => d.id === id);
+      if (!device) continue;
+      assert.deepEqual(device.position, layout.places[id].p, `${scenario.id}: ${id} drifts from its mark/stand`);
+      assert.equal(device.yaw, layout.places[id].yaw);
+    }
+  }
+  const cameras = ["cam1", "cam2", "cam3"].map((id) => layout.places[id].p);
+  for (let i = 0; i < cameras.length; i++) for (let j = i + 1; j < cameras.length; j++) {
+    assert.ok(Math.hypot(cameras[i][0] - cameras[j][0], cameras[i][2] - cameras[j][2]) > 1.3, "tripods need separate footprints and operator clearance");
+  }
+  for (const id of ["micH", "micG"]) assert.equal(layout.places[id].p[1], 1.05, "microphone must sit on its stand, not on the floor");
+  const cabinet = layout.furniture.find((f) => f.id === "sm-storage");
+  assert.ok(cabinet.center[2] - cabinet.size[2] / 2 >= 4.4, "storage stays behind the interview set");
+});
+
 for (const scenario of venues) {
   test(`${scenario.id}: typed graph is consistent, carrying/dropping is repeatable and foreign targets never mutate state`, () => {
     const deviceIds = new Set(scenario.devices.map(d => d.id));
@@ -182,11 +224,11 @@ test("wrong direction, connector, signal class, occupied and loop never mutate t
     assert.deepEqual(state.held, before.held);
     assert.equal(state.notice.tone, "error");
   }
-  rejected("cam1:hdmi-out", "sw:hdmi-out", lead("sw:hdmi-in-1")); // output -> output
+  rejected("cam1:hdmi-out", "sw:hdmi-pgm-out", lead("sw:hdmi-in-1")); // output -> output
   rejected("sw:hdmi-in-1", "monitor:hdmi-in-1", lead("sw:hdmi-in-1")); // input -> input
-  rejected(null, "mix:mic-1", lead("sw:hdmi-in-1")); // HDMI plug into an XLR socket
+  rejected(null, "mix:in-1", lead("sw:hdmi-in-1")); // HDMI plug into an XLR socket
   rejected("cam1:hdmi-out", "cam1:hdmi-out", lead("sw:hdmi-in-1")); // same endpoint
-  rejected("mix:st-l", "sw:mic-1", "x-xlr35"); // pro line into a consumer jack
+  rejected(null, "host:usb-1", lead("sw:hdmi-in-1")); // HDMI plug into a USB host port
 });
 test("switching changes Program state and can return to an earlier source", () => {
   let state = solve(SCENARIOS["xs-3"]);
@@ -233,7 +275,7 @@ test("a lead that physically fits but carries the wrong signal family is rejecte
   const before = structuredClone(state);
   state = act(state, { kind: "port", portId: "paL:line-in" });
   assert.equal(state.notice.tone, "error");
-  assert.match(state.notice.detail, /speaker level/i);
+  assert.match(state.notice.detail, /ระดับขับลำโพง/);
   assert.deepEqual(state.cables, before.cables); assert.deepEqual(state.held, before.held);
 });
 
@@ -350,4 +392,71 @@ test("stadium cameras face the pitch and rack backs leave a service aisle", () =
   assert.ok(-Math.sin(d.yaw)*dx-Math.cos(d.yaw)*dz>0,`${d.id} points away from pitch`);
  }
  for(const f of L.furniture.filter(f=>f.id.startsWith("xl-rack-"))) assert.ok(f.center[0]-f.size[2]/2-L.bounds.minX>0.9,`${f.id} blocks service access`);
+});
+
+
+test("auditorium presenter faces the laptop and input equipment rests on its support", () => {
+  const { LAYOUTS } = load("../game/training/venue-layouts.ts");
+  const layout = LAYOUTS.auditorium;
+  const laptop = layout.places.slides, chair = layout.places.presenterChair;
+  const dx = chair.p[0] - laptop.p[0], dz = chair.p[2] - laptop.p[2];
+  assert.ok((Math.sin(laptop.yaw) * dx + Math.cos(laptop.yaw) * dz) / Math.hypot(dx, dz) > 0.99);
+  const table = layout.furniture.find((f) => f.id === "m-presenter");
+  const stage = layout.furniture.find((f) => f.kind === "stage");
+  assert.ok(chair.p[2] - 0.25 > stage.center[2] + stage.size[2] / 2);
+  assert.ok(chair.p[2] + 0.25 < table.center[2] - table.size[2] / 2);
+  const projector = SCENARIOS["m-1"].devices.find((d) => d.id === "display");
+  const support = layout.furniture.find((f) => f.id === "m-display-case");
+  assert.equal(projector.position[1], support.size[1]);
+  assert.ok(Math.abs(projector.position[2] - support.center[2]) < 0.01);
+});
+
+
+test("outdoor stations share camera positions and keep installed equipment on sheltered worktops", () => {
+  const { LAYOUTS } = load("../game/training/venue-layouts.ts");
+  const layout = LAYOUTS.outdoor;
+  const desk = layout.furniture.find((f) => f.id === "l-tent-desk");
+  for (const level of [1, 2, 3, 4, 5]) {
+    const scenario = SCENARIOS[`l-${level}`];
+    for (const id of ["cam1", "cam2"]) {
+      const device = scenario.devices.find((d) => d.id === id);
+      if (device) {
+        assert.deepEqual(device.position, layout.places[id].p);
+        assert.equal(device.yaw, layout.places[id].yaw);
+      }
+    }
+    for (const id of ["mix", "sw", "monitor", "pgm", "net", "net2", "ssd", "convSH"]) {
+      const device = scenario.devices.find((d) => d.id === id);
+      if (!device) continue;
+      assert.equal(device.position[1], desk.size[1]);
+      assert.ok(Math.abs(device.position[0] - desk.center[0]) + device.size[0] / 2 <= desk.size[0] / 2, id);
+      assert.ok(Math.abs(device.position[2] - desk.center[2]) + device.size[2] / 2 <= desk.size[2] / 2, id);
+    }
+  }
+  assert.ok(layout.places.cam1.p[0] > 0 && layout.places.cam2.p[0] < 0);
+  const presenter = layout.furniture.find((f) => f.id === "l-presenter");
+  assert.equal(layout.places.lap.p[1], presenter.size[1]);
+  const stage = layout.furniture.find((f) => f.kind === "stage");
+  assert.ok(presenter.center[2] + presenter.size[2] / 2 < stage.center[2] + stage.size[2] / 2 - 0.6, "presenter table must clear the front wedge monitors");
+  assert.ok(layout.places.mic.p[1] > layout.furniture.find((f) => f.kind === "stage").size[1]);
+});
+
+
+test("stadium workstations support equipment and retain useful rack service clearance", () => {
+  const { LAYOUTS } = load("../game/training/venue-layouts.ts");
+  const layout = LAYOUTS.stadium;
+  const tableFor = { sw: "xl-switch", play: "xl-replay", gfx: "xl-graphics", mix: "xl-audio", phones: "xl-audio", pgm: "xl-switch", monitor: "xl-monitor-console" };
+  for (const level of [1, 2, 3, 4, 5]) {
+    const scenario = SCENARIOS[`xl-${level}`];
+    for (const [id, furnitureId] of Object.entries(tableFor)) {
+      const device = scenario.devices.find((d) => d.id === id);
+      if (!device) continue;
+      const table = layout.furniture.find((f) => f.id === furnitureId);
+      assert.equal(device.position[1], table.size[1], id);
+      assert.ok(Math.abs(device.position[0] - table.center[0]) + device.size[0] / 2 <= table.size[0] / 2, id);
+      assert.ok(Math.abs(device.position[2] - table.center[2]) + device.size[2] / 2 <= table.size[2] / 2, id);
+    }
+  }
+  const racks = layout.furniture.filter((f) => f.id.startsWith("xl-rack-"));
+  for (const rack of racks) assert.ok(rack.center[0] - rack.size[2] / 2 - layout.bounds.minX > 0.9);
 });

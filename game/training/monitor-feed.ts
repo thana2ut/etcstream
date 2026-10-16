@@ -32,10 +32,10 @@ export function venueScreenFeed(state: TrainingState, deviceId: string): string 
   const ctx = simContext(state);
   if (!ctx) return legacyFeed(state, deviceId);
   const v = ctx.view[deviceId];
-  if (!v) return "NOT USED IN THIS JOB";
+  if (!v) return "ไม่ใช้ในงานนี้";
   if (!v.powered) return "POWER OFF";
   if (v.picture && v.picture !== "BLACK") return v.picture.startsWith("MULTIVIEW") ? v.picture.replace(" [", "\n").replace("]", "").replace(/ \| /g, " · ") : `PROGRAM\n${v.picture}`;
-  return v.picture === "BLACK" ? "BLACK" : v.status.startsWith("NO SIGNAL") ? v.status.replace(" (", "\n(") : "NO SIGNAL";
+  return v.picture === "BLACK" ? "BLACK" : (v.status.startsWith("NO SIGNAL") || v.status.startsWith("ไม่มีสัญญาณ")) ? v.status.replace(" (", "\n(") : "NO SIGNAL";
 }
 
 /** Pre-simulation behaviour (free-practice rooms only). */

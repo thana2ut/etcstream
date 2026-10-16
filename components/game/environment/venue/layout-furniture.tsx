@@ -64,7 +64,7 @@ function AvCabinet({ f }: { f: Furniture }) {
     {[0.32, 0.62].map((y) => <RB key={y} p={[-0.02, y, 0]} s={[w - 0.08, 0.02, d - 0.1]} rad={0.004} c="#8f969e" m={0.5} />)}
     {Array.from({ length: 4 }, (_, i) => <mesh key={i} position={[-0.05, 0.36, -d / 2 + 0.35 + i * (d - 0.7) / 3]} rotation={[0, Math.PI / 2, 0]}><torusGeometry args={[0.1, 0.018, 8, 28]} /><meshStandardMaterial color={["#1b1b1f", "#2d6cdf", "#1b1b1f", "#d0b030"][i]} roughness={0.6} /></mesh>)}
     <RB p={[0, h + 0.005, 0]} s={[w + 0.02, 0.01, d + 0.02]} rad={0.003} c="#d6d9dc" />
-    <Text font={FONT} position={[-w / 2 - 0.012, h - 0.12, 0]} rotation={[0, -Math.PI / 2, 0]} fontSize={0.07} color="#1d2a3d">{sceneText("AV cabinet · portable equipment")}</Text>
+    <Text font={FONT} position={[-w / 2 - 0.012, h - 0.12, 0]} rotation={[0, -Math.PI / 2, 0]} fontSize={0.07} color="#1d2a3d">{sceneText("ตู้ AV · อุปกรณ์พกพา")}</Text>
   </group>;
 }
 

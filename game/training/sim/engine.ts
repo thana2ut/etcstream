@@ -6,7 +6,7 @@ import type {
 import { CATEGORY_WEIGHT, DEFAULT_FORMAT, HD_FORMATS } from "./types";
 
 /** A device instance placed in a room: unique instance id + model id + synthetic content/run length. */
-export interface DeviceInstance { id: string; model: string; label: string; content?: string; voice?: string; runM?: number }
+export interface DeviceInstance { id: string; model: string; label: string; content?: string; voice?: string; runM?: number; /** wireless RX: the TX instance it can pair with */ pairWith?: string }
 /** Cable meta for physical-layer checks (length tag and simulated validated 3G rating). */
 export interface CableMeta { id: string; label: string; lengthM: number; ratedM?: number }
 
@@ -41,38 +41,38 @@ export function portOf(devices: Record<string, DeviceInstance>, globalId: string
  */
 export function canConnect(devices: Record<string, DeviceInstance>, a: string, b: string): ConnectVerdict {
   const pa = portOf(devices, a), pb = portOf(devices, b);
-  if (!pa || !pb) return verdict(false, "UNKNOWN_PORT", "Unknown port", "This socket is not part of the stage graph.", "connector");
-  if (a.split(":")[0] === b.split(":")[0]) return verdict(false, "SELF_LOOP", "Loop on one device", "A cable from a device back into itself creates no useful path.", "direction");
+  if (!pa || !pb) return verdict(false, "UNKNOWN_PORT", "ไม่พบพอร์ต", "พอร์ตนี้ไม่อยู่ในระบบของด่าน", "connector");
+  if (a.split(":")[0] === b.split(":")[0]) return verdict(false, "SELF_LOOP", "ต่อวนในอุปกรณ์เดียวกัน", "ต่อสายย้อนเข้าอุปกรณ์เดิมไม่ทำให้เกิดเส้นทางใช้งาน", "direction");
   if (pa.dir === pb.dir) {
     return pa.dir === "INPUT"
-      ? verdict(false, "INPUT_TO_INPUT", "Input to input", `${pa.name} and ${pb.name} are both INPUTS. A signal must leave an OUTPUT. (A camera RETURN IN is an input, not a picture output.)`, pa.sig === "SDI" ? "return-feed" : "direction")
-      : verdict(false, "OUTPUT_TO_OUTPUT", "Output to output", `${pa.name} and ${pb.name} are both OUTPUTS. Two outputs fight each other; connect an output to an input.`, "direction");
+      ? verdict(false, "INPUT_TO_INPUT", "ขาเข้าชนขาเข้า", `${pa.name} และ ${pb.name} เป็นขาเข้าทั้งคู่ สัญญาณต้องออกจากขาออก โดย RETURN IN ของกล้องเป็นขาเข้า ไม่ใช่ขาออกภาพ`, pa.sig === "SDI" ? "return-feed" : "direction")
+      : verdict(false, "OUTPUT_TO_OUTPUT", "ขาออกชนขาออก", `${pa.name} และ ${pb.name} เป็นขาออกทั้งคู่ ต้องต่อขาออกเข้าขาเข้า`, "direction");
   }
   const out = pa.dir === "OUTPUT" ? pa : pb, inp = pa.dir === "OUTPUT" ? pb : pa;
   const s = out.sig, t = inp.sig;
-  if (t === "USB_POWER") return verdict(false, "USB_POWER_ONLY", "Power port, not a signal input", `${inp.name} on a Micro Converter is power/configuration only. USB-C here carries no video.`, "usb-role");
-  if (s === "SPEAKER") return verdict(false, "SPEAKER_LEVEL", "Speaker-level output", `${out.name} is amplified speaker level. It would overload ${inp.name}; active PAs and switchers need LINE level.`, "speaker-level");
-  if (s === "HEADPHONE" && t === "HEADPHONE") return verdict(true, "OK", "Connected", `${out.name} → ${inp.name}`, "speaker-level");
-  if (s === "HEADPHONE" && t !== "HEADPHONE") return verdict(false, "HEADPHONE_NOT_LINE", "Headphone output is not a feed", "PHONES is a headphone amplifier for monitoring. Feed PAs and switchers from STEREO or GROUP line outputs.", "speaker-level");
-  if (t === "HEADPHONE" && s !== "HEADPHONE") return verdict(false, "NOT_HEADPHONE", "Wrong source for headphones", "Headphones plug into the mixer PHONES output.", "connector");
+  if (t === "USB_POWER") return verdict(false, "USB_POWER_ONLY", "พอร์ตไฟเลี้ยง ไม่ใช่ขาเข้าสัญญาณ", `${inp.name} ของ Micro Converter ใช้ไฟเลี้ยงและตั้งค่าเท่านั้น ไม่ส่งภาพผ่าน USB-C`, "usb-role");
+  if (s === "SPEAKER") return verdict(false, "SPEAKER_LEVEL", "ขาออกระดับขับลำโพง", `${out.name} เป็นสัญญาณขับลำโพง แรงเกิน ${inp.name} ลำโพงแอ็กทีฟและเครื่องสลับภาพต้องรับ LINE`, "speaker-level");
+  if (s === "HEADPHONE" && t === "HEADPHONE") return verdict(true, "OK", "เชื่อมต่อแล้ว", `${out.name} → ${inp.name}`, "speaker-level");
+  if (s === "HEADPHONE" && t !== "HEADPHONE") return verdict(false, "HEADPHONE_NOT_LINE", "ขาออกหูฟังใช้ป้อนระบบนี้ไม่ได้", "PHONES ใช้ขยายเสียงสำหรับหูฟัง ให้ป้อนลำโพงและเครื่องสลับภาพจากขาออกไลน์ STEREO หรือ GROUP", "speaker-level");
+  if (t === "HEADPHONE" && s !== "HEADPHONE") return verdict(false, "NOT_HEADPHONE", "แหล่งสัญญาณหูฟังไม่ถูกต้อง", "ต่อหูฟังที่ PHONES ของเครื่องผสมเสียง", "connector");
   const video = (x: string) => x === "HDMI" || x === "SDI";
   if (video(s) || video(t)) {
-    if (s !== t) return verdict(false, "VIDEO_CLASS", `${s} ≠ ${t}`, `An ${s} signal cannot enter an ${t} input without a powered, direction-correct Micro Converter.`, "converter-direction");
-    return verdict(true, "OK", "Connected", `${out.name} → ${inp.name}`, "direction");
+    if (s !== t) return verdict(false, "VIDEO_CLASS", `${s} ≠ ${t}`, `สัญญาณ ${s} เข้า ${t} ไม่ได้หากไม่มีตัวแปลงที่มีไฟเลี้ยงและถูกทิศทาง`, "converter-direction");
+    return verdict(true, "OK", "เชื่อมต่อแล้ว", `${out.name} → ${inp.name}`, "direction");
   }
   const audio = (x: string) => x === "MIC" || x === "LINE_BAL" || x === "LINE_UNBAL";
   if (audio(s) && audio(t)) {
-    if (s === "LINE_BAL" && t === "LINE_UNBAL") return verdict(false, "PRO_TO_CONSUMER", "Pro line into a consumer jack", "+4 dBu balanced line into an unbalanced −10 dBV 3.5 mm input overloads it. Use the Generic Training Balanced-to-Unbalanced Line Interface with attenuation.", "consumer-level");
-    return verdict(true, "OK", "Connected", `${out.name} → ${inp.name}`, "direction");
+    if (s === "LINE_BAL" && t === "LINE_UNBAL") return verdict(false, "PRO_TO_CONSUMER", "ระดับไลน์อาชีพเข้าช่องอุปกรณ์ทั่วไป", "ไลน์สมดุล +4 dBu แรงเกินช่อง 3.5 มม. ไม่สมดุล −10 dBV ให้ใช้ตัวปรับสมดุลเป็นไม่สมดุลพร้อมลดระดับ", "consumer-level");
+    return verdict(true, "OK", "เชื่อมต่อแล้ว", `${out.name} → ${inp.name}`, "direction");
   }
   if ((s === "USB_UAC" || s === "USB_UVC" || s === "USB_STORAGE") && (t === "USB_UVC" || t === "USB_STORAGE" || t === "USB_UAC")) {
-    if (s === "USB_UAC" && t === "USB_STORAGE") return verdict(false, "USB_ROLE", "USB audio is not a disk", "The mixer's USB audio interface talks to a computer, not to a recording disk.", "usb-role");
-    return verdict(true, "OK", "Connected", `${out.name} → ${inp.name}`, "usb-role");
+    if (s === "USB_UAC" && t === "USB_STORAGE") return verdict(false, "USB_ROLE", "เสียง USB ไม่ใช่ดิสก์บันทึก", "เสียง USB ของเครื่องผสมเสียงใช้สื่อสารกับคอมพิวเตอร์ ไม่ใช่ดิสก์บันทึก", "usb-role");
+    return verdict(true, "OK", "เชื่อมต่อแล้ว", `${out.name} → ${inp.name}`, "usb-role");
   }
-  if (s === "ETHERNET" && t === "ETHERNET") return verdict(true, "OK", "Connected", `${out.name} → ${inp.name} (role decided by the device: control or stream)`, "eth-role");
-  if (s === "WAN" && t === "WAN") return verdict(true, "OK", "Connected", `${out.name} → ${inp.name}`, "wan");
-  if (s === "ETHERNET" && t === "WAN") return verdict(false, "LAN_TO_INGEST", "No gateway", "A device's LAN port is not an Internet uplink. Go through the gateway's LAN, then its WAN.", "wan");
-  return verdict(false, "SIGNAL_CLASS", "Incompatible signal", `${out.name} (${s}) cannot feed ${inp.name} (${t}).`, "connector");
+  if (s === "ETHERNET" && t === "ETHERNET") return verdict(true, "OK", "เชื่อมต่อแล้ว", `${out.name} → ${inp.name} (หน้าที่ขึ้นอยู่กับอุปกรณ์: ควบคุมหรือสตรีม)`, "eth-role");
+  if (s === "WAN" && t === "WAN") return verdict(true, "OK", "เชื่อมต่อแล้ว", `${out.name} → ${inp.name}`, "wan");
+  if (s === "ETHERNET" && t === "WAN") return verdict(false, "LAN_TO_INGEST", "ไม่มีเกตเวย์", "LAN อุปกรณ์ไม่ใช่ทางออกอินเทอร์เน็ต ต้องผ่าน LAN ของเกตเวย์แล้วจึงออก WAN", "wan");
+  return verdict(false, "SIGNAL_CLASS", "ชนิดสัญญาณไม่รองรับกัน", `${out.name} (${s}) ส่งเข้า ${inp.name} (${t}) ไม่ได้`, "connector");
 }
 
 /* ═════════════ signal propagation ═════════════ */
@@ -114,8 +114,8 @@ export function evaluate(g: GraphInput): EvalContext {
       const run = runBetween(g.stage, e.from.split(":")[0], e.to.split(":")[0]);
       if (meta && (meta.lengthM < run || (meta.ratedM !== undefined && meta.ratedM < meta.lengthM))) {
         w.edgeProblem[e.to] = meta.lengthM < run
-          ? { code: "CABLE_SHORT", text: `${meta.label} is ${meta.lengthM} m but the run is ${run} m.`, fix: "Use a tested cable long enough for the measured run.", concept: "cable-run" }
-          : { code: "CABLE_RATING", text: `${meta.label}: validated only to ${meta.ratedM} m for this signal — no reliable lock at ${meta.lengthM} m.`, fix: "Use a tested lead rated for the full length (see the spool tag), or convert to 3G-SDI near the source.", concept: "cable-run" };
+          ? { code: "CABLE_SHORT", text: `${meta.label} ยาว ${meta.lengthM} ม. แต่เส้นทางยาว ${run} ม.`, fix: "ใช้สายที่ทดสอบแล้วและยาวพอสำหรับระยะจริง", concept: "cable-run" }
+          : { code: "CABLE_RATING", text: `${meta.label}: ทดสอบสัญญาณนี้ผ่านเพียง ${meta.ratedM} ม. จึงไม่เสถียรที่ ${meta.lengthM} ม.`, fix: "ใช้สายที่ทดสอบผ่านตลอดระยะตามป้ายม้วน หรือแปลงเป็น 3G-SDI ใกล้ต้นทาง", concept: "cable-run" };
         continue;
       }
       inp[e.to] = { ...sig, via: [...sig.via, e.cableId] } as Signal;
@@ -139,12 +139,12 @@ function processDevice(id: string, devices: Record<string, DeviceInstance>, inp:
   const P = (k: string) => `${id}:${k}`;
   const I = (k: string) => inp[P(k)];
   const on = powered(id);
-  const view: DeviceView = { powered: on, status: on ? "Ready" : m.needsPower ? "POWER OFF" : "Idle" };
+  const view: DeviceView = { powered: on, status: on ? "พร้อมใช้งาน" : m.needsPower ? "ยังไม่เปิดไฟ" : "รอใช้งาน" };
   const problem = (code: string, concept: ConceptId, text: string, fix: string) => { if (!view.problem) view.problem = { code, concept, text, fix }; };
   w.view[id] = view;
   if (!on) {
     if (m.needsPower) {
-      problem("POWER", "power", g_placedText(inst.label), "Complete the power check for this device (abstracted, pre-installed supply).");
+      problem("POWER", "power", g_placedText(inst.label), "ตรวจไฟเลี้ยงที่ติดตั้งไว้สำหรับอุปกรณ์นี้");
       return out;
     }
   }
@@ -157,29 +157,51 @@ function processDevice(id: string, devices: Record<string, DeviceInstance>, inp:
       const fmt = (cfg(id, "format") as VideoFormat) ?? "1080p50";
       const camAudio = m.kind === "camera" && cfg(id, "cam-audio") !== false ? [`CAM MIC (${inst.label.replace(/ \(.*/, "")})`] : [];
       if (inst.model === "generic-laptop") {
-        if (cfg(id, "present") !== true) { content = "DESKTOP (presentation mode off)"; problem("PRESENTATION_OFF", "output-assign", "Laptop is showing its desktop, not the slideshow.", "Enable presentation mode on the laptop."); }
+        if (cfg(id, "present") !== true) { content = "DESKTOP (presentation mode off)"; problem("PRESENTATION_OFF", "output-assign", "โน้ตบุ๊กแสดงหน้าเดสก์ท็อป ยังไม่แสดงสไลด์", "เปิดโหมดนำเสนอในโน้ตบุ๊ก"); }
         if (cfg(id, "mute-audio") !== true) camAudio.push("LAPTOP SYSTEM SOUNDS");
       }
       if (inst.model === "generic-graphics-pc") {
         { const t = String(cfg(id, "template")); content = t.startsWith("Scoreboard") ? `SCOREBOARD ${cfg(id, "score")}` : t.startsWith("Holding") ? "HOLDING SLATE" : "GFX TEST PATTERN"; }
       }
-      if ((m.kind === "camera" || inst.model === "generic-doc-camera") && String(cfg(id, "framing") ?? "").startsWith("Not")) view.status = "Shot not framed";
+      if ((m.kind === "camera" || inst.model === "generic-doc-camera") && String(cfg(id, "framing") ?? "").startsWith("Not")) view.status = "ยังไม่จัดกรอบภาพ";
       for (const port of m.ports.filter((x) => x.dir === "OUTPUT")) out[P(port.key)] = video(port.sig as "HDMI" | "SDI", fmt, content, camAudio);
       view.picture = content;
       const ret = I("sdi-ret");
       if (ret?.kind === "video") view.audio = [`RETURN: ${ret.content}`];
-      if (fmt === "2160p50") view.status = "Outputting 2160p50 (UHD)";
+      if (fmt === "2160p50") view.status = "กำลังส่งภาพ 2160p50 (UHD)";
       break;
     }
     case "mic": {
       const sources = [voice];
-      if (inst.model === "generic-ambience-mic" && cfg(id, "windscreen") !== true) { sources.push("WIND NOISE"); problem("WIND", "clipping", "Ambience mic has no windscreen — wind rumble on air.", "Fit the rugged windscreen."); }
-      out[P("xlr-out")] = { kind: "audio", cls: "MIC", sources, clip: false, via: [] };
+      if (inst.model === "generic-ambience-mic" && cfg(id, "windscreen") !== true) { sources.push("WIND NOISE"); problem("WIND", "clipping", "ไมค์บรรยากาศไม่มีอุปกรณ์กันลม เกิดเสียงลมออกอากาศ", "ติดอุปกรณ์กันลมภาคสนาม"); }
+      out[P(m.ports.find((x) => x.dir === "OUTPUT")!.key)] = { kind: "audio", cls: "MIC", sources, clip: false, via: [] };
       view.audio = sources;
-      if (cfg(id, "aim") === "Toward PA loudspeaker") view.status = "Capsule aimed at the PA";
+      if (cfg(id, "aim") === "Toward PA loudspeaker") view.status = "หัวไมค์หันเข้าหาลำโพง";
       break;
     }
     case "mixer": {
+      if (inst.model === "generic-4ch-mixer") {
+        const chans = [1, 2].map((n) => {
+          const sg = I(`in-${n}`) as AudioSignal | undefined;
+          const gain = String(cfg(id, `ch${n}-gain`));
+          return { n, s: sg, gain, live: sg?.kind === "audio" && cfg(id, `ch${n}-on`) === true && !gain.startsWith("Minimum") };
+        });
+        const bus = (key: "main" | "aux", fader: string, cls: AudioSignal["cls"]): AudioSignal => {
+          const used = fader === "Unity" ? chans.filter((c) => c.live && cfg(id, `ch${c.n}-${key}`) === true) : [];
+          return { kind: "audio", cls, sources: uniq(used.flatMap((c) => c.s!.sources)), clip: used.some((c) => c.gain.startsWith("Too hot") || c.s!.clip), via: [] };
+        };
+        const main = bus("main", String(cfg(id, "main-fader")), "LINE_BAL");
+        const aux = bus("aux", String(cfg(id, "aux-master")), "LINE_UNBAL");
+        out[P("main-out")] = main; out[P("aux-out")] = aux;
+        view.audio = uniq([...main.sources, ...aux.sources]); view.clip = main.clip || aux.clip;
+        for (const c of chans) {
+          if (c.s && cfg(id, `ch${c.n}-on`) !== true) problem("MUTED", "mute", `CH${c.n} ถูก Mute อยู่`, `เปิด CH${c.n} ON`);
+          if (c.s && c.gain.startsWith("Minimum")) problem("NO_GAIN", "clipping", `Gain ของ CH${c.n} ต่ำสุด มิเตอร์แทบไม่ขยับ`, "เพิ่ม Gain จนพีกเสียงพูดราว −18 dBFS");
+          if (c.live && c.gain.startsWith("Too hot")) problem("CLIP", "clipping", `CH${c.n} คลิป (ไฟ PEAK แดง)`, "ลด Gain เป็น Nominal");
+        }
+        view.status = view.clip ? "PEAK — เสียงคลิป" : view.audio.length ? `MAIN: ${main.sources.join(" + ") || "—"} · STREAM: ${aux.sources.join(" + ") || "—"}` : "มิเตอร์ไม่ขยับ";
+        break;
+      }
       const chans = [1, 2, 3].map((n) => {
         const s = I(`mic-${n}`);
         const gain = String(cfg(id, `ch${n}-gain`));
@@ -200,11 +222,11 @@ function processDevice(id: string, devices: Record<string, DeviceInstance>, inp:
       view.audio = st?.sources ?? [];
       view.clip = Boolean(st?.clip || grp?.clip);
       for (const c of chans) {
-        if (c.s && cfg(id, `ch${c.n}-on`) !== true) problem("MUTED", "mute", `CH${c.n} is muted (ON switch off).`, `Press CH${c.n} ON.`);
-        if (c.s && c.gain.startsWith("Minimum")) problem("NO_GAIN", "clipping", `CH${c.n} gain is at minimum — the meter barely moves.`, "Raise GAIN until speech peaks around −18 dBFS.");
-        if (c.live && c.gain.startsWith("Too hot")) problem("CLIP", "clipping", `CH${c.n} PEAK lamp is red — the preamp clips.`, "Lower GAIN to Nominal.");
+        if (c.s && cfg(id, `ch${c.n}-on`) !== true) problem("MUTED", "mute", `ช่อง ${c.n} ปิดเสียงอยู่`, `เปิดเสียงช่อง ${c.n}`);
+        if (c.s && c.gain.startsWith("Minimum")) problem("NO_GAIN", "clipping", `ช่อง ${c.n} ขยายเสียงต่ำสุด มาตรวัดแทบไม่ขึ้น`, "เพิ่ม GAIN ให้ยอดเสียงพูดประมาณ −18 dBFS");
+        if (c.live && c.gain.startsWith("Too hot")) problem("CLIP", "clipping", `ช่อง ${c.n} ไฟ PEAK แดง วงจรขยายเสียงแตก`, "ลด GAIN สู่ระดับเหมาะสม");
       }
-      view.status = view.clip ? "PEAK — clipping" : st && st.sources.length ? `ST meter: ${st.sources.join(" + ")}` : "Meters idle";
+      view.status = view.clip ? "PEAK — เสียงแตก" : st && st.sources.length ? `มาตรวัด ST: ${st.sources.join(" + ")}` : "มาตรวัดยังไม่มีเสียง";
       break;
     }
     case "interface": {
@@ -212,8 +234,8 @@ function processDevice(id: string, devices: Record<string, DeviceInstance>, inp:
       if (l || r) {
         const pad = String(cfg(id, "atten")).startsWith("−12");
         out[P("out")] = { kind: "audio", cls: "LINE_UNBAL", sources: uniq([...(l?.sources ?? []), ...(r?.sources ?? [])]), clip: !pad || Boolean(l?.clip || r?.clip), via: [] };
-        if (!pad) problem("NO_PAD", "consumer-level", "Interface bypassed (0 dB): +4 dBu into a −10 dBV input will overload.", "Set attenuation to −12 dB.");
-        if (!l || !r) problem("ONE_SIDE", "connector", "Only one side (L or R) of the stereo pair is connected.", "Connect both STEREO OUT L and R.");
+        if (!pad) problem("NO_PAD", "consumer-level", "ยังไม่ลดระดับสัญญาณ (0 dB): +4 dBu แรงเกินขาเข้า −10 dBV", "ตั้งการลดระดับเป็น −12 dB");
+        if (!l || !r) problem("ONE_SIDE", "connector", "ต่อเสียงสเตอริโอเพียงข้างเดียว ซ้ายหรือขวา", "ต่อ STEREO OUT ทั้ง L และ R");
       }
       break;
     }
@@ -221,10 +243,10 @@ function processDevice(id: string, devices: Record<string, DeviceInstance>, inp:
       const s = I(m.ports.find((x) => x.dir === "INPUT" && x.sig !== "USB_POWER")!.key);
       const o = m.ports.find((x) => x.dir === "OUTPUT")!;
       if (s?.kind === "video") {
-        if (!HD_FORMATS.includes(s.format)) problem("SDI_RATE", "sdi-rate", `${s.format} cannot pass a 3G converter.`, "Set the source to 1080p50.");
+        if (!HD_FORMATS.includes(s.format)) problem("SDI_RATE", "sdi-rate", `ตัวแปลง 3G ไม่รองรับ ${s.format}`, "ตั้งต้นทางเป็น 1080p50");
         else out[P(o.key)] = { ...s, cls: o.sig as "HDMI" | "SDI", via: [] };
       }
-      view.status = s ? "Signal lock" : "No input";
+      view.status = s ? "รับสัญญาณได้" : "ไม่มีสัญญาณขาเข้า";
       break;
     }
     case "router": {
@@ -233,7 +255,7 @@ function processDevice(id: string, devices: Record<string, DeviceInstance>, inp:
         const s = I(`in-${xp}`);
         if (s) out[P(`out-${n}`)] = { ...s, via: [] } as Signal;
       }
-      view.status = `Crosspoints: ${[1, 2, 3, 4].map((n) => `O${n}←${String(cfg(id, `xp-${n}`)).replace("IN ", "I")}`).join(" ")}`;
+      view.status = `เส้นทางที่เลือก: ${[1, 2, 3, 4].map((n) => `O${n}←${String(cfg(id, `xp-${n}`)).replace("IN ", "I")}`).join(" ")}`;
       break;
     }
     case "switcher": {
@@ -243,8 +265,8 @@ function processDevice(id: string, devices: Record<string, DeviceInstance>, inp:
       for (const port of m.ports.filter((x) => x.dir === "INPUT" && (x.sig === "HDMI" || x.sig === "SDI"))) {
         const s = I(port.key);
         if (s?.kind !== "video") continue;
-        if (!HD_FORMATS.includes(s.format)) { problem("SDI_RATE", "sdi-rate", `${port.name}: ${s.format} UNSUPPORTED on this HD 3G input.`, "Set the camera output to 1080p50."); continue; }
-        if (!converts && s.format !== DEFAULT_FORMAT) { problem("FORMAT_MISMATCH", "sdi-rate", `${port.name}: ${s.format} does not match the 1080p50 video standard (no input conversion).`, "Set the source to 1080p50."); continue; }
+        if (!HD_FORMATS.includes(s.format)) { problem("SDI_RATE", "sdi-rate", `${port.name}: ขาเข้า HD 3G ไม่รองรับ ${s.format}`, "ตั้งขาออกกล้องเป็น 1080p50"); continue; }
+        if (!converts && s.format !== DEFAULT_FORMAT) { problem("FORMAT_MISMATCH", "sdi-rate", `${port.name}: ${s.format} ไม่ตรงมาตรฐาน 1080p50 และไม่มีการแปลงที่ขาเข้า`, "ตั้งต้นทางเป็น 1080p50"); continue; }
         valid[port.key] = s; labels.push(s.content);
       }
       const pgmKey = inputKeyFromOption(m, String(cfg(id, "pgm")));
@@ -256,11 +278,11 @@ function processDevice(id: string, devices: Record<string, DeviceInstance>, inp:
       let clip = false, missingSide = false, low = false;
       const analog = (keys: string[], enable: string, consumerMode?: string) => {
         const sigs = keys.map((k) => I(k) as AudioSignal | undefined);
-        if (cfg(id, enable) !== true) { if (sigs.some(Boolean)) problem("ANALOG_OFF", "mute", "Analog audio input is connected but not enabled in the switcher mixer.", "Turn the analog input ON in the switcher audio mixer."); return; }
+        if (cfg(id, enable) !== true) { if (sigs.some(Boolean)) problem("ANALOG_OFF", "mute", "ต่อขาเข้าเสียงแอนะล็อกแล้ว แต่ยังไม่เปิดในเครื่องสลับภาพ", "เปิดขาเข้าเสียงแอนะล็อกในเครื่องสลับภาพ"); return; }
         for (const s of sigs) if (s) {
           audio.push(...s.sources); clip ||= s.clip;
-          if (s.cls === "MIC") { low = true; problem("MIC_INTO_LINE", "mic-line-level", "A microphone is plugged straight into a LINE input — far too quiet.", "Route the mic through the mixer preamp; feed the switcher from a line output."); }
-          if (consumerMode && cfg(id, consumerMode) === "MIC" && (s.cls === "LINE_UNBAL" || s.cls === "LINE_BAL")) { clip = true; problem("LEVEL_MODE", "consumer-level", "Line-level feed into an input set to MIC — distortion.", "Set the switcher input level to LINE."); }
+          if (s.cls === "MIC") { low = true; problem("MIC_INTO_LINE", "mic-line-level", "ต่อไมค์เข้าขาเข้า LINE โดยตรง เสียงจึงเบาเกินไป", "ส่งไมค์ผ่านวงจรขยายในเครื่องผสมเสียง แล้วใช้ขาออกไลน์ไปเครื่องสลับภาพ"); }
+          if (consumerMode && cfg(id, consumerMode) === "MIC" && (s.cls === "LINE_UNBAL" || s.cls === "LINE_BAL")) { clip = true; problem("LEVEL_MODE", "consumer-level", "ส่งระดับไลน์เข้าช่องที่ตั้งเป็น MIC ทำให้เสียงแตก", "ตั้งระดับขาเข้าเครื่องสลับภาพเป็น LINE"); }
         }
         if (keys.length === 2 && sigs.filter(Boolean).length === 1) missingSide = true;
       };
@@ -268,13 +290,14 @@ function processDevice(id: string, devices: Record<string, DeviceInstance>, inp:
       if (inst.model === "bmd-atem-tvs-hd8-iso") analog(["xlr-1", "xlr-2"], "xlr-on");
       if (inst.model === "bmd-atem-2me-constellation-hd") analog(["aud-l", "aud-r"], "analog-on");
       if (inst.model === "roland-v-160hd") analog(["ain-1", "ain-2"], "ain-on", "ain-mode");
+      if (inst.model === "generic-mini-switcher") analog(["audio-in"], "ain-on");
       const emb = String(cfg(id, "emb-audio"));
       if (emb === "ON") for (const s of Object.values(valid)) audio.push(...s.audio);
       if (emb === "AFV" && pgmKey && valid[pgmKey]) audio.push(...valid[pgmKey].audio);
       const pgmAudio = uniq(audio);
       const doubled = pgmAudio.some(isVoice) && pgmAudio.some(isCamMic);
-      if (doubled) problem("DOUBLED", "afv-doubling", "The voice reaches Program twice (mic + camera mic) — phasey, doubled speech.", "Set embedded camera audio OFF (or AFV off) so only the mixer feed carries the voice.");
-      if (missingSide) problem("ONE_SIDE", "connector", "Only one of the L/R analog inputs is connected.", "Connect both line outputs.");
+      if (doubled) problem("DOUBLED", "afv-doubling", "เสียงพูดเข้าออกอากาศสองทางจากไมค์และไมค์กล้อง ทำให้เสียงซ้อน", "ปิดเสียงฝังจากกล้องหรือปิดเสียงตามภาพ ให้เสียงพูดมาจากเครื่องผสมเสียงทางเดียว");
+      if (missingSide) problem("ONE_SIDE", "connector", "ต่อขาเข้าเสียงแอนะล็อก L/R เพียงข้างเดียว", "ต่อขาออกไลน์ทั้งสองข้าง");
       const mvContent = `MULTIVIEW [${labels.join(" | ")}]`;
       const role = (k: string): string | undefined => {
         const v = String(cfg(id, k) ?? "");
@@ -290,6 +313,7 @@ function processDevice(id: string, devices: Record<string, DeviceInstance>, inp:
         const k = port.key;
         if (k === "hdmi-mv" || k === "mv-out") out[P(k)] = vs(port.sig as "HDMI" | "SDI", mvContent);
         else if (k === "hdmi-out" && inst.model === "bmd-atem-mini-pro-iso") out[P(k)] = vs("HDMI", role("hdmi-out"));
+        else if (k === "hdmi-pgm-out") out[P(k)] = vs("HDMI", pgm);
         else if (k.startsWith("hdmi-out-") || k.startsWith("sdi-out-")) out[P(k)] = vs(port.sig as "HDMI" | "SDI", role(k));
         else if (k === "usb") {
           if (inst.model === "bmd-atem-tvs-hd8-iso" || (inst.model === "bmd-atem-mini-pro-iso" && cfg(id, "usb-mode") === "Record to disk")) {
@@ -301,9 +325,9 @@ function processDevice(id: string, devices: Record<string, DeviceInstance>, inp:
           out[P(k)] = canStream && cfg(id, "stream") === true ? { kind: "net", role: "stream", content: pgm, audio: pgmAudio, via: [], keyOk } : { kind: "net", role: "control", audio: [], via: [], keyOk: false };
         }
       }
-      if (pgm === "BLACK") view.status = "Program: BLACK";
+      if (pgm === "BLACK") view.status = "ภาพออกอากาศ: ภาพดำ";
       view.picture = pgm; view.audio = pgmAudio; view.clip = clip;
-      view.status = `PGM ${pgm} · PVW ${pvw}${low ? " · audio LOW" : ""}`;
+      view.status = `PGM ${pgm} · PVW ${pvw}${low ? " · เสียงเบาเกินไป" : ""}`;
       (view as DeviceView & { inputs?: string[] }).inputs = labels;
       break;
     }
@@ -312,33 +336,33 @@ function processDevice(id: string, devices: Record<string, DeviceInstance>, inp:
       const keyOk = String(cfg(id, "stream-key")).startsWith("•");
       if (s?.kind === "video") {
         out[P("hdmi-mon")] = { ...s, cls: "HDMI", via: [] };
-        if (s.format !== cfg(id, "format")) problem("ENC_FORMAT", "sdi-rate", `Encoder set to ${cfg(id, "format")} but input is ${s.format}.`, "Set the encoder to 1080p50.");
-        else if (!keyOk) problem("NO_KEY", "stream-key", "No stream key entered (placeholder only).", "Enter the private test key (redacted).");
-        else if (cfg(id, "stream") !== true) problem("NOT_ON_AIR", "stream-key", "Encoder is not ON AIR.", "Press ON AIR.");
+        if (s.format !== cfg(id, "format")) problem("ENC_FORMAT", "sdi-rate", `ตัวเข้ารหัสตั้ง ${cfg(id, "format")} แต่ขาเข้าเป็น ${s.format}`, "ตั้งตัวเข้ารหัสเป็น 1080p50");
+        else if (!keyOk) problem("NO_KEY", "stream-key", "ยังไม่ใส่รหัสสตรีมทดสอบ", "ใส่รหัสทดสอบส่วนตัวที่ปกปิดไว้");
+        else if (cfg(id, "stream") !== true) problem("NOT_ON_AIR", "stream-key", "ตัวเข้ารหัสยังไม่เริ่มถ่ายทอด", "กดเริ่มถ่ายทอด");
         else out[P("eth")] = { kind: "net", role: "stream", content: s.content, audio: s.audio, via: [], keyOk };
-      } else problem("NO_INPUT", "output-assign", "Encoder has no SDI input.", "Feed it from an assigned Program SDI output.");
+      } else problem("NO_INPUT", "output-assign", "ตัวเข้ารหัสไม่มีสัญญาณ SDI เข้า", "ส่งจากขาออก SDI ที่กำหนดเป็นภาพออกอากาศ");
       view.picture = s?.kind === "video" ? s.content : undefined;
-      view.status = out[P("eth")] ? "ENCODING · streaming" : view.problem?.text ?? "Idle";
+      view.status = out[P("eth")] ? "กำลังเข้ารหัสและสตรีม" : view.problem?.text ?? "รอใช้งาน";
       break;
     }
     case "host": {
       const ins = [I("usb-1"), I("usb-2")].filter(Boolean) as UsbSignal[];
       const uvc = ins.find((s) => s.cls === "USB_UVC"), uac = ins.find((s) => s.cls === "USB_UAC");
       const picture = cfg(id, "video-src") === "USB video capture device" && uvc ? uvc.content : undefined;
-      if (cfg(id, "video-src") !== "None" && !uvc) problem("NO_CAPTURE", "obs-source", "OBS video source selected but no USB video device is connected.", "Connect the switcher USB webcam/stream port to the host.");
-      if (cfg(id, "video-src") === "None") problem("NO_VIDEO_SRC", "obs-source", "OBS has no video source selected.", "Add the USB video capture device as the source.");
+      if (cfg(id, "video-src") !== "None" && !uvc) problem("NO_CAPTURE", "obs-source", "เลือกแหล่งภาพ OBS แล้ว แต่ยังไม่ต่ออุปกรณ์ภาพ USB", "ต่อพอร์ต USB เว็บแคมหรือสตรีมของเครื่องสลับภาพเข้าคอมพิวเตอร์");
+      if (cfg(id, "video-src") === "None") problem("NO_VIDEO_SRC", "obs-source", "OBS ยังไม่เลือกแหล่งภาพ", "เพิ่มอุปกรณ์รับภาพ USB เป็นแหล่งภาพ");
       const a = String(cfg(id, "audio-src"));
       let audio: string[] = [];
       let needSync = 0;
       if (a === "USB capture embedded audio") audio = uvc?.audio ?? [];
-      if (a === "USB audio interface (mixer)") { audio = uac?.audio ?? []; needSync = uvc ? 80 : 0; if (!uac) problem("NO_UAC", "obs-source", "OBS audio set to the mixer USB interface, but it is not connected.", "Connect the mixer USB to the host."); }
+      if (a === "USB audio interface (mixer)") { audio = uac?.audio ?? []; needSync = uvc ? 80 : 0; if (!uac) problem("NO_UAC", "obs-source", "OBS เลือกเสียง USB เครื่องผสมเสียง แต่ยังไม่ได้ต่อ", "ต่อ USB เครื่องผสมเสียงเข้าคอมพิวเตอร์"); }
       if (a === "Built-in laptop mic") audio = ["ROOM SOUND (built-in mic)"];
       if (cfg(id, "extra-mic") === true) audio = [...audio, "ROOM SOUND (desktop mic)"];
       const echo = audio.some(isVoice) && audio.some((x) => x.startsWith("ROOM SOUND"));
-      if (echo) problem("ECHO", "obs-source", "Two mics feed OBS — room echo / doubled voice.", "Disable the extra desktop/built-in mic; keep one programme source.");
+      if (echo) problem("ECHO", "obs-source", "ไมค์สองทางเข้า OBS ทำให้เสียงสะท้อนหรือซ้อน", "ปิดไมค์คอมพิวเตอร์ที่ซ้ำ ให้เหลือแหล่งเสียงรายการเดียว");
       const off = Number(String(cfg(id, "sync")).replace(/[^0-9]/g, "")) || 0;
       const syncErr = audio.some(isVoice) ? Math.abs(needSync - off) : 0;
-      if (syncErr > 40) problem("AV_SYNC", "obs-source", `Clap test: audio leads video by ${needSync - off} ms.`, `Set the OBS audio sync offset to +${needSync} ms.`);
+      if (syncErr > 40) problem("AV_SYNC", "obs-source", `ผลทดสอบตบมือ: เสียงเร็วกว่าภาพ ${needSync - off} มิลลิวินาที`, `ตั้งหน่วงเสียง OBS เป็น +${needSync} มิลลิวินาที`);
       const keyOk = String(cfg(id, "stream-key")).startsWith("•");
       if (picture && cfg(id, "stream") === true && keyOk) out[P("eth")] = { kind: "net", role: "stream", content: picture, audio, via: [], keyOk };
       else out[P("eth")] = { kind: "net", role: "control", audio: [], via: [], keyOk };
@@ -346,7 +370,7 @@ function processDevice(id: string, devices: Record<string, DeviceInstance>, inp:
       view.recording = Boolean(picture && cfg(id, "record") === true);
       view.file = view.recording ? `OBS local recording (60 s test) · ${picture}` : undefined;
       (view as DeviceView & { syncErr?: number }).syncErr = syncErr;
-      view.status = `OBS · ${picture ?? "no video"} · ${audio.join(" + ") || "no audio"}`;
+      view.status = `OBS · ${picture ?? "ไม่มีภาพ"} · ${audio.join(" + ") || "ไม่มีเสียง"}`;
       break;
     }
     case "network": {
@@ -354,18 +378,18 @@ function processDevice(id: string, devices: Record<string, DeviceInstance>, inp:
       const stream = lans.find((s) => s.role === "stream");
       const down = String(cfg(id, "wan-link")).startsWith("Down");
       out[P("wan")] = down ? undefined : stream ?? (lans[0] ? { ...lans[0], via: [] } : undefined);
-      if (down) problem("WAN_DOWN", "wan", "Gateway reports WAN DOWN (ISP outage).", "Move the stream to the pre-tested secondary gateway, if one is provided.");
-      view.status = down ? "WAN DOWN" : stream ? "Routing stream to WAN" : lans.length ? "LAN up (control traffic only)" : "No LAN client";
+      if (down) problem("WAN_DOWN", "wan", "เกตเวย์รายงาน WAN ขัดข้องจากผู้ให้บริการอินเทอร์เน็ต", "ย้ายสตรีมไปเกตเวย์สำรองที่ทดสอบแล้ว หากมีอุปกรณ์ให้");
+      view.status = down ? "WAN ขัดข้อง" : stream ? "กำลังส่งสตรีมไป WAN" : lans.length ? "LAN เชื่อมต่อแล้ว มีข้อมูลควบคุมเท่านั้น" : "ไม่มีอุปกรณ์เชื่อมต่อ LAN";
       break;
     }
     case "ingest": {
       const s = I("wan-in") as NetSignal | undefined;
       const upload = String(cfg(id, "upload"));
-      if (!s) { view.status = "Viewer: OFFLINE (no uplink)"; problem("WAN", "wan", "No WAN uplink reaches the test ingest.", "Connect the gateway WAN to the uplink and verify the router path."); }
-      else if (s.role !== "stream") { view.status = "Viewer: waiting — only control traffic arrives"; problem("NO_STREAM", "eth-role", "Network is connected but nothing is streaming (control-only Ethernet or encoder off).", "Stream from a device that actually encodes (built-in RTMP, Streaming Encoder HD or OBS host)."); }
-      else if (!s.keyOk) { view.status = "Ingest rejected: stream key missing"; problem("KEY", "stream-key", "Ingest rejected the connection — no stream key.", "Enter the private test key."); }
-      else if (upload.startsWith("3")) { view.status = "Viewer: buffering — dropped frames (upload 3 Mbps unstable)"; problem("UPLOAD", "wan", "Upload is too low/unstable for 1080p50 — dropped frames (network, not Program).", "Switch to a tested uplink with ≥ 10 Mbps stable upload."); view.picture = s.content; }
-      else { view.live = true; view.picture = s.content; view.audio = s.audio; view.status = `Viewer LIVE · ${s.content}`; }
+      if (!s) { view.status = "ผู้ชม: ออฟไลน์ ไม่มีทางเชื่อมต่อขาออก"; problem("WAN", "wan", "ไม่มีทางเชื่อมต่อ WAN ถึงจุดรับสตรีมทดสอบ", "ต่อ WAN ของเกตเวย์เข้าทางออกและตรวจเส้นทางเราเตอร์"); }
+      else if (s.role !== "stream") { view.status = "ผู้ชม: รอรับสตรีม มีเพียงข้อมูลควบคุม"; problem("NO_STREAM", "eth-role", "เครือข่ายเชื่อมต่อแต่ไม่มีสตรีม อาจเป็นพอร์ตควบคุมหรือยังไม่เปิดตัวเข้ารหัส", "ส่งจากอุปกรณ์ที่เข้ารหัสได้จริง เช่น RTMP ในเครื่อง Streaming Encoder HD หรือ OBS"); }
+      else if (!s.keyOk) { view.status = "จุดรับปฏิเสธ: ไม่มีรหัสสตรีม"; problem("KEY", "stream-key", "จุดรับปฏิเสธการเชื่อมต่อ เพราะไม่มีรหัสสตรีม", "ใส่รหัสสตรีมทดสอบส่วนตัว"); }
+      else if (upload.startsWith("3")) { view.status = "ผู้ชม: รอโหลดและภาพตก อัปโหลด 3 Mbps ไม่คงที่"; problem("UPLOAD", "wan", "อัปโหลดต่ำหรือไม่คงที่สำหรับ 1080p50 ทำให้ภาพตก ปัญหาอยู่ที่เครือข่าย", "เปลี่ยนเป็นทางออกที่ทดสอบแล้ว อัปโหลดคงที่อย่างน้อย 10 Mbps"); view.picture = s.content; }
+      else { view.live = true; view.picture = s.content; view.audio = s.audio; view.status = `ผู้ชมกำลังรับสตรีม · ${s.content}`; }
       break;
     }
     case "display": {
@@ -374,23 +398,23 @@ function processDevice(id: string, devices: Record<string, DeviceInstance>, inp:
       const s = I(selKey);
       const other = keys.find((k) => k !== selKey && I(k));
       if (s?.kind === "video") { view.picture = s.content; view.status = s.content; }
-      else { view.status = other ? `NO SIGNAL on ${String(cfg(id, "source"))} (signal present on another input)` : "NO SIGNAL"; if (other) problem("WRONG_INPUT", "output-assign", "Display is set to the wrong HDMI input.", "Select the input that carries the feed."); }
+      else { view.status = other ? `ไม่มีสัญญาณที่ ${String(cfg(id, "source"))} แต่มีสัญญาณที่ช่องอื่น` : "ไม่มีสัญญาณ"; if (other) problem("WRONG_INPUT", "output-assign", "จอเลือกขาเข้า HDMI ผิด", "เลือกขาเข้าที่รับสัญญาณอยู่"); }
       break;
     }
     case "speaker": {
       const s = I(m.ports[0].key) as AudioSignal | undefined;
       if (inst.model === "generic-active-pa") {
         const lvl = String(cfg(id, "level"));
-        if (!s) view.status = "No input";
-        else if (lvl === "Off") { view.status = "Level off"; problem("PA_OFF", "mute", "PA level is off.", "Bring the PA level up to Nominal."); }
+        if (!s) view.status = "ไม่มีสัญญาณขาเข้า";
+        else if (lvl === "Off") { view.status = "ปิดระดับเสียงอยู่"; problem("PA_OFF", "mute", "ลำโพงยังไม่เปิดระดับเสียง", "เพิ่มระดับลำโพงสู่ระดับเหมาะสม"); }
         else {
           view.audio = s.sources; view.clip = s.clip;
           const micAimedAtPa = Object.keys(devices).some((d) => devices[d].model === "shure-sm58" && cfg(d, "aim") === "Toward PA loudspeaker" && s.sources.includes(devices[d].voice ?? devices[d].content ?? ""));
           view.feedback = s.sources.some(isVoice) && (micAimedAtPa || lvl === "Hot" || String(cfg(id, "aim")).startsWith("Behind"));
-          if (view.feedback) problem("FEEDBACK", "feedback", "Howl-round: the PA is feeding back into the podium mic.", "Aim the mic at the talker, keep PAs in front of the mic and set level to Nominal.");
-          view.status = view.feedback ? "FEEDBACK — howling" : `Audible: ${s.sources.join(" + ") || "silence"}`;
+          if (view.feedback) problem("FEEDBACK", "feedback", "เกิดเสียงหอนจากลำโพงย้อนเข้าไมค์โพเดียม", "หันไมค์เข้าหาผู้พูด จัดลำโพงด้านหน้าไมค์ และตั้งระดับเหมาะสม");
+          view.status = view.feedback ? "มีเสียงหอน" : `ได้ยินเสียง: ${s.sources.join(" + ") || "เงียบ"}`;
         }
-      } else { view.audio = s?.sources ?? []; view.status = s ? `Listening: ${s.sources.join(" + ") || "silence"}` : "No input"; }
+      } else { view.audio = s?.sources ?? []; view.status = s ? `กำลังฟัง: ${s.sources.join(" + ") || "เงียบ"}` : "ไม่มีสัญญาณขาเข้า"; }
       break;
     }
     case "recorder": {
@@ -398,23 +422,45 @@ function processDevice(id: string, devices: Record<string, DeviceInstance>, inp:
       const media = String(cfg(id, "media"));
       if (cfg(id, "clip") === true && cfg(id, "play") === true) out[P("sdi-out")] = video("SDI", DEFAULT_FORMAT, "REPLAY CLIP (pre-loaded, verified)", []);
       if (cfg(id, "record") === true) {
-        if (!media.includes("mounted")) problem("NO_MEDIA", "storage", "REC pressed but no media is mounted.", "Insert and mount approved media.");
-        else if (media.includes("FULL")) problem("MEDIA_FULL", "storage", "Media is full — recording stopped.", "Swap to formatted media with free space.");
-        else if (!s) problem("REC_NO_INPUT", "output-assign", "Recording black — no SDI input.", "Feed the recorder from an assigned Program output.");
-        else { view.recording = true; view.file = `Clip0001.mov · ${s.content} · ${s.audio.join(" + ") || "no audio"}`; }
+        if (!media.includes("mounted")) problem("NO_MEDIA", "storage", "สั่งบันทึกแต่ยังไม่มีสื่อเชื่อมต่อ", "ใส่และเชื่อมต่อสื่อที่รองรับ");
+        else if (media.includes("FULL")) problem("MEDIA_FULL", "storage", "สื่อเต็ม การบันทึกหยุดแล้ว", "เปลี่ยนเป็นสื่อที่จัดรูปแบบแล้วและมีพื้นที่ว่าง");
+        else if (!s) problem("REC_NO_INPUT", "output-assign", "บันทึกภาพดำ เพราะไม่มี SDI ขาเข้า", "ส่งภาพให้เครื่องบันทึกจากขาออกที่ตั้งเป็นภาพออกอากาศ");
+        else { view.recording = true; view.file = `Clip0001.mov · ${s.content} · ${s.audio.join(" + ") || "ไม่มีเสียง"}`; }
       }
       view.picture = s?.content;
-      view.status = view.recording ? `● REC ${s?.content}` : view.problem?.text ?? (s ? `Input: ${s.content}` : "No input");
+      view.status = view.recording ? `● REC ${s?.content}` : view.problem?.text ?? (s ? `ขาเข้า: ${s.content}` : "ไม่มีสัญญาณขาเข้า");
       break;
     }
     case "storage": {
       const s = I("usb") as UsbSignal | undefined;
       const state = String(cfg(id, "state"));
-      if (!s) { view.status = "Not connected"; break; }
-      if (s.cls !== "USB_STORAGE") { problem("USB_MODE", "usb-role", "The switcher USB-C is in Webcam mode, not Record to disk.", "Set USB-C to Record to disk."); view.status = "Connected · not used for recording"; break; }
-      if (!state.startsWith("Mounted · 4")) { problem(state.includes("FULL") ? "MEDIA_FULL" : "NO_MEDIA", "storage", state.includes("FULL") ? "Disk is full." : "Disk is not mounted.", state.includes("FULL") ? "Swap/format a disk with free space." : "Mount (format exFAT) the SSD."); view.status = state; break; }
+      if (!s) { view.status = "ยังไม่เชื่อมต่อ"; break; }
+      if (s.cls !== "USB_STORAGE") { problem("USB_MODE", "usb-role", "USB-C เครื่องสลับภาพเป็นโหมดเว็บแคม ยังไม่ใช่โหมดบันทึกดิสก์", "ตั้ง USB-C เป็นบันทึกลงดิสก์"); view.status = "เชื่อมต่อแล้ว แต่ยังไม่ใช้บันทึก"; break; }
+      if (!state.startsWith("Mounted · 4")) { problem(state.includes("FULL") ? "MEDIA_FULL" : "NO_MEDIA", "storage", state.includes("FULL") ? "ดิสก์เต็ม" : "ยังไม่เชื่อมต่อดิสก์", state.includes("FULL") ? "เปลี่ยนหรือจัดรูปแบบดิสก์ให้มีพื้นที่ว่าง" : "เชื่อมต่อ SSD ที่จัดรูปแบบ exFAT"); view.status = state; break; }
       if (s.content) { view.recording = true; view.file = `${s.content} · audio: ${s.audio.join(" + ") || "none"}`; view.status = `● REC ${s.content}`; }
-      else view.status = "Mounted · not recording";
+      else view.status = "เชื่อมต่อแล้ว ยังไม่บันทึก";
+      break;
+    }
+    case "wireless-tx": {
+      const s = I("mic-in") as AudioSignal | undefined;
+      view.audio = s?.sources ?? [];
+      view.status = s ? `ส่งสัญญาณ RF ${String(cfg(id, "rf"))}` : "ยังไม่มีไมค์ต่อเข้า MIC IN";
+      break;
+    }
+    case "wireless-rx": {
+      const tx = inst.pairWith;
+      const txOn = Boolean(tx && devices[tx] && powered(tx));
+      const txSig = tx ? inp[`${tx}:mic-in`] as AudioSignal | undefined : undefined;
+      const sameCh = tx ? cfg(id, "rf") === cfg(tx, "rf") : false;
+      if (cfg(id, "pair") !== "Paired") problem("UNPAIRED", "mute", "ตัวรับยังไม่จับคู่กับตัวส่ง", "ตั้งช่อง RF ให้ตรงกันแล้วจับคู่ TX ↔ RX");
+      else if (!sameCh) problem("RF_CHANNEL", "mute", "ช่องความถี่ RF ของ TX และ RX ไม่ตรงกัน", "ตั้งช่อง RF ของ RX ให้ตรงกับ TX");
+      else if (!txOn) problem("TX_OFF", "power", "ตัวส่ง TX ไม่ได้เปิดไฟ", "เปิดไฟตัวส่ง TX");
+      else if (!txSig) problem("NO_LAV", "connector", "ตัวส่งไม่มีไมค์ต่ออยู่", "ต่อสายไมค์ Lavalier เข้า MIC IN ของ TX");
+      else {
+        out[P("audio-out")] = { kind: "audio", cls: cfg(id, "out-level") === "MIC" ? "MIC" : "LINE_BAL", sources: txSig.sources, clip: false, via: [] };
+        view.audio = txSig.sources;
+      }
+      view.status = out[P("audio-out")] ? `รับสัญญาณ RF · ${String(cfg(id, "out-level"))}` : view.problem?.text ?? "ไม่มีสัญญาณ";
       break;
     }
     case "decoy": case "safety": break;
@@ -422,7 +468,7 @@ function processDevice(id: string, devices: Record<string, DeviceInstance>, inp:
   return out;
 }
 
-const g_placedText = (label: string) => `${label} is not powered (or not installed at its position).`;
+const g_placedText = (label: string) => `${label} ยังไม่มีไฟเลี้ยงหรือยังไม่ติดตั้งประจำจุด`;
 
 /* ═════════════ diagnostics: trace back along the ACTUAL graph ═════════════ */
 /** Upstream input ports that feed this output (by device role). */
@@ -449,7 +495,7 @@ export function traceTo(devices: Record<string, DeviceInstance>, ctx: EvalContex
       const e = ctx.edges.find((x) => x.to === port)!;
       const pin = portOf(devices, port)!, pout = portOf(devices, e.from)!;
       const sig = ctx.inp[port];
-      hops.unshift({ node: devices[e.from.split(":")[0]]?.label ?? e.from, port: `${pout.name} → [${cables[e.cableId]?.label ?? e.cableId}] → ${devices[device].label} ${pin.name}`, cable: e.cableId, ok: Boolean(sig), note: sig ? describe(sig) : "no signal on this cable" });
+      hops.unshift({ node: devices[e.from.split(":")[0]]?.label ?? e.from, port: `${pout.name} → [${cables[e.cableId]?.label ?? e.cableId}] → ${devices[device].label} ${pin.name}`, cable: e.cableId, ok: Boolean(sig), note: sig ? describe(sig) : "ไม่มีสัญญาณผ่านสายนี้" });
       walk(e.from.split(":")[0], depth + 1);
     }
   };
@@ -459,13 +505,13 @@ export function traceTo(devices: Record<string, DeviceInstance>, ctx: EvalContex
   if (firstBad) {
     const dev = Object.keys(devices).find((d) => devices[d].label === firstBad.node && ctx.view[d]?.problem);
     const pr = dev ? ctx.view[dev]!.problem : undefined;
-    first = { ...firstBad, fix: pr?.fix ?? "Check the cable and the upstream device's output assignment.", concept: pr?.concept };
+    first = { ...firstBad, fix: pr?.fix ?? "ตรวจสายและการกำหนดขาออกของอุปกรณ์ต้นทาง", concept: pr?.concept };
   }
   return { hops, first };
 }
 export function describe(s: Signal): string {
   if (s.kind === "video") return `${s.cls} ${s.format} · ${s.content}${s.audio.length ? ` · emb ${s.audio.join("+")}` : ""}`;
-  if (s.kind === "audio") return `${s.cls} · ${s.sources.join("+") || "silence"}${s.clip ? " · CLIP" : ""}`;
+  if (s.kind === "audio") return `${s.cls} · ${s.sources.join("+") || "เงียบ"}${s.clip ? " · CLIP" : ""}`;
   if (s.kind === "usb") return `${s.cls}${s.content ? ` · ${s.content}` : ""}`;
   return `Ethernet ${s.role}${s.content ? ` · ${s.content}` : ""}`;
 }
@@ -485,7 +531,7 @@ export function validateLevel(ctx: EvalContext, upTo?: TestStage): StageResult[]
   const max = upTo ? order.indexOf(upTo) : 3;
   return ctx.stage.objectives.filter((o) => order.indexOf(o.stage) <= max).map((o) => ({ id: o.id, label: o.label, category: o.category, stage: o.stage, critical: Boolean(o.critical), result: safe(o, ctx), concept: o.concept }));
 }
-function safe(o: ObjectivePredicate, ctx: EvalContext): PredicateResult { try { return o.check(ctx); } catch (e) { return { ok: false, reason: `Check error: ${(e as Error).message}` }; } }
+function safe(o: ObjectivePredicate, ctx: EvalContext): PredicateResult { try { return o.check(ctx); } catch (e) { return { ok: false, reason: `ตรวจสอบไม่สำเร็จ: ${(e as Error).message}` }; } }
 /** test_route: one test stage; passes when all its objectives pass. */
 export function testRoute(ctx: EvalContext, stage: TestStage): { pass: boolean; results: StageResult[] } {
   const results = validateLevel(ctx, stage).filter((r) => r.stage === stage);

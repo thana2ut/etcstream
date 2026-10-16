@@ -16,7 +16,7 @@ import { soundEngine } from "@/game/audio/sound-engine";
 
 /**
  * Mission hall.
- * - `draw` (public /missions): venues are sealed; "Take a mission" spins a roulette over the cards and assigns one.
+ * - `draw` (public /missions): venues are sealed; "รับภารกิจ" spins a roulette over the cards and assigns one.
  *   The assignment can be redrawn once; a new one can be drawn only after all 5 levels of it are cleared.
  * - `admin` (unlisted /missions/admin): the original hall — every venue can be opened and played.
  */
@@ -49,7 +49,7 @@ export function MissionHall({ admin = false }: { admin?: boolean }) {
   }, [detailOpen, selectedSlug]);
 
   if (!hydrated || !player || !progress) {
-    return <main className="fantasy-viewport mission-loading"><p>Opening the Mission Hall...</p></main>;
+    return <main className="fantasy-viewport mission-loading"><p>กำลังเปิดหอภารกิจ...</p></main>;
   }
 
   const record = drawnLocal ?? missionDrawRepository.load(player.playerId);
@@ -108,7 +108,7 @@ export function MissionHall({ admin = false }: { admin?: boolean }) {
 
   const startMission = (slug: string, level: number) => {
     if (!selectMission(slug, level, admin)) {
-      setError("Could not start the mission — check your browser settings and try again");
+      setError("เริ่มภารกิจไม่ได้ โปรดตรวจการตั้งค่าเบราว์เซอร์แล้วลองอีกครั้ง");
       return;
     }
     soundEngine.play("mission_accept");
@@ -127,14 +127,14 @@ export function MissionHall({ admin = false }: { admin?: boolean }) {
   return (
     <main className="fantasy-viewport mission-hall-page">
       <FantasyBackground variant="archive" image="/images/xianxia/bg-missions.webp" />
-      <AcademyHeader traineeName={player.nickname} onBack={() => router.push("/academy")} backLabel="Back to the hall" />
+      <AcademyHeader traineeName={player.nickname} onBack={() => router.push("/academy")} backLabel="กลับโถงสำนัก" />
       <div className="mission-hall-content">
         <header className="mission-hall-heading">
-          <span className="mission-hall-eyebrow">◈ Mission Hall{admin ? " · Admin" : ""} ◈</span>
-          <h1>{admin ? "Every academy mission" : "Which job will you take today?"}</h1>
+          <span className="mission-hall-eyebrow">◈ หอจารึกแห่งภารกิจ{admin ? " · ผู้ดูแล" : ""} ◈</span>
+          <h1>{admin ? "ทุกภารกิจของสำนัก" : "วันนี้เจ้าอยากรับภารกิจใด"}</h1>
           <p>{admin
-            ? <>Admin mode: every venue is open; levels still unlock in order</>
-            : <>Take a mission and the hall assigns you one venue<br />Clear all 5 levels of it to take a new one</>}</p>
+            ? <>โหมดผู้ดูแล: เปิดดูและเล่นได้ทุกสถานที่ ระดับยังปลดล็อกตามลำดับเหมือนเดิม</>
+            : <>กดรับภารกิจ แล้วหอจารึกจะสุ่มมอบสถานที่ให้เจ้าหนึ่งแห่ง<br />ผ่านครบ 5 ระดับของสถานที่นั้นจึงรับภารกิจใหม่ได้</>}</p>
         </header>
 
         {!admin && <MissionDrawPanel
@@ -144,7 +144,7 @@ export function MissionHall({ admin = false }: { admin?: boolean }) {
           onOpen={() => { if (!drawn) return; const m = getMissionBySlug(drawn); setSelectedSlug(drawn); setSelectedLevel(m?.difficulties.find((d) => !progress.completed[drawn]?.includes(d.level))?.level ?? 1); setError(""); soundEngine.play("mission_reveal"); }}
         />}
 
-        <section className="mission-board-grid" aria-label="Academy missions">
+        <section className="mission-board-grid" aria-label="ภารกิจของสำนัก">
           {missionChapters.map((mission, index) => {
             const cleared = clearedOf(mission.slug);
             const open = selectable(mission.slug);
@@ -160,15 +160,15 @@ export function MissionHall({ admin = false }: { admin?: boolean }) {
                 aria-pressed={selectedSlug === mission.slug}
                 onClick={() => { setSelectedSlug(mission.slug); setSelectedLevel(mission.difficulties.find((d) => !progress.completed[mission.slug]?.includes(d.level))?.level ?? 1); setError(""); soundEngine.play("mission_reveal"); }}
               >
-                <span className="mission-plaque-number">Chapter {String(index + 1).padStart(2, "0")}</span>
+                <span className="mission-plaque-number">บทที่ {String(index + 1).padStart(2, "0")}</span>
                 <span className="mission-plaque-sigil" aria-hidden="true">{["✦", "☾", "◇", "⌘", "♛"][index]}</span>
                 <strong>{mission.title}</strong>
                 <span className="mission-plaque-subtitle">{mission.subtitle}</span>
-                <span className="mission-plaque-place">Venue: {mission.venue}<br />Job type: {mission.venueConcept}</span>
+                <span className="mission-plaque-place">สถานที่: {mission.venue}<br />ลักษณะงาน: {mission.venueConcept}</span>
                 <span className="mission-plaque-description">{mission.description}</span>
                 <span className="mission-plaque-footer">
-                  <span>{cleared >= 5 ? "All 5/5 levels cleared ✓" : `${cleared}/5 levels cleared`}</span>
-                  <span>{open ? "Choose →" : cleared >= 5 ? "Completed" : "Awaiting draw"}</span>
+                  <span>{cleared >= 5 ? "ผ่านครบ 5/5 ระดับ ✓" : `ผ่านแล้ว ${cleared}/5 ระดับ`}</span>
+                  <span>{open ? "เลือกภารกิจ →" : cleared >= 5 ? "สำเร็จแล้ว" : "รอสุ่มภารกิจ"}</span>
                 </span>
               </button>
             );
@@ -184,19 +184,19 @@ export function MissionHall({ admin = false }: { admin?: boolean }) {
             <span className="mission-detail-back-arrow" aria-hidden="true">
               <svg viewBox="0 0 20 20"><path d="m12.5 4.5-5 5.5 5 5.5" /></svg>
             </span>
-            <span>Back to the Mission Hall</span>
+            <span>กลับหอภารกิจ</span>
           </button>
           <section className="mission-choice-panel glass-card gold-border-frame">
             <div className="mission-choice-intro">
-              <span className="mission-hall-eyebrow">{admin ? "Selected mission" : "✦ Your mission ✦"}</span>
+              <span className="mission-hall-eyebrow">{admin ? "ตราภารกิจที่เลือก" : "✦ ภารกิจที่ได้รับ ✦"}</span>
               <h2 id="selected-mission-title">{selectedMission.title}</h2>
               <p className="mission-choice-subtitle">{selectedMission.subtitle}</p>
-              <p className="mission-choice-venue">Venue: {selectedMission.venue}<br />Job type: {selectedMission.venueConcept}</p>
+              <p className="mission-choice-venue">สถานที่: {selectedMission.venue}<br />ลักษณะงาน: {selectedMission.venueConcept}</p>
               <p>{selectedMission.description}</p>
-              <small>Theme: {selectedMission.themeHint}</small>
+              <small>ภาพแห่งภารกิจ: {selectedMission.themeHint}</small>
             </div>
-            <h3 className="mission-difficulty-heading">Five levels at this venue</h3>
-            <div className="mission-difficulty-grid" role="group" aria-label="Choose a level">
+            <h3 className="mission-difficulty-heading">บทเรียน 5 ระดับของสถานที่</h3>
+            <div className="mission-difficulty-grid" role="group" aria-label="เลือกระดับบทเรียน">
               {selectedMission.difficulties.map((item) => {
                 // Admin hall: every level is open so each room can be played and adjusted directly.
                 const unlocked = admin || isDifficultyUnlocked(progress, selectedMission.slug, item.level);
@@ -207,24 +207,24 @@ export function MissionHall({ admin = false }: { admin?: boolean }) {
                     type="button"
                     className={`mission-difficulty-tile ${selectedLevel === item.level ? "is-selected" : ""}`}
                     aria-pressed={unlocked && selectedLevel === item.level}
-                    aria-label={`Level ${item.level} ${item.title}${unlocked ? "" : " (locked)"}`}
+                    aria-label={`ระดับ ${item.level} ${item.title}${unlocked ? "" : " ยังไม่ปลดล็อก"}`}
                     disabled={!unlocked}
                     onClick={() => { setSelectedLevel(item.level); setError(""); }}
                   >
-                    <span className="mission-difficulty-number">{unlocked ? `Level ${item.level}` : `🔒 Level ${item.level}`}</span>
+                    <span className="mission-difficulty-number">{unlocked ? `ระดับ ${item.level}` : `🔒 ระดับ ${item.level}`}</span>
                     <strong>{item.title}</strong>
                     <span>{item.flavor}</span>
-                    {completed && <em>Cleared ✓</em>}
+                    {completed && <em>ผ่านแล้ว ✓</em>}
                   </button>
                 );
               })}
             </div>
             <div className="mission-choice-footer">
               <div>
-                <strong>{difficulty ? `Level ${difficulty.level} · ${difficulty.title}` : ""}</strong>
+                <strong>{difficulty ? `ระดับ ${difficulty.level} · ${difficulty.title}` : ""}</strong>
                 <p>{difficulty?.objective}</p>
               </div>
-              <ActionButton variant="gold" size="lg" onClick={() => difficulty && startMission(selectedMission.slug, difficulty.level)}>Start this mission</ActionButton>
+              <ActionButton variant="gold" size="lg" onClick={() => difficulty && startMission(selectedMission.slug, difficulty.level)}>เริ่มภารกิจนี้</ActionButton>
             </div>
             {error && <p className="form-error" role="alert">{error}</p>}
           </section>

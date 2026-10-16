@@ -3,7 +3,7 @@
 import { SignalScreen } from "./signal-screen";
 import { SCENE_CANVAS_FONT } from "@/game/rendering/scene-font";
 import { useMemo } from "react";
-import { RepeatWrapping } from "three";
+import { Object3D, RepeatWrapping } from "three";
 import { CuboidCollider, RigidBody } from "@react-three/rapier";
 import { LAYOUTS, VENUE_SCALE } from "@/game/training/venue-layouts";
 import { LayoutColliders, LayoutFurniture } from "./layout-furniture";
@@ -23,8 +23,8 @@ function slide(key: string, title: string, lines: string[]) {
     lines.forEach((s, i) => c.fillText(s, 46, 160 + i * 58));
     c.fillStyle = "#d4dcea"; for (let i = 0; i < 4; i++) c.fillRect(46, 400 + i * 26, 520 - i * 90, 10);
     c.fillStyle = "#1c4fa6"; c.fillRect(680, 360, 290, 170);
-    c.fillStyle = "#ffffff"; c.font = `bold 28px sans-serif`; c.fillText("TRAINING", 740, 455);
-    c.fillStyle = "#8a96a8"; c.font = `20px ${THAI}`; c.fillText("etcstream · Academy of the Signal Path", 32, h - 22);
+    c.fillStyle = "#ffffff"; c.font = `bold 28px ${THAI}`; c.fillText("การฝึกปฏิบัติ", 720, 455);
+    c.fillStyle = "#8a96a8"; c.font = `20px ${THAI}`; c.fillText("etcstream · สำนักวิถีแห่งสายสัญญาณ", 32, h - 22);
   });
 }
 
@@ -59,11 +59,23 @@ function HallSeating() {
     { geo: merge([-1, 1].flatMap((x) => [-1, 1].map((z) => place(g.sphere(0.045, 8, 6), [x * 0.23, 0.045, z * 0.15])))), mat: { c: "#15171a", r: 0.8 } },
   ], []);
   const chairs = useMemo<Placement[]>(() => LAYOUTS.auditorium.furniture.filter((f) => f.kind === "chairBlock").flatMap((f) => Array.from({ length: 6 }, (_, i) => ({ p: [f.center[0] + (i - 2.5) * 0.58, 0, f.center[2]] as V3 }))), []);
-  return <Instanced parts={parts} at={chairs} />;
+  const presenter = LAYOUTS.auditorium.places.presenterChair;
+  return <>
+    <Instanced parts={parts} at={chairs} />
+    <Instanced parts={parts} at={[{ p: presenter.p, ry: presenter.yaw }]} />
+    <RigidBody type="fixed" colliders={false}>
+      <CuboidCollider position={[presenter.p[0], 0.55, presenter.p[2]]} args={[0.28, 0.55, 0.25]} />
+    </RigidBody>
+  </>;
 }
 
 export function Auditorium() {
   const stage = STAGE;
+  const stageTargets = useMemo(() => [-2.5, 2.5].map((x) => {
+    const target = new Object3D();
+    target.position.set(k(x * 0.4), 1, STAGE.center[2]);
+    return target;
+  }), []);
   const L = LAYOUTS.auditorium;
   const { minX, maxX, minZ, maxZ } = L.bounds;
   const w = maxX - minX + 0.4, d = maxZ - minZ + 0.4, h = 5.0;
@@ -79,8 +91,8 @@ export function Auditorium() {
   if (carpet) { carpet.wrapS = carpet.wrapT = RepeatWrapping; carpet.repeat.set(w / 4, d / 4); }
   const wall = tex.paint("#efe6d6", [8, 2]);
   const veneer = tex.wood("#6a4529", [1, 3]);
-  const centre = slide("c", "Signal Flow Workshop 2026", ["• Camera → Production Switcher → LED / Capture", "• SDI OUT → SDI IN · XLR → Stagebox → Mixer", "• Check Program before the event starts"]);
-  const sideA = slide("a", "Event schedule", ["1. Opening", "2. Keynote", "3. Awards"]);
+  const centre = slide("c", "Signal Flow Workshop 2026", ["• Camera → Production Switcher → LED / Capture", "• SDI OUT → SDI IN · XLR → Stagebox → Mixer", "• ตรวจ Program ก่อนเริ่มกิจกรรม"]);
+  const sideA = slide("a", "กำหนดการกิจกรรม", ["1. พิธีเปิด", "2. บรรยายพิเศษ", "3. มอบรางวัล"]);
   const coffers = COFFERS;
   return <>
     <color attach="background" args={["#efe9df"]} />
@@ -88,9 +100,12 @@ export function Auditorium() {
     <hemisphereLight args={["#fffaf0", "#6d6a72", 0.5]} />
     <ambientLight intensity={0.1} />
     <directionalLight position={[0.5, h - 0.45, 2.5]} target-position={[0, 0, -2]} intensity={0.8} color="#fff3e0" castShadow shadow-mapSize={[2048, 2048]} shadow-camera-left={-15} shadow-camera-right={15} shadow-camera-top={15} shadow-camera-bottom={-15} shadow-normalBias={0.03} />
-    {[[-4, 1.5], [4, 1.5]].map(([x, z]) => <pointLight key={`${x}${z}`} position={[k(x), h - 0.9, k(z)]} intensity={12} distance={18} color="#fff1d6" />)}
+    <directionalLight position={[-6, 4, 6]} intensity={0.65} color="#f4f7ff" />
     {/* stage wash from the front truss */}
-    {[-2.5, 2.5].map((x) => <spotLight key={x} position={[k(x), h - 0.7, k(-1.6)]} target-position={[k(x * 0.4), 1.0, stage.center[2]]} angle={0.7} penumbra={0.7} intensity={18} distance={12} color="#fff4e2" />)}
+    {stageTargets.map((target, i) => <group key={i}>
+      <primitive object={target} />
+      <spotLight position={[k(i === 0 ? -2.5 : 2.5), h - 0.7, k(-1.6)]} target={target} angle={0.7} penumbra={0.85} intensity={12} distance={12} color="#fff4e2" />
+    </group>)}
 
     {/* shell: neutral carpet, acoustic walls and warm wood coffered ceiling */}
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.001, midZ]} receiveShadow><planeGeometry args={[w, d]} /><meshStandardMaterial map={carpet} roughness={1} /></mesh>
@@ -126,7 +141,7 @@ export function Auditorium() {
     {/* LED / projection wall behind the stage (the "LED Program Screen" processor sits side-stage right) */}
     {([[-6.9, 3.4, sideA], [0, 6.0, centre], [6.9, 3.4, sideA]] as const).map(([x, sw, map]) => <group key={x} position={[k(x), 2.9, frontZ + 0.13]}>
       <RB p={[0, 0, 0]} s={[sw + 0.24, sw * 0.5625 + 0.24, 0.08]} rad={0.04} c="#1c1f25" m={0.3} r={0.35} />
-      {x === 0 ? <group position={[0, 0, 0.045]}><SignalScreen device="display" width={sw} height={sw * 0.5625} title="Audience projection · live feed" /></group> : <mesh position={[0, 0, 0.045]}><planeGeometry args={[sw, sw * 0.5625]} /><meshBasicMaterial map={map} toneMapped={false} /></mesh>}
+      {x === 0 ? <group position={[0, 0, 0.045]}><SignalScreen device="display" width={sw} height={sw * 0.5625} title="จอเวที • สัญญาณจาก LED Processor" /></group> : <mesh position={[0, 0, 0.045]}><planeGeometry args={[sw, sw * 0.5625]} /><meshBasicMaterial map={map} toneMapped={false} /></mesh>}
     </group>)}
     {/* Front slat panels, wall speakers and a conference camera above the central display. */}
     {[-1, 1].map((v) => <group key={`front-${v}`}>
@@ -166,7 +181,7 @@ export function Auditorium() {
       <Slab p={[w / 2 - 0.09, 2.5, frontZ + 2.65 + i * 4.6]} s={[0.06, 4.7, 0.18]} map={veneer} r={0.5} />
     </group>)}
     {/* Plants sit on the already blocked stage footprint. */}
-    {[-1, 1].map((v) => <group key={`plant-${v}`} position={[v * (stage.size[0] / 2 - 0.65), stage.size[1], stage.center[2]]}>
+    {[-1, 1].map((v) => <group key={`plant-${v}`} position={[v * 6.3, stage.size[1], stage.center[2]]}>
       <Lathe p={[0, 0, 0]} prof={[[0.2, 0], [0.26, 0.06], [0.31, 0.5], [0.28, 0.54], [0.24, 0.5]]} c="#c8c4b8" r={0.8} />
       {Array.from({ length: 7 }, (_, i) => <group key={i} rotation={[0, i * 2.4, 0]}>
         <Tube pts={[[0, 0.45, 0], [0.1, 1.1 + i * 0.05, 0], [0.4, 1.25 + i * 0.05, 0]]} r={0.012} c="#45623c" />

@@ -1,8 +1,13 @@
 "use client";
 
+import { DeviceVisual } from "../../equipment/device-visual";
+import { useTrainingStore } from "@/game/stores/training-store";
+import { scenarioOf } from "@/game/training/hdmi-training";
+import { ROOMS } from "@/game/training/sim/rooms";
+import { MODELS } from "@/game/training/sim/equipment";
 import { SignalScreen } from "./signal-screen";
 import { useMemo } from "react";
-import { BackSide, BufferGeometry, DoubleSide, Float32BufferAttribute } from "three";
+import { BackSide, BufferGeometry, DoubleSide, Float32BufferAttribute, Object3D } from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { VenueLighting, Ball, BLACK_METAL, CHROME, Cyl, g, Instanced, Lathe, merge, place, RB, RUBBER, Slab, STEEL, Tube, type Placement, type V3, FONT } from "./kit";
 import { tex } from "./textures";
@@ -325,7 +330,7 @@ function Scoreboard() {
   return <group position={[0, 0, z]}>
     {[-6, 6].map((x) => <Tube key={x} pts={[[x, 0, 0], [x, 13, 0]]} r={0.35} {...STEEL} />)}
     <RB p={[0, 16.5, 0]} s={[19.5, 8.2, 0.9]} rad={0.2} {...BLACK_METAL} />
-    <group position={[0, 16.5, -0.46]} rotation={[0, Math.PI, 0]}><SignalScreen device="display" width={18.6} height={7.3} title="Stadium screen · simulated feed" /></group>
+    <group position={[0, 16.5, -0.46]} rotation={[0, Math.PI, 0]}><SignalScreen device="display" width={18.6} height={7.3} title="จอสนาม • สัญญาณจำลอง" /></group>
   </group>;
 }
 
@@ -374,12 +379,13 @@ function ControlTentRoof({ x0, x1, z0, z1, h }: { x0: number; x1: number; z0: nu
 }
 
 function ControlMonitors() {
+  const pgmInstalled = useTrainingStore((state) => scenarioOf(state).devices.some((d) => d.id === "pgm"));
   const wall = LAYOUTS.stadium.furniture.find((f) => f.kind === "controlWall")!;
   return <>
     <RB p={[wall.center[0], 1.7, wall.center[2]]} s={[wall.size[0] + 0.2, 3.35, 0.08]} rad={0.02} c="#11161e" />
     {([[-2.9, 2.8, 2.2, 1.0], [0, 2.8, 2.2, 1.0], [2.9, 2.8, 2.2, 1.0], [-3.1, 1.55, 2.0, 1.1], [3.1, 1.55, 2.0, 1.1]] as const).map(([x, y, w, h]) => <group key={`${x}-${y}`} position={[wall.center[0] + x, y, wall.center[2] + 0.2]}>
       <RB p={[0, 0, 0]} s={[w, h, 0.09]} rad={0.025} c="#10141b" />
-      <group position={[0, 0, 0.051]}><SignalScreen device="monitor" width={w - 0.12} height={h - 0.12} title="OB • MULTIVIEW SIM" /></group>
+      <group position={[0, 0, 0.051]}>{x > 0 && !pgmInstalled ? <Text font={FONT} fontSize={0.085} maxWidth={w - 0.2} textAlign="center" color="#b3c4d5">{"จอตรวจภาพออกอากาศ\nยังไม่ใช้ในระดับนี้"}</Text> : <SignalScreen device={x > 0 ? "pgm" : "monitor"} width={w - 0.12} height={h - 0.12} title={x > 0 ? "จอตรวจภาพออกอากาศ" : "จอรวมภาพ · ระบบจำลอง"} />}</group>
     </group>)}
     {[-5, -2.9, -0.8].map((z) => <group key={`operator-${z}`} position={[k(-7), 0, k(z) + 1.1]}>
       <RB p={[0, 0.47, 0]} s={[0.5, 0.08, 0.45]} rad={0.035} c="#21262e" />
@@ -456,11 +462,67 @@ function SidelineDressing() {
   </>;
 }
 
+/** Render the installed kit in early lessons, without duplicating active or stored mission equipment. */
+function InstalledStadiumEquipment() {
+  const active = useTrainingStore((state) => `|${scenarioOf(state).devices.map((d) => d.id).join("|")}|`);
+  const ids = ["cam1", "cam2", "cam3", "cam4", "mix", "sw", "gfx", "play", "pgm", "mic1", "mic2", "enc", "net", "wan", "rec"];
+  return <>{ids.map((id) => {
+    if (active.includes(`|${id}|`)) return null;
+    const room = ROOMS.xl;
+    const alias = room.places[id];
+    const spot = typeof alias === "string" ? LAYOUTS.stadium.places[alias] : alias ? { ...alias, p: [k(alias.p[0]), alias.p[1], k(alias.p[2])] as V3 } : undefined;
+    if (!spot) return null;
+    const inst = room.instances[id], model = MODELS[inst.model];
+    const size: V3 = ["enc", "net", "wan", "rec"].includes(id) ? [0.56, 1.7, 0.56] : [...model.size];
+    return <group key={id} position={spot.p} rotation={[0, spot.yaw, 0]}>
+      <DeviceVisual bare device={{ id, label: model.role === "display" ? `${inst.label} · Monitor` : inst.label, model: model.name,
+        generic: model.generic, verified: !model.generic, kind: model.kind, size, position: spot.p, color: "#263345" }} />
+    </group>;
+  })}</>;
+}
+
+/** The spare CCU/router bays are fitted, not empty structural frames; no pretend patch targets. */
+function RackInfill() {
+  const racks = LAYOUTS.stadium.furniture.filter((f) => ["xl-rack-ccu", "xl-rack-router", "xl-rack-backup", "xl-rack-backup-net"].includes(f.id));
+  return <>{racks.map((f, i) => <group key={f.id} position={f.center} rotation={[0, Math.PI / 2, 0]}>
+    <RB p={[0, 0.95, 0]} s={[0.51, 1.8, 0.48]} rad={0.012} c="#191e26" />
+    {Array.from({ length: 8 }, (_, row) => <group key={row} position={[0, 0.18 + row * 0.21, 0.25]}>
+      <RB p={[0, 0, 0]} s={[0.48, 0.17, 0.025]} rad={0.004} c={row % 2 ? "#303743" : "#232a34"} />
+      <RB p={[-0.12, 0.015, 0.016]} s={[0.11, 0.035, 0.005]} rad={0.002} c="#3b5962" />
+      {Array.from({ length: 5 }, (_, n) => <Slab key={n} p={[0.02 + n * 0.025, 0, 0.016]} s={[0.009, 0.07, 0.005]} c="#11151b" />)}
+    </group>)}
+    <Text font={FONT} position={[0, 1.93, 0.31]} fontSize={0.038} maxWidth={0.5} color="#e2cfac">{["ควบคุมกล้องสำรอง", "แผงจัดสายสำรอง", "ตัวเข้ารหัสสำรอง", "เครือข่ายสำรอง"][i]}</Text>
+  </group>)}</>;
+}
+
+/** Operator panels sit on the free front edge, away from actual equipment and its connectors. */
+function ProductionPanels() {
+  const desks = LAYOUTS.stadium.furniture.filter((f) => ["xl-switch", "xl-replay"].includes(f.id));
+  return <>{desks.map((desk, d) => <group key={desk.id} position={[desk.center[0], desk.size[1], desk.center[2] + 0.28]}>
+    <RB p={[0, 0.025, 0]} s={[d ? 0.8 : 1.8, 0.05, 0.24]} rad={0.015} c="#222934" />
+    {Array.from({ length: d ? 8 : 16 }, (_, col) => [0, 1].map((row) => <RB key={`${col}-${row}`} p={[(col - (d ? 3.5 : 7.5)) * 0.085, 0.054, -0.05 + row * 0.08]} s={[0.055, 0.012, 0.05]} rad={0.005} c={col === 0 ? "#7d3a38" : col === 1 ? "#38594a" : "#6d7785"} />))}
+  </group>)}</>;
+}
+
+function CommentaryMicStands() {
+  const room = ROOMS.xl;
+  return <>{["mic1", "mic2"].map((id) => {
+    const p = LAYOUTS.stadium.places[room.places[id] as string].p;
+    return <group key={id} position={p}>
+      <RB p={[0, 0.012, 0]} s={[0.16, 0.016, 0.14]} rad={0.025} {...BLACK_METAL} />
+      <Cyl p={[0, 0.022, 0]} rt={0.012} h={0.03} {...CHROME} />
+    </group>;
+  })}</>;
+}
+
 /* Stadium live-broadcast job site (game/training/venue-layouts.ts `stadium`), three zones:
  * ZONE C broadcast control room (west, indoor: multiview wall, switcher / replay / graphics desk rows, audio console, rack wall),
  * ZONE B commentary desk (centre-east), ZONE A pitch-side camera positions + crowd / field mics (south, toward the pitch). */
 export function Stadium() {
   const L = LAYOUTS.stadium;
+  const commentaryTarget = useMemo(() => {
+    const target = new Object3D(); target.position.set(k(6.2), 0.9, k(-1.8)); return target;
+  }, []);
   const { minX, maxX, minZ, maxZ } = L.bounds;
   const ads = useMemo(() => [adBoard("a", "#123c9b", "#dbe9ff"), adBoard("b", "#245aba", "#dbe9ff"), adBoard("c", "#103781", "#59baff")], []);
   const stripes = tex.turf([6, 30]);
@@ -506,18 +568,18 @@ export function Stadium() {
     <Slab p={[room.x1, room.h - 0.3, k(-0.3)]} s={[0.12, 0.6, k(1.8)]} map={roomWall} c="#ffffff" r={0.9} />
     <ControlTentRoof x0={room.x0} x1={room.x1} z0={room.z0} z1={room.z1} h={room.h} />
     <RB p={[room.x1 + 0.08, 2.5, k(-0.3)]} s={[0.025, 0.44, 2.2]} rad={0.01} c="#111b2b" />
-    <Text font={FONT} position={[room.x1 + 0.1, 2.5, k(-0.3)]} rotation={[0, Math.PI / 2, 0]} fontSize={0.16} maxWidth={2.1} textAlign="center" color="#fff1d0">OB control cabin</Text>
+    <Text font={FONT} position={[room.x1 + 0.1, 2.5, k(-0.3)]} rotation={[0, Math.PI / 2, 0]} fontSize={0.16} maxWidth={2.1} textAlign="center" color="#fff1d0">เต็นท์ควบคุมการถ่ายทอดสด</Text>
     <RB p={[room.x1 + 0.07, 2.75, k(-0.3)]} s={[0.04, 0.16, 0.7]} rad={0.01} c="#c40f12" e="#ff2020" ei={1.2} />
     {[-10.5, -7.0, -3.5].flatMap((x) => [-5.5, -1.6].map((z) => <RB key={`${x}${z}`} p={[k(x), room.h - 0.04, k(z)]} s={[1.4, 0.04, 0.5]} rad={0.01} c="#ffffff" e="#e8eeff" ei={1.4} />))}
     {/* two room lights cover the whole control room (panel fixtures above are emissive only) */}
-    {[-9.5, -4.5].map((x) => <pointLight key={x} position={[k(x), room.h - 0.5, k(-2.6)]} intensity={26} distance={16} decay={1.6} color="#eef2ff" />)}
+    {[-9.5, -4.5].map((x) => <pointLight key={x} position={[k(x), room.h - 0.5, k(-2.6)]} intensity={12} distance={16} decay={1.6} color="#eef2ff" />)}
     {/* soft fill so the control room never reads as a black box (the night environment barely reaches indoors) */}
-    <pointLight position={[k(-7), room.h - 0.4, k(0.8)]} intensity={14} distance={12} decay={1.6} color="#eef2ff" />
+    <pointLight position={[k(-7), room.h - 0.4, k(0.8)]} intensity={8} distance={12} decay={1.6} color="#eef2ff" />
     {/* Supported service lights keep connector backs readable in the narrow rack aisle. */}
     {[-7.4, -3.0, 1.4].map(z => <group key={`rack-service-${z}`}>
       <RB p={[minX + 0.42, 2.8, z]} s={[0.7, 0.04, 0.25]} rad={0.01} c="#eef3f6" e="#eef3f6" ei={0.7} />
       <Tube pts={[[minX, 2.95, z], [minX + 0.42, 2.95, z], [minX + 0.42, 2.8, z]]} r={0.012} {...STEEL} />
-      <pointLight position={[minX + 0.55, 2.6, z]} intensity={7} distance={5} decay={2} color="#eaf3ff" />
+      <pointLight position={[minX + 0.55, 2.6, z]} intensity={4} distance={5} decay={2} color="#eaf3ff" />
     </group>)}
     {/* multiview wall frame + desks / racks / audio desk come from the layout */}
     <group position={[k(-7.0), 0, k(-7.4)]} scale={[K, 1, 1]}>
@@ -526,7 +588,8 @@ export function Stadium() {
 
     {/* Commentary desk stays at its mission height; platform is recessed underneath it. */}
     <CommentaryPosition />
-    <spotLight position={[k(6.2), 3.6, k(1.0)]} target-position={[k(6.2), 0.9, k(-1.8)]} angle={0.7} penumbra={0.6} intensity={18} distance={8} color="#fff2e0" />
+    <primitive object={commentaryTarget} />
+    <spotLight position={[k(6.2), 3.6, k(1.0)]} target={commentaryTarget} angle={0.7} penumbra={0.6} intensity={18} distance={8} color="#fff2e0" />
 
     {/* ZONE A — pitch-side cable route along the edge + ramp at the walkway */}
     <RB p={[0, 0.025, k(11.3)]} s={[k(26), 0.05, 0.22]} rad={0.02} c="#24262b" />
@@ -535,6 +598,10 @@ export function Stadium() {
     <SidelineDressing />
     <SidelineBarriers />
     <ControlMonitors />
+    <InstalledStadiumEquipment />
+    <RackInfill />
+    <ProductionPanels />
+    <CommentaryMicStands />
     <Stands />
     {FLOOD_POSITIONS.map(([x, , z]) => <Floodlight key={`${x}${z}`} p={[x, 0, z]} />)}
     <Scoreboard />

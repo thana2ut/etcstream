@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useCableBag } from "./use-cable-bag";
 import { CableInspector, CablePreview, CableView, CardCableScene, CatalogCanvas } from "./cable-model";
 import { CategoryIcon } from "./lobby-ornaments";
-import { CABLE_CATALOG, CABLE_CATEGORIES, catalogById, type CableCategory, type CatalogCable, type ConnectorFamily } from "@/game/content/cable-catalog";
+import { CABLE_CATALOG, CABLE_CATEGORIES, catalogById, MAX_WRONG_STREAK, type CableCategory, type CatalogCable, type ConnectorFamily } from "@/game/content/cable-catalog";
 import type { Scenario } from "@/game/training/scenarios";
 import { soundEngine } from "@/game/audio/sound-engine";
 import { preloadRoomModels } from "@/game/assets/preload-models";
@@ -28,7 +28,7 @@ export function ConnectorIcon({ family, color }: { family: ConnectorFamily; colo
 }
 
 /**
- * Cable Prep Lobby — shown before every Mission Hall level. Devices are already in the venue;
+ * ห้องเตรียมสาย (Cable Prep Lobby) — shown before every Mission Hall level. Devices are already in the venue;
  * the trainee packs the leads they think the job needs. Only packed leads appear in the room, so a wrong or short
  * selection makes the level impossible to finish. The bag has no size limit: it grows a row whenever it fills up.
  */
@@ -62,7 +62,7 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
   const step = total > 0 ? 4 : 3;
 
   const add = (c: CatalogCable, n = 1) => { addOne(c, n); soundEngine.play("button_hover"); };
-  // Quantity picked in the detail stepper: only goes into the bag when "Add to bag" is pressed (resets to 1 per cable).
+  // Quantity picked in the detail stepper: only goes into the bag when "ใส่กระเป๋า" is pressed (resets to 1 per cable).
   const [draft, setDraft] = useState<{ id: string; n: number }>({ id: "", n: 1 });
   const qty = draft.id === selected.id ? draft.n : 1;
   const setQty = (n: number) => setDraft({ id: selected.id, n: Math.min(20, Math.max(1, n)) });
@@ -107,47 +107,47 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
         <span className="cl-back-arrow" aria-hidden="true">
           <svg viewBox="0 0 20 20"><path d="m12.5 4.5-5 5.5 5 5.5" /></svg>
         </span>
-        <span>Back to the Mission Hall</span>
+        <span>กลับหอภารกิจ</span>
       </button>
       <div className="cl-title">
-        <span className="cl-eyebrow">Cable Prep Lobby{playerName ? ` | Trainee: ${playerName}` : ""}</span>
+        <span className="cl-eyebrow">ห้องเตรียมสาย{playerName ? ` | ผู้ฝึก: ${playerName}` : ""}</span>
         <h1>{title}</h1>
         {levelLabel && <p className="cl-level">{levelLabel}</p>}
         {objective && <p className="cl-objective">{objective}</p>}
-        <ol className="cl-steps" aria-label="Steps">
-          {["Choose a category", "Choose a lead", "Add to bag", "Enter the stage"].map((t, i) => <li key={t} className={i + 1 < step ? "is-done" : i + 1 === step ? "is-now" : ""} aria-current={i + 1 === step ? "step" : undefined}><b>{i + 1}</b>{t}</li>)}
+        <ol className="cl-steps" aria-label="ขั้นตอน">
+          {["เลือกหมวด", "เลือกสาย", "ใส่กระเป๋า", "เข้าสู่ด่าน"].map((t, i) => <li key={t} className={i + 1 < step ? "is-done" : i + 1 === step ? "is-now" : ""} aria-current={i + 1 === step ? "step" : undefined}><b>{i + 1}</b>{t}</li>)}
         </ol>
       </div>
-      <div className="cl-capacity" aria-live="polite"><span>In the bag</span><strong>{total}</strong><small>leads · {kinds} types</small></div>
+      <div className="cl-capacity" aria-live="polite"><span>ในกระเป๋า</span><strong>{total}</strong><small>เส้น · {kinds} ชนิด</small></div>
     </header>
 
     <section className="cl-body">
-      <nav className="cl-tabs" aria-label="Cable categories">
+      <nav className="cl-tabs" aria-label="หมวดสาย">
         {categories.map((cat) => <button key={cat.id} type="button" className={!q && category === cat.id ? "is-on" : ""} onClick={() => { setCategory(cat.id); setQuery(""); }} aria-pressed={!q && category === cat.id}>
           <span className="cl-tab-glyph"><CategoryIcon id={cat.id} /></span><span className="cl-tab-label">{cat.label}</span>
-          {packedIn(cat.id) > 0 && <em className="cl-tab-count" aria-label={`${packedIn(cat.id)} packed`}>{packedIn(cat.id)}</em>}
+          {packedIn(cat.id) > 0 && <em className="cl-tab-count" aria-label={`ใส่แล้ว ${packedIn(cat.id)} เส้น`}>{packedIn(cat.id)}</em>}
           <span className="cl-tab-chev" aria-hidden="true">›</span>
         </button>)}
       </nav>
 
       <div className="cl-center">
         <div className="cl-toolbar">
-          <div className="cl-viewtoggle" role="group" aria-label="View mode">
-            <button type="button" className={view === "grid" ? "is-on" : ""} aria-pressed={view === "grid"} onClick={() => setView("grid")} aria-label="Grid view"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="3" width="6" height="6" rx="1.2" /><rect x="11" y="3" width="6" height="6" rx="1.2" /><rect x="3" y="11" width="6" height="6" rx="1.2" /><rect x="11" y="11" width="6" height="6" rx="1.2" /></svg></button>
-            <button type="button" className={view === "list" ? "is-on" : ""} aria-pressed={view === "list"} onClick={() => setView("list")} aria-label="List view"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="4" width="2.5" height="2.5" rx=".6" /><rect x="7.5" y="4.4" width="9.5" height="1.7" rx=".8" /><rect x="3" y="8.8" width="2.5" height="2.5" rx=".6" /><rect x="7.5" y="9.2" width="9.5" height="1.7" rx=".8" /><rect x="3" y="13.6" width="2.5" height="2.5" rx=".6" /><rect x="7.5" y="14" width="9.5" height="1.7" rx=".8" /></svg></button>
+          <div className="cl-viewtoggle" role="group" aria-label="รูปแบบการแสดง">
+            <button type="button" className={view === "grid" ? "is-on" : ""} aria-pressed={view === "grid"} onClick={() => setView("grid")} aria-label="แสดงแบบตาราง"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="3" width="6" height="6" rx="1.2" /><rect x="11" y="3" width="6" height="6" rx="1.2" /><rect x="3" y="11" width="6" height="6" rx="1.2" /><rect x="11" y="11" width="6" height="6" rx="1.2" /></svg></button>
+            <button type="button" className={view === "list" ? "is-on" : ""} aria-pressed={view === "list"} onClick={() => setView("list")} aria-label="แสดงแบบรายการ"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="4" width="2.5" height="2.5" rx=".6" /><rect x="7.5" y="4.4" width="9.5" height="1.7" rx=".8" /><rect x="3" y="8.8" width="2.5" height="2.5" rx=".6" /><rect x="7.5" y="9.2" width="9.5" height="1.7" rx=".8" /><rect x="3" y="13.6" width="2.5" height="2.5" rx=".6" /><rect x="7.5" y="14" width="9.5" height="1.7" rx=".8" /></svg></button>
           </div>
-          <span className="cl-result-count">{q ? `${items.length} search results` : `${items.length} items`}</span>
+          <span className="cl-result-count">{q ? `ผลการค้นหา ${items.length} รายการ` : `${items.length} รายการ`}</span>
           <label className="cl-search">
             <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" /><path d="M13 13l4 4" /></svg>
-            <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search leads..." aria-label="Search leads" />
-            {query && <button type="button" onClick={() => setQuery("")} aria-label="Clear search">✕</button>}
+            <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="ค้นหาสาย..." aria-label="ค้นหาสาย" />
+            {query && <button type="button" onClick={() => setQuery("")} aria-label="ล้างคำค้น">✕</button>}
           </label>
         </div>
 
         <div className="cl-catalog-wrap">
-          <div className={`cl-catalog is-${view}`} role="list" aria-label={q ? "Search results" : "Leads in this category"}>
+          <div className={`cl-catalog is-${view}`} role="list" aria-label={q ? "ผลการค้นหาสาย" : "รายการสายในหมวด"}>
             {items.map((c) => <div key={c.id} role="listitem" className={`cl-slot ${selected.id === c.id ? "is-selected" : ""} ${count(c.id) ? "is-packed" : ""}`}>
-              <button type="button" className="cl-slot-hit" onClick={() => pick(c)} onDoubleClick={() => add(c)} aria-pressed={selected.id === c.id} title={`${c.name} — click to view · double-click to add to the bag`}>
+              <button type="button" className="cl-slot-hit" onClick={() => pick(c)} onDoubleClick={() => add(c)} aria-pressed={selected.id === c.id} title={`${c.name} — กดเพื่อดู · ดับเบิลคลิกเพื่อใส่กระเป๋า`}>
                 <CableView className="cl-slot-3d"><CardCableScene cable={c} /></CableView>
                 <span className="cl-slot-text">
                   {/* non-breaking hyphen: "Type-A" never splits across lines */}
@@ -158,7 +158,7 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
               </button>
               {count(c.id) ? <em className="cl-slot-count">×{count(c.id)}</em> : null}
             </div>)}
-            {items.length === 0 && <p className="cl-empty">No leads match “{query}” · try HDMI, XLR or SDI</p>}
+            {items.length === 0 && <p className="cl-empty">ไม่พบสายที่ตรงกับ “{query}” · ลองคำอื่น เช่น HDMI, XLR, SDI</p>}
           </div>
           <CatalogCanvas />
         </div>
@@ -166,39 +166,39 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
 
       <aside className="cl-side">
         <div className="cl-detail">
-          <div className="cl-panel-title">Lead details</div>
+          <div className="cl-panel-title">รายละเอียดสาย</div>
           <div className="cl-detail-head">
-            <button type="button" className="cl-preview-wrap" onClick={() => setInspecting(selected)} aria-label={`View the 3D model of ${selected.name}`} title="Click for a full-screen 3D view">
+            <button type="button" className="cl-preview-wrap" onClick={() => setInspecting(selected)} aria-label={`ดูโมเดล 3D ของ ${selected.name}`} title="กดเพื่อดูโมเดล 3D แบบเต็มจอ">
               <CablePreview cable={selected} />
             </button>
             <div><strong>{selected.name}</strong><small>{selected.id} · {selected.status}</small></div>
           </div>
           <dl className="cl-facts">
-            <div><dt>Connectors</dt><dd>{selected.ends}</dd></div>
-            <div><dt>Used for</dt><dd>{selected.use}</dd></div>
+            <div><dt>หัวต่อ</dt><dd>{selected.ends}</dd></div>
+            <div><dt>ใช้ต่อ</dt><dd>{selected.use}</dd></div>
           </dl>
           <div className="cl-detail-actions">
-            <div className="cl-stepper" role="group" aria-label="Quantity to add">
-              <button type="button" onClick={() => setQty(qty - 1)} disabled={qty <= 1} aria-label="Decrease">−</button>
+            <div className="cl-stepper" role="group" aria-label="จำนวนที่จะใส่กระเป๋า">
+              <button type="button" onClick={() => setQty(qty - 1)} disabled={qty <= 1} aria-label="ลดจำนวน">−</button>
               <output aria-live="polite">{qty}</output>
-              <button type="button" onClick={() => setQty(qty + 1)} disabled={qty >= 20} aria-label="Increase">+</button>
+              <button type="button" onClick={() => setQty(qty + 1)} disabled={qty >= 20} aria-label="เพิ่มจำนวน">+</button>
             </div>
-            <button type="button" className="cl-btn is-primary" onClick={putInBag}><span className="cl-plus">+</span> Add to bag{qty > 1 ? ` (${qty})` : ""}</button>
+            <button type="button" className="cl-btn is-primary" onClick={putInBag}><span className="cl-plus">+</span> ใส่กระเป๋า{qty > 1 ? ` ${qty} เส้น` : ""}</button>
           </div>
         </div>
         <div className="cl-bag">
-          <div className="cl-bag-head"><strong><svg className="cl-pouch" viewBox="0 0 32 32" aria-hidden="true"><path d="M11 6h10l-2 4h-6z" fill="#c99a4a"/><path d="M13 10c-6 3-9 9-7 14 1 3 4 4 10 4s9-1 10-4c2-5-1-11-7-14z" fill="#e9c27a" stroke="#7a5426" strokeWidth="1.2"/><path d="M12 10h8" stroke="#7a5426" strokeWidth="1.6"/><circle cx="16" cy="19" r="3" fill="none" stroke="#7a5426" strokeWidth="1.2"/></svg> Your bag</strong><button type="button" className="cl-link" disabled={total === 0} onClick={clear}>Clear</button></div>
-          <p className="cl-bag-empty">{total === 0 ? <>The bag is empty · double-click a lead card or press “Add to bag”</> : <>Click a slot for details · <b>✕</b> removes one</>}</p>
+          <div className="cl-bag-head"><strong><svg className="cl-pouch" viewBox="0 0 32 32" aria-hidden="true"><path d="M11 6h10l-2 4h-6z" fill="#c99a4a"/><path d="M13 10c-6 3-9 9-7 14 1 3 4 4 10 4s9-1 10-4c2-5-1-11-7-14z" fill="#e9c27a" stroke="#7a5426" strokeWidth="1.2"/><path d="M12 10h8" stroke="#7a5426" strokeWidth="1.6"/><circle cx="16" cy="19" r="3" fill="none" stroke="#7a5426" strokeWidth="1.2"/></svg> กระเป๋าของเจ้า</strong><button type="button" className="cl-link" disabled={total === 0} onClick={clear}>ล้าง</button></div>
+          <p className="cl-bag-empty">{total === 0 ? <>กระเป๋ายังว่าง · ดับเบิลคลิกการ์ดสาย หรือกดปุ่ม “ใส่กระเป๋า”</> : <>กดช่องเพื่อดูรายละเอียด · <b>✕</b> นำออกทีละเส้น</>}</p>
           <div className="cl-bag-scroll" ref={bagScroll}>
             <div className="cl-bag-grid">
               {Array.from({ length: slots }, (_, i) => {
                 const e = bagEntries[i];
                 if (!e) return <span key={`empty-${i}`} className="cl-bag-slot is-empty" aria-hidden="true"><span className="cl-bag-plus"><svg viewBox="0 0 16 16"><path d="M8 3.5v9M3.5 8h9" /></svg></span></span>;
                 return <span key={e.c.id} className={`cl-bag-slot is-filled ${selected.id === e.c.id ? "is-selected" : ""}`}>
-                  <button type="button" className="cl-bag-hit" onClick={() => setSelected(e.c)} title={`${e.c.name} ×${e.n}`} aria-label={`${e.c.name} × ${e.n}`}>
+                  <button type="button" className="cl-bag-hit" onClick={() => setSelected(e.c)} title={`${e.c.name} ×${e.n}`} aria-label={`${e.c.name} ${e.n} เส้น`}>
                     <ConnectorIcon family={e.c.family} color={e.c.color} /><em>{e.n}</em>
                   </button>
-                  <button type="button" className="cl-bag-remove" onClick={() => remove(e.c)} aria-label={`Remove one ${e.c.name}`}>✕</button>
+                  <button type="button" className="cl-bag-remove" onClick={() => remove(e.c)} aria-label={`นำ ${e.c.name} ออก 1 เส้น`}>✕</button>
                 </span>;
               })}
             </div>
@@ -211,12 +211,12 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
     <footer className="cl-footer">
       <span className="cl-footer-icon" aria-hidden="true">!</span>
       <div className="cl-footer-text">
-        <strong>Pack every lead the job needs and check the count before entering</strong>
-        <small>Equipment waits in its cases at the venue · leads you do not pack will not be there · three meaningful errors pause the mission for a targeted review</small>
+        <strong>เมื่อเลือกสายที่ต้องใช้ครบแล้ว ให้ใส่กระเป๋า และตรวจสอบจำนวนก่อนเข้าสู่ด่าน</strong>
+        <small>อุปกรณ์รออยู่ในห้องแล้ว · สายที่ไม่ได้นำไปจะไม่มีในห้อง · ต่อผิดติดต่อกัน {MAX_WRONG_STREAK} ครั้ง = ไม่ผ่าน</small>
       </div>
       <div className="cl-enter-wrap">
-        <small className={total === 0 ? "" : "is-ready"} role="status">{total === 0 ? "Pack at least one lead first" : `Ready to go · ${total} leads`}</small>
-        <button type="button" className="cl-enter" disabled={total === 0} onClick={() => { soundEngine.play("mission_accept"); onConfirm(bag); }}>Enter the stage →</button>
+        <small className={total === 0 ? "" : "is-ready"} role="status">{total === 0 ? "ใส่สายอย่างน้อย 1 เส้นก่อน" : `พร้อมออกเดินทาง · ${total} เส้น`}</small>
+        <button type="button" className="cl-enter" disabled={total === 0} onClick={() => { soundEngine.play("mission_accept"); onConfirm(bag); }}>เข้าสู่ด่าน →</button>
       </div>
     </footer>
   </main>;
@@ -229,25 +229,25 @@ export function BagOverlay({ bag, usage, ready, holding, onTake, onStow, onClose
   const entries = Object.entries(bag).map(([id, n]) => ({ c: catalogById(id)!, n, u: usage[id] ?? 0, r: ready[id] ?? 0 }));
   return <div className="cl-overlay" role="dialog" aria-modal="true" aria-labelledby="cl-bag-title" onClick={onClose}>
     <div className="cl-overlay-card" onClick={(e) => e.stopPropagation()}>
-      <div className="cl-bag-head"><strong id="cl-bag-title">🎒 Cable bag</strong><button type="button" className="cl-link" onClick={onClose}>Close ✕</button></div>
+      <div className="cl-bag-head"><strong id="cl-bag-title">🎒 กระเป๋าสาย</strong><button type="button" className="cl-link" onClick={onClose}>ปิด ✕</button></div>
       {holding && (() => { const c = catalogById(holding.id); return <button type="button" className="cl-bag-pick cl-holding" onClick={onStow}>
         {c ? <ConnectorIcon family={c.family} color={c.color} /> : <span />}
-        <div><strong>Holding: {c?.name ?? holding.label}</strong><small>Wrong lead? Stow it and choose again</small></div>
-        <span className="cl-pick-state is-on"><b>Stow in bag</b></span>
+        <div><strong>ถืออยู่: {c?.name ?? holding.label}</strong><small>หยิบผิดเส้น? เก็บคืนแล้วเลือกใหม่</small></div>
+        <span className="cl-pick-state is-on"><b>เก็บคืนกระเป๋า</b></span>
       </button>; })()}
-      {entries.length === 0 && <p className="cl-msg">Bag empty</p>}
+      {entries.length === 0 && <p className="cl-msg">กระเป๋าว่าง</p>}
       <ul className="cl-bag-list">
         {entries.map(({ c, n, u, r }) => <li key={c.id}>
-          <button type="button" className="cl-bag-pick" disabled={r === 0} onClick={() => onTake(c.id)} title={r ? `Take ${c.name}` : u === 0 ? "No port in this stage takes this lead" : "All in use"}>
+          <button type="button" className="cl-bag-pick" disabled={r === 0} onClick={() => onTake(c.id)} title={r ? `หยิบ ${c.name}` : u === 0 ? "ด่านนี้ไม่มีพอร์ตรองรับสายนี้" : "ใช้ครบแล้ว"}>
             <ConnectorIcon family={c.family} color={c.color} />
             <div><strong>{c.name}</strong><small>{c.ends}</small></div>
             <span className={`cl-pick-state ${r > 0 ? "is-on" : "is-off"}`}>
-              {r > 0 ? <><b>Available</b>{r}</> : <><b>Unavailable</b>{u === 0 ? "not used here" : `all used ${u}/${n}`}</>}
+              {r > 0 ? <><b>เลือกได้</b>{r} เส้น</> : <><b>เลือกไม่ได้</b>{u === 0 ? "ด่านนี้ไม่ใช้" : `ต่อครบแล้ว ${u}/${n}`}</>}
             </span>
           </button>
         </li>)}
       </ul>
-      <p className="cl-note"><span className="cl-key">Click</span> an “available” lead to take it in hand</p>
+      <p className="cl-note"><span className="cl-key">คลิก</span> สายที่ “เลือกได้” เพื่อหยิบขึ้นมือ</p>
     </div>
   </div>;
 }

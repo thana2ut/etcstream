@@ -10,6 +10,8 @@ import { LayoutColliders, LayoutFurniture } from "./layout-furniture";
 import { tex } from "./textures";
 import { Text } from "@react-three/drei";
 import { useTrainingStore } from "@/game/stores/training-store";
+import { Hcx2000Model } from "../../equipment/hc-x2000";
+import { scenarioOf } from "@/game/training/hdmi-training";
 import { studioSignalFeed } from "@/game/training/monitor-feed";
 
 /**
@@ -124,7 +126,7 @@ function InterviewCorner({ p, yaw }: { p: V3; yaw: number }) {
         <mesh position={l as V3} scale={[1, 0.45, 0.7]}><sphereGeometry args={[0.13, 12, 8]} /><meshStandardMaterial color={i % 2 ? "#3f7d32" : "#4f8f3a"} roughness={0.7} /></mesh>
       </group>)}
     </group>
-    <pointLight position={[0, 2.0, 0.4]} intensity={5} distance={4.5} color="#ffcc88" />
+    <pointLight position={[0, 2.0, 0.4]} intensity={10} distance={5.5} color="#ffcc88" />
     <RigidBody type="fixed" colliders={false}>
       {[-0.85, 0.85].map((x) => <CuboidCollider key={x} position={[x, 0.45, 0]} rotation={[0, x < 0 ? 0.5 : -0.5, 0]} args={[0.42, 0.45, 0.42]} />)}
       <CylinderCollider position={[0, 0.24, 0.15]} args={[0.24, 0.36]} />
@@ -239,6 +241,33 @@ function Jib({ p, ry = 0 }: { p: V3; ry?: number }) {
   </group>;
 }
 
+/** Installed cameras stay visible in sound-only stages; active stages render the interactive body instead. */
+function InstalledStudioCameras() {
+  const active = useTrainingStore((state) => `|${scenarioOf(state).devices.map((d) => d.id).join("|")}|`);
+  return <>{(["cam1", "cam2", "cam3"] as const).map((id, i) => {
+    if (active.includes(`|${id}|`)) return null;
+    const spot = LAYOUTS.studioMission.places[id];
+    return <group key={id} position={spot.p} rotation={[0, spot.yaw, 0]}>
+      <Hcx2000Model />
+      <Text font={SCENE_FONT} position={[0, 1.78, 0]} fontSize={0.045} color="#e7cf9c" rotation={[0, Math.PI, 0]}>{`กล้อง ${["A", "B", "C"][i]} · พร้อมสำหรับด่านภาพ`}</Text>
+      <RigidBody type="fixed" colliders={false}><CylinderCollider position={[0, 0.52, 0]} args={[0.52, 0.38]} /></RigidBody>
+    </group>;
+  })}</>;
+}
+
+/** The microphone itself remains an inventory item; its stand is fixed at the shared operating position. */
+function InterviewMicStands() {
+  return <>{(["micH", "micG"] as const).map((id) => {
+    const [x, y, z] = LAYOUTS.studioMission.places[id].p;
+    return <group key={id} position={[x, 0, z]}>
+      <Cyl p={[0, 0.025, 0]} rt={0.18} h={0.05} {...BLACK_METAL} />
+      <Cyl p={[0, y / 2, 0]} rt={0.012} h={y - 0.03} {...CHROME} />
+      <RB p={[0, y - 0.015, 0]} s={[0.075, 0.025, 0.035]} rad={0.006} c="#202329" />
+      <RigidBody type="fixed" colliders={false}><CylinderCollider position={[0, 0.04, 0]} args={[0.04, 0.18]} /></RigidBody>
+    </group>;
+  })}</>;
+}
+
 export function Studio() {
   const { x0, x1, z0, z1, h } = ROOM;
   const fresnels = useFresnels();
@@ -253,15 +282,15 @@ export function Studio() {
   }, [h]);
   return <>
     <color attach="background" args={["#0b0c0e"]} />
-    <VenueLighting mood="studio" intensity={0.65} />
-    <hemisphereLight args={["#b8c0d0", "#2a2a30", 0.7]} />
-    <ambientLight intensity={0.09} />
+    <VenueLighting mood="studio" intensity={0.85} />
+    <hemisphereLight args={["#b8c0d0", "#2a2a30", 1.15]} />
+    <ambientLight intensity={0.2} />
     {/* key/fill from the grid onto the set */}
     <spotLight position={[-3, h - 1.2, 3.5]} target-position={[0, 0.8, -1]} angle={0.6} penumbra={0.5} intensity={60} distance={14} color="#fff2dc" castShadow shadow-mapSize={[2048, 2048]} shadow-normalBias={0.03} />
     <spotLight position={[3.5, h - 1.2, 3]} target-position={[0, 0.8, -1]} angle={0.65} penumbra={0.7} intensity={35} distance={14} color="#e8f0ff" />
     <pointLight position={[0, 3, 6]} intensity={5} distance={12} color="#cdd8ff" />
-    <pointLight position={[-2.7, 2.6, 4.7]} intensity={12} distance={5.5} color="#edf2ff" />
-    <pointLight position={[6.2, 2.5, 6.4]} intensity={10} distance={4.5} color="#edf2ff" />
+    <pointLight position={[-2.7, 2.6, 4.7]} intensity={22} distance={7} color="#edf2ff" />
+    <pointLight position={[6.2, 2.5, 6.4]} intensity={16} distance={6} color="#edf2ff" />
     <RB p={[6.2, 2.9, 6.4]} s={[1.8, 0.06, 0.2]} rad={0.015} c="#1d2025" />
     <Slab p={[6.2, 2.865, 6.4]} s={[1.65, 0.005, 0.15]} c="#f2f5ff" e="#f2f5ff" ei={1.5} />
     {[-0.6, 0.6].map((dx) => <Tube key={`storage-hanger-${dx}`} pts={[[6.2 + dx, 2.93, 6.4], [6.2 + dx, h - 0.9, 6.4]]} r={0.004} {...STEEL} />)}
@@ -315,7 +344,7 @@ export function Studio() {
     <Tube pts={[[x1 - 0.6, h - 0.35, -2], [x1 - 0.6, h - 0.35, 8.5]]} r={0.3} c="#2a2c31" m={0} />
 
     {/* production gallery window on the right wall + ON AIR light + entrance door */}
-    <group position={[x1 - 0.06, 3.6, 4.6]}>
+    <group position={[x1 - 0.06, 3.75, 6.4]}>
       <RB p={[0, 0, 0]} s={[0.12, 1.3, 4.2]} rad={0.04} c="#2b2e33" />
       <Slab p={[-0.065, 0, 0]} s={[0.01, 1.1, 4.0]} c="#0f2235" e="#2a5a8a" ei={0.6} m={0.4} r={0.05} />
       {[-1.3, 0, 1.3].map((dz) => <RB key={dz} p={[-0.075, -0.15, dz]} s={[0.01, 0.42, 1.0]} rad={0.004} c="#3a6aa0" e="#4a8ad0" ei={0.9} />)}
@@ -327,7 +356,7 @@ export function Studio() {
       <RB p={[-0.08, 2.55, 0]} s={[0.08, 0.3, 0.8]} rad={0.03} c="#1a1a1a" />
       <Text font={SCENE_FONT} position={[-0.13, 2.55, 0]} rotation={[0, -Math.PI / 2, 0]} fontSize={0.12} color="#c9d4df">STUDIO</Text>
     </group>
-    <Text font={SCENE_FONT} position={[0, h - 0.6, z1 - 0.07]} rotation={[0, Math.PI, 0]} fontSize={0.28} color="#c9d4df">{sceneText("STUDIO A | mission studio")}</Text>
+    <Text font={SCENE_FONT} position={[0, h - 0.6, z1 - 0.07]} rotation={[0, Math.PI, 0]} fontSize={0.28} color="#c9d4df">{sceneText("STUDIO A | สตูดิโอภารกิจ")}</Text>
 
     {/* Mounted repeaters: internal input/program/audio/OBS state, not decorative success images. */}
     <group position={[x0 + 0.12, 2.5, 3.4]} rotation={[0, Math.PI / 2, 0]}>
@@ -350,7 +379,9 @@ export function Studio() {
     {/* reference zones (art/reference/venues/studio-01/02): news set back-left, interview corner back-right */}
     <NewsSet p={SETS.news} yaw={0} />
     <InterviewCorner p={SETS.interview} yaw={-0.45} />
-    <WoodSlatWall p={[x1 - 0.12, 0, 2.0]} w={4.2} h={3.6} rot={[0, -Math.PI / 2, 0]} />
+    <InstalledStudioCameras />
+    <InterviewMicStands />
+    <WoodSlatWall p={[x1 - 0.12, 0, 1.2]} w={4.2} h={3.6} rot={[0, -Math.PI / 2, 0]} />
     <DollyTrack p={[1.5, 0, -1.2]} len={2.2} yaw={0.2} />
     {/* chroma key fill: softboxes on stands around the green cyclorama */}
     {SETS.softboxes.map(([x, z], i) => <StandSoftbox key={i} p={[x, 0, z]} yaw={Math.atan2(-3.7 - x, -2.3 - z)} />)}

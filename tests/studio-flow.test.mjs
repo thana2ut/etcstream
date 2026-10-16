@@ -143,7 +143,7 @@ test("wrong connector, wrong direction and wrong route are rejected", () => {
   let s = placeSwitcher(initialTrainingState("studio-full"));
   // HDMI plug into a 3.5 mm jack
   s = act(s, end("hdmi-1", "a"));
-  assert.equal(act(s, port("sw:line-in")).notice.title, "Plug does not fit this socket");
+  assert.equal(act(s, port("sw:line-in")).notice.title, "หัวสายไม่ตรงกับพอร์ต");
   // OUTPUT → OUTPUT
   s = act(s, port("cam1:video-out"));
   s = act(s, end("hdmi-1", "b"));
@@ -161,7 +161,7 @@ test("adapters: plug into a jack, expose a socket, and fall out cascades", () =>
   // 3.5 mm plug cannot go straight into the mixer's 6.35 mm LINE jack
   s = act(act(s, end("trs35-1", "a")), port("rx:audio-out"));
   s = act(s, end("trs35-1", "b"));
-  assert.equal(act(s, port("mixer:ch1")).notice.title, "Plug does not fit this socket");
+  assert.equal(act(s, port("mixer:ch1")).notice.title, "หัวสายไม่ตรงกับพอร์ต");
   s = placeHeldOnCenterTable(s, [0, 0.81, 0]);
   s = act(act(s, end("adapter-35-635", "a")), port("mixer:ch1"));
   s = act(act(s, end("trs35-1", "b")), port("sock:adapter-35-635"));
@@ -246,8 +246,8 @@ test("the PMX-402D-USB exposes every jack and they accept the matching plug", ()
   let s = place(initialTrainingState("studio-full"), "mixer");
   // Plugs that do not match the jack are refused (a 3.5 mm plug cannot enter the XLR mic input).
   s = act(s, end("trs35-1", "a"));
-  assert.equal(act(s, port("mixer:ch1-mic")).notice.title, "Plug does not fit this socket");
+  assert.equal(act(s, port("mixer:ch1-mic")).notice.title, "หัวสายไม่ตรงกับพอร์ต");
   s = placeHeldOnCenterTable(s, [0, 0.81, 0]);
   s = act(s, end("hdmi-1", "a"));
-  assert.equal(act(s, port("mixer:rec-l")).notice.title, "Plug does not fit this socket");
+  assert.equal(act(s, port("mixer:rec-l")).notice.title, "หัวสายไม่ตรงกับพอร์ต");
 });

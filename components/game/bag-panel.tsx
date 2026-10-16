@@ -11,7 +11,7 @@ type Row = { id: string; packed: number; inBag: string[]; inHand: number; placed
 /**
  * In-room bag (🎒): a real inventory. Every packed lead is in exactly one place — inside the bag, in the hand,
  * lying in the room, or plugged in — and the window shows those counts per cable type, live.
- * "Take" takes one lead out of the bag; "Stow in bag" puts the lead in hand back.
+ * "หยิบ" takes one lead out of the bag; "เก็บเข้ากระเป๋า" puts the lead in hand back.
  */
 export function BagPanel({ bag, onClose }: { bag: Record<string, number>; onClose: () => void }) {
   const scenario = useTrainingStore((s) => scenarioOf(s));
@@ -46,23 +46,23 @@ export function BagPanel({ bag, onClose }: { bag: Record<string, number>; onClos
   return <div className="cl-overlay" role="dialog" aria-modal="true" aria-labelledby="bag-title" onClick={onClose}>
     <div className="cl-overlay-card bag-card" onClick={(e) => e.stopPropagation()}>
       <div className="bag-head">
-        <strong id="bag-title">🎒 Cable bag</strong>
-        <button type="button" className="cl-link" onClick={onClose}>Close ✕</button>
+        <strong id="bag-title">🎒 กระเป๋าสาย</strong>
+        <button type="button" className="cl-link" onClick={onClose}>ปิด ✕</button>
       </div>
       <div className="bag-summary" aria-live="polite">
-        <span><b>{inBagTotal}</b>in bag</span>
-        <span><b>{total("inHand")}</b>in hand</span>
-        <span><b>{total("placed")}</b>in the room</span>
-        <span><b>{total("plugged")}</b>plugged in</span>
+        <span><b>{inBagTotal}</b>ในกระเป๋า</span>
+        <span><b>{total("inHand")}</b>ในมือ</span>
+        <span><b>{total("placed")}</b>วางในห้อง</span>
+        <span><b>{total("plugged")}</b>เสียบแล้ว</span>
       </div>
 
       {held && heldDef && !heldDef.fixedA && <div className="bag-hand">
         {heldCat ? <ConnectorIcon family={heldCat.family} color={heldCat.color} /> : <span />}
-        <div><strong>Holding: {heldCat?.name ?? heldDef.label}</strong><small>Wrong lead? Put it back in the bag.</small></div>
-        <button type="button" className="bag-btn is-stow" onClick={() => stowHeld()}>Stow in bag</button>
+        <div><strong>ถืออยู่: {heldCat?.name ?? heldDef.label}</strong><small>หยิบผิดเส้น? เก็บกลับเข้ากระเป๋าได้</small></div>
+        <button type="button" className="bag-btn is-stow" onClick={() => stowHeld()}>เก็บเข้ากระเป๋า</button>
       </div>}
 
-      {rows.length === 0 && <p className="cl-msg">No leads packed</p>}
+      {rows.length === 0 && <p className="cl-msg">ไม่ได้นำสายมา</p>}
       <ul className="bag-list">
         {rows.map((r) => {
           const c = catalogById(r.id);
@@ -74,24 +74,24 @@ export function BagPanel({ bag, onClose }: { bag: Record<string, number>; onClos
               <strong>{c.name}</strong>
               <small>{c.ends}</small>
               <span className="bag-chips">
-                <em className={r.inBag.length ? "chip-bag" : "chip-zero"}>in bag {r.inBag.length}</em>
-                {r.inHand > 0 && <em className="chip-hand">in hand {r.inHand}</em>}
-                {r.placed > 0 && <em className="chip-room">in room {r.placed}</em>}
-                {r.plugged > 0 && <em className="chip-plug">plugged {r.plugged}</em>}
-                {r.spare > 0 && <em className="chip-spare">no use in this stage {r.spare}</em>}
+                <em className={r.inBag.length ? "chip-bag" : "chip-zero"}>ในกระเป๋า {r.inBag.length}</em>
+                {r.inHand > 0 && <em className="chip-hand">ในมือ {r.inHand}</em>}
+                {r.placed > 0 && <em className="chip-room">วางในห้อง {r.placed}</em>}
+                {r.plugged > 0 && <em className="chip-plug">เสียบแล้ว {r.plugged}</em>}
+                {r.spare > 0 && <em className="chip-spare">ไม่มีจุดใช้ในด่านนี้ {r.spare}</em>}
               </span>
             </div>
             <div className="bag-row-side">
               <span className="bag-count">{r.inBag.length}<small>/{r.packed}</small></span>
               <button type="button" className="bag-btn" disabled={!canTake} onClick={() => take(r)}
-                title={r.inBag.length === 0 ? "None of these left in the bag" : handsFull ? "Hands full: set down or stow what you hold first" : `Take one ${c.name}`}>
-                Take
+                title={r.inBag.length === 0 ? "ไม่มีเส้นนี้เหลือในกระเป๋า" : handsFull ? "มือไม่ว่าง: วางหรือเก็บสิ่งที่ถืออยู่ก่อน" : `หยิบ ${c.name} 1 เส้น`}>
+                หยิบ
               </button>
             </div>
           </li>;
         })}
       </ul>
-      <p className="cl-note">{handsFull ? "Hands full · press F to set down, or “Stow in bag”, before taking another lead" : "“Take” removes one lead from the bag · to stow a lead lying in the room, pick it up with E, then press “Stow in bag”"}</p>
+      <p className="cl-note">{handsFull ? "มือไม่ว่าง · กด F วางสิ่งที่ถือ หรือกด “เก็บเข้ากระเป๋า” ก่อนหยิบเส้นใหม่" : "กด “หยิบ” เพื่อนำสายออกจากกระเป๋า 1 เส้น · สายที่วางไว้ในห้องเก็บด้วย E แล้วกด “เก็บเข้ากระเป๋า”"}</p>
     </div>
   </div>;
 }

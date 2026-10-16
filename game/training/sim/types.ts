@@ -65,7 +65,7 @@ export interface EquipmentDefinition {
   assetLicense: string;
   /** Needs power before it emits anything (abstracted safe power task, never mains wiring). */
   needsPower: boolean;
-  role: "source" | "mic" | "mixer" | "converter" | "router" | "switcher" | "encoder" | "host" | "display" | "speaker" | "recorder" | "storage" | "network" | "ingest" | "interface" | "safety" | "decoy";
+  role: "source" | "mic" | "mixer" | "converter" | "router" | "switcher" | "encoder" | "host" | "display" | "speaker" | "recorder" | "storage" | "network" | "ingest" | "interface" | "safety" | "decoy" | "wireless-tx" | "wireless-rx";
   ports: PortDefinition[];
   controls: ControlDefinition[];
   /** Device-level notes surfaced in Inspect Mode (what it is NOT). */
@@ -97,7 +97,7 @@ export interface FaultScenario {
   /** Pull these canonical leads out ([from, to] pairs). */
   unplug?: [string, string][];
   /** Swap one canonical lead for a different (wrong) lead or source. */
-  repatch?: { pair: [string, string]; from?: string; cable?: string };
+  repatch?: { pair: [string, string]; from?: string; to?: string; cable?: string };
   /** Repair-order rank (safety 0 → source 1 → patch 2 → monitor 3 → record 4 → WAN 5 → ingest 6). */
   order?: number;
   /** The fault is cleared when this predicate holds. */
