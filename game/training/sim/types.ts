@@ -12,6 +12,7 @@ import type { Connector } from "../scenarios";
 
 /** Physical/electrical signal families. Ethernet roles are a property of the DEVICE, not of the RJ45 jack. */
 export type SignalClass =
+  | "FIBER_VIDEO" | "CONTROL"
   | "HDMI"          // HDMI video with embedded audio
   | "SDI"           // SDI video with embedded audio (format decides 3G vs 12G)
   | "MIC"           // balanced analog microphone level
@@ -56,6 +57,9 @@ export interface ControlDefinition {
 }
 
 export interface EquipmentDefinition {
+  /** Generic matched training transport; never a claim about a vendor's optical pinout. */
+  transport?: { kind: "camera" | "tx" | "rx" | "ccu"; family: "field-sdi-optical" | "camera-base-optical" };
+  appendixReferenceIds?: string[];
   modelId: string;
   manufacturer: string;       // "Generic Training Device" for generics
   name: string;               // full display name
@@ -67,7 +71,7 @@ export interface EquipmentDefinition {
   assetLicense: string;
   /** Needs power before it emits anything (abstracted safe power task, never mains wiring). */
   needsPower: boolean;
-  role: "source" | "mic" | "mixer" | "converter" | "router" | "switcher" | "encoder" | "host" | "display" | "speaker" | "recorder" | "storage" | "network" | "ingest" | "interface" | "safety" | "decoy" | "wireless-tx" | "wireless-rx" | "capture" | "stagebox" | "snake-tail";
+  role: "source" | "mic" | "mixer" | "converter" | "router" | "switcher" | "encoder" | "host" | "display" | "speaker" | "recorder" | "storage" | "network" | "ingest" | "interface" | "safety" | "decoy" | "wireless-tx" | "wireless-rx" | "capture" | "stagebox" | "snake-tail" | "embedder" | "controller";
   ports: PortDefinition[];
   controls: ControlDefinition[];
   /** Device-level notes surfaced in Inspect Mode (what it is NOT). */
@@ -84,10 +88,12 @@ export type DeviceConfig = Record<string, ControlValue>;
 
 /** What travels along an edge. Video carries provenance (content) and embedded audio sources. */
 export interface VideoSignal { kind: "video"; cls: "HDMI" | "SDI"; format: VideoFormat; content: string; audio: string[]; via: string[] }
-export interface AudioSignal { kind: "audio"; cls: SignalClass; sources: string[]; clip: boolean; via: string[]; /** multicore: per-channel signals */ ch?: Record<number, AudioSignal | undefined> }
+export interface AudioSignal { kind: "audio"; cls: SignalClass; sources: string[]; clip: boolean; via: string[]; phantomRequired?: boolean; /** multicore: per-channel signals */ ch?: Record<number, AudioSignal | undefined> }
 export interface UsbSignal { kind: "usb"; cls: "USB_UVC" | "USB_UAC" | "USB_STORAGE"; content?: string; audio: string[]; via: string[] }
 export interface NetSignal { kind: "net"; role: "control" | "stream"; content?: string; audio: string[]; via: string[]; keyOk: boolean }
-export type Signal = VideoSignal | AudioSignal | UsbSignal | NetSignal;
+export interface FiberSignal { kind: "fiber"; cls: "FIBER_VIDEO"; video: VideoSignal; family: "field-sdi-optical" | "camera-base-optical"; via: string[] }
+export interface ControlSignal { kind: "control"; cls: "CONTROL"; active: boolean; via: string[] }
+export type Signal = VideoSignal | AudioSignal | UsbSignal | NetSignal | FiberSignal | ControlSignal;
 
 /** A fault seeded into a stage: a config override or a physical condition. All are deterministic. */
 export interface FaultScenario {
@@ -132,6 +138,10 @@ export interface PredicateResult { ok: boolean; reason?: string; fix?: string; t
 export interface Cue { id: string; call: string; expect: string }
 
 export interface StageManifest {
+  topologyId?: string;
+  appendixReferenceIds?: string[];
+  researchStatus?: "DESIGN_REFERENCE" | "PROVISIONAL";
+  unresolvedHardware?: string[];
   id: string;                 // e.g. "CL-01"
   room: "xs" | "s" | "m" | "l" | "xl";
   level: 1 | 2 | 3 | 4 | 5;

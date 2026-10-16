@@ -1,0 +1,10 @@
+✔ every L5 surprise fault (audio/video/network/recording) is recoverable end-to-end (24064.1454ms)
+✔ L5 certifications reveal no route checklist and never pre-wire (0.2612ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 24809.9393

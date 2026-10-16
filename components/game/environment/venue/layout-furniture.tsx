@@ -1,8 +1,10 @@
 "use client";
 
+import { SceneText as Text } from "@/components/game/scene-text";
+
 import { sceneText } from "@/game/rendering/scene-font";
 import { memo } from "react";
-import { Text } from "@react-three/drei";
+
 import { CuboidCollider, RigidBody } from "@react-three/rapier";
 import { layoutObstacles, type Furniture, type VenueLayout } from "@/game/training/venue-layouts";
 import { Ball, BLACK_METAL, CHROME, Cyl, FONT, RB, RUBBER, Slab, STEEL, Tube, type MatProps } from "./kit";

@@ -1,5 +1,7 @@
 "use client";
 
+import { SceneText as Text } from "@/components/game/scene-text";
+
 import { SCENE_FONT, sceneText } from "@/game/rendering/scene-font";
 import { useMemo } from "react";
 import { CylinderGeometry, DoubleSide } from "three";
@@ -8,7 +10,7 @@ import { CuboidCollider, CylinderCollider, RigidBody } from "@react-three/rapier
 import { LAYOUTS, STUDIO_MISSION_SETS } from "@/game/training/venue-layouts";
 import { LayoutColliders, LayoutFurniture } from "./layout-furniture";
 import { tex } from "./textures";
-import { Text } from "@react-three/drei";
+
 import { useTrainingStore } from "@/game/stores/training-store";
 import { Hcx2000Model } from "../../equipment/hc-x2000";
 import { scenarioOf } from "@/game/training/hdmi-training";
@@ -27,7 +29,7 @@ function SignalPanel({ channel, size }: { channel: "program" | "inputs" | "recor
   const [w, h] = size;
   return <group>
     <mesh><planeGeometry args={[w, h]} /><meshBasicMaterial color="#080e17" toneMapped={false} /></mesh>
-    <Text font={SCENE_FONT} position={[0, 0, 0.003]} fontSize={Math.min(h / 5.8, w / 23)} maxWidth={w * 0.94} color="#cbd8e6" textAlign="center">{sceneText(feed)}</Text>
+    <Text font={SCENE_FONT} position={[0, 0, 0.003]} fontSize={Math.min(h / 5.5, w / 20)} maxWidth={w * 0.94} color="#edf4ff" lineHeight={1.5} textAlign="center">{sceneText(feed)}</Text>
   </group>;
 }
 
@@ -249,7 +251,7 @@ function InstalledStudioCameras() {
     const spot = LAYOUTS.studioMission.places[id];
     return <group key={id} position={spot.p} rotation={[0, spot.yaw, 0]}>
       <Hcx2000Model />
-      <Text font={SCENE_FONT} position={[0, 1.78, 0]} fontSize={0.045} color="#e7cf9c" rotation={[0, Math.PI, 0]}>{`กล้อง ${["A", "B", "C"][i]} · พร้อมสำหรับด่านภาพ`}</Text>
+      <Text font={SCENE_FONT} position={[0, 1.78, 0]} fontSize={0.045} color="#e7cf9c" rotation={[0, Math.PI, 0]}>{`กล้อง ${["A", "B", "C"][i]} · จุดติดตั้งกล้อง`}</Text>
       <RigidBody type="fixed" colliders={false}><CylinderCollider position={[0, 0.52, 0]} args={[0.52, 0.38]} /></RigidBody>
     </group>;
   })}</>;

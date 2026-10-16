@@ -1,5 +1,22 @@
 # งานปั้นโมเดลอุปกรณ์จริง (Mission Hall) — Backlog
 
+## เพิ่มจาก Appendix A — ยังไม่เริ่มปั้นจริง
+
+แหล่งต้นฉบับอยู่ใน `docs/references/` ใช้ข้อมูลรายชิ้นและพอร์ตจาก `MISSION_25_BILL_OF_MATERIALS.json` ก่อนแทนโมเดล รักษา `deviceId`, `portId`, ตำแหน่ง/normal และสถานะพกพาเดิม
+
+| โปรไฟล์ฝึก | จุดที่ใช้ | ต้องยืนยันก่อนทำรุ่นจริง |
+|---|---|---|
+| `reference-fiber-tx` / `reference-fiber-rx` | กล้องไกล/เต็นท์ L | ชุดเข้าคู่ ขั้ว Optical, transceiver, wavelength, medium, power และแผง SDI จริง |
+| `reference-fiber-camera` / `reference-ccu` | กล้อง/ฐาน 1–6 XL | รูปชุดกล้องกับฐานที่เข้าคู่จริง พอร์ตและสายระบบกล้อง ห้ามอนุมานโปรโตคอลจากโมเดลฝึก |
+| `reference-stagebox-6` / `reference-tail-6` / `reference-console-6` | M และ XL; คอนโซล L | รุ่นจริงและ Mic/Line/bus/phantom แผงช่อง 6 ช่องในเกมเป็น subset การฝึก ไม่ใช่สเปกรุ่นที่สมมติขึ้น |
+| `reference-production-switcher` / `reference-video-router-8` | L/XL | budget พอร์ตจริง ขาออกอิสระ AUX/PGM/MV, balanced TRS audio; ห้ามใส่ XLR บน Constellation โดยไม่มีหลักฐาน |
+| `reference-audio-embedder` | L | รุ่น/แผง SDI และสาย breakout ตามรุ่นอ้างอิง AJA ห้ามปั้น pinout ที่เอกสารไม่ยืนยัน |
+| `reference-replay` / `reference-replay-controller` | XL | รูปขั้วต่อและโปรโตคอลควบคุมจริง ปัจจุบันเป็นลิงก์ควบคุมจำลองทั่วไป |
+| `reference-sdi-encoder` / `reference-recorder` | L/XL | รุ่น SDI/Network/สื่อบันทึกจริง โปรไฟล์ฝึกไม่ใช่การรับรองผลิตภัณฑ์ |
+| `reference-handheld-tx` | M | ด้ามไมค์กับตัวส่งในตัวและ RX ที่เข้าคู่ ไม่มีสายไมค์→TX สมมติ |
+
+HDS7105/camera/RX/capture ฝั่ง S และ PTZ-control/Tally/Intercom ยังต้องมีหลักฐานจริง สถานะงานปั้นของรายการใหม่นี้ **NOT STARTED** ทุกชิ้นยังเป็นตัวแทนฝึกที่มีพอร์ตใช้งานในเกม
+
 **สถานะงานปั้นทั้งหมด: NOT STARTED** · ตอนนี้ทุกชิ้นในด่านภารกิจเป็น **ตัวแทนชั่วคราว low-poly** (`components/game/equipment/device-visual.tsx`) ที่ตำแหน่งพอร์ตเป็น anchor ฝึก ไม่ใช่ตำแหน่งพอร์ตหลังเครื่องจริง
 
 ## การเปลี่ยนเป็นโมเดลจริงโดยไม่กระทบกราฟ

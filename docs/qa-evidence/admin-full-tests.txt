@@ -1,0 +1,550 @@
+
+> etcstream@0.1.0 test
+> node --test
+
+✔ admin hall can open every level and the selection survives the play page reload (5.6539ms)
+✔ players keep the unlock order (no admin flag) (0.5796ms)
+✔ bag is a real inventory: take, put down, take another, stow (5.2429ms)
+✔ COMICA RX and TX models expose top 3.5 mm ports at the playable locations (11.3687ms)
+✔ Magewell display enlargement keeps HDMI and USB sockets on its rendered ends (0.8651ms)
+✔ two HDMI cables complete Camera → Video Switcher → Monitor (10.8119ms)
+✔ wrong direction and wrong route keep the end in hand (0.6272ms)
+✔ occupied port, disconnect, drop and reconnection behave consistently (0.5953ms)
+✔ cable can move from the pickup table to a center-table snap zone and be picked again (0.592ms)
+✔ the HDS7105 switcher can be picked from the side table, placed, and picked again (0.4964ms)
+✔ items stay in hand when the player tries to place them away from the center table (0.2957ms)
+✔ a carried cable keeps its second end in hand, either end can go first, and F sets it down whole (0.5577ms)
+✔ 1 / 2 + E take only the head / tail of a cable; the other end stays put (0.3468ms)
+✔ HDS7105 GLB exposes every real rear-panel port with connector metadata (1.608ms)
+✔ switcher ports on the centre-table zone sit on the scaled HDS7105 IN1 and PGM anchors (±1 mm) (1.471ms)
+✔ HP laptop GLB contains the visible parts from all seven reference views (9.9138ms)
+✔ training room uses the authored HP model instead of the procedural placeholder (0.9368ms)
+✔ Magewell model has opposite HDMI and USB Type-A ports aligned with playable sockets (3.2783ms)
+✔ all 25 approved graphs reject a missing mandatory cable and require deliberate retesting after repair (11890.4069ms)
+✔ every mission rejects signoff after mandatory equipment loses power (8435.6292ms)
+✔ outdoor reconciliation retains lightning hold, explicit GO and public cable-crossing safety (15.0777ms)
+✔ all 25 active missions own complete physical devices, unique cables and compatible endpoints (6.6501ms)
+✔ all mission stock remains in the room with an empty bag, without creating extra leads (4.4254ms)
+✔ small mission kits are centred on the open top shelf rather than hidden below it (0.3595ms)
+✔ critical unplug invalidates current signoff and every live test; repairing alone cannot recertify (15.9198ms)
+✔ reconciled outdoor control gear and stadium monitor have a physical supporting worktop (0.6617ms)
+✔ five named chapters each have five distinct difficulty levels (12.9386ms)
+✔ completion unlocks only the next level and persists per player (74.6155ms)
+✔ 25 separately playable stages: 5 rooms × L1–L5, unique ids, tickets and validators (3.8646ms)
+✔ every named model carries source_url, verified_ports and asset_license; generics are labelled (0.8623ms)
+✔ all 25 stages present Thai instructions while retaining simulator identifiers (1.4755ms)
+✔ XS-01 plays end-to-end to a certified/passed sign-off (26.4564ms)
+✔ XS-02 plays end-to-end to a certified/passed sign-off (40.5074ms)
+✔ XS-03 plays end-to-end to a certified/passed sign-off (19.6028ms)
+✔ XS-04 plays end-to-end to a certified/passed sign-off (34.845ms)
+✔ XS-05 plays end-to-end to a certified/passed sign-off (138.4086ms)
+✔ ST-01 plays end-to-end to a certified/passed sign-off (3.5941ms)
+✔ ST-02 plays end-to-end to a certified/passed sign-off (37.8609ms)
+✔ ST-03 plays end-to-end to a certified/passed sign-off (13.2055ms)
+✔ ST-04 plays end-to-end to a certified/passed sign-off (31.0662ms)
+✔ ST-05 plays end-to-end to a certified/passed sign-off (286.6405ms)
+✔ AU-01 plays end-to-end to a certified/passed sign-off (6.5327ms)
+✔ AU-02 plays end-to-end to a certified/passed sign-off (70.4814ms)
+✔ AU-03 plays end-to-end to a certified/passed sign-off (30.2912ms)
+✔ AU-04 plays end-to-end to a certified/passed sign-off (39.9092ms)
+✔ AU-05 plays end-to-end to a certified/passed sign-off (2516.3489ms)
+✔ OUT-01 plays end-to-end to a certified/passed sign-off (6.9883ms)
+✔ OUT-02 plays end-to-end to a certified/passed sign-off (33.4198ms)
+✔ OUT-03 plays end-to-end to a certified/passed sign-off (26.1395ms)
+✔ OUT-04 plays end-to-end to a certified/passed sign-off (288.2671ms)
+✔ OUT-05 plays end-to-end to a certified/passed sign-off (488.699ms)
+✔ SP-01 plays end-to-end to a certified/passed sign-off (18.0855ms)
+✔ SP-02 plays end-to-end to a certified/passed sign-off (160.1305ms)
+✔ SP-03 plays end-to-end to a certified/passed sign-off (311.1206ms)
+✔ SP-04 plays end-to-end to a certified/passed sign-off (2428.3418ms)
+✔ SP-05 plays end-to-end to a certified/passed sign-off (4073.784ms)
+✔ every L5 surprise fault (audio/video/network/recording) is recoverable end-to-end (19438.5792ms)
+✔ a green cable alone never completes a stage: wiring without configuration fails the signal test (437.0199ms)
+✔ L5 certifications reveal no route checklist and never pre-wire (0.2569ms)
+✔ XS: source OUTPUT → switcher INPUT accepted; PROGRAM OUT → camera OUT rejected (output-to-output) (0.1675ms)
+✔ XS: HDMI PROGRAM OUT and USB WEBCAM are independent — front display and OBS both follow source changes (19.4581ms)
+✔ XS: wireless TX → RX has no cable; RX outputs audio only when paired on the same RF channel (2.4437ms)
+✔ XS: MAIN/PA and STREAM/AUX are separate buses — room PA audible while the stream is silent (18.2632ms)
+✖ XS: camera HDMI audio left ON doubles the voice in OBS (no double-counting allowed) (17.966ms)
+✖ XS: removing a mandatory link breaks the completed graph (no connected-count completion) (40.5532ms)
+✖ ST: MULTIVIEW is observation only — Capture fed from MV makes OBS show the grid, PGM OUT fixes it (49.6885ms)
+✔ ST: Capture USB is a DEVICE that must reach the notebook USB HOST (0.1913ms)
+✔ ST: each wireless mic is its own RX channel — unpairing RX 2 drops only the guest (9.1615ms)
+✔ ST: Broadcast and Monitor buses are separate — HS5 keeps sound when the Broadcast send is off (50.8663ms)
+✔ ST: unplugging the Capture USB stops OBS but not the multiview (44.0881ms)
+✔ AU: SDI into REF IN is rejected — reference is not a video input (0.3133ms)
+✔ AU: multicore mates only with multicore; SDI→HDMI converter is direction-specific (0.2125ms)
+✔ AU: PA and Broadcast buses are separate — Broadcast send off keeps the room, silences OBS (449.7127ms)
+✔ AU: stage display follows AUX — MULTIVIEW stays on the FOH monitor (466.8997ms)
+✔ AU: HyperDeck recording and OBS capture are independent outputs (488.5772ms)
+✖ OUT: HDMI→SDI converter emits only when powered; camera SDI into its SDI OUT is output-to-output (0.4706ms)
+✖ OUT: Videohub wired IN2 → OUT2 but crosspoint OUT2 ← IN1 shows the wrong source until fixed (5.4984ms)
+✔ OUT: UHD camera through the Videohub still fails the HD8 input (router does not convert) (85.2641ms)
+✖ OUT: uncovered crossing or lightning GO blocks a pass even with live signals (9.4805ms)
+✖ OUT: under-rated spool fails the 25 m run; a tested lead passes (8.5763ms)
+✖ OUT: WAN loss kills only the ingest; missing SSD fails ISO only; converter power loss kills only its path (86.945ms)
+✖ SP 1: Constellation Ethernet → WAN alone cannot stream; SDI PGM → Streaming Encoder HD → WAN can (1074.9426ms)
+✖ SP 2: converters are direction-specific; UHD camera fails the Constellation 3G input (0.2657ms)
+✔ SP 3: one SDI output cannot feed both recorder and encoder (one plug per output) (1035.1275ms)
+✖ SP 4: Constellation analog inputs are LINE; removing the Yamaha line route leaves video but no remote sound (1097.7347ms)
+✔ SP 5: a score source is full-frame only; wrong/stale graphic on a cue is a meaningful error (119.4209ms)
+✖ SP 6: WAN loss keeps PGM + recorder; media loss keeps the stream (1376.0547ms)
+✔ SP 7: no genlock or timecode port is invented on the Constellation HD (0.3979ms)
+✖ three meaningful errors pause the mission; the targeted mini check resumes it (0.4724ms)
+✔ signal trace names node → port → cable → node → port and the first faulty node (54.9108ms)
+✔ L4 starts genuinely broken: the deterministic faults are active and the show fails its tests (0.5841ms)
+✖ mission hall catalog mirrors the stage manifests (regenerate with scripts/generate-mission-catalog.mjs) (6.821ms)
+✔ Samsung TV has a thin display body and three separately positioned HDMI inputs (1.4811ms)
+✔ play routes accept only known modes, catalog slugs, and levels 1–5 (2.1779ms)
+✔ nickname validation preserves Thai names and rejects markup or controls (0.6619ms)
+✔ corrupted progress JSON and malformed levels fall back without unlocking (44.7682ms)
+✔ bad stored nickname recovers from backup without losing player ID (48.108ms)
+✔ XS 1 model has a three pin XLR output at its base and its own grille (1.244ms)
+✔ each studio equipment jack sits on its rendered GLB connector (57.4998ms)
+✔ all interactive mixer ports match their exported anchors (115.6267ms)
+✔ mission studio follows the room-02 specification; GLB-anchored HDS7105 profile stays with free practice only (4.324ms)
+✔ studio flow completes only after every route and both steps (mixer level, OBS source) (9.4822ms)
+✔ a seated adapter exposes a stable socket object for React selectors (1.6109ms)
+✔ either physical HP USB-A jack completes the capture route and OBS step (2.754ms)
+✔ a completed studio lesson loses completion when any required physical lead is removed (2.329ms)
+✔ Samsung TV follows the actual HDMI output and turns off when disconnected (0.93ms)
+✔ active Yamaha HS5 accepts mixer line output via XLR or TRS, never amplified speaker output (0.7437ms)
+✔ switcher ports stay dead until the HDS7105 sits on the centre table (0.3562ms)
+✔ wrong connector, wrong direction and wrong route are rejected (0.5503ms)
+✔ adapters: plug into a jack, expose a socket, and fall out cascades (1.2476ms)
+✔ OBS reports the first missing link, and unplugging undoes dependent steps (2.3001ms)
+✔ lifting the switcher unplugs its ports (2.4162ms)
+✔ lavaliers ship plugged into their TX and cannot be unplugged or picked up (0.6107ms)
+✔ equipment starts on the left table, cables on the right, and devices must be carried to the centre (0.5635ms)
+✔ a wrongly picked device or cable can be put back on its side table (1.3973ms)
+✔ the PMX-402D-USB exposes every jack and they accept the matching plug (0.6179ms)
+✔ every full-studio objective and action points to real scenario data (2.0671ms)
+✔ all carried equipment and cable rows start on reachable side tables (0.512ms)
+✔ reset clears a pending equipment turn so retries start cleanly (0.7853ms)
+✔ touch mode exposes movement, look, interact, drop and turn controls (4.0557ms)
+✔ catalog has exactly 25 venue scenarios (2.934ms)
+✔ classroom production gear fits its real teaching desk and starter HDMI stays local (0.8831ms)
+✔ inspection bookmarks cover all five canonical scenes and follow equipment in storage (17.2377ms)
+✔ classroom long patched leads descend to the floor and retain their exact socket endpoints (2.5096ms)
+✔ classroom laptop faces its teacher seat and the camera frames the teacher (2.3382ms)
+✔ classroom stored bodies do not overlap along the cabinet and student chairs have blockers (2.0527ms)
+✖ classroom screen goes dark when its selected source is unplugged even with another source connected (126.7354ms)
+✖ studio monitors reflect partial patching, selected camera, audio and stream readiness (6.6711ms)
+✔ studio cameras cover the interview set from three distinct angles and stored bodies fit their return desk (1.3129ms)
+✔ studio camera marks, active cameras and microphone stands share operating positions (0.8503ms)
+✔ xs-1: typed graph is consistent, carrying/dropping is repeatable and foreign targets never mutate state (1.624ms)
+✔ xs-2: typed graph is consistent, carrying/dropping is repeatable and foreign targets never mutate state (1.3658ms)
+✔ xs-3: typed graph is consistent, carrying/dropping is repeatable and foreign targets never mutate state (1.2392ms)
+✔ xs-4: typed graph is consistent, carrying/dropping is repeatable and foreign targets never mutate state (7.0499ms)
+✔ xs-5: typed graph is consistent, carrying/dropping is repeatable and foreign targets never mutate state (3.6776ms)
+✔ s-1: typed graph is consistent, carrying/dropping is repeatable and foreign targets never mutate state (0.7521ms)
+✔ s-2: typed graph is consistent, carrying/dropping is repeatable and foreign targets never mutate state (1.8032ms)
+✔ s-3: typed graph is consistent, carrying/dropping is repeatable and foreign targets never mutate state (0.9292ms)
+✔ s-4: typed graph is consistent, carrying/dropping is repeatable and foreign targets never mutate state (8.3546ms)
+✔ s-5: typed graph is consistent, carrying/dropping is repeatable and foreign targets never mutate state (6.7306ms)
+✔ m-1: typed graph is consistent, carrying/dropping is repeatable and foreign targets never mutate state (1.0864ms)
+✔ m-2: typed graph is consistent, carrying/dropping is repeatable and foreign targets never mutate state (1.4939ms)
+✔ m-3: typed graph is consistent, carrying/dropping is repeatable and foreign targets never mutate state (3.0622ms)
+✔ m-4: typed graph is consistent, carrying/dropping is repeatable and foreign targets never mutate state (12.8743ms)
+✔ m-5: typed graph is consistent, carrying/dropping is repeatable and foreign targets never mutate state (16.1822ms)
+✔ l-1: typed graph is consistent, carrying/dropping is repeatable and foreign targets never mutate state (0.6706ms)
+✔ l-2: typed graph is consistent, carrying/dropping is repeatable and foreign targets never mutate state (0.9201ms)
+✔ l-3: typed graph is consistent, carrying/dropping is repeatable and foreign targets never mutate state (0.6205ms)
+✔ l-4: typed graph is consistent, carrying/dropping is repeatable and foreign targets never mutate state (24.1782ms)
+✔ l-5: typed graph is consistent, carrying/dropping is repeatable and foreign targets never mutate state (2.9427ms)
+✔ xl-1: typed graph is consistent, carrying/dropping is repeatable and foreign targets never mutate state (0.4243ms)
+✔ xl-2: typed graph is consistent, carrying/dropping is repeatable and foreign targets never mutate state (1.4708ms)
+✔ xl-3: typed graph is consistent, carrying/dropping is repeatable and foreign targets never mutate state (1.1047ms)
+✔ xl-4: typed graph is consistent, carrying/dropping is repeatable and foreign targets never mutate state (92.5841ms)
+✔ xl-5: typed graph is consistent, carrying/dropping is repeatable and foreign targets never mutate state (11.147ms)
+✖ equipment coverage: every non-decoy device takes part in the documented graph (0.827ms)
+✔ cable coverage: every lead is a documented patch or a listed spare/decoy, with a length tag (0.896ms)
+✔ wrong direction, connector, signal class, occupied and loop never mutate the held cable (6.0798ms)
+✔ switching changes Program state and can return to an earlier source (8.5328ms)
+✔ venue placement: every port, control and cable start sits inside its venue layout (2.0417ms)
+✖ SDI switcher takes HDMI sources only through explicit converters (0.3316ms)
+✔ a lead that physically fits but carries the wrong signal family is rejected atomically (4.8794ms)
+✔ local scene font covers Thai labels, technical actions and port names without remote fallback (48.9113ms)
+✔ scene font loading is shared and can retry after a failed local request (1.8064ms)
+✔ large venue sockets stay on generic equipment panels with unit normals (5.5978ms)
+✔ auditorium has 126 seats, clear longitudinal aisles and cameras supported by risers (1.0553ms)
+✔ all mission port stations are within normal interaction reach of connected walkable space (184.5673ms)
+✔ large venue monitoring loses signal when its physical input is unplugged (3776.455ms)
+✔ long venue leads descend to the floor and use the perimeter service lane (0.5121ms)
+✔ stadium cameras face the pitch and rack backs leave a service aisle (0.2352ms)
+✔ auditorium presenter faces the laptop and input equipment rests on its support (0.3185ms)
+✖ outdoor stations share camera positions and keep installed equipment on sheltered worktops (0.7136ms)
+✔ stadium workstations support equipment and retain useful rack service clearance (0.5509ms)
+✔ HS5 model contains front drivers and rear XLR/TRS input anchors (1.2926ms)
+ℹ tests 174
+ℹ suites 0
+ℹ pass 155
+ℹ fail 19
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 39775.6489
+
+✖ failing tests:
+
+test at tests\production-sim.test.mjs:104:1
+✖ XS: camera HDMI audio left ON doubles the voice in OBS (no double-counting allowed) (17.966ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + undefined
+  - false
+  
+      at TestContext.<anonymous> (file:///D:/etcstream/tests/production-sim.test.mjs:109:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\production-sim.test.mjs:111:1
+✖ XS: removing a mandatory link breaks the completed graph (no connected-count completion) (40.5532ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + undefined
+  - false
+  
+      at TestContext.<anonymous> (file:///D:/etcstream/tests/production-sim.test.mjs:117:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\production-sim.test.mjs:122:1
+✖ ST: MULTIVIEW is observation only — Capture fed from MV makes OBS show the grid, PGM OUT fixes it (49.6885ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + undefined
+  - false
+  
+      at TestContext.<anonymous> (file:///D:/etcstream/tests/production-sim.test.mjs:130:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\production-sim.test.mjs:192:1
+✖ OUT: HDMI→SDI converter emits only when powered; camera SDI into its SDI OUT is output-to-output (0.4706ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'UNKNOWN_PORT'
+  - 'OUTPUT_TO_OUTPUT'
+  
+      at TestContext.<anonymous> (file:///D:/etcstream/tests/production-sim.test.mjs:193:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'UNKNOWN_PORT',
+    expected: 'OUTPUT_TO_OUTPUT',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\production-sim.test.mjs:199:1
+✖ OUT: Videohub wired IN2 → OUT2 but crosspoint OUT2 ← IN1 shows the wrong source until fixed (5.4984ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /FIELD SLIDES/. Input:
+  
+  'CAM A'
+  
+      at TestContext.<anonymous> (file:///D:/etcstream/tests/production-sim.test.mjs:202:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'CAM A',
+    expected: /FIELD SLIDES/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests\production-sim.test.mjs:211:1
+✖ OUT: uncovered crossing or lightning GO blocks a pass even with live signals (9.4805ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + undefined
+  - false
+  
+      at TestContext.<anonymous> (file:///D:/etcstream/tests/production-sim.test.mjs:214:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\production-sim.test.mjs:219:1
+✖ OUT: under-rated spool fails the 25 m run; a tested lead passes (8.5763ms)
+  TypeError: Cannot read properties of undefined (reading 'cableId')
+      at TestContext.<anonymous> (file:///D:/etcstream/tests/production-sim.test.mjs:221:81)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at tests\production-sim.test.mjs:227:1
+✖ OUT: WAN loss kills only the ingest; missing SSD fails ISO only; converter power loss kills only its path (86.945ms)
+  TypeError: Cannot read properties of undefined (reading 'recording')
+      at TestContext.<anonymous> (file:///D:/etcstream/tests/production-sim.test.mjs:231:50)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at tests\production-sim.test.mjs:240:1
+✖ SP 1: Constellation Ethernet → WAN alone cannot stream; SDI PGM → Streaming Encoder HD → WAN can (1074.9426ms)
+  AssertionError [ERR_ASSERTION]: xl-5: lead-47.a → sw:eth: หยิบปลายสาย HDMI แล้ว Ethernet Cat6 10 ม. · สายจำลองตามเส้นทางฝึก · เล็งพอร์ตที่ต้องการแล้วกด E เพื่อต่อสาย
+  
+  null !== 'sw:eth'
+  
+      at attach (file:///D:/etcstream/tests/helpers/solver.mjs:51:10)
+      at TestContext.<anonymous> (file:///D:/etcstream/tests/production-sim.test.mjs:245:7)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: 'sw:eth',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\production-sim.test.mjs:248:1
+✖ SP 2: converters are direction-specific; UHD camera fails the Constellation 3G input (0.2657ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'UNKNOWN_PORT'
+  - 'OUTPUT_TO_OUTPUT'
+  
+      at TestContext.<anonymous> (file:///D:/etcstream/tests/production-sim.test.mjs:249:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'UNKNOWN_PORT',
+    expected: 'OUTPUT_TO_OUTPUT',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\production-sim.test.mjs:263:1
+✖ SP 4: Constellation analog inputs are LINE; removing the Yamaha line route leaves video but no remote sound (1097.7347ms)
+  TypeError: Cannot read properties of undefined (reading 'cableId')
+      at TestContext.<anonymous> (file:///D:/etcstream/tests/production-sim.test.mjs:267:73)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at tests\production-sim.test.mjs:280:1
+✖ SP 6: WAN loss keeps PGM + recorder; media loss keeps the stream (1376.0547ms)
+  TypeError: Cannot read properties of undefined (reading 'picture')
+      at TestContext.<anonymous> (file:///D:/etcstream/tests/production-sim.test.mjs:285:80)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at tests\production-sim.test.mjs:294:1
+✖ three meaningful errors pause the mission; the targeted mini check resumes it (0.4724ms)
+  AssertionError [ERR_ASSERTION]: xl-1: lead-1.a → sw:sdi-in-1: ยังทำรายการนี้ไม่ได้ ปลายสายนี้เป็น FIBER แต่พอร์ต เครื่องสลับภาพรายการ SDI IN 1 ต้องใช้ SDI
+  + actual - expected
+  
+  + null
+  - 'sw:sdi-in-1'
+  
+      at attach (file:///D:/etcstream/tests/helpers/solver.mjs:51:10)
+      at TestContext.<anonymous> (file:///D:/etcstream/tests/production-sim.test.mjs:298:7)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: 'sw:sdi-in-1',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\production-sim.test.mjs:321:1
+✖ mission hall catalog mirrors the stage manifests (regenerate with scripts/generate-mission-catalog.mjs) (6.821ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'XS-01 · เส้นทางภาพ'
+  - 'XS-01 · เส้นทางภาพ · Video Path'
+                       ^
+  
+      at file:///D:/etcstream/tests/production-sim.test.mjs:327:12
+      at Array.forEach (<anonymous>)
+      at file:///D:/etcstream/tests/production-sim.test.mjs:325:54
+      at Array.forEach (<anonymous>)
+      at TestContext.<anonymous> (file:///D:/etcstream/tests/production-sim.test.mjs:325:19)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'XS-01 · เส้นทางภาพ',
+    expected: 'XS-01 · เส้นทางภาพ · Video Path',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\venue-scenarios.test.mjs:93:1
+✖ classroom screen goes dark when its selected source is unplugged even with another source connected (126.7354ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /TEACHER CAM/. Input:
+  
+  'ภาพที่ปลายทาง\nกล้องผู้สอน'
+  
+      at TestContext.<anonymous> (file:///D:/etcstream/tests/venue-scenarios.test.mjs:99:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'ภาพที่ปลายทาง\nกล้องผู้สอน',
+    expected: /TEACHER CAM/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests\venue-scenarios.test.mjs:104:1
+✖ studio monitors reflect partial patching, selected camera, audio and stream readiness (6.6711ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /NO PROGRAM/. Input:
+  
+  'PGM จำลอง\nยังไม่มีภาพออกอากาศ'
+  
+      at TestContext.<anonymous> (file:///D:/etcstream/tests/venue-scenarios.test.mjs:107:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'PGM จำลอง\nยังไม่มีภาพออกอากาศ',
+    expected: /NO PROGRAM/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests\venue-scenarios.test.mjs:200:1
+✖ equipment coverage: every non-decoy device takes part in the documented graph (0.827ms)
+  AssertionError [ERR_ASSERTION]: m-2 orphan hand1
+      at TestContext.<anonymous> (file:///D:/etcstream/tests/venue-scenarios.test.mjs:203:39)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\venue-scenarios.test.mjs:262:1
+✖ SDI switcher takes HDMI sources only through explicit converters (0.3316ms)
+  TypeError: Cannot read properties of undefined (reading 'connector')
+      at TestContext.<anonymous> (file:///D:/etcstream/tests/venue-scenarios.test.mjs:264:40)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+
+test at tests\venue-scenarios.test.mjs:413:1
+✖ outdoor stations share camera positions and keep installed equipment on sheltered worktops (0.7136ms)
+  AssertionError [ERR_ASSERTION]: net
+      at TestContext.<anonymous> (file:///D:/etcstream/tests/venue-scenarios.test.mjs:430:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

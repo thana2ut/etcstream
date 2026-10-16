@@ -1,10 +1,12 @@
 "use client";
 
+import { simThai } from "@/game/content/sim-thai";
 import { useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Bounds, Center, OrbitControls } from "@react-three/drei";
 import { useTrainingStore } from "@/game/stores/training-store";
-import { scenarioOf } from "@/game/training/hdmi-training";
+import { plugFits, scenarioOf } from "@/game/training/hdmi-training";
+import { portOf } from "@/game/training/sim/engine";
 import type { DeviceDef } from "@/game/training/scenarios";
 import { EQUIPMENT_INFO } from "@/game/content/equipment-info";
 import { simEquipmentInfo } from "@/game/content/sim-equipment-info";
@@ -44,11 +46,19 @@ export function EquipmentInspector() {
   if (scenario.venueScale) return <aside className="inspector-compact glass-card" role="dialog" aria-labelledby="inspector-title">
     <button type="button" className="inspector-close" onClick={() => close(null)} aria-label="ปิดข้อมูลอุปกรณ์">✕</button>
     <span className="inspector-role">{info?.role ?? "อุปกรณ์"}</span>
-    <h2 id="inspector-title">{device?.label ?? id}</h2>
+    <h2 id="inspector-title">{simThai(device?.label ?? id)}</h2>
     <strong className="inspector-model">{info?.model ?? device?.model}</strong>
     <details open><summary>คืออะไร / ใช้ทำอะไร</summary><p>{info?.summary ?? "อุปกรณ์ในระบบของด่านนี้"}</p></details>
     {info && info.facts.length > 0 && <details><summary>ควรรู้</summary><ul>{info.facts.map((f) => <li key={f}>{f}</li>)}</ul></details>}
     {ports.length > 0 && <details><summary>พอร์ต ({ports.length})</summary><ul>{[...inputs, ...outputs].map((p) => <li key={p.label}>{p.label} · {p.direction === "INPUT" ? "ขาเข้า" : "ขาออก"}</li>)}</ul></details>}
+    {scenario.stage && <details><summary>ดูหัวสายที่รองรับแต่ละพอร์ต</summary>
+      <p>เป็นคำแนะนำชนิดสาย ต้องเดินไปต่อที่พอร์ตจริงและตรวจไฟเลี้ยง รูปแบบ และการตั้งค่าเอง</p>
+      {Object.entries(scenario.ports).filter(([, p]) => p.device === id).map(([gid, p]) => {
+        const signal = scenario.simDevices ? portOf(scenario.simDevices, gid)?.sig : undefined;
+        const choices = scenario.cables.filter((c) => c.ends.some((end) => plugFits(end, p)) && c.signalClass && (c.signalClass === signal || (["MIC", "LINE_BAL"].includes(c.signalClass) && ["MIC", "LINE_BAL"].includes(signal ?? ""))));
+        return <details key={gid}><summary>{p.label} · {p.connector}</summary><p>{choices.length ? choices.map((c) => `${c.id} (${c.ends.join(" ↔ ")})`).join("; ") : "ยังไม่มีคำแนะนำสายที่ยืนยันชนิดสัญญาณตรงกัน ตรวจข้อมูลหัวต่อและหน้าที่พอร์ต"}</p></details>;
+      })}
+    </details>}
     {info && <details open><summary>ในด่านนี้</summary><p>{info.inThisRoom}</p></details>}
     <p className="inspector-unverified">สถานะข้อมูล: {device?.status === "CONFIRMED" ? "ตรวจสอบข้อมูลแล้ว" : "อุปกรณ์จำลองเพื่อฝึก"} · โมเดล 3D เป็นตัวแทนชั่วคราว (รอปั้นโมเดลจริง){info && info.unverified.length > 0 ? ` · ยังไม่ยืนยัน: ${info.unverified.join(", ")}` : ""}</p>
   </aside>;

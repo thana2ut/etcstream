@@ -1,0 +1,3 @@
+Browser tab: 1272998262, Title: "etcstream | สำนักวิถีแห่งสายสัญญาณ", URL: "http://localhost:3000/play?mode=mission&mission=moonbridge-of-echoes&difficulty=2".
+There has been no change in the accessibility tree.
+The focused UI element is 71 button + ใส่กระเป๋า

@@ -40,11 +40,11 @@ export const CABLE_CATALOG: CatalogCable[] = [
   C("VID-HDMI-C-A", "Mini HDMI (C) → HDMI A", "video", "hdmi", "Mini HDMI ↔ HDMI A", "กล้องที่มีช่อง Mini HDMI เท่านั้น", "มีเงื่อนไข", "ไม่ใช่หัวเดียวกับ Micro HDMI", "#d9a85a"),
   C("VID-HDMI-D-A", "Micro HDMI (D) → HDMI A", "video", "hdmi", "Micro HDMI ↔ HDMI A", "กล้องที่มีช่อง Micro HDMI เท่านั้น", "มีเงื่อนไข", "หัวเล็กสุดของ HDMI", "#c99a4f"),
   C("VID-SDI-3G", "SDI 75Ω BNC (3G)", "video", "bnc", "BNC 75Ω ↔ BNC 75Ω", "กล้อง SDI → เครื่องสลับภาพ / เราเตอร์ / ตัวเข้ารหัส / เครื่องบันทึก", "หลัก", "ใช้ coax 75Ω ไม่ใช่ 50Ω · ระยะขึ้นกับสายและอัตรา [R07]", "#e07a5f"),
-  C("VID-SDI-6G-12G", "SDI 6G/12G (4K)", "video", "bnc", "BNC ↔ BNC (12G)", "ระบบ 4K SDI เท่านั้น", "มีเงื่อนไข", "ระบบฝึกใช้ 1080p50 (3G)", "#c4664e"),
+  C("VID-SDI-6G-12G", "SDI 6G/12G (4K)", "video", "bnc", "BNC ↔ BNC (12G)", "ระบบ 4K SDI · สายสั้นจากกล้องเข้า Camera Fiber Converter ที่ยึดท้ายกล้อง", "มีเงื่อนไข", "สายหลักระบบฝึกใช้ 1080p50 (3G) ส่วนสายสั้น 12G ใช้คู่กับ Camera Fiber Converter", "#c4664e"),
   C("VID-DP-DP", "DisplayPort ↔ DisplayPort", "video", "hdmi", "DP ↔ DP", "คอมพิวเตอร์ DP OUT → จอ DP IN", "ทางเลือก", "ไม่อยู่ในผังหลักของ 5 ห้อง", "#9aa3b5"),
   C("VID-HDMI-EXTENDER", "HDMI Extender (Cat6 เฉพาะรุ่น)", "video", "rj45", "HDMI TX ↔ Cat6 ↔ HDMI RX", "จอที่อยู่ไกลเกินสาย HDMI", "ทางเลือก", "ต้องมี TX/RX จริง ห้ามเอา LAN ต่อ HDMI ตรง", "#7fa7c9"),
   C("FIB-SDI-LINK", "Fiber Link (คู่ SDI TX/RX)", "fiber", "fiber", "Optical ↔ Optical (ตามคู่ TX/RX)", "ตัวส่งไฟเบอร์ OPTICAL OUT → ตัวรับไฟเบอร์ OPTICAL IN", "หลัก", "ต้องมี TX + RX ที่คู่กันและมีไฟเลี้ยง [R09]", "#ed953f"),
-  C("FIB-CAMERA-CCU", "Camera Fiber (กล้อง ↔ CCU)", "fiber", "fiber", "Hybrid Fiber ตามระบบกล้อง", "กล้องถ่ายทอด → ชุดควบคุมกล้องหรือสถานีฐานระบบเดียวกัน", "หลัก", "กล้องกับ CCU ต้องเป็นระบบคู่กัน", "#ffd23f"),
+  C("FIB-CAMERA-CCU", "SMPTE Hybrid Fiber (Camera ↔ Studio Converter)", "fiber", "fiber", "SMPTE 304 ตัวผู้ ↔ ตัวเมีย · สาย SMPTE 311M", "กล้องถ่ายทอด → ชุดควบคุมกล้องหรือสถานีฐานระบบเดียวกัน", "หลัก", "กล้องกับ CCU ต้องเป็นระบบคู่กัน", "#ffd23f"),
   C("FIB-PATCH-LC-SC", "Fiber Patch LC/SC", "fiber", "fiber", "LC/SC ตามโมดูล", "แผงต่อสาย → ตัวรับส่งที่ตรงรุ่น", "รอตรวจ", "ห้ามสุ่มหัว/ชนิด single-mode vs multimode", "#c98a3a"),
   C("AUD-LAV-TX", "สายไมค์ Lavalier → TX", "audio", "trs", "Lav plug → TX MIC IN", "ไมค์หนีบปก → ตัวส่งไร้สายพกพา", "หลัก", "ตรวจ TRS/TRRS และหัวล็อกของรุ่น [R11]", "#c8f25a"),
   C("AUD-XLR-MIC", "XLR 3-pin (ไมค์)", "audio", "xlr", "XLR F ↔ XLR M", "ไมค์สาย / โพเดียม / ไมค์รับเสียงเจาะจง / บรรยากาศ → เครื่องผสมเสียงหรือกล่องรวมสาย MIC IN", "หลัก", "ระดับ Mic ต้องเข้า Preamp · Phantom เฉพาะไมค์ที่ต้องการ", "#b9b9c4"),
@@ -99,8 +99,10 @@ export function catalogIdFor(cable: CableDef): string {
   if (p === "distractor") return a === "HDMI" ? "VID-HDMI-A-A" : a === "SDI" ? "VID-SDI-3G" : a === "speakON" ? "AUD-PA-PASSIVE" : a.startsWith("XLR") && b === "3.5mm" ? "AUD-XLR-35" : a.startsWith("XLR") ? "AUD-XLR-MIC" : a === "3.5mm" ? "AUD-TRS-3.5" : a === "6.35mm" ? "AUD-TRS-6.35-BAL"
     : a === "ETHERNET" ? "NET-CAT5E6-ENCODER" : a === "USB-C" && b === "USB-C" ? "DATA-USB-C-C" : a === "USB-C" ? "DATA-USB-WEBCAM" : a === "USB-B" ? "DATA-USB-B" : "DATA-USB-A-A";
   if (a === "HDMI" && b === "HDMI") return "VID-HDMI-A-A";
+  if (p === "camera-mount") return "VID-SDI-6G-12G"; // short 12G-SDI lead supplied with the Blackmagic Camera Fiber Converter
   if (a === "SDI") return "VID-SDI-3G";
   if (a === "FIBER") return p.startsWith("fiber-") ? "FIB-CAMERA-CCU" : "FIB-SDI-LINK";
+  if (a === "CONTROL") return "CTRL-REPLAY";
   if (p.startsWith("lav-")) return "AUD-LAV-TX";
   if (p === "mix-pa") return "AUD-PA-ACTIVE";
   if (a.startsWith("XLR") && b === "6.35mm") return "AUD-XLR-TRS-BAL";
@@ -135,6 +137,8 @@ export function bagLimits(scenario: Scenario) {
 
 /** Leads hidden in the room because the bag did not bring them (first-come per catalog type, canonical order). */
 export function hiddenCablesFor(scenario: Scenario, bag: Record<string, number>): string[] {
+  // Mission stock remains physically available in the cable case even when it was not packed.
+  if (scenario.stage) return [];
   const left = { ...bag };
   const ordered = [...packableCables(scenario)].sort((x, y) => Number(x.purpose === "distractor") - Number(y.purpose === "distractor"));
   const hidden: string[] = [];
@@ -148,6 +152,15 @@ export function hiddenCablesFor(scenario: Scenario, bag: Record<string, number>)
 
 /** Scenario leads that come with this bag (packed and usable): they start the level inside the bag. */
 export function packedLeadsFor(scenario: Scenario, bag: Record<string, number>): string[] {
+  if (scenario.stage) {
+    const left = { ...bag };
+    return packableCables(scenario).filter((c) => {
+      const id = catalogIdFor(c);
+      if (!(left[id] > 0)) return false;
+      left[id]--;
+      return true;
+    }).map((c) => c.id);
+  }
   const hidden = new Set(hiddenCablesFor(scenario, bag));
   return packableCables(scenario).filter((c) => !hidden.has(c.id)).map((c) => c.id);
 }

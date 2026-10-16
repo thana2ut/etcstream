@@ -9,7 +9,7 @@ import { MAX_WRONG_STREAK } from "@/game/content/cable-catalog";
 import { useEffect, useState } from "react";
 
 type PromptKey = "E" | "F" | "hold";
-const KEY_LABEL: Record<PromptKey, string> = { E: "E", F: "F", hold: "E ค้าง" };
+const KEY_LABEL: Record<PromptKey, string> = { E: "E", F: "F", hold: "กด E ค้าง" };
 const TOUCH_KEY: Record<PromptKey, string> = { E: "แตะ", F: "วาง", hold: "แตะค้าง" };
 /** Split "E · …" / "F · …" / "E ค้าง 2 วิ · …" into the key to show and the text; plain hints get no key. */
 function parsePrompt(instruction: string): { key: PromptKey | null; text: string } {
@@ -37,10 +37,10 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
   const total = trainingTotal(state);
   // Checklist in signal-flow order: each group lists its cable routes, then its procedural steps.
   const GROUPS: { id: FlowGroup; title: string }[] = [
-    { id: "video", title: "ภาพ · VIDEO INPUT" },
-    { id: "audio", title: "เสียง · AUDIO INPUT" },
-    { id: "capture", title: "บันทึก · CAPTURE / OBS" },
-    { id: "monitor", title: "ตรวจ · MONITORING" },
+    { id: "video", title: "สัญญาณภาพ" },
+    { id: "audio", title: "สัญญาณเสียง" },
+    { id: "capture", title: "รับภาพและบันทึก" },
+    { id: "monitor", title: "ตรวจสัญญาณ" },
   ];
   const rows = GROUPS.map((group) => ({
     ...group,
@@ -89,6 +89,12 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
           {scenario.job && !scenario.venueScale && <p className="hud-panel-sub">งาน: {scenario.job}</p>}
           {pickMode !== "whole" && <p className="hud-pick-mode" role="status">{`โหมด ${pickMode === "a" ? 1 : 2} · ${touch ? "เล็งสายแล้วแตะปุ่มใช้งาน" : "กด E ที่สาย"}เพื่อหยิบเฉพาะ${pickMode === "a" ? "หัวสาย" : "ปลายสาย"}`} ({touch ? "แตะปุ่มเลขเดิมซ้ำ" : "กดเลขซ้ำ"}เพื่อยกเลิก)</p>}
           {scenario.venueScale && state.heldItem && <p className="hud-panel-sub" role="status">กำลังถือ: {scenario.placeables.find((p) => p.id === state.heldItem)?.label} → นำไปที่ {scenario.placeables.find((p) => p.id === state.heldItem)?.zoneLabel ?? "ตำแหน่งใช้งาน"}</p>}
+          {scenario.stage && state.held && (() => {
+            const cable = scenario.cables.find((c) => c.id === state.held!.cableId);
+            const lead = state.cables[state.held.cableId];
+            return <p className="hud-panel-sub" role="status">{cable?.id} · {cable?.ends.join(" ↔ ")} · {lead.a.portId || lead.b.portId ? "ปลายแรกติดแล้ว นำปลายที่เหลือไปต่อ" : "เลือกพอร์ตสำหรับปลายแรก"}</p>;
+          })()}
+          {scenario.stage && Boolean(scenario.designIssues?.length) && <p className="hud-panel-sub" role="alert">ข้อมูลใบงานยังมีจุดไม่สอดคล้อง กรุณาแจ้งผู้ดูแลพร้อมรหัสด่าน</p>}
           <div className="hud-panel-sub">
             <span>◈</span>
             <span>ความคืบหน้า: {progress}/{total} ขั้น</span>
@@ -129,21 +135,21 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
       <div className={`interaction-prompt-center${touch ? " is-touch" : ""}`} role="status">
         {(state.held || state.heldItem) && (
           <div className="prompt-holding-pill">
-            <span>{heldCable ? `กำลังถือ${heldCable.label}` : `กำลังถือ${state.items[state.heldItem!].label}`} · {touch ? "ใช้ปุ่มวางบนโต๊ะกลาง · ปุ่มหมุนปรับครั้งละ 45°" : "เล็งจุดบนโต๊ะกลางแล้วกด F วาง · T หมุน 45°"}</span>
+            <span>{heldCable ? `กำลังถือ${heldCable.label}` : `กำลังถือ${(state.items[state.heldItem!]?.label ?? "อุปกรณ์")}`} · {touch ? "ใช้ปุ่มวางบนโต๊ะกลาง · ปุ่มหมุนปรับครั้งละ 45°" : "เล็งจุดบนโต๊ะกลางแล้วกด F วาง · T หมุน 45°"}</span>
           </div>
         )}
 
         {/* The key badge follows the action: E pick up / connect / unplug, F put down, E-hold inspect; none for info only. */}
         <div className={`prompt-action-pill${prompt.key ? "" : " is-info"}`}>
           {prompt.key && <span className={`prompt-action-key key-${prompt.key}`}>{touch ? TOUCH_KEY[prompt.key] : KEY_LABEL[prompt.key]}</span>}
-          <span>{prompt.text || "โต้ตอบอุปกรณ์"}</span>
+          <span title={prompt.text || undefined}>{prompt.text || "โต้ตอบอุปกรณ์"}</span>
         </div>
       </div>
 
       {/* Notice feedback banner if triggered */}
       {state.notice && (
         <div
-          className={`training-feedback glass tone-${state.notice.tone}`}
+          className={`training-feedback hud-notice glass tone-${state.notice.tone}`}
           style={{
             // Top-centre under the header: clear of the objective panel (left) and the look-control button (right).
             position: "absolute",
@@ -156,13 +162,13 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
             textAlign: "center",
             padding: "10px 16px",
             borderRadius: "8px",
-            background: state.notice.tone === "success" ? "rgba(16, 185, 129, 0.2)" : state.notice.tone === "error" ? "rgba(239, 68, 68, 0.2)" : "rgba(85, 214, 255, 0.18)",
+            background: state.notice.tone === "success" ? "rgba(6, 44, 35, 0.97)" : state.notice.tone === "error" ? "rgba(57, 16, 25, 0.97)" : "rgba(9, 28, 48, 0.97)",
             border: `1px solid ${state.notice.tone === "success" ? "var(--success)" : state.notice.tone === "error" ? "var(--danger)" : "var(--cyan-primary)"}`,
             color: "#ffffff",
             display: "flex",
             flexDirection: "column",
             gap: "2px",
-            fontSize: "0.82rem",
+            fontSize: "0.95rem",
             zIndex: 50,
           }}
           role="status"

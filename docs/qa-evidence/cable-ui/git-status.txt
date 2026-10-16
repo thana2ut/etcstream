@@ -1,0 +1,62 @@
+ M app/cable-lobby.css
+ M app/play/page.tsx
+ M components/game/bag-panel.tsx
+ M components/game/cable-plugs.tsx
+ M components/game/environment/venue/outdoor.tsx
+ M components/game/environment/venue/stadium.tsx
+ M components/game/equipment-inspector.tsx
+ M components/game/equipment/generic-device.tsx
+ M components/game/first-person-controller.tsx
+ M components/game/hdmi-cables.tsx
+ M components/game/operator-console.tsx
+ M components/game/training-hud.tsx
+ M components/game/training-room.tsx
+ M components/ui/cable-lobby.tsx
+ M components/ui/use-cable-bag.ts
+ M docs/EQUIPMENT_INVENTORY.md
+ M docs/ETCSTREAM_PROJECT_STATE.md
+ M docs/MISSION_EQUIPMENT_MODELING_BACKLOG.md
+ M docs/MISSION_HALL_5_CHAPTERS_25_LEVELS.md
+ M docs/MISSION_HALL_EQUIPMENT_PLACEMENT_AND_STOCK.md
+ M docs/MISSION_HALL_PERFORMANCE_AND_ACCESSIBILITY.md
+ M docs/MISSION_HALL_VENUE_LAYOUTS.md
+ M docs/MISSION_SIGNAL_FLOW_SOURCE_MATRIX.md
+ M game/content/cable-catalog.ts
+ M game/content/mission-catalog.ts
+ M game/content/sim-equipment-info.ts
+ M game/content/sim-thai.ts
+ M game/training/cable-route.ts
+ M game/training/hdmi-training.ts
+ M game/training/monitor-feed.ts
+ M game/training/scenarios.ts
+ M game/training/sim/engine.ts
+ M game/training/sim/equipment.ts
+ M game/training/sim/rooms.ts
+ M game/training/sim/stages.ts
+ M game/training/sim/types.ts
+ M game/training/venue-layouts.ts
+ M game/training/venue-scenarios.ts
+ M scripts/generate-mission-catalog.mjs
+ M tests/helpers/solver.mjs
+ M tests/production-sim.test.mjs
+?? docs/CABLE_SELECTION_UI_UNIFICATION_REPORT_TH.md
+?? docs/IMPLEMENTATION_SUMMARY_AND_HUMAN_QA.md
+?? docs/LIVE_CHROME_GAMEPLAY_QA.md
+?? docs/MISSION_25_ADMIN_AND_CODE_AUDIT_TH.md
+?? docs/MISSION_25_BILL_OF_MATERIALS.json
+?? docs/MISSION_25_EQUIPMENT_PORT_CABLE_MATRIX.md
+?? docs/MISSION_25_OWNER_MANUAL_TEST_CHECKLIST_TH.md
+?? docs/MISSION_25_PLAYER_CONNECTION_GUIDE_TH.md
+?? docs/SCENE_WORK_ZONES_AND_INTERACTION_ANCHORS.md
+?? docs/TECHNICAL_SIMULATION_STATE_AND_FEEDBACK.md
+?? docs/VIDEO_BASELINE_AND_GAP_AUDIT.md
+?? docs/qa-evidence/
+?? docs/references/
+?? game/training/mission-completeness.ts
+?? game/training/sim/reference-equipment.ts
+?? game/training/sim/reference-rooms.ts
+?? game/training/sim/reference-stages.ts
+?? scripts/generate-mission-completeness-docs.mjs
+?? scripts/generate-mission-player-audit.mjs
+?? tests/mission-admin-audit.test.mjs
+?? tests/mission-foundation-qa.test.mjs

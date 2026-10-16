@@ -1,0 +1,11 @@
+✔ all 25 approved graphs reject a missing mandatory cable and require deliberate retesting after repair (6482.9832ms)
+✔ every mission rejects signoff after mandatory equipment loses power (6134.7541ms)
+✔ outdoor reconciliation retains lightning hold, explicit GO and public cable-crossing safety (16.1695ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13442.588

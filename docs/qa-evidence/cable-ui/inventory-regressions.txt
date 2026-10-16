@@ -1,0 +1,13 @@
+✔ all 25 active missions own complete physical devices, unique cables and compatible endpoints (3.5412ms)
+✔ all mission stock remains in the room with an empty bag, without creating extra leads (1.9031ms)
+✔ small mission kits are centred on the open top shelf rather than hidden below it (0.1649ms)
+✔ critical unplug invalidates current signoff and every live test; repairing alone cannot recertify (8.4399ms)
+✔ reconciled outdoor control gear and stadium monitor have a physical supporting worktop (0.3406ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 749.5475

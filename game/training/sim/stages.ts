@@ -6,6 +6,7 @@ import {
 } from "./library";
 import { MODELS } from "./equipment";
 import { ROOMS } from "./rooms";
+import { reconcileStage } from "./reference-stages";
 
 /* ═════════════ preflight vocabulary (site/stage checklist, English) ═════════════ */
 export const PREFLIGHT: Record<string, string> = {
@@ -111,15 +112,16 @@ function classroom(): StageManifest[] {
     id: "XS-01", level: 1, title: "เส้นทางภาพ · Video Path", subtitle: "ฝึกพร้อมคำแนะนำ · กล้อง → เครื่องสลับภาพ → จอหน้าห้อง", guidance: "guided", minutes: "8–10 นาที",
     ticket: "นำภาพจากกล้องห้องเรียนขึ้นจอหน้าห้องผ่านเครื่องสลับภาพ",
     callSheet: ["กล้องบนขาตั้งกลางทางเดินด้านหลัง", "เครื่องสลับภาพที่โต๊ะผู้ควบคุมด้านหลัง", "โปรเจกเตอร์/จอหน้าห้อง"],
-    briefing: ["สาย HDMI เส้นที่ 1: Camera HDMI OUT → Switcher HDMI IN1", "สาย HDMI เส้นที่ 2: Switcher HDMI PROGRAM OUT → จอ HDMI IN", "เปิดเครื่อง เลือก PROGRAM = HDMI 1 และเลือกขาเข้า HDMI ของจอให้ถูกช่อง"],
+    briefing: ["สาย HDMI เส้นที่ 1: Camera HDMI OUT → Switcher HDMI IN1", "สาย HDMI เส้นที่ 2: Switcher HDMI OUT → จอ HDMI IN", "เปิดเครื่อง เลือก PROGRAM = HDMI 1 ตั้ง VIDEO OUT ของ HDMI OUT เป็นภาพออกอากาศ (ค่าเริ่มต้นคือ MULTIVIEW) และเลือกขาเข้า HDMI ของจอให้ถูกช่อง"],
     devices: ["cam1", "sw", "monitor"],
-    solution: [["cam1:hdmi-out", "sw:hdmi-in-1"], ["sw:hdmi-pgm-out", "monitor:hdmi-in-1"]],
-    solutionConfig: [...powerAll(["cam1", "sw", "monitor"]), ...C("sw", { pgm: "HDMI 1" }), ...C("monitor", { source: "HDMI 1" }), ...C("site", { "power-check": true, format: true })],
+    solution: [["cam1:hdmi-out", "sw:hdmi-in-1"], ["sw:hdmi-out", "monitor:hdmi-in-1"]],
+    solutionConfig: [...powerAll(["cam1", "sw", "monitor"]), ...C("sw", { pgm: "HDMI 1", "hdmi-out": "PROGRAM" }), ...C("monitor", { source: "HDMI 1" }), ...C("site", { "power-check": true, format: true })],
     cues: [cue("c1", "เตรียมกล้อง … สลับ HDMI 1 ออกอากาศ", "TEACHER CAM")],
     obj: [
       o("front-cam", "จอหน้าห้องแสดงภาพจริงจากกล้อง (PROGRAM)", "signal", "signal", "direction", shows("monitor", "TEACHER CAM", "จอหน้าห้อง"), true),
       o("pgm-in1", "PROGRAM เลือก HDMI 1", "config", "signal", "output-assign", cfgIs("sw", "pgm", "HDMI 1", "กดเลือก HDMI 1 ที่เครื่องสลับภาพ")),
       o("tv-input", "จอเลือกขาเข้า HDMI ที่ต่อสายไว้", "config", "signal", "output-assign", cfgIs("monitor", "source", "HDMI 1", "เลือกขาเข้า HDMI 1 ที่จอ")),
+      o("hdmi-out-pgm", "HDMI OUT ส่งภาพออกอากาศ ไม่ใช่ MULTIVIEW", "config", "signal", "output-assign", cfgIs("sw", "hdmi-out", "PROGRAM", "กด VIDEO OUT เลือกภาพออกอากาศ (ค่าเริ่มต้นของ ATEM Mini Pro คือ MULTIVIEW)")),
     ],
     preflight: ["power-check", "format"], quiz: quiz("direction"), reward: "ตราเส้นทางภาพแรก",
     passCriteria: ["ภาพจริงจากกล้องปรากฏบนจอหน้าห้องเป็น PROGRAM", "รูปแบบสัญญาณ 1080p50 ตรงกันทั้งเส้นทาง"],
@@ -146,24 +148,25 @@ function classroom(): StageManifest[] {
   const L3 = finish(room, {
     id: "XS-03", level: 3, title: "สลับสองแหล่งภาพ · Two-Source Switching", subtitle: "สถานการณ์ · สลับกล้องและสไลด์ด้วยเครื่องสลับภาพ", guidance: "scenario", minutes: "10–14 นาที",
     ticket: "ผู้สอนจะเริ่มด้วยภาพตัวเองแล้วไปสไลด์ — สลับด้วยเครื่องสลับภาพ ห้ามสลับด้วยการถอดสาย",
-    callSheet: ["กล้อง → HDMI IN1", "โน้ตบุ๊กผู้สอน (โต๊ะหน้าห้อง) → HDMI IN2", "HDMI PROGRAM OUT → จอหน้าห้อง"],
+    callSheet: ["กล้อง → HDMI IN1", "โน้ตบุ๊กผู้สอน (โต๊ะหน้าห้อง) → HDMI IN2", "HDMI OUT (ตั้งเป็นภาพออกอากาศ) → จอหน้าห้อง"],
     briefing: ["ใช้สาย HDMI 3 เส้น วางแผนเองว่าเส้นไหนไปไหน"],
     devices: ["cam1", "slides", "sw", "monitor"],
-    solution: [["cam1:hdmi-out", "sw:hdmi-in-1"], ["slides:hdmi-out", "sw:hdmi-in-2"], ["sw:hdmi-pgm-out", "monitor:hdmi-in-1"]],
+    solution: [["cam1:hdmi-out", "sw:hdmi-in-1"], ["slides:hdmi-out", "sw:hdmi-in-2"], ["sw:hdmi-out", "monitor:hdmi-in-1"]],
     extraCables: cables(["x-usb", "USB-A ↔ USB-A (ไม่ใช่สายภาพ)", ["USB-A", "USB-A"], 2]),
-    solutionConfig: [...powerAll(["cam1", "slides", "sw", "monitor"]), ...C("slides", { present: true }), ...C("monitor", { source: "HDMI 1" }), ...C("sw", { pgm: "HDMI 1" }), ...C("site", { "cable-route": true })],
+    solutionConfig: [...powerAll(["cam1", "slides", "sw", "monitor"]), ...C("slides", { present: true }), ...C("monitor", { source: "HDMI 1" }), ...C("sw", { pgm: "HDMI 1", "hdmi-out": "PROGRAM" }), ...C("site", { "cable-route": true })],
     cues: [cue("c1", "ผู้สอนทักทาย … CAM 1", "TEACHER CAM"), cue("c2", "เข้าสไลด์ … LAPTOP 2", "SLIDES")],
     obj: [
       o("in1", "HDMI IN1 = กล้อง", "signal", "signal", "direction", inputCarries("sw:hdmi-in-1", "TEACHER CAM"), true),
       o("in2", "HDMI IN2 = โน้ตบุ๊ก", "signal", "signal", "direction", inputCarries("sw:hdmi-in-2", "SLIDES"), true),
       o("front", "จอหน้าห้องแสดง PROGRAM ปัจจุบัน", "signal", "signal", "one-output", mirrorsProgram("monitor", "sw"), true),
+      o("hdmi-out-pgm", "HDMI OUT ส่งภาพออกอากาศ ไม่ใช่ MULTIVIEW", "config", "signal", "output-assign", cfgIs("sw", "hdmi-out", "PROGRAM", "กด VIDEO OUT เลือกภาพออกอากาศ (ค่าเริ่มต้นของ ATEM Mini Pro คือ MULTIVIEW)")),
       o("both", "ทั้งสองแหล่งภาพถูกเลือกออกอากาศได้จริง", "evidence", "rehearsal", "output-assign", historyHas(["TEACHER CAM", "SLIDES"])),
     ],
     preflight: ["cable-route"], quiz: quiz("output-assign"), reward: "ตราสลับภาพ",
     passCriteria: ["สองแหล่งภาพเลือกเป็น PROGRAM ได้ด้วยเครื่องสลับภาพ", "จอหน้าห้องแสดงภาพที่เลือก"],
   });
-  const xs4Pairs: [string, string][] = [["cam1:hdmi-out", "sw:hdmi-in-1"], ["sw:hdmi-pgm-out", "monitor:hdmi-in-1"], ["lav:out", "tx:mic-in"], ["rx:audio-out", "mix:in-1"], ["mix:aux-out", "sw:audio-in"], ["sw:usb", "host:usb-1"]];
-  const xsWorking = [...powerAll(["cam1", "sw", "monitor", "host"]), ...xsWireless, ...xsMixer(true), ...C("sw", { pgm: "HDMI 1", "ain-on": true, "emb-audio": "OFF" }), ...C("monitor", { source: "HDMI 1" }),
+  const xs4Pairs: [string, string][] = [["cam1:hdmi-out", "sw:hdmi-in-1"], ["sw:hdmi-out", "monitor:hdmi-in-1"], ["lav:out", "tx:mic-in"], ["rx:audio-out", "mix:in-1"], ["mix:aux-out", "sw:mic-1"], ["sw:usb", "host:usb-1"]];
+  const xsWorking = [...powerAll(["cam1", "sw", "monitor", "host"]), ...xsWireless, ...xsMixer(true), ...C("sw", { pgm: "HDMI 1", "hdmi-out": "PROGRAM", "mic1-on": true, "mic1-mode": "LINE", "emb-audio": "OFF" }), ...C("monitor", { source: "HDMI 1" }),
     ...C("host", { "video-src": "USB video capture device", "audio-src": "USB capture embedded audio" })];
   const L4 = finish(room, {
     id: "XS-04", level: 4, title: "ซ่อมพอร์ตและการจับภาพ · Port and Capture Repair", subtitle: "แก้ปัญหา · ห้องเรียนออนไลน์ใช้งานไม่ได้", guidance: "disruption", minutes: "12–16 นาที",
@@ -197,22 +200,23 @@ function classroom(): StageManifest[] {
     callSheet: ["อุปกรณ์ทั้งหมดอยู่ในตู้เก็บ", "ลำดับรายการ: ผู้สอน → สไลด์ → ผู้สอน"],
     briefing: ["ไม่มีคำใบ้ วางแผนการต่อสายเอง หลังซ้อมจะมีปัญหาที่ไม่คาดคิดเกิดขึ้นหนึ่งอย่าง"],
     devices: ["cam1", "slides", "lav", "tx", "rx", "mix", "sw", "monitor", "pa", "host"],
-    solution: [["cam1:hdmi-out", "sw:hdmi-in-1"], ["slides:hdmi-out", "sw:hdmi-in-2"], ["sw:hdmi-pgm-out", "monitor:hdmi-in-1"], ["sw:usb", "host:usb-1"],
-      ["lav:out", "tx:mic-in"], ["rx:audio-out", "mix:in-1"], ["mix:main-out", "pa:line-in"], ["mix:aux-out", "sw:audio-in"]],
+    solution: [["cam1:hdmi-out", "sw:hdmi-in-1"], ["slides:hdmi-out", "sw:hdmi-in-2"], ["sw:hdmi-out", "monitor:hdmi-in-1"], ["sw:usb", "host:usb-1"],
+      ["lav:out", "tx:mic-in"], ["rx:audio-out", "mix:in-1"], ["mix:main-out", "pa:line-in"], ["mix:aux-out", "sw:mic-1"]],
     extraCables: cables(["x-hdmi", "HDMI 2 ม. (สำรอง)", ["HDMI", "HDMI"], 2], ["x-usb", "USB-A ↔ USB-A (ไม่ใช่สายเว็บแคม)", ["USB-A", "USB-A"], 2], ["x-xlr", "XLR 3 ม. (สำรอง)", ["XLR-F", "XLR-M"], 3]),
     solutionConfig: [...powerAll(["cam1", "slides", "sw", "monitor", "host"]), ...xsWireless, ...xsMixer(true), ...C("slides", { present: true, "mute-audio": true }),
-      ...C("sw", { pgm: "HDMI 1", "ain-on": true, "emb-audio": "OFF" }), ...C("monitor", { source: "HDMI 1" }), ...C("pa", { power: true, level: "Nominal", aim: "In front of the mic, aimed at audience" }),
+      ...C("sw", { pgm: "HDMI 1", "hdmi-out": "PROGRAM", "mic1-on": true, "mic1-mode": "LINE", "emb-audio": "OFF" }), ...C("monitor", { source: "HDMI 1" }), ...C("pa", { power: true, level: "Nominal", aim: "In front of the mic, aimed at audience" }),
       ...C("host", { "video-src": "USB video capture device", "audio-src": "USB capture embedded audio" }),
       ...C("site", { "power-check": true, "cable-route": true, soundcheck: true, "mic-place": true })],
     surpriseFaults: [
       cfgFault("s-rf", "ตัวรับเปลี่ยนช่องความถี่ RF", "mute", "rx", "rf", "CH 2", 1),
       cfgFault("s-mute", "ช่องไมค์ในมิกเซอร์ถูก Mute", "mute", "mix", "ch1-on", false, 1),
-      cfgFault("s-ain", "ปิด AUDIO IN ที่เครื่องสลับภาพ", "embedded-audio", "sw", "ain-on", false, 2),
+      cfgFault("s-ain", "ปิด MIC 1 ที่เครื่องสลับภาพ", "embedded-audio", "sw", "mic1-on", false, 2),
       unplugFault("s-usb", "สาย USB เว็บแคมหลุด", "usb-role", ["sw:usb", "host:usb-1"], 3),
     ],
     cues: [cue("c1", "เปิดคาบ … ผู้สอน", "TEACHER CAM"), cue("c2", "สไลด์", "SLIDES"), cue("c3", "ถามตอบ … ผู้สอน", "TEACHER CAM")],
     obj: [
       o("front", "เปลี่ยนแหล่งภาพแล้วจอหน้าห้องเปลี่ยนตาม", "signal", "signal", "one-output", mirrorsProgram("monitor", "sw"), true),
+      o("hdmi-out-pgm", "HDMI OUT ส่งภาพออกอากาศ ไม่ใช่ MULTIVIEW", "config", "signal", "output-assign", cfgIs("sw", "hdmi-out", "PROGRAM", "กด VIDEO OUT เลือกภาพออกอากาศ (ค่าเริ่มต้นของ ATEM Mini Pro คือ MULTIVIEW)")),
       o("obs-video", "เปลี่ยนแหล่งภาพแล้ว OBS เปลี่ยนตาม", "signal", "signal", "usb-role", obsHasProgram, true),
       o("room", "เสียงในห้องทำงาน ไม่หอน ไม่แตก", "quality", "signal", "feedback", all(hears("pa", ["TEACHER VOICE"]), noFeedback(["pa"])), true),
       o("obs-audio", "OBS มีเสียงรายการตามที่ตั้งใจเท่านั้น (ไม่ซ้อน)", "quality", "signal", "afv-doubling", obsAudioExact, true),
@@ -371,9 +375,9 @@ const mFoh = (chs: number[], pa: boolean, bc: boolean) => [...C("mix", { power: 
   ...chs.flatMap((n) => C("mix", { [`ch${n}-gain`]: "Nominal (peaks −18 dBFS)", [`ch${n}-on`]: true, ...(pa ? { [`ch${n}-pa`]: true } : {}), ...(bc ? { [`ch${n}-bc`]: true } : {}) }))];
 const mPa = [...C("paL", { power: true, level: "Nominal", aim: "In front of the mic, aimed at audience" }), ...C("paR", { power: true, level: "Nominal", aim: "In front of the mic, aimed at audience" })];
 const mVideo3: [string, string][] = [["cam1:sdi-out", "sw:sdi-in-1"], ["cam2:sdi-out", "sw:sdi-in-2"], ["cam3:sdi-out", "sw:sdi-in-3"], ["ptz:sdi-out", "sw:sdi-in-4"],
-  ["slides:hdmi-out", "convHS:hdmi-in"], ["convHS:sdi-out", "sw:sdi-in-5"], ["sw:mv-out", "monitor:sdi-in"], ["sw:sdi-out-1", "convSH:sdi-in"], ["convSH:hdmi-out", "display:hdmi-in"]];
+  ["slides:hdmi-out", "convHS:hdmi-in"], ["convHS:sdi-out", "sw:sdi-in-5"], ["sw:mv-out", "monitor:sdi-in"], ["sw:aux-1", "convSH:sdi-in"], ["convSH:hdmi-out", "display:hdmi-in"]];
 const mVideoCfg = [...mCams(["cam1", "cam2", "cam3", "ptz"]), ...C("slides", { power: true, present: true, "mute-audio": true }), ...C("convHS", { power: true }), ...C("convSH", { power: true }),
-  ...C("sw", { power: true, "sdi-out-1": "AUX", aux: "PROGRAM", pgm: "SDI 1" }), ...C("monitor", { power: true }), ...C("display", { power: true })];
+  ...C("sw", { power: true, "aux-1": "PROGRAM", pgm: "SDI 1" }), ...C("monitor", { power: true }), ...C("display", { power: true })];
 
 function auditorium(): StageManifest[] {
   CURRENT_ROOM = "m";
@@ -384,13 +388,13 @@ function auditorium(): StageManifest[] {
     callSheet: ["กล้อง 1 กลางหลังห้อง", "เครื่องสลับภาพที่ FOH", "ตัวแปลง SDI→HDMI ข้างเวทีขวา → จอเวที"],
     briefing: ["SDI เส้นที่ 1: กล้อง SDI OUT → Switcher SDI IN 1", "SDI เส้นที่ 2: Switcher SDI OUT 1 (ตั้งเป็น AUX/PGM) → Converter SDI IN", "HDMI: Converter HDMI OUT → จอเวที HDMI IN — ตัวแปลงต้องมีไฟเลี้ยงและหันทิศถูก"],
     devices: ["cam1", "sw", "convSH", "display"],
-    solution: [["cam1:sdi-out", "sw:sdi-in-1"], ["sw:sdi-out-1", "convSH:sdi-in"], ["convSH:hdmi-out", "display:hdmi-in"]],
-    solutionConfig: [...mCams(["cam1"]), ...C("sw", { power: true, pgm: "SDI 1", "sdi-out-1": "PROGRAM" }), ...C("convSH", { power: true }), ...C("display", { power: true }), ...C("site", { "power-check": true, format: true })],
+    solution: [["cam1:sdi-out", "sw:sdi-in-1"], ["sw:aux-1", "convSH:sdi-in"], ["convSH:hdmi-out", "display:hdmi-in"]],
+    solutionConfig: [...mCams(["cam1"]), ...C("sw", { power: true, pgm: "SDI 1", "aux-1": "PROGRAM" }), ...C("convSH", { power: true }), ...C("display", { power: true }), ...C("site", { "power-check": true, format: true })],
     cues: [cue("c1", "เปิดงาน … กล้อง 1", "CAM1")],
     obj: [
       o("stage", "จอเวทีแสดงภาพกล้อง", "signal", "signal", "converter-direction", shows("display", "CAM1", "จอเวที"), true),
       o("conv", "ตัวแปลง SDI→HDMI มีไฟเลี้ยง", "config", "signal", "power", cfgIs("convSH", "power", true, "เปิดไฟเลี้ยงตัวแปลง (USB-C power)")),
-      o("out", "SDI OUT 1 กำหนดหน้าที่แล้ว", "config", "signal", "output-assign", (c) => c.cfg("sw", "sdi-out-1") === "OFF" ? { ok: false, reason: "SDI OUT 1 ยังปิดอยู่", fix: "ตั้ง SDI OUT 1 เป็น PROGRAM หรือ AUX" } : { ok: true }),
+      o("out", "AUX 1 ส่งภาพออกอากาศ (PROGRAM)", "config", "signal", "output-assign", cfgIs("sw", "aux-1", "PROGRAM", "กดปุ่ม AUX แล้วเลือก PROGRAM ให้ AUX 1")),
     ],
     preflight: ["power-check", "format"], quiz: quiz("converter-direction"), reward: "ตราแสงแรกบนเวที",
     passCriteria: ["ตัวแปลงมีไฟ รูปแบบถูก เลือกแหล่งภาพถูก และจอเวทีเลือกขาเข้าถูก", "ภาพกล้องปรากฏบนจอเวที"],
@@ -444,10 +448,10 @@ function auditorium(): StageManifest[] {
     faults: [
       { id: "f-ref", label: "กล้อง 2 เสียบเข้า REF IN แทน SDI IN", concept: "connector", order: 1, repatch: { pair: ["cam2:sdi-out", "sw:sdi-in-2"], to: "sw:ref-in" }, cleared: (c) => c.edges.some((e) => e.from === "cam2:sdi-out" && e.to === "sw:sdi-in-2") },
       cfgFault("f-conv", "ตัวแปลง SDI→HDMI ไม่มีไฟเลี้ยง", "power", "convSH", "power", false, 3),
-      cfgFault("f-aux", "AUX เลือกแหล่งภาพผิด (กล้อง 3 แทน PROGRAM)", "output-assign", "sw", "aux", "SDI 3", 2),
+      cfgFault("f-aux", "AUX 1 เลือกแหล่งภาพผิด (กล้อง 3 แทน PROGRAM)", "output-assign", "sw", "aux-1", "SDI 3", 2),
       cfgFault("f-bus", "ไมค์โพเดียมส่งเข้า PA แทน Broadcast", "group-bus", "mix", "ch1-bc", false, 2),
     ],
-    solutionConfig: [...C("convSH", { power: true }), ...C("sw", { aux: "PROGRAM" }), ...C("mix", { "ch1-bc": true }), ...C("site", { soundcheck: true })],
+    solutionConfig: [...C("convSH", { power: true }), ...C("sw", { "aux-1": "PROGRAM" }), ...C("mix", { "ch1-bc": true }), ...C("site", { soundcheck: true })],
     cues: [cue("c1", "เริ่มงาน … กล้อง 2", "CAM2")],
     obj: [
       o("cam2", "กล้อง 2 กลับเข้า SDI IN ที่ถูกต้อง", "signal", "signal", "connector", inputCarries("sw:sdi-in-2", "CAM2"), true),
@@ -464,16 +468,16 @@ function auditorium(): StageManifest[] {
     callSheet: ["ลำดับรายการ: สไลด์ → กล้อง 1 → PTZ → กล้อง 2 → กล้อง 3", "สามแหล่งเสียง: โพเดียม ไมค์มือถือ ไมค์ไร้สาย"],
     briefing: ["ไม่มีคำใบ้ หลังซ้อมจะมีปัญหาเกิดขึ้นหนึ่งอย่าง"],
     devices: ["cam1", "cam2", "cam3", "ptz", "slides", "convHS", "sw", "monitor", "convSH", "display", "podium", "hand", "lav", "tx", "rx", "stagebox", "tail", "mix", "paL", "paR", "capture", "host", "rec"],
-    solution: [...mVideo3, ["sw:sdi-out-2", "capture:sdi-in"], ["capture:usb", "host:usb-1"], ["sw:sdi-out-3", "rec:sdi-in"],
+    solution: [...mVideo3, ["sw:aux-2", "capture:sdi-in"], ["capture:usb", "host:usb-1"], ["sw:pgm-out", "rec:sdi-in"],
       ["podium:xlr-out", "stagebox:mic-in-1"], ["hand:xlr-out", "stagebox:mic-in-2"], ["rx:audio-out", "stagebox:mic-in-3"], ["lav:out", "tx:mic-in"], ["stagebox:multicore", "tail:multicore"],
       ["tail:tail-1", "mix:in-1"], ["tail:tail-2", "mix:in-2"], ["tail:tail-3", "mix:in-3"], ["mix:pa-l", "paL:line-in"], ["mix:pa-r", "paR:line-in"], ["mix:bc-l", "sw:xlr-l"], ["mix:bc-r", "sw:xlr-r"]],
     extraCables: cables(["x-sdi", "3G-SDI 10 ม. (สำรอง)", ["SDI", "SDI"], 10, 100], ["x-hdmi", "HDMI 2 ม. (สำรอง)", ["HDMI", "HDMI"], 2]),
-    solutionConfig: [...mVideoCfg, ...C("sw", { "sdi-out-2": "PROGRAM", "sdi-out-3": "PROGRAM", "xlr-on": true, "emb-audio": "OFF" }),
+    solutionConfig: [...mVideoCfg, ...C("sw", { "aux-2": "PROGRAM", "xlr-on": true, "emb-audio": "OFF" }),
       ...C("tx", { power: true }), ...C("rx", { power: true, rf: "CH 1", pair: "Paired" }), ...mFoh([1, 2, 3], true, true), ...mPa,
       ...C("host", { power: true, "video-src": "USB video capture device", "audio-src": "USB capture embedded audio" }), ...C("rec", { power: true, media: "SD card mounted (512 GB free)", record: true }),
       ...C("site", { "power-check": true, "cable-route": true, soundcheck: true, "mic-place": true, storage: true })],
     surpriseFaults: [
-      cfgFault("s-mv", "AUX ไปจอเวทีถูกเปลี่ยนเป็นภาพกล้อง 3", "output-assign", "sw", "aux", "SDI 3", 2),
+      cfgFault("s-mv", "AUX 1 ไปจอเวทีถูกเปลี่ยนเป็นภาพกล้อง 3", "output-assign", "sw", "aux-1", "SDI 3", 2),
       cfgFault("s-conv", "ตัวแปลงไปจอเวทีไฟดับ", "power", "convSH", "power", false, 3),
       cfgFault("s-bc", "บัส Broadcast ถูกลดลง", "group-bus", "mix", "bc-fader", "Down", 1),
       cfgFault("s-full", "สื่อบันทึกเต็ม", "storage", "rec", "media", "SD card mounted · FULL (0 GB)", 4),
@@ -774,5 +778,6 @@ function stadium(): StageManifest[] {
   return [L1, L2, L3, L4, L5];
 }
 
-export const STAGES: StageManifest[] = [...classroom(), ...studio(), ...auditorium(), ...outdoor(), ...stadium()];
+export const ORIGINAL_STAGES: StageManifest[] = [...classroom(), ...studio(), ...auditorium(), ...outdoor(), ...stadium()];
+export const STAGES: StageManifest[] = ORIGINAL_STAGES.map(reconcileStage);
 export const stageFor = (scale: keyof typeof ROOMS, level: number) => STAGES.find((s) => s.room === scale && s.level === level)!;
