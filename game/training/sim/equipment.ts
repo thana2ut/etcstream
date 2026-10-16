@@ -335,17 +335,44 @@ const MIXER_4CH = generic("generic-4ch-mixer", "มิกเซอร์ 4 ช�
   [...[1, 2, 3, 4].map((n) => p(`in-${n}`, `IN ${n} MIC/LINE (XLR)`, "INPUT", "XLR", "MIC", `ช่องเข้า ${n} มีพรีแอมป์ รับระดับไมค์หรือไลน์`, { channels: 1, panel: "front" })),
     p("main-out", "MAIN / PA OUT (XLR)", "OUTPUT", "XLR", "LINE_BAL", "ขาออกบัสหลักระดับไลน์สมดุล สำหรับลำโพงแอ็กทีฟในห้อง", { channels: 1 }),
     p("aux-out", "STREAM / AUX OUT (TRS stereo)", "OUTPUT", "6.35mm", "LINE_UNBAL", "ขาออกส่งสตรีมแยกจากบัสหลัก ระดับไลน์ −10 dBV สำหรับเครื่องสลับภาพ", { channels: 2 })],
-  [power, ...[1, 2].flatMap((n) => [
+  [power, ...[1, 2, 3].flatMap((n) => [
       sel(`ch${n}-gain`, `CH${n} GAIN`, ["Minimum", "Nominal (peaks −18 dBFS)", "Too hot (clips)"], "ตั้ง Gain ให้เสียงพูดมีพีกต่ำกว่าจุดคลิป"),
       tog(`ch${n}-on`, `CH${n} ON (ไม่ Mute)`, "เปิดช่อง/ยกเลิก Mute"),
       tog(`ch${n}-main`, `CH${n} → MAIN/PA`, "ส่งช่องเข้าบัสหลักไปลำโพงในห้อง"),
       tog(`ch${n}-aux`, `CH${n} → STREAM/AUX`, "ส่งช่องเข้าบัสสตรีมแยก")]),
     sel("main-fader", "เฟดเดอร์ MAIN", ["Down", "Unity"], "ระดับบัสหลัก", "Down"), sel("aux-master", "ระดับ STREAM/AUX", ["Down", "Unity"], "ระดับบัสสตรีม", "Down")],
-  ["โปรไฟล์ทั่วไปตามคู่มือ: MAIN/PA และ STREAM/AUX แยกกันจริง", "แผงควบคุมจำลองแสดง CH1–CH2"]);
+  ["โปรไฟล์ทั่วไปตามคู่มือ: MAIN/PA และ STREAM/AUX แยกกันจริง", "แผงควบคุมจำลองแสดง CH1–CH3"]);
+
+/* ---------------- studio (S) — mission switcher is a GENERIC profile (HDS7105 revision not verified) ---------------- */
+const STUDIO_SWITCHER = generic("generic-studio-switcher", "เครื่องสลับภาพสตูดิโอ (โปรไฟล์ฝึกแบบ HDS7105 · GENERIC TRAINING MODEL)", "switcher", "box", [0.62, 0.16, 0.38],
+  [...[1, 2, 3, 4].map((n) => p(`hdmi-in-${n}`, `VIDEO IN ${n} (HDMI)`, "INPUT", "HDMI", "HDMI", `ขาเข้าภาพ ${n} HDMI 1080p50`, { formats: ["1080p50"] })),
+    p("hdmi-mv-out", "MULTIVIEW OUT (HDMI)", "OUTPUT", "HDMI", "HDMI", "ขาออกรวมภาพทุกช่องสำหรับดูตรวจ — ไม่ใช่ภาพออกอากาศ"),
+    p("hdmi-pgm-out", "PGM OUT (HDMI)", "OUTPUT", "HDMI", "HDMI", "ขาออกภาพออกอากาศ (PROGRAM) แยกจาก MULTIVIEW ใช้พร้อมกันได้"),
+    p("audio-in", "AUDIO IN (3.5 mm stereo, LINE)", "INPUT", "3.5mm", "LINE_UNBAL", "ขาเข้าเสียงสเตอริโอระดับไลน์ จากบัส Broadcast ของมิกเซอร์ ฝังเสียงลงใน PGM", { channels: 2 })],
+  [power, sel("pgm", "PROGRAM (สลับภาพ)", ["Black", "HDMI 1", "HDMI 2", "HDMI 3", "HDMI 4"], "เลือกภาพออกอากาศ"),
+    sel("pvw", "PREVIEW", ["Black", "HDMI 1", "HDMI 2", "HDMI 3", "HDMI 4"], "เลือกภาพถัดไปก่อนตัด"),
+    tog("ain-on", "เปิด AUDIO IN เข้ารายการ", "ฝังเสียงจากบัส Broadcast ลงใน PGM"),
+    sel("emb-audio", "เสียงที่มากับ HDMI", ["ON", "AFV", "OFF"], "เสียงไมค์กล้องที่มากับ HDMI จะซ้อนกับเสียงมิกเซอร์", "ON")],
+  ["ยังไม่ได้ยืนยันพอร์ตจริงของ HDS7105 รุ่นที่ใช้ จึงใช้โปรไฟล์ทั่วไปตามคู่มือ", "MULTIVIEW และ PGM เป็นขาออกแยกกัน ใช้พร้อมกันได้"]);
+const MAGEWELL = { modelId: "magewell-usb-capture-hdmi-gen2", manufacturer: "Magewell", name: "Magewell USB Capture HDMI Gen 2", generic: false, kind: "box" as const, size: [0.3072, 0.048, 0.1344] as [number, number, number],
+  sourceUrl: "https://www.magewell.com/products/usb-capture-hdmi-gen-2",
+  verifiedPorts: ["HDMI IN (1 ช่อง พร้อมเสียงฝัง)", "USB 3.0 ไปยังคอมพิวเตอร์ HOST (หัวต่อฝั่งอุปกรณ์ใช้ตามโมเดลอ้างอิงของโครงการ — หน้าสินค้าไม่ระบุ)"],
+  assetLicense: LICENSE_ORIGINAL, needsPower: false, role: "capture" as const,
+  ports: [p("hdmi-in", "HDMI IN", "INPUT", "HDMI", "HDMI", "รับภาพ PGM พร้อมเสียงฝังจากเครื่องสลับภาพ", { formats: ["1080p50"] }),
+    p("usb", "USB 3.0 (DEVICE → HOST)", "OUTPUT", "USB-A", "USB_UVC", "ส่งภาพและเสียงเข้าพอร์ต USB HOST ของคอมพิวเตอร์")],
+  controls: [], notes: ["อุปกรณ์จับภาพเข้าคอมพิวเตอร์ ไม่ใช่เครื่องสลับภาพ", "หน้าสินค้าไม่ระบุแหล่งไฟเลี้ยง จำลองเป็นไฟจาก USB"] } satisfies EquipmentDefinition;
+const HS5 = { modelId: "yamaha-hs5", manufacturer: "Yamaha", name: "Yamaha HS5 (ลำโพงมอนิเตอร์แอ็กทีฟ)", generic: false, kind: "box" as const, size: [0.54, 0.9, 0.43] as [number, number, number],
+  sourceUrl: "https://usa.yamaha.com/products/proaudio/speakers/hs_series/index.html",
+  verifiedPorts: ["INPUT 1: XLR (balanced)", "INPUT 2: TRS phone (balanced)"], assetLicense: LICENSE_ORIGINAL, needsPower: true, role: "speaker" as const,
+  ports: [p("xlr-in", "INPUT (XLR, balanced)", "INPUT", "XLR", "LINE_BAL", "รับไลน์สมดุลจากบัสมอนิเตอร์ของมิกเซอร์", { channels: 1 }),
+    p("trs-in", "INPUT (TRS phone, balanced)", "INPUT", "6.35mm", "LINE_BAL", "รับไลน์สมดุลทางแจ็ค TRS", { channels: 1 })],
+  controls: [power], notes: ["ลำโพงแอ็กทีฟ มีแอมป์ในตัว รับระดับไลน์เท่านั้น"] } satisfies EquipmentDefinition;
+const DYN_MIC = generic("generic-dynamic-mic", "ไมค์สายไดนามิก XLR (GENERIC TRAINING MODEL)", "mic", "mic", [0.212, 0.052, 0.052],
+  [p("xlr-out", "XLR OUT", "OUTPUT", "XLR", "MIC", "ขาออกไมค์สมดุลระดับไมค์ ต้องเข้าพรีแอมป์", { channels: 1 })], [], ["ไมค์ไดนามิก ไม่ต้องใช้ไฟ Phantom"], false);
 
 export const MODELS: Record<string, EquipmentDefinition> = Object.fromEntries([
   SM58, AMBIENCE_MIC, MG12XU, STUDIO_CAM, ATEM_MINI_PRO_ISO, HD8_ISO, CONSTELLATION, V160HD, CONV_HS, CONV_SH, VIDEOHUB, HYPERDECK, STREAM_ENC,
-  HDMI_CAM, LAPTOP, DOCCAM, MINI_SWITCHER, LAV_MIC, WIRELESS_TX, WIRELESS_RX, MIXER_4CH, GFX_PC, PROJECTOR, MONITOR, PA, HEADPHONES, SSD, ROUTER, INGEST, OBS_HOST, AUDIO_IF, POWER_AMP,
+  HDMI_CAM, LAPTOP, DOCCAM, MINI_SWITCHER, STUDIO_SWITCHER, MAGEWELL, HS5, DYN_MIC, LAV_MIC, WIRELESS_TX, WIRELESS_RX, MIXER_4CH, GFX_PC, PROJECTOR, MONITOR, PA, HEADPHONES, SSD, ROUTER, INGEST, OBS_HOST, AUDIO_IF, POWER_AMP,
 ].map((m) => [m.modelId, m]));
 
 export function portDef(modelId: string, key: string): PortDefinition | undefined {

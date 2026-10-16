@@ -181,7 +181,7 @@ function processDevice(id: string, devices: Record<string, DeviceInstance>, inp:
     }
     case "mixer": {
       if (inst.model === "generic-4ch-mixer") {
-        const chans = [1, 2].map((n) => {
+        const chans = [1, 2, 3].map((n) => {
           const sg = I(`in-${n}`) as AudioSignal | undefined;
           const gain = String(cfg(id, `ch${n}-gain`));
           return { n, s: sg, gain, live: sg?.kind === "audio" && cfg(id, `ch${n}-on`) === true && !gain.startsWith("Minimum") };
@@ -290,7 +290,7 @@ function processDevice(id: string, devices: Record<string, DeviceInstance>, inp:
       if (inst.model === "bmd-atem-tvs-hd8-iso") analog(["xlr-1", "xlr-2"], "xlr-on");
       if (inst.model === "bmd-atem-2me-constellation-hd") analog(["aud-l", "aud-r"], "analog-on");
       if (inst.model === "roland-v-160hd") analog(["ain-1", "ain-2"], "ain-on", "ain-mode");
-      if (inst.model === "generic-mini-switcher") analog(["audio-in"], "ain-on");
+      if (inst.model === "generic-mini-switcher" || inst.model === "generic-studio-switcher") analog(["audio-in"], "ain-on");
       const emb = String(cfg(id, "emb-audio"));
       if (emb === "ON") for (const s of Object.values(valid)) audio.push(...s.audio);
       if (emb === "AFV" && pgmKey && valid[pgmKey]) audio.push(...valid[pgmKey].audio);
@@ -311,7 +311,7 @@ function processDevice(id: string, devices: Record<string, DeviceInstance>, inp:
       const vs = (cls: "HDMI" | "SDI", content: string | undefined): VideoSignal | undefined => content === undefined ? undefined : { kind: "video", cls, format: DEFAULT_FORMAT, content, audio: content.startsWith("MULTIVIEW") ? [] : pgmAudio, via: [] };
       for (const port of m.ports.filter((x) => x.dir === "OUTPUT")) {
         const k = port.key;
-        if (k === "hdmi-mv" || k === "mv-out") out[P(k)] = vs(port.sig as "HDMI" | "SDI", mvContent);
+        if (k === "hdmi-mv" || k === "mv-out" || k === "hdmi-mv-out") out[P(k)] = vs(port.sig as "HDMI" | "SDI", mvContent);
         else if (k === "hdmi-out" && inst.model === "bmd-atem-mini-pro-iso") out[P(k)] = vs("HDMI", role("hdmi-out"));
         else if (k === "hdmi-pgm-out") out[P(k)] = vs("HDMI", pgm);
         else if (k.startsWith("hdmi-out-") || k.startsWith("sdi-out-")) out[P(k)] = vs(port.sig as "HDMI" | "SDI", role(k));
@@ -402,7 +402,7 @@ function processDevice(id: string, devices: Record<string, DeviceInstance>, inp:
       break;
     }
     case "speaker": {
-      const s = I(m.ports[0].key) as AudioSignal | undefined;
+      const s = m.ports.filter((x) => x.dir === "INPUT").map((x) => I(x.key)).find(Boolean) as AudioSignal | undefined;
       if (inst.model === "generic-active-pa") {
         const lvl = String(cfg(id, "level"));
         if (!s) view.status = "ไม่มีสัญญาณขาเข้า";
@@ -439,6 +439,12 @@ function processDevice(id: string, devices: Record<string, DeviceInstance>, inp:
       if (!state.startsWith("Mounted · 4")) { problem(state.includes("FULL") ? "MEDIA_FULL" : "NO_MEDIA", "storage", state.includes("FULL") ? "ดิสก์เต็ม" : "ยังไม่เชื่อมต่อดิสก์", state.includes("FULL") ? "เปลี่ยนหรือจัดรูปแบบดิสก์ให้มีพื้นที่ว่าง" : "เชื่อมต่อ SSD ที่จัดรูปแบบ exFAT"); view.status = state; break; }
       if (s.content) { view.recording = true; view.file = `${s.content} · audio: ${s.audio.join(" + ") || "none"}`; view.status = `● REC ${s.content}`; }
       else view.status = "เชื่อมต่อแล้ว ยังไม่บันทึก";
+      break;
+    }
+    case "capture": {
+      const s = I("hdmi-in") as VideoSignal | undefined;
+      if (s?.kind === "video") { out[P("usb")] = { kind: "usb", cls: "USB_UVC", content: s.content, audio: s.audio, via: [] }; view.picture = s.content; view.audio = s.audio; view.status = `จับภาพ: ${s.content}`; }
+      else { view.status = "ไม่มีสัญญาณ HDMI"; problem("NO_INPUT", "output-assign", "อุปกรณ์จับภาพไม่มีสัญญาณ HDMI เข้า", "ต่อ PGM OUT ของเครื่องสลับภาพเข้า HDMI IN"); }
       break;
     }
     case "wireless-tx": {

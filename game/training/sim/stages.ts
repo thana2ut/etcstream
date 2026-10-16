@@ -225,121 +225,140 @@ function classroom(): StageManifest[] {
   return [L1, L2, L3, L4, L5];
 }
 
-/* ══════════════════════════ ROOM 02 · STUDIO (ATEM TV Studio HD8 ISO) ══════════════════════════ */
+/* ══════════════════════════ ROOM 02 · STUDIO (S) — EduStream 25-level wiring guide ══════════════════════════
+ * Generic HDS7105-style switcher (VIDEO IN1–4, simultaneous MULTIVIEW + PGM HDMI, stereo LINE AUDIO IN), wireless lavs with
+ * one RX channel per TX, generic mixer (MAIN → HS5 monitor, STREAM/AUX → Broadcast), Magewell capture → OBS notebook. */
+const sCams = (ids: string[]) => ids.flatMap((d) => C(d, { power: true, framing: "Framed for assignment", clean: true }));
+const sWireless = (n: number[]) => n.flatMap((k) => [...C(`tx${k}`, { power: true }), ...C(`rx${k}`, { power: true, rf: "CH 1", pair: "Paired" })]);
+const sMixer = (chs: number[], monitor: boolean, broadcast: boolean) => [...C("mix", { power: true, ...(monitor ? { "main-fader": "Unity" } : {}), ...(broadcast ? { "aux-master": "Unity" } : {}) }),
+  ...chs.flatMap((n) => C("mix", { [`ch${n}-gain`]: "Nominal (peaks −18 dBFS)", [`ch${n}-on`]: true, ...(monitor ? { [`ch${n}-main`]: true } : {}), ...(broadcast ? { [`ch${n}-aux`]: true } : {}) }))];
+const obsProgramS = (c: EvalContext) => {
+  const v = c.view.host, pgm = c.view.sw?.picture;
+  if (!v?.picture) return { ok: false, reason: v?.problem?.text ?? "OBS ยังไม่มีภาพ", fix: "PGM OUT → Magewell HDMI IN → USB 3.0 → USB HOST แล้วเลือก Video Capture Device" };
+  return v.picture === pgm ? { ok: true } : { ok: false, reason: `OBS แสดง ${v.picture} แต่ PGM คือ ${pgm}`, fix: "Capture ต้องรับจาก PGM OUT ไม่ใช่ MULTIVIEW" };
+};
+const obsVoicesS = (voices: string[]) => (c: EvalContext) => {
+  const a = c.view.host?.audio ?? [];
+  const miss = voices.filter((x) => !a.includes(x));
+  if (miss.length) return { ok: false, reason: `เสียงใน OBS ขาด: ${miss.join(", ")} (ได้ยิน: ${a.join(" + ") || "เงียบ"})`, fix: "ส่งทุกไมค์เข้าบัส Broadcast (STREAM/AUX) → AUDIO IN และเปิดเข้ารายการ" };
+  const extra = a.filter((x) => !voices.includes(x));
+  return extra.length ? { ok: false, reason: `เสียงซ้อน/เกิน: ${extra.join(" + ")}`, fix: "ปิดเสียงที่มากับ HDMI ของกล้อง และไมค์คอมพิวเตอร์เพิ่ม" } : { ok: true };
+};
+
 function studio(): StageManifest[] {
   CURRENT_ROOM = "s";
   const room = "s" as const;
-  const camsOk = (ids: string[]) => ids.flatMap((d) => C(d, { power: true, format: "1080p50", framing: "Framed for assignment" }));
-  const mixer = (chs: number[]) => [...C("mix", { power: true, "st-fader": "Unity" }), ...chs.flatMap((n) => C("mix", { [`ch${n}-gain`]: "Nominal (peaks −18 dBFS)", [`ch${n}-on`]: true, [`ch${n}-st`]: true, [`ch${n}-hpf`]: true }))];
   const L1 = finish(room, {
-    id: "ST-01", level: 1, title: "ได้ยินเสียงแรก", subtitle: "ฝึกพร้อมคำแนะนำ · ต่อไมโครโฟนเข้าเครื่องผสมเสียง", guidance: "guided", minutes: "10–12 นาที",
-    ticket: "ทำให้ได้ยินเสียงพูดของพิธีกรอย่างชัดเจนที่เครื่องผสมเสียง",
-    callSheet: ["พิธีกร: ฉากสัมภาษณ์ ใช้ SM58 บนขาตั้ง", "ผู้ควบคุมเสียง (คุณ): โต๊ะผลิตรายการ"],
-    briefing: ["XLR OUT ของ SM58 เป็นระดับไมค์ ช่อง CH1 ของ MG12XU มีวงจรขยายไมค์", "ไมค์ไดนามิก SM58 ไม่ต้องใช้ไฟเลี้ยงแฟนทอม", "ปรับ GAIN ด้วยเสียงทดสอบก่อน จากนั้นเปิดช่อง ส่งเข้า ST และปรับเสียงรวม ต่อหูฟังที่ PHONES"],
-    devices: ["micH", "mix", "phones"],
-    solution: [["micH:xlr-out", "mix:mic-1"], ["mix:phones", "phones:in"]],
-    extraCables: cables(["x-hdmi", "HDMI 2 ม.", ["HDMI", "HDMI"], 2]),
-    solutionConfig: [...mixer([1]), ...C("micH", { aim: "At talker's mouth" }), ...C("site", { soundcheck: true, "mic-place": true })],
+    id: "ST-01", level: 1, title: "ภาพสตูดิโอ · Studio Video", subtitle: "ฝึกพร้อมคำแนะนำ · CAM1 → เครื่องสลับภาพ → ทีวีรวมภาพ", guidance: "guided", minutes: "8–10 นาที",
+    ticket: "ให้ภาพ CAM1 ขึ้นเป็นช่องหนึ่งในจอรวมภาพ (Multiview) ของห้องควบคุม",
+    callSheet: ["CAM1 หันหาโต๊ะผู้นำเสนอ", "เครื่องสลับภาพที่โต๊ะผลิต", "ทีวีรวมภาพบนขาตั้ง"],
+    briefing: ["HDMI เส้นที่ 1: CAM1 HDMI OUT → Switcher VIDEO IN 1", "HDMI เส้นที่ 2: Switcher MULTIVIEW OUT → ทีวี HDMI IN", "Preview = ภาพถัดไป, PGM = ภาพออกอากาศ, Multiview = ภาพรวมสำหรับดูตรวจ"],
+    devices: ["cam1", "sw", "monitor"],
+    solution: [["cam1:hdmi-out", "sw:hdmi-in-1"], ["sw:hdmi-mv-out", "monitor:hdmi-in"]],
+    solutionConfig: [...sCams(["cam1"]), ...C("sw", { power: true }), ...C("monitor", { power: true }), ...C("site", { "power-check": true, format: true })],
     cues: [],
     obj: [
-      o("meter", "มาตรวัดสเตอริโอแสดงเสียงพิธีกร", "signal", "signal", "mic-line-level", hears("mix", ["HOST VOICE"]), true),
-      o("phones", "ได้ยินเสียงพิธีกรผ่านหูฟัง", "signal", "signal", "speaker-level", hears("phones", ["HOST VOICE"]), true),
-      o("hpf", "ตั้งตัวกรองเสียงต่ำอย่างเหมาะสม", "config", "signal", "clipping", cfgIs("mix", "ch1-hpf", true, "เปิดตัวกรองเสียงต่ำ HPF 80 Hz")),
-      o("aim", "หันไมค์เข้าหาปากผู้พูด", "quality", "signal", "feedback", cfgIs("micH", "aim", "At talker's mouth", "หันหัวไมค์เข้าหาผู้พูด")),
-      o("test-phrase", "ได้ยินประโยคทดสอบโดยเสียงไม่แตก", "evidence", "rehearsal", "clipping", all(site("soundcheck", PREFLIGHT.soundcheck), hears("phones", ["HOST VOICE"]))),
+      o("mv-cam1", "ช่อง CAM1 ปรากฏในจอรวมภาพ", "signal", "signal", "output-assign", showsAll("monitor", ["MULTIVIEW", "CAM1"]), true),
+      o("in1", "VIDEO IN 1 รับ CAM1", "signal", "signal", "direction", inputCarries("sw:hdmi-in-1", "CAM1"), true),
     ],
-    preflight: ["soundcheck", "mic-place"], quiz: quiz("mic-line-level"), reward: "ตราเสียงสะท้อนแรก",
-    passCriteria: ["ได้ยินเสียงผ่านหูฟังและเห็นมาตรวัดสเตอริโอ", "ไม่มีเสียงแตกหรือหอน", "หันไมค์เข้าปาก"],
+    preflight: ["power-check", "format"], quiz: quiz("output-assign"), reward: "ตราภาพสตูดิโอ",
+    passCriteria: ["ช่อง CAM1 ปรากฏใน Multiview ที่ถูกต้อง"],
   });
   const L2 = finish(room, {
-    id: "ST-02", level: 2, title: "สองเสียงใต้แสงจันทร์", subtitle: "คำแนะนำบางส่วน · ปรับไมโครโฟนสองตัวแยกกัน", guidance: "partial", minutes: "13–16 นาที",
-    ticket: "จัดระบบให้ปรับเสียงพิธีกรและแขกรับเชิญแยกจากกันได้",
-    callSheet: ["พิธีกร: CH1", "แขกรับเชิญ: CH2 เสียงพูดเบากว่า"],
-    briefing: ["ใช้คนละช่องสำหรับไมค์แต่ละตัว ไม่รวมไมค์ด้วยสายแยกเข้าช่องเดียว", "การบันทึก USB สเตอริโอเป็นเสียงรวมชุดเดียว ไม่ใช่แทร็กแยกแต่ละช่อง"],
-    devices: ["micH", "micG", "mix", "phones"],
-    solution: [["micH:xlr-out", "mix:mic-1"], ["micG:xlr-out", "mix:mic-2"], ["mix:phones", "phones:in"]],
-    startConfig: [...C("micG", { aim: "Toward PA loudspeaker" })],
-    solutionConfig: [...mixer([1, 2]), ...C("micH", { aim: "At talker's mouth" }), ...C("micG", { aim: "At talker's mouth" }), ...C("site", { soundcheck: true, "mic-place": true })],
+    id: "ST-02", level: 2, title: "เสียงหลายไมค์ · Multi-Microphone Audio", subtitle: "ฝึกพร้อมคำแนะนำบางส่วน · ไมค์ไร้สาย 2 ตัว แยกช่อง แยกบัส", guidance: "partial", minutes: "12–15 นาที",
+    ticket: "พิธีกรและแขกรับเชิญต้องปรับเสียงได้แยกกัน ส่งเข้า Broadcast และฟังตรวจที่ลำโพงมอนิเตอร์",
+    callSheet: ["Lav 1/2 → TX 1/2 ที่โต๊ะผู้นำเสนอ", "RX 1/2 → มิกเซอร์ IN1/IN2", "Broadcast → เครื่องสลับภาพ · Monitor → HS5"],
+    briefing: ["จับคู่ TX แต่ละตัวกับ RX ของตัวเอง ห้ามรวมไมค์สองตัวด้วยสาย Y", "บัส STREAM/AUX ใช้เป็น Broadcast, บัส MAIN ใช้ป้อน HS5"],
+    devices: ["lav1", "lav2", "tx1", "tx2", "rx1", "rx2", "mix", "sw", "speaker"],
+    solution: [["lav1:out", "tx1:mic-in"], ["lav2:out", "tx2:mic-in"], ["rx1:audio-out", "mix:in-1"], ["rx2:audio-out", "mix:in-2"], ["mix:aux-out", "sw:audio-in"], ["mix:main-out", "speaker:xlr-in"]],
+    solutionConfig: [...sWireless([1, 2]), ...C("tx2", { rf: "CH 2" }), ...C("rx2", { rf: "CH 2" }), ...sMixer([1, 2], true, true), ...C("sw", { power: true, "ain-on": true, "emb-audio": "OFF" }), ...C("speaker", { power: true }), ...C("site", { soundcheck: true, "mic-place": true })],
     cues: [],
     obj: [
-      o("both", "เสียงทั้งสองคนเข้าชุดผสมสเตอริโอ", "signal", "signal", "mute", hears("mix", ["HOST VOICE", "GUEST VOICE"]), true),
-      o("independent", "พิธีกรช่อง CH1 และแขกรับเชิญ CH2 แยกกัน", "config", "physical", "connector", all(edge("micH:xlr-out", "mix:mic-1"), edge("micG:xlr-out", "mix:mic-2"))),
-      o("phones", "หูฟังได้ยินเสียงรวม", "signal", "signal", "speaker-level", hears("phones", ["HOST VOICE", "GUEST VOICE"])),
-      o("aims", "หันไมค์ทั้งสองเข้าหาผู้พูด", "quality", "signal", "feedback", all(cfgIs("micH", "aim", "At talker's mouth", "หันไมค์เข้าพิธีกร"), cfgIs("micG", "aim", "At talker's mouth", "หันไมค์เข้าแขกรับเชิญ"))),
-      o("answers", "ตรวจเสียงสัมภาษณ์แยกคนและรวมกันแล้ว", "evidence", "rehearsal", "clipping", site("soundcheck", PREFLIGHT.soundcheck)),
+      o("separate", "ไมค์สองตัวเข้าช่องแยกกัน", "config", "physical", "connector", all(edge("rx1:audio-out", "mix:in-1"), edge("rx2:audio-out", "mix:in-2"))),
+      o("broadcast", "บัส Broadcast มีเสียงทั้งสองไมค์ที่เครื่องสลับภาพ", "signal", "signal", "group-bus", hears("sw", ["HOST VOICE", "GUEST VOICE"]), true),
+      o("monitor", "ลำโพง HS5 ได้ยินทั้งสองไมค์", "signal", "signal", "speaker-level", hears("speaker", ["HOST VOICE", "GUEST VOICE"]), true),
+      o("soundcheck", "ตรวจเสียงทีละไมค์แล้ว", "evidence", "rehearsal", "clipping", site("soundcheck", PREFLIGHT.soundcheck)),
     ],
-    preflight: ["soundcheck", "mic-place"], quiz: { q: "ทำไม USB สเตอริโอของ MG12XU ไม่ใช่การบันทึกแยกช่อง?", options: ["บันทึกแยก 16 แทร็ก", "เป็นเสียงรวมสเตอริโอชุดเดียว จึงปรับสมดุลแยกช่องภายหลังไม่ได้", "USB เป็นแอนะล็อก"], answer: 1, why: "USB สเตอริโอรับเสียงรวม ST เท่านั้น" }, reward: "เครื่องรางจันทร์คู่",
-    passCriteria: ["เสียงตอบของทั้งสองคนชัด ทั้งแยกและรวม", "เผื่อระดับเสียงเพียงพอ ไม่มีเสียงหอน"],
+    preflight: ["soundcheck", "mic-place"], quiz: quiz("mute"), reward: "ตราเสียงคู่ใต้แสงจันทร์",
+    passCriteria: ["ระบบรู้จักไมค์ทั้งสองแยกกัน", "ส่งเข้า Broadcast และฟังตรวจได้"],
   });
   const L3 = finish(room, {
-    id: "ST-03", level: 3, title: "สภาสามเลนส์", subtitle: "สถานการณ์ฝึก · รวมภาพสามกล้องและเสียงผ่าน SDI", guidance: "scenario", minutes: "18–22 นาที",
-    ticket: "ถ่ายภาพพิธีกร แขกรับเชิญ และภาพทั้งสองคน",
-    callSheet: ["กล้อง A ด้านหน้า: ภาพสองคน → SDI IN 1", "กล้อง B ซ้าย: ภาพใกล้แขก → SDI IN 2", "กล้อง C ขวา: ภาพใกล้พิธีกร → SDI IN 3", "เครื่องผสมเสียง ST L/R → HD8 XLR IN 1/2"],
-    briefing: ["ตรวจรูปแบบขาออกทุกกล้อง มีกล้องหนึ่งยังตั้งเป็น UHD", "12G-SDI IN ของกล้องใช้รับภาพกลับ ไม่ใช่พอร์ตส่งภาพกล้อง"],
-    devices: ["cam1", "cam2", "cam3", "sw", "micH", "micG", "mix", "phones", "monitor"],
-    solution: [["cam1:sdi-out", "sw:sdi-in-1"], ["cam2:sdi-out", "sw:sdi-in-2"], ["cam3:sdi-out", "sw:sdi-in-3"], ["micH:xlr-out", "mix:mic-1"], ["micG:xlr-out", "mix:mic-2"], ["mix:st-l", "sw:xlr-1"], ["mix:st-r", "sw:xlr-2"], ["sw:hdmi-mv", "monitor:hdmi-in"], ["mix:phones", "phones:in"]],
-    extraCables: cables(["x-hdmi", "HDMI 5 ม.", ["HDMI", "HDMI"], 5]),
-    startConfig: [...C("cam2", { format: "2160p50" })],
-    solutionConfig: [...camsOk(["cam1", "cam2", "cam3"]), ...mixer([1, 2]), ...C("sw", { power: true, labels: true, "xlr-on": true, "emb-audio": "OFF" }), ...C("monitor", { power: true }), ...C("site", { soundcheck: true })],
-    previewBeforeTake: false,
-    cues: [cue("c1", "เปิดด้วยภาพสองคน … สลับช่อง 1", "CAM-A"), cue("c2", "แขกตอบ … สลับช่อง 2", "CAM-B"), cue("c3", "พิธีกรถามต่อ … สลับช่อง 3", "CAM-C"), cue("c4", "ภาพกว้างปิดช่วง … สลับช่อง 1", "CAM-A")],
+    id: "ST-03", level: 3, title: "สลับสามกล้อง · Three-Camera Switch", subtitle: "สถานการณ์ · สามกล้องอิสระ สลับด้วย Preview/PGM", guidance: "scenario", minutes: "12–15 นาที",
+    ticket: "ถ่ายสามมุม: โต๊ะผู้นำเสนอ มุมสัมภาษณ์ และฉากเขียว — สลับด้วยเครื่องสลับภาพ ไม่ใช่การย้ายสาย",
+    callSheet: ["CAM1 → IN1 · CAM2 → IN2 · CAM3 → IN3", "MULTIVIEW → ทีวี"],
+    briefing: ["ใช้ HDMI 4 เส้น วางแผนเอง"],
+    devices: ["cam1", "cam2", "cam3", "sw", "monitor"],
+    solution: [["cam1:hdmi-out", "sw:hdmi-in-1"], ["cam2:hdmi-out", "sw:hdmi-in-2"], ["cam3:hdmi-out", "sw:hdmi-in-3"], ["sw:hdmi-mv-out", "monitor:hdmi-in"]],
+    solutionConfig: [...sCams(["cam1", "cam2", "cam3"]), ...C("sw", { power: true }), ...C("monitor", { power: true }), ...C("site", { "cable-route": true })],
+    previewBeforeTake: true,
+    cues: [cue("c1", "เปิดรายการ … CAM1", "CAM1"), cue("c2", "สัมภาษณ์ … CAM2", "CAM2"), cue("c3", "ฉากเขียว … CAM3", "CAM3"), cue("c4", "กลับภาพกว้าง … CAM1", "CAM1")],
     obj: [
-      o("mv3", "จอรวมภาพแสดงทั้งสามกล้อง", "signal", "signal", "sdi-rate", showsAll("monitor", ["CAM-A", "CAM-B", "CAM-C"]), true),
-      o("voices", "ภาพออกอากาศมีเสียงพิธีกรและแขก ไม่มีเสียงไมค์กล้องซ้อน", "quality", "signal", "afv-doubling", hears("sw", ["HOST VOICE", "GUEST VOICE"]), true),
-      o("labels", "ชื่อแหล่งสัญญาณตรงตารางทีมงาน", "config", "signal", "output-assign", cfgIs("sw", "labels", true, "ตั้งชื่อช่องขาเข้า")),
-      o("framing", "จัดกรอบภาพกว้างและภาพใกล้สองมุมแล้ว", "quality", "signal", "output-assign", all(...["cam1", "cam2", "cam3"].map((d) => cfgIs(d, "framing", "Framed for assignment", `จัดกรอบภาพ ${d}`)))),
+      o("mv3", "เห็นทั้งสามกล้องในจอรวมภาพ", "signal", "signal", "output-assign", showsAll("monitor", ["CAM1", "CAM2", "CAM3"]), true),
+      o("cuts", "การเลือกแหล่งภาพเปลี่ยน PGM จริง", "evidence", "rehearsal", "output-assign", historyHas(["CAM1", "CAM2", "CAM3"])),
     ],
-    preflight: ["soundcheck"], quiz: quiz("return-feed"), reward: "สภาแห่งเลนส์",
-    passCriteria: ["แหล่งภาพสามกล้องครบ", "เสียงสองคนชัด", "สลับหลายกล้องตามลำดับ 60 วินาทีถูกต้อง"],
+    preflight: ["cable-route"], quiz: quiz("output-assign"), reward: "ตราสภาสามเลนส์",
+    passCriteria: ["เห็นภาพทั้งสาม", "การเลือกแหล่งภาพเปลี่ยน PGM ไม่ใช่การย้ายสาย"],
   });
-  const fullVideo: Pair[] = [["cam1:sdi-out", "sw:sdi-in-1"], ["cam2:sdi-out", "sw:sdi-in-2"], ["cam3:sdi-out", "sw:sdi-in-3"], ["micH:xlr-out", "mix:mic-1"], ["micG:xlr-out", "mix:mic-2"], ["mix:st-l", "sw:xlr-1"], ["mix:st-r", "sw:xlr-2"], ["sw:hdmi-mv", "monitor:hdmi-in"], ["sw:sdi-out-1", "conv:sdi-in"], ["conv:hdmi-out", "pgm:hdmi-in"], ["sw:usb", "ssd:usb"], ["mix:phones", "phones:in"]];
-  const workingStudio = [...camsOk(["cam1", "cam2", "cam3"]), ...mixer([1, 2]), ...C("sw", { power: true, labels: true, "xlr-on": true, "emb-audio": "OFF", "sdi-out-1": "PROGRAM" }), ...C("monitor", { power: true }), ...C("pgm", { power: true }), ...C("conv", { power: true }), ...C("ssd", { state: "Mounted · 412 GB free" })];
+  const s4Pairs: [string, string][] = [["cam1:hdmi-out", "sw:hdmi-in-1"], ["sw:hdmi-mv-out", "monitor:hdmi-in"], ["sw:hdmi-pgm-out", "capture:hdmi-in"], ["capture:usb", "host:usb-1"],
+    ["lav1:out", "tx1:mic-in"], ["rx1:audio-out", "mix:in-1"], ["mix:aux-out", "sw:audio-in"]];
   const L4 = finish(room, {
-    id: "ST-04", level: 4, title: "สัญญาณกลับที่เงียบหาย", subtitle: "แก้เหตุขัดข้อง · แยกปัญหา SDI จอตรวจภาพ และสัญญาณกลับ", guidance: "disruption", minutes: "20–25 นาที",
-    ticket: "แก้ภาพกล้องแขกรับเชิญที่หายไปและจอผู้กำกับที่ตรวจรายการไม่ได้",
-    callSheet: ["ระบบต่อไว้แล้ว: สามกล้อง สองไมค์ จอรวมภาพ จอออกอากาศ และดิสก์แยกกล้อง", "SDI OUT 2 = CAM RETURN ไปกล้อง B ใช้ภาพกลับและไฟสถานะเท่านั้น"],
-    briefing: ["มีปัญหาแยกกันสองจุด ใช้ภาพใกล้กล้อง การตรวจเส้นทาง มาตรวัดเสียง และจอตรวจภาพ", "สัญญาณภาพออกอากาศที่ส่งกลับกล้องไม่ใช่ภาพต้นทางจากกล้อง"],
-    devices: ["cam1", "cam2", "cam3", "sw", "micH", "micG", "mix", "phones", "monitor", "pgm", "conv", "ssd"],
-    solution: [...fullVideo, ["sw:sdi-out-2", "cam2:sdi-ret"]],
-    prewired: "all",
-    startConfig: [...workingStudio, ...C("sw", { "sdi-out-2": "CAM RETURN", pgm: "SDI 1" })],
-    faults: [cfgFault("f-uhd", "กล้อง B ยังตั้งเป็น 2160p50", "sdi-rate", "cam2", "format", "2160p50", 1), cfgFault("f-conv", "ตัวแปลงภาพออกอากาศไม่มีไฟเลี้ยง", "power", "conv", "power", false, 3)],
-    solutionConfig: [...C("cam2", { format: "1080p50" }), ...C("conv", { power: true }), ...C("sw", { record: true })],
-    cues: [cue("c1", "ภาพกว้าง … สลับช่อง 1", "CAM-A"), cue("c2", "แขกรับเชิญ … สลับช่อง 2 (ตรวจภาพออกอากาศและรวมภาพ)", "CAM-B"), cue("c3", "กลับภาพกว้าง … สลับช่อง 1", "CAM-A")],
-    obj: [
-      o("mv3", "ภาพทั้งสามกล้องกลับมาบนจอรวมภาพ", "signal", "signal", "sdi-rate", showsAll("monitor", ["CAM-A", "CAM-B", "CAM-C"]), true),
-      o("pgm-conf", "จอตรวจภาพออกอากาศตรงกับภาพออกอากาศจริง", "signal", "signal", "power", mirrorsProgram("pgm", "sw"), true),
-      o("return", "กล้อง B ได้รับภาพส่งกลับ โดยไม่นับเป็นแหล่งภาพต้นทาง", "config", "signal", "return-feed", (c) => (c.view.cam2?.audio ?? []).some((a) => a.startsWith("RETURN")) ? { ok: true } : { ok: false, reason: "ขาเข้าภาพกลับกล้อง B ไม่มีสัญญาณ", fix: "กำหนด SDI OUT 2 เป็น CAM RETURN" }),
-      o("rec", "บันทึกทดสอบส่วนตัวหนึ่งนาทีลงดิสก์แยกกล้องแล้ว", "evidence", "delivery", "storage", evidence("ssd · ", "ปิดไฟล์ดิสก์แยกกล้องแล้ว"), true),
-      o("recovered", "วินิจฉัยและแก้ปัญหาทั้งสองจุดแล้ว", "diagnostics", "delivery", "sdi-rate", faultsRecovered(), true),
+    id: "ST-04", level: 4, title: "แก้ปัญหาการจับภาพ · Capture Troubleshooting", subtitle: "แก้ปัญหา · OBS ได้ภาพผิดและไม่มีเสียง", guidance: "disruption", minutes: "15–18 นาที",
+    ticket: "ผู้ชมออนไลน์เห็นภาพตารางรวมภาพแทนรายการ และไม่ได้ยินเสียง — หาสาเหตุและซ่อมทางกายภาพ",
+    callSheet: ["MULTIVIEW ใช้ดูตรวจเท่านั้น PGM ต้องไปที่ Capture", "Capture (DEVICE) → USB HOST ของโน้ตบุ๊ก"],
+    briefing: ["ใช้ Trace จาก OBS ย้อนกลับ"],
+    devices: ["cam1", "lav1", "tx1", "rx1", "mix", "sw", "monitor", "capture", "host"],
+    solution: s4Pairs, prewired: "all",
+    extraCables: cables(["x-hdmi", "HDMI 2 ม. (สำรอง)", ["HDMI", "HDMI"], 2], ["x-usb", "USB-A ↔ USB-A (ห้ามต่อ HOST ↔ HOST)", ["USB-A", "USB-A"], 2]),
+    startConfig: [...sCams(["cam1"]), ...sWireless([1]), ...sMixer([1], false, true), ...C("sw", { power: true, pgm: "HDMI 1", "ain-on": true, "emb-audio": "OFF" }), ...C("monitor", { power: true }),
+      ...C("host", { power: true, "video-src": "USB video capture device", "audio-src": "USB capture embedded audio" })],
+    faults: [
+      { id: "f-roles", label: "สาย Capture ต่อจาก MULTIVIEW OUT แทน PGM OUT", concept: "output-assign", order: 1, repatch: { pair: ["sw:hdmi-pgm-out", "capture:hdmi-in"], from: "sw:hdmi-mv-out" }, cleared: (c) => c.edges.some((e) => e.from === "sw:hdmi-pgm-out" && e.to === "capture:hdmi-in") },
+      cfgFault("f-bus", "เสียงไมค์ไม่ได้ส่งเข้าบัส Broadcast", "group-bus", "mix", "ch1-aux", false, 2),
+      unplugFault("f-usb", "สาย USB ของ Capture หลุด", "usb-role", ["capture:usb", "host:usb-1"], 3),
+      cfgFault("f-obs", "OBS ไม่ได้เลือก Video Capture Device", "obs-source", "host", "video-src", "None", 4),
     ],
-    preflight: [], quiz: quiz("sdi-rate"), reward: "ตราสัญญาณกลับ",
-    passCriteria: ["ตรวจการสลับแหล่งภาพทั้งจอตรวจและภาพออกอากาศ", "มีบันทึกทดสอบหนึ่งนาทีและบันทึกเหตุการณ์"],
+    solutionConfig: [...C("mix", { "ch1-aux": true }), ...C("host", { "video-src": "USB video capture device" }), ...C("site", { soundcheck: true })],
+    cues: [],
+    obj: [
+      o("mv", "MULTIVIEW ไปที่ทีวีเพื่อดูตรวจ", "signal", "signal", "output-assign", showsAll("monitor", ["MULTIVIEW", "CAM1"]), true),
+      o("obs-video", "OBS ได้ภาพ PGM ผ่าน Capture", "signal", "signal", "usb-role", obsProgramS, true),
+      o("obs-audio", "OBS มีเสียงรายการที่ฝังใน PGM", "quality", "signal", "embedded-audio", obsVoicesS(["HOST VOICE"]), true),
+      o("recovered", "ตรวจหาและซ่อมจุดเสียครบ", "diagnostics", "delivery", "direction", faultsRecovered(), true),
+    ],
+    preflight: ["soundcheck"], quiz: quiz("output-assign"), reward: "ตราผู้กู้สัญญาณจับภาพ",
+    passCriteria: ["MV ใช้ดูตรวจ PGM ป้อน Capture", "USB จาก Capture เข้า HOST", "OBS มีภาพและเสียงรายการ"],
   });
   const L5 = finish(room, {
-    id: "ST-05", level: 5, title: "ประเมินปฏิบัติสตูดิโอ", subtitle: "ประเมินทักษะ · สัมภาษณ์สองคนห้านาที", guidance: "certification", minutes: "30–40 นาที",
-    ticket: "ผลิตรายการสัมภาษณ์สองคน 5 นาทีจากสตูดิโอว่าง ด้วยสามมุมกล้อง ไมค์ที่ปรับแยกได้ จอรวมภาพและภาพออกอากาศ การบันทึกแยกกล้องและสตรีมส่วนตัว",
-    callSheet: ["กล้อง A ภาพกว้าง · กล้อง B แขกรับเชิญ · กล้อง C พิธีกร", "SM58 สำหรับพิธีกรและแขก", "ห้องควบคุม: จอรวมภาพ จอออกอากาศ ดิสก์แยกกล้อง และเกตเวย์"],
-    briefing: ["ไม่มีคำใบ้ จะเกิดเหตุขัดข้องไม่คาดคิดหลังซ้อม"],
-    devices: ["cam1", "cam2", "cam3", "sw", "micH", "micG", "mix", "phones", "monitor", "pgm", "conv", "ssd", "net", "wan"],
-    solution: [...fullVideo, ["sw:eth", "net:lan-1"], ["net:wan", "wan:wan-in"]],
-    extraCables: cables(["x-hdmi", "HDMI 3 ม.", ["HDMI", "HDMI"], 3], ["x-sdi", "3G-SDI 10 ม. (สำรอง)", ["SDI", "SDI"], 10, 70], ["x-usbb", "USB-B → USB-A (USB เครื่องผสมเสียง)", ["USB-B", "USB-A"], 2]),
-    solutionConfig: [...workingStudio, ...C("sw", { pgm: "SDI 1" }), ...C("micH", { aim: "At talker's mouth" }), ...C("micG", { aim: "At talker's mouth" }), ...C("net", { power: true, "uplink-test": true }), ...C("sw", { record: true, "stream-key": "•••••••• (private test key)", stream: true }),
-      ...C("site", { "cable-route": true, clap: true, soundcheck: true, storage: true, permission: true, lighting: true, teardown: true })],
-    surpriseFaults: [unplugFault("s-wan", "ขาดการเชื่อมต่อเครือข่าย", "wan", ["net:wan", "wan:wan-in"], 5), cfgFault("s-mute", "ไมค์พิธีกรปิดเสียง", "mute", "mix", "ch1-on", false, 1), cfgFault("s-rate", "กล้อง C ตั้งอัตราภาพผิด", "sdi-rate", "cam3", "format", "2160p50", 1), cfgFault("s-full", "สื่อบันทึกขัดข้องเพราะดิสก์เต็ม", "storage", "ssd", "state", "Mounted · FULL (0 GB free)", 4)],
-    cues: [cue("c1", "ชื่อรายการ — เปิดภาพกว้าง", "CAM-A"), cue("c2", "พิธีกรเกริ่นนำ", "CAM-C"), cue("c3", "แขกตอบคำถาม", "CAM-B"), cue("c4", "ภาพสองคน", "CAM-A"), cue("c5", "ปิดรายการ — พิธีกร", "CAM-C")],
-    obj: [
-      o("mv3", "เลือกภาพจากสามแหล่งแยกกันได้", "signal", "signal", "sdi-rate", showsAll("monitor", ["CAM-A", "CAM-B", "CAM-C"]), true),
-      o("voices", "สองเสียงชัด ไม่มีเสียงแตก หอน หรือซ้อน", "quality", "signal", "afv-doubling", hears("sw", ["HOST VOICE", "GUEST VOICE"]), true),
-      o("sep-mon", "จอรวมภาพและจอออกอากาศแยกกันทำงาน", "signal", "signal", "output-assign", all(shows("monitor", "MULTIVIEW"), mirrorsProgram("pgm", "sw")), true),
-      o("viewer", "ผู้ชมส่วนตัวได้รับภาพออกอากาศและเสียง", "signal", "delivery", "wan", live("wan", "sw", ["HOST VOICE", "GUEST VOICE"]), true),
-      o("iso", "แสดงสถานะบันทึกภาพออกอากาศและแยกสามกล้อง", "evidence", "delivery", "storage", recording("ssd", "ISO ×3"), true),
-      o("iso-saved", "หยุดบันทึกอย่างสมบูรณ์แล้ว", "evidence", "delivery", "storage", evidence("ssd · ", "ปิดไฟล์ดิสก์แยกกล้องแล้ว")),
-      o("recovered", "ระบุสาเหตุและแก้ปัญหาแล้ว", "diagnostics", "delivery", "direction", faultsRecovered(), true),
-      o("no-early", "เริ่มถ่ายทอดหลังซ้อมเท่านั้น", "safety", "delivery", "stream-key", (c) => c.sim.log.some((l) => l.code === "EARLY_STREAM") ? { ok: false, reason: "เริ่มสตรีมก่อนผ่านการซ้อม", fix: "ซ้อมให้ผ่านก่อน" } : { ok: true }),
+    id: "ST-05", level: 5, title: "สตูดิโอครบระบบ · Full Studio", subtitle: "ภาคปฏิบัติ · สามกล้อง สามไมค์ ฟังตรวจ และจับภาพเข้า OBS", guidance: "certification", minutes: "25–30 นาที",
+    ticket: "ประกอบสตูดิโอครบระบบ: สามกล้องสลับได้, ไมค์ไร้สาย 2 ตัวและไมค์สาย 1 ตัวแยกช่อง, Broadcast ฝังเข้า PGM, ฟังตรวจที่ HS5, จับภาพ PGM เข้า OBS",
+    callSheet: ["อุปกรณ์พกพาอยู่ในชั้นเก็บ", "ลำดับรายการ: CAM1 → CAM2 → CAM3 → CAM1"],
+    briefing: ["ไม่มีคำใบ้ หลังซ้อมจะมีปัญหาเกิดขึ้นหนึ่งอย่าง"],
+    devices: ["cam1", "cam2", "cam3", "sw", "monitor", "lav1", "lav2", "tx1", "tx2", "rx1", "rx2", "mic", "mix", "speaker", "capture", "host"],
+    solution: [["cam1:hdmi-out", "sw:hdmi-in-1"], ["cam2:hdmi-out", "sw:hdmi-in-2"], ["cam3:hdmi-out", "sw:hdmi-in-3"], ["sw:hdmi-mv-out", "monitor:hdmi-in"], ["sw:hdmi-pgm-out", "capture:hdmi-in"], ["capture:usb", "host:usb-1"],
+      ["lav1:out", "tx1:mic-in"], ["lav2:out", "tx2:mic-in"], ["rx1:audio-out", "mix:in-1"], ["rx2:audio-out", "mix:in-2"], ["mic:xlr-out", "mix:in-3"], ["mix:aux-out", "sw:audio-in"], ["mix:main-out", "speaker:xlr-in"]],
+    extraCables: cables(["x-hdmi", "HDMI 2 ม. (สำรอง)", ["HDMI", "HDMI"], 2], ["x-usb", "USB-A ↔ USB-A (ห้ามต่อ HOST ↔ HOST)", ["USB-A", "USB-A"], 2], ["x-xlr", "XLR 5 ม. (สำรอง)", ["XLR-F", "XLR-M"], 5]),
+    solutionConfig: [...sCams(["cam1", "cam2", "cam3"]), ...sWireless([1, 2]), ...C("tx2", { rf: "CH 2" }), ...C("rx2", { rf: "CH 2" }), ...sMixer([1, 2, 3], true, true),
+      ...C("sw", { power: true, pgm: "HDMI 1", "ain-on": true, "emb-audio": "OFF" }), ...C("monitor", { power: true }), ...C("speaker", { power: true }),
+      ...C("host", { power: true, "video-src": "USB video capture device", "audio-src": "USB capture embedded audio" }),
+      ...C("site", { "power-check": true, "cable-route": true, soundcheck: true, "mic-place": true })],
+    surpriseFaults: [
+      cfgFault("s-pair", "ตัวรับ RX ช่อง 2 หลุดการจับคู่", "mute", "rx2", "pair", "Not paired", 1),
+      cfgFault("s-mute", "ช่องไมค์สายถูก Mute", "mute", "mix", "ch3-on", false, 1),
+      unplugFault("s-usb", "สาย USB ของ Capture หลุด", "usb-role", ["capture:usb", "host:usb-1"], 3),
+      cfgFault("s-ain", "ปิด AUDIO IN ที่เครื่องสลับภาพ", "embedded-audio", "sw", "ain-on", false, 2),
     ],
-    preflight: ["cable-route", "clap", "soundcheck", "storage", "permission", "lighting", "teardown"], quiz: quiz("embedded-audio"), reward: "ผลฝึกถ่ายทอดสะพานจันทรา",
-    passCriteria: ["เลือกแหล่งภาพได้สามแหล่ง", "เสียงพูดสองคนสะอาด", "จอรวมภาพและจอออกอากาศแยกกัน", "ผู้ชมส่วนตัวรับสตรีมได้", "บันทึกภาพออกอากาศและแยกสามกล้อง", "แก้ปัญหาแล้ว", "เดินสายปลอดภัย", "บันทึกการทำงานครบ"],
+    previewBeforeTake: true,
+    cues: [cue("c1", "เปิดรายการ … CAM1", "CAM1"), cue("c2", "สัมภาษณ์ … CAM2", "CAM2"), cue("c3", "ฉากเขียว … CAM3", "CAM3"), cue("c4", "ปิดรายการ … CAM1", "CAM1")],
+    obj: [
+      o("mv3", "สามกล้องอยู่ในจอรวมภาพ", "signal", "signal", "output-assign", showsAll("monitor", ["CAM1", "CAM2", "CAM3"]), true),
+      o("obs-video", "OBS ได้ภาพ PGM ผ่าน Capture", "signal", "signal", "usb-role", obsProgramS, true),
+      o("obs-audio", "OBS มีเสียงทั้งสามไมค์ที่ฝังใน PGM (ไม่ซ้อน)", "quality", "signal", "embedded-audio", obsVoicesS(["HOST VOICE", "GUEST VOICE", "PRESENTER VOICE"]), true),
+      o("monitor", "ฟังตรวจที่ HS5 ได้", "signal", "signal", "speaker-level", hears("speaker", ["HOST VOICE", "GUEST VOICE", "PRESENTER VOICE"]), true),
+      o("cuts", "ใช้ครบสามมุมกล้องในรายการ", "evidence", "rehearsal", "output-assign", historyHas(["CAM1", "CAM2", "CAM3"])),
+      o("recovered", "แก้ปัญหาที่เกิดระหว่างงานได้", "diagnostics", "delivery", "direction", faultsRecovered(), true),
+    ],
+    preflight: ["power-check", "cable-route", "soundcheck", "mic-place"], quiz: quiz("embedded-audio"), reward: "ใบอนุญาตถ่ายทอดสะพานจันทรา",
+    passCriteria: ["เลือก PGM ได้ครบสามกล้อง", "ฟังตรวจได้", "เสียงฝังใน Capture ถูกต้อง", "OBS มีภาพและมิเตอร์เสียง"],
   });
   return [L1, L2, L3, L4, L5];
 }

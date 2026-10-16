@@ -216,32 +216,64 @@ _ห้องเรียน · ระบบสอนและห้องเร
 **Reward:** ตราเจ้าแห่งประตูแรกแห่งภาพ
 
 ## ST · สะพานจันทราแห่งเสียง
-_สตูดิโอ · สัมภาษณ์และถ่ายทอดหลายกล้อง_
+_สตูดิโอ · ถ่ายทอดหลายกล้อง เสียงหลายไมค์ และจับภาพเข้า OBS_
 
-### ST-01 / L1 — ได้ยินเสียงแรก (guided; 10–12 นาที)
+### ST-01 / L1 — ภาพสตูดิโอ · Studio Video (guided; 8–10 นาที)
 
-**Ticket:** ทำให้ได้ยินเสียงพูดของพิธีกรอย่างชัดเจนที่เครื่องผสมเสียง
+**Ticket:** ให้ภาพ CAM1 ขึ้นเป็นช่องหนึ่งในจอรวมภาพ (Multiview) ของห้องควบคุม
 
 **Canonical graph**
 
 ```
-ไมค์พิธีกร SM58 · XLR OUT  ->  Yamaha MG12XU · CH1 MIC/LINE IN
-Yamaha MG12XU · PHONES  ->  หูฟังตรวจเสียง · PHONES PLUG (TRS)
+CAM1 ภาพกว้าง (โต๊ะผู้นำเสนอ) · HDMI OUT  ->  เครื่องสลับภาพสตูดิโอ · VIDEO IN 1 (HDMI)
+เครื่องสลับภาพสตูดิโอ · MULTIVIEW OUT (HDMI)  ->  ทีวีรวมภาพ (Multiview) · HDMI IN
 ```
 
-**Operator configuration (ground truth):** mix.power = true; mix.st-fader = Unity; mix.ch1-gain = Nominal (peaks −18 dBFS); mix.ch1-on = true; mix.ch1-st = true; mix.ch1-hpf = true; micH.aim = At talker's mouth
+**Operator configuration (ground truth):** cam1.power = true; cam1.framing = Framed for assignment; cam1.clean = true; sw.power = true; monitor.power = true
 
-**Spares / decoys in the kit:** HDMI 2 ม.
+**Preflight:** ตรวจไฟเลี้ยงที่ติดป้ายแล้ว โดยไม่ทำงานกับไฟฟ้าหลัก; ยืนยันรูปแบบทั้งระบบ: 1080p50 · Rec.709 · 48 kHz
+
+**Objectives (9, ★ = critical gate):**
+
+- [signal · signal] ช่อง CAM1 ปรากฏในจอรวมภาพ ★
+- [signal · signal] VIDEO IN 1 รับ CAM1 ★
+- [physical · safety] ติดตั้งอุปกรณ์ที่ต้องใช้ครบทุกจุด
+- [physical · config] อุปกรณ์ที่ใช้งานผ่านการตรวจไฟเลี้ยงครบ
+- [physical · signal] ต่อสายตรงตามผังช่องสัญญาณ
+- [physical · safety] ตรวจไฟเลี้ยงที่ติดป้ายแล้ว โดยไม่ทำงานกับไฟฟ้าหลัก
+- [physical · safety] ยืนยันรูปแบบทั้งระบบ: 1080p50 · Rec.709 · 48 kHz
+- [delivery · evidence] คำถามทบทวนความเข้าใจ
+- [delivery · evidence] ตรวจรับงานและเก็บงาน ★
+
+**Pass criteria (spec):** ช่อง CAM1 ปรากฏใน Multiview ที่ถูกต้อง
+
+**Reward:** ตราภาพสตูดิโอ
+
+### ST-02 / L2 — เสียงหลายไมค์ · Multi-Microphone Audio (partial; 12–15 นาที)
+
+**Ticket:** พิธีกรและแขกรับเชิญต้องปรับเสียงได้แยกกัน ส่งเข้า Broadcast และฟังตรวจที่ลำโพงมอนิเตอร์
+
+**Canonical graph**
+
+```
+ไมค์หนีบปก 1 (พิธีกร) · LAV PLUG (3.5 mm)  ->  ตัวส่ง TX 1 · MIC IN (3.5 mm)
+ไมค์หนีบปก 2 (แขกรับเชิญ) · LAV PLUG (3.5 mm)  ->  ตัวส่ง TX 2 · MIC IN (3.5 mm)
+ตัวรับ RX ช่อง 1 · AUDIO OUT (XLR)  ->  มิกเซอร์เสียง · IN 1 MIC/LINE (XLR)
+ตัวรับ RX ช่อง 2 · AUDIO OUT (XLR)  ->  มิกเซอร์เสียง · IN 2 MIC/LINE (XLR)
+มิกเซอร์เสียง · STREAM / AUX OUT (TRS stereo)  ->  เครื่องสลับภาพสตูดิโอ · AUDIO IN (3.5 mm stereo, LINE)
+มิกเซอร์เสียง · MAIN / PA OUT (XLR)  ->  Yamaha HS5 ลำโพงมอนิเตอร์ · INPUT (XLR, balanced)
+```
+
+**Operator configuration (ground truth):** tx1.power = true; rx1.power = true; rx1.rf = CH 1; rx1.pair = Paired; tx2.power = true; rx2.power = true; rx2.rf = CH 1; rx2.pair = Paired; tx2.rf = CH 2; rx2.rf = CH 2; mix.power = true; mix.main-fader = Unity; mix.aux-master = Unity; mix.ch1-gain = Nominal (peaks −18 dBFS); mix.ch1-on = true; mix.ch1-main = true; mix.ch1-aux = true; mix.ch2-gain = Nominal (peaks −18 dBFS); mix.ch2-on = true; mix.ch2-main = true; mix.ch2-aux = true; sw.power = true; sw.ain-on = true; sw.emb-audio = OFF; speaker.power = true
 
 **Preflight:** ตรวจเสียงด้วยระดับพูดจริง เผื่อระดับก่อนเสียงแตก; ตั้งไมค์ระดับปาก หันหลบลำโพง
 
-**Objectives (12, ★ = critical gate):**
+**Objectives (11, ★ = critical gate):**
 
-- [signal · signal] มาตรวัดสเตอริโอแสดงเสียงพิธีกร ★
-- [signal · signal] ได้ยินเสียงพิธีกรผ่านหูฟัง ★
-- [signal · config] ตั้งตัวกรองเสียงต่ำอย่างเหมาะสม
-- [signal · quality] หันไมค์เข้าหาปากผู้พูด
-- [rehearsal · evidence] ได้ยินประโยคทดสอบโดยเสียงไม่แตก
+- [physical · config] ไมค์สองตัวเข้าช่องแยกกัน
+- [signal · signal] บัส Broadcast มีเสียงทั้งสองไมค์ที่เครื่องสลับภาพ ★
+- [signal · signal] ลำโพง HS5 ได้ยินทั้งสองไมค์ ★
+- [rehearsal · evidence] ตรวจเสียงทีละไมค์แล้ว
 - [physical · safety] ติดตั้งอุปกรณ์ที่ต้องใช้ครบทุกจุด
 - [physical · config] อุปกรณ์ที่ใช้งานผ่านการตรวจไฟเลี้ยงครบ
 - [physical · signal] ต่อสายตรงตามผังช่องสัญญาณ
@@ -250,206 +282,146 @@ Yamaha MG12XU · PHONES  ->  หูฟังตรวจเสียง · PHONE
 - [delivery · evidence] คำถามทบทวนความเข้าใจ
 - [delivery · evidence] ตรวจรับงานและเก็บงาน ★
 
-**Pass criteria (spec):** ได้ยินเสียงผ่านหูฟังและเห็นมาตรวัดสเตอริโอ; ไม่มีเสียงแตกหรือหอน; หันไมค์เข้าปาก
+**Pass criteria (spec):** ระบบรู้จักไมค์ทั้งสองแยกกัน; ส่งเข้า Broadcast และฟังตรวจได้
 
-**Reward:** ตราเสียงสะท้อนแรก
+**Reward:** ตราเสียงคู่ใต้แสงจันทร์
 
-### ST-02 / L2 — สองเสียงใต้แสงจันทร์ (partial; 13–16 นาที)
+### ST-03 / L3 — สลับสามกล้อง · Three-Camera Switch (scenario; 12–15 นาที)
 
-**Ticket:** จัดระบบให้ปรับเสียงพิธีกรและแขกรับเชิญแยกจากกันได้
-
-**Canonical graph**
-
-```
-ไมค์พิธีกร SM58 · XLR OUT  ->  Yamaha MG12XU · CH1 MIC/LINE IN
-ไมค์แขกรับเชิญ SM58 · XLR OUT  ->  Yamaha MG12XU · CH2 MIC/LINE IN
-Yamaha MG12XU · PHONES  ->  หูฟังตรวจเสียง · PHONES PLUG (TRS)
-```
-
-**Operator configuration (ground truth):** mix.power = true; mix.st-fader = Unity; mix.ch1-gain = Nominal (peaks −18 dBFS); mix.ch1-on = true; mix.ch1-st = true; mix.ch1-hpf = true; mix.ch2-gain = Nominal (peaks −18 dBFS); mix.ch2-on = true; mix.ch2-st = true; mix.ch2-hpf = true; micH.aim = At talker's mouth; micG.aim = At talker's mouth
-
-**Start config:** micG.aim = Toward PA loudspeaker
-
-**Preflight:** ตรวจเสียงด้วยระดับพูดจริง เผื่อระดับก่อนเสียงแตก; ตั้งไมค์ระดับปาก หันหลบลำโพง
-
-**Objectives (12, ★ = critical gate):**
-
-- [signal · signal] เสียงทั้งสองคนเข้าชุดผสมสเตอริโอ ★
-- [physical · config] พิธีกรช่อง CH1 และแขกรับเชิญ CH2 แยกกัน
-- [signal · signal] หูฟังได้ยินเสียงรวม
-- [signal · quality] หันไมค์ทั้งสองเข้าหาผู้พูด
-- [rehearsal · evidence] ตรวจเสียงสัมภาษณ์แยกคนและรวมกันแล้ว
-- [physical · safety] ติดตั้งอุปกรณ์ที่ต้องใช้ครบทุกจุด
-- [physical · config] อุปกรณ์ที่ใช้งานผ่านการตรวจไฟเลี้ยงครบ
-- [physical · signal] ต่อสายตรงตามผังช่องสัญญาณ
-- [physical · safety] ตรวจเสียงด้วยระดับพูดจริง เผื่อระดับก่อนเสียงแตก
-- [physical · safety] ตั้งไมค์ระดับปาก หันหลบลำโพง
-- [delivery · evidence] คำถามทบทวนความเข้าใจ
-- [delivery · evidence] ตรวจรับงานและเก็บงาน ★
-
-**Pass criteria (spec):** เสียงตอบของทั้งสองคนชัด ทั้งแยกและรวม; เผื่อระดับเสียงเพียงพอ ไม่มีเสียงหอน
-
-**Reward:** เครื่องรางจันทร์คู่
-
-### ST-03 / L3 — สภาสามเลนส์ (scenario; 18–22 นาที)
-
-**Ticket:** ถ่ายภาพพิธีกร แขกรับเชิญ และภาพทั้งสองคน
+**Ticket:** ถ่ายสามมุม: โต๊ะผู้นำเสนอ มุมสัมภาษณ์ และฉากเขียว — สลับด้วยเครื่องสลับภาพ ไม่ใช่การย้ายสาย
 
 **Canonical graph**
 
 ```
-กล้องสตูดิโอ A (ภาพกว้าง) · 12G-SDI OUT  ->  ATEM TV Studio HD8 ISO · SDI IN 1
-กล้องสตูดิโอ B (แขกรับเชิญ) · 12G-SDI OUT  ->  ATEM TV Studio HD8 ISO · SDI IN 2
-กล้องสตูดิโอ C (พิธีกร) · 12G-SDI OUT  ->  ATEM TV Studio HD8 ISO · SDI IN 3
-ไมค์พิธีกร SM58 · XLR OUT  ->  Yamaha MG12XU · CH1 MIC/LINE IN
-ไมค์แขกรับเชิญ SM58 · XLR OUT  ->  Yamaha MG12XU · CH2 MIC/LINE IN
-Yamaha MG12XU · STEREO OUT L  ->  ATEM TV Studio HD8 ISO · XLR AUDIO IN 1
-Yamaha MG12XU · STEREO OUT R  ->  ATEM TV Studio HD8 ISO · XLR AUDIO IN 2
-ATEM TV Studio HD8 ISO · HDMI MULTIVIEW OUT  ->  จอรวมภาพ · HDMI IN
-Yamaha MG12XU · PHONES  ->  หูฟังตรวจเสียง · PHONES PLUG (TRS)
+CAM1 ภาพกว้าง (โต๊ะผู้นำเสนอ) · HDMI OUT  ->  เครื่องสลับภาพสตูดิโอ · VIDEO IN 1 (HDMI)
+CAM2 มุมสัมภาษณ์ · HDMI OUT  ->  เครื่องสลับภาพสตูดิโอ · VIDEO IN 2 (HDMI)
+CAM3 มุมฉากเขียว · HDMI OUT  ->  เครื่องสลับภาพสตูดิโอ · VIDEO IN 3 (HDMI)
+เครื่องสลับภาพสตูดิโอ · MULTIVIEW OUT (HDMI)  ->  ทีวีรวมภาพ (Multiview) · HDMI IN
 ```
 
-**Operator configuration (ground truth):** cam1.power = true; cam1.format = 1080p50; cam1.framing = Framed for assignment; cam2.power = true; cam2.format = 1080p50; cam2.framing = Framed for assignment; cam3.power = true; cam3.format = 1080p50; cam3.framing = Framed for assignment; mix.power = true; mix.st-fader = Unity; mix.ch1-gain = Nominal (peaks −18 dBFS); mix.ch1-on = true; mix.ch1-st = true; mix.ch1-hpf = true; mix.ch2-gain = Nominal (peaks −18 dBFS); mix.ch2-on = true; mix.ch2-st = true; mix.ch2-hpf = true; sw.power = true; sw.labels = true; sw.xlr-on = true; sw.emb-audio = OFF; monitor.power = true
+**Operator configuration (ground truth):** cam1.power = true; cam1.framing = Framed for assignment; cam1.clean = true; cam2.power = true; cam2.framing = Framed for assignment; cam2.clean = true; cam3.power = true; cam3.framing = Framed for assignment; cam3.clean = true; sw.power = true; monitor.power = true
 
-**Start config:** cam2.format = 2160p50
+**Run-of-show:** เปิดรายการ … CAM1 → CAM1 · สัมภาษณ์ … CAM2 → CAM2 · ฉากเขียว … CAM3 → CAM3 · กลับภาพกว้าง … CAM1 → CAM1 (preview before every TAKE)
 
-**Spares / decoys in the kit:** HDMI 5 ม.
+**Preflight:** เดินสายตามผนังหรือราง ไม่กีดขวางทางเดิน
 
-**Run-of-show:** เปิดด้วยภาพสองคน … สลับช่อง 1 → CAM-A · แขกตอบ … สลับช่อง 2 → CAM-B · พิธีกรถามต่อ … สลับช่อง 3 → CAM-C · ภาพกว้างปิดช่วง … สลับช่อง 1 → CAM-A
+**Objectives (10, ★ = critical gate):**
 
-**Preflight:** ตรวจเสียงด้วยระดับพูดจริง เผื่อระดับก่อนเสียงแตก
-
-**Objectives (12, ★ = critical gate):**
-
-- [signal · signal] จอรวมภาพแสดงทั้งสามกล้อง ★
-- [signal · quality] ภาพออกอากาศมีเสียงพิธีกรและแขก ไม่มีเสียงไมค์กล้องซ้อน ★
-- [signal · config] ชื่อแหล่งสัญญาณตรงตารางทีมงาน
-- [signal · quality] จัดกรอบภาพกว้างและภาพใกล้สองมุมแล้ว
+- [signal · signal] เห็นทั้งสามกล้องในจอรวมภาพ ★
+- [rehearsal · evidence] การเลือกแหล่งภาพเปลี่ยน PGM จริง
 - [physical · safety] ติดตั้งอุปกรณ์ที่ต้องใช้ครบทุกจุด
 - [physical · config] อุปกรณ์ที่ใช้งานผ่านการตรวจไฟเลี้ยงครบ
 - [physical · signal] ต่อสายตรงตามผังช่องสัญญาณ
-- [physical · safety] ตรวจเสียงด้วยระดับพูดจริง เผื่อระดับก่อนเสียงแตก
+- [physical · safety] เดินสายตามผนังหรือราง ไม่กีดขวางทางเดิน
 - [rehearsal · evidence] ออกอากาศตามคิวครบ 4 คิว
 - [rehearsal · quality] ไม่มีภาพดำออกอากาศระหว่างซ้อม
 - [delivery · evidence] คำถามทบทวนความเข้าใจ
 - [delivery · evidence] ตรวจรับงานและเก็บงาน ★
 
-**Pass criteria (spec):** แหล่งภาพสามกล้องครบ; เสียงสองคนชัด; สลับหลายกล้องตามลำดับ 60 วินาทีถูกต้อง
+**Pass criteria (spec):** เห็นภาพทั้งสาม; การเลือกแหล่งภาพเปลี่ยน PGM ไม่ใช่การย้ายสาย
 
-**Reward:** สภาแห่งเลนส์
+**Reward:** ตราสภาสามเลนส์
 
-### ST-04 / L4 — สัญญาณกลับที่เงียบหาย (disruption; 20–25 นาที)
+### ST-04 / L4 — แก้ปัญหาการจับภาพ · Capture Troubleshooting (disruption; 15–18 นาที)
 
-**Ticket:** แก้ภาพกล้องแขกรับเชิญที่หายไปและจอผู้กำกับที่ตรวจรายการไม่ได้
+**Ticket:** ผู้ชมออนไลน์เห็นภาพตารางรวมภาพแทนรายการ และไม่ได้ยินเสียง — หาสาเหตุและซ่อมทางกายภาพ
 
 **Canonical graph**
 
 ```
-กล้องสตูดิโอ A (ภาพกว้าง) · 12G-SDI OUT  ->  ATEM TV Studio HD8 ISO · SDI IN 1
-กล้องสตูดิโอ B (แขกรับเชิญ) · 12G-SDI OUT  ->  ATEM TV Studio HD8 ISO · SDI IN 2
-กล้องสตูดิโอ C (พิธีกร) · 12G-SDI OUT  ->  ATEM TV Studio HD8 ISO · SDI IN 3
-ไมค์พิธีกร SM58 · XLR OUT  ->  Yamaha MG12XU · CH1 MIC/LINE IN
-ไมค์แขกรับเชิญ SM58 · XLR OUT  ->  Yamaha MG12XU · CH2 MIC/LINE IN
-Yamaha MG12XU · STEREO OUT L  ->  ATEM TV Studio HD8 ISO · XLR AUDIO IN 1
-Yamaha MG12XU · STEREO OUT R  ->  ATEM TV Studio HD8 ISO · XLR AUDIO IN 2
-ATEM TV Studio HD8 ISO · HDMI MULTIVIEW OUT  ->  จอรวมภาพ · HDMI IN
-ATEM TV Studio HD8 ISO · SDI OUT 1  ->  Micro Converter SDI→HDMI 3G · SDI IN
-Micro Converter SDI→HDMI 3G · HDMI OUT  ->  จอภาพออกอากาศ · HDMI IN
-ATEM TV Studio HD8 ISO · USB-C (record)  ->  SSD บันทึกข้อมูล · USB-C
-Yamaha MG12XU · PHONES  ->  หูฟังตรวจเสียง · PHONES PLUG (TRS)
-ATEM TV Studio HD8 ISO · SDI OUT 2  ->  กล้องสตูดิโอ B (แขกรับเชิญ) · 12G-SDI IN (RETURN)
+CAM1 ภาพกว้าง (โต๊ะผู้นำเสนอ) · HDMI OUT  ->  เครื่องสลับภาพสตูดิโอ · VIDEO IN 1 (HDMI)
+เครื่องสลับภาพสตูดิโอ · MULTIVIEW OUT (HDMI)  ->  ทีวีรวมภาพ (Multiview) · HDMI IN
+เครื่องสลับภาพสตูดิโอ · PGM OUT (HDMI)  ->  Magewell USB Capture HDMI Gen 2 · HDMI IN
+Magewell USB Capture HDMI Gen 2 · USB 3.0 (DEVICE → HOST)  ->  โน้ตบุ๊ก OBS (จำลอง) · USB-A 1 (capture)
+ไมค์หนีบปก 1 (พิธีกร) · LAV PLUG (3.5 mm)  ->  ตัวส่ง TX 1 · MIC IN (3.5 mm)
+ตัวรับ RX ช่อง 1 · AUDIO OUT (XLR)  ->  มิกเซอร์เสียง · IN 1 MIC/LINE (XLR)
+มิกเซอร์เสียง · STREAM / AUX OUT (TRS stereo)  ->  เครื่องสลับภาพสตูดิโอ · AUDIO IN (3.5 mm stereo, LINE)
 ```
 
-**Operator configuration (ground truth):** cam2.format = 1080p50; conv.power = true; sw.record = true
+**Operator configuration (ground truth):** mix.ch1-aux = true; host.video-src = USB video capture device
 
 **Start state:** fully pre-wired show
 
-**Start config:** cam1.power = true; cam1.format = 1080p50; cam1.framing = Framed for assignment; cam2.power = true; cam2.format = 1080p50; cam2.framing = Framed for assignment; cam3.power = true; cam3.format = 1080p50; cam3.framing = Framed for assignment; mix.power = true; mix.st-fader = Unity; mix.ch1-gain = Nominal (peaks −18 dBFS); mix.ch1-on = true; mix.ch1-st = true; mix.ch1-hpf = true; mix.ch2-gain = Nominal (peaks −18 dBFS); mix.ch2-on = true; mix.ch2-st = true; mix.ch2-hpf = true; sw.power = true; sw.labels = true; sw.xlr-on = true; sw.emb-audio = OFF; sw.sdi-out-1 = PROGRAM; monitor.power = true; pgm.power = true; conv.power = true; ssd.state = Mounted · 412 GB free; sw.sdi-out-2 = CAM RETURN; sw.pgm = SDI 1
+**Start config:** cam1.power = true; cam1.framing = Framed for assignment; cam1.clean = true; tx1.power = true; rx1.power = true; rx1.rf = CH 1; rx1.pair = Paired; mix.power = true; mix.aux-master = Unity; mix.ch1-gain = Nominal (peaks −18 dBFS); mix.ch1-on = true; mix.ch1-aux = true; sw.power = true; sw.pgm = HDMI 1; sw.ain-on = true; sw.emb-audio = OFF; monitor.power = true; host.power = true; host.video-src = USB video capture device; host.audio-src = USB capture embedded audio
 
-**Seeded faults:** กล้อง B ยังตั้งเป็น 2160p50 [sdi-rate]; ตัวแปลงภาพออกอากาศไม่มีไฟเลี้ยง [power]
+**Seeded faults:** สาย Capture ต่อจาก MULTIVIEW OUT แทน PGM OUT [output-assign]; เสียงไมค์ไม่ได้ส่งเข้าบัส Broadcast [group-bus]; สาย USB ของ Capture หลุด [usb-role]; OBS ไม่ได้เลือก Video Capture Device [obs-source]
 
-**Run-of-show:** ภาพกว้าง … สลับช่อง 1 → CAM-A · แขกรับเชิญ … สลับช่อง 2 (ตรวจภาพออกอากาศและรวมภาพ) → CAM-B · กลับภาพกว้าง … สลับช่อง 1 → CAM-A
+**Spares / decoys in the kit:** HDMI 2 ม. (สำรอง); USB-A ↔ USB-A (ห้ามต่อ HOST ↔ HOST)
 
-**Objectives (12, ★ = critical gate):**
+**Preflight:** ตรวจเสียงด้วยระดับพูดจริง เผื่อระดับก่อนเสียงแตก
 
-- [signal · signal] ภาพทั้งสามกล้องกลับมาบนจอรวมภาพ ★
-- [signal · signal] จอตรวจภาพออกอากาศตรงกับภาพออกอากาศจริง ★
-- [signal · config] กล้อง B ได้รับภาพส่งกลับ โดยไม่นับเป็นแหล่งภาพต้นทาง
-- [delivery · evidence] บันทึกทดสอบส่วนตัวหนึ่งนาทีลงดิสก์แยกกล้องแล้ว ★
-- [delivery · diagnostics] วินิจฉัยและแก้ปัญหาทั้งสองจุดแล้ว ★
+**Objectives (10, ★ = critical gate):**
+
+- [signal · signal] MULTIVIEW ไปที่ทีวีเพื่อดูตรวจ ★
+- [signal · signal] OBS ได้ภาพ PGM ผ่าน Capture ★
+- [signal · quality] OBS มีเสียงรายการที่ฝังใน PGM ★
+- [delivery · diagnostics] ตรวจหาและซ่อมจุดเสียครบ ★
 - [physical · safety] ติดตั้งอุปกรณ์ที่ต้องใช้ครบทุกจุด
 - [physical · config] อุปกรณ์ที่ใช้งานผ่านการตรวจไฟเลี้ยงครบ
 - [physical · signal] ต่อสายตรงตามผังช่องสัญญาณ
-- [rehearsal · evidence] ออกอากาศตามคิวครบ 3 คิว
-- [rehearsal · quality] ไม่มีภาพดำออกอากาศระหว่างซ้อม
+- [physical · safety] ตรวจเสียงด้วยระดับพูดจริง เผื่อระดับก่อนเสียงแตก
 - [delivery · evidence] คำถามทบทวนความเข้าใจ
 - [delivery · evidence] ตรวจรับงานและเก็บงาน ★
 
-**Pass criteria (spec):** ตรวจการสลับแหล่งภาพทั้งจอตรวจและภาพออกอากาศ; มีบันทึกทดสอบหนึ่งนาทีและบันทึกเหตุการณ์
+**Pass criteria (spec):** MV ใช้ดูตรวจ PGM ป้อน Capture; USB จาก Capture เข้า HOST; OBS มีภาพและเสียงรายการ
 
-**Reward:** ตราสัญญาณกลับ
+**Reward:** ตราผู้กู้สัญญาณจับภาพ
 
-### ST-05 / L5 — ประเมินปฏิบัติสตูดิโอ (certification; 30–40 นาที)
+### ST-05 / L5 — สตูดิโอครบระบบ · Full Studio (certification; 25–30 นาที)
 
-**Ticket:** ผลิตรายการสัมภาษณ์สองคน 5 นาทีจากสตูดิโอว่าง ด้วยสามมุมกล้อง ไมค์ที่ปรับแยกได้ จอรวมภาพและภาพออกอากาศ การบันทึกแยกกล้องและสตรีมส่วนตัว
+**Ticket:** ประกอบสตูดิโอครบระบบ: สามกล้องสลับได้, ไมค์ไร้สาย 2 ตัวและไมค์สาย 1 ตัวแยกช่อง, Broadcast ฝังเข้า PGM, ฟังตรวจที่ HS5, จับภาพ PGM เข้า OBS
 
 **Canonical graph**
 
 ```
-กล้องสตูดิโอ A (ภาพกว้าง) · 12G-SDI OUT  ->  ATEM TV Studio HD8 ISO · SDI IN 1
-กล้องสตูดิโอ B (แขกรับเชิญ) · 12G-SDI OUT  ->  ATEM TV Studio HD8 ISO · SDI IN 2
-กล้องสตูดิโอ C (พิธีกร) · 12G-SDI OUT  ->  ATEM TV Studio HD8 ISO · SDI IN 3
-ไมค์พิธีกร SM58 · XLR OUT  ->  Yamaha MG12XU · CH1 MIC/LINE IN
-ไมค์แขกรับเชิญ SM58 · XLR OUT  ->  Yamaha MG12XU · CH2 MIC/LINE IN
-Yamaha MG12XU · STEREO OUT L  ->  ATEM TV Studio HD8 ISO · XLR AUDIO IN 1
-Yamaha MG12XU · STEREO OUT R  ->  ATEM TV Studio HD8 ISO · XLR AUDIO IN 2
-ATEM TV Studio HD8 ISO · HDMI MULTIVIEW OUT  ->  จอรวมภาพ · HDMI IN
-ATEM TV Studio HD8 ISO · SDI OUT 1  ->  Micro Converter SDI→HDMI 3G · SDI IN
-Micro Converter SDI→HDMI 3G · HDMI OUT  ->  จอภาพออกอากาศ · HDMI IN
-ATEM TV Studio HD8 ISO · USB-C (record)  ->  SSD บันทึกข้อมูล · USB-C
-Yamaha MG12XU · PHONES  ->  หูฟังตรวจเสียง · PHONES PLUG (TRS)
-ATEM TV Studio HD8 ISO · ETHERNET  ->  เกตเวย์เครือข่าย GbE · LAN 1
-เกตเวย์เครือข่าย GbE · WAN  ->  จุดรับสตรีมทดสอบส่วนตัว (WAN) · UPLINK IN
+CAM1 ภาพกว้าง (โต๊ะผู้นำเสนอ) · HDMI OUT  ->  เครื่องสลับภาพสตูดิโอ · VIDEO IN 1 (HDMI)
+CAM2 มุมสัมภาษณ์ · HDMI OUT  ->  เครื่องสลับภาพสตูดิโอ · VIDEO IN 2 (HDMI)
+CAM3 มุมฉากเขียว · HDMI OUT  ->  เครื่องสลับภาพสตูดิโอ · VIDEO IN 3 (HDMI)
+เครื่องสลับภาพสตูดิโอ · MULTIVIEW OUT (HDMI)  ->  ทีวีรวมภาพ (Multiview) · HDMI IN
+เครื่องสลับภาพสตูดิโอ · PGM OUT (HDMI)  ->  Magewell USB Capture HDMI Gen 2 · HDMI IN
+Magewell USB Capture HDMI Gen 2 · USB 3.0 (DEVICE → HOST)  ->  โน้ตบุ๊ก OBS (จำลอง) · USB-A 1 (capture)
+ไมค์หนีบปก 1 (พิธีกร) · LAV PLUG (3.5 mm)  ->  ตัวส่ง TX 1 · MIC IN (3.5 mm)
+ไมค์หนีบปก 2 (แขกรับเชิญ) · LAV PLUG (3.5 mm)  ->  ตัวส่ง TX 2 · MIC IN (3.5 mm)
+ตัวรับ RX ช่อง 1 · AUDIO OUT (XLR)  ->  มิกเซอร์เสียง · IN 1 MIC/LINE (XLR)
+ตัวรับ RX ช่อง 2 · AUDIO OUT (XLR)  ->  มิกเซอร์เสียง · IN 2 MIC/LINE (XLR)
+ไมค์สาย XLR · XLR OUT  ->  มิกเซอร์เสียง · IN 3 MIC/LINE (XLR)
+มิกเซอร์เสียง · STREAM / AUX OUT (TRS stereo)  ->  เครื่องสลับภาพสตูดิโอ · AUDIO IN (3.5 mm stereo, LINE)
+มิกเซอร์เสียง · MAIN / PA OUT (XLR)  ->  Yamaha HS5 ลำโพงมอนิเตอร์ · INPUT (XLR, balanced)
 ```
 
-**Operator configuration (ground truth):** cam1.power = true; cam1.format = 1080p50; cam1.framing = Framed for assignment; cam2.power = true; cam2.format = 1080p50; cam2.framing = Framed for assignment; cam3.power = true; cam3.format = 1080p50; cam3.framing = Framed for assignment; mix.power = true; mix.st-fader = Unity; mix.ch1-gain = Nominal (peaks −18 dBFS); mix.ch1-on = true; mix.ch1-st = true; mix.ch1-hpf = true; mix.ch2-gain = Nominal (peaks −18 dBFS); mix.ch2-on = true; mix.ch2-st = true; mix.ch2-hpf = true; sw.power = true; sw.labels = true; sw.xlr-on = true; sw.emb-audio = OFF; sw.sdi-out-1 = PROGRAM; monitor.power = true; pgm.power = true; conv.power = true; ssd.state = Mounted · 412 GB free; sw.pgm = SDI 1; micH.aim = At talker's mouth; micG.aim = At talker's mouth; net.power = true; net.uplink-test = true; sw.record = true; sw.stream-key = •••••••• (private test key); sw.stream = true
+**Operator configuration (ground truth):** cam1.power = true; cam1.framing = Framed for assignment; cam1.clean = true; cam2.power = true; cam2.framing = Framed for assignment; cam2.clean = true; cam3.power = true; cam3.framing = Framed for assignment; cam3.clean = true; tx1.power = true; rx1.power = true; rx1.rf = CH 1; rx1.pair = Paired; tx2.power = true; rx2.power = true; rx2.rf = CH 1; rx2.pair = Paired; tx2.rf = CH 2; rx2.rf = CH 2; mix.power = true; mix.main-fader = Unity; mix.aux-master = Unity; mix.ch1-gain = Nominal (peaks −18 dBFS); mix.ch1-on = true; mix.ch1-main = true; mix.ch1-aux = true; mix.ch2-gain = Nominal (peaks −18 dBFS); mix.ch2-on = true; mix.ch2-main = true; mix.ch2-aux = true; mix.ch3-gain = Nominal (peaks −18 dBFS); mix.ch3-on = true; mix.ch3-main = true; mix.ch3-aux = true; sw.power = true; sw.pgm = HDMI 1; sw.ain-on = true; sw.emb-audio = OFF; monitor.power = true; speaker.power = true; host.power = true; host.video-src = USB video capture device; host.audio-src = USB capture embedded audio
 
-**Surprise fault pool (one, chosen from the attempt seed after rehearsal):** ขาดการเชื่อมต่อเครือข่าย; ไมค์พิธีกรปิดเสียง; กล้อง C ตั้งอัตราภาพผิด; สื่อบันทึกขัดข้องเพราะดิสก์เต็ม
+**Surprise fault pool (one, chosen from the attempt seed after rehearsal):** ตัวรับ RX ช่อง 2 หลุดการจับคู่; ช่องไมค์สายถูก Mute; สาย USB ของ Capture หลุด; ปิด AUDIO IN ที่เครื่องสลับภาพ
 
-**Spares / decoys in the kit:** HDMI 3 ม.; 3G-SDI 10 ม. (สำรอง); USB-B → USB-A (USB เครื่องผสมเสียง)
+**Spares / decoys in the kit:** HDMI 2 ม. (สำรอง); USB-A ↔ USB-A (ห้ามต่อ HOST ↔ HOST); XLR 5 ม. (สำรอง)
 
-**Run-of-show:** ชื่อรายการ — เปิดภาพกว้าง → CAM-A · พิธีกรเกริ่นนำ → CAM-C · แขกตอบคำถาม → CAM-B · ภาพสองคน → CAM-A · ปิดรายการ — พิธีกร → CAM-C
+**Run-of-show:** เปิดรายการ … CAM1 → CAM1 · สัมภาษณ์ … CAM2 → CAM2 · ฉากเขียว … CAM3 → CAM3 · ปิดรายการ … CAM1 → CAM1 (preview before every TAKE)
 
-**Preflight:** เดินสายตามผนังหรือราง ไม่กีดขวางทางเดิน; ทดสอบตบมือหรือสเลตเพื่อให้ภาพและเสียงตรงกัน; ตรวจเสียงด้วยระดับพูดจริง เผื่อระดับก่อนเสียงแตก; ตรวจสื่อบันทึก: เชื่อมต่อแล้ว มีพื้นที่ว่าง และบันทึกไฟล์ทดสอบได้; ยืนยันสิทธิ์และรหัสสตรีมทดสอบส่วนตัว โดยปกปิดรหัสและไม่เผยแพร่สาธารณะ; ปรับแสงสมดุลด้วยการควบคุมจำลอง ภายใต้การดูแลผู้เชี่ยวชาญ; แผนเก็บงาน: ปิดเครื่อง ม้วนสาย เก็บเข้ากล่อง
+**Preflight:** ตรวจไฟเลี้ยงที่ติดป้ายแล้ว โดยไม่ทำงานกับไฟฟ้าหลัก; เดินสายตามผนังหรือราง ไม่กีดขวางทางเดิน; ตรวจเสียงด้วยระดับพูดจริง เผื่อระดับก่อนเสียงแตก; ตั้งไมค์ระดับปาก หันหลบลำโพง
 
-**Objectives (22, ★ = critical gate):**
+**Objectives (17, ★ = critical gate):**
 
-- [signal · signal] เลือกภาพจากสามแหล่งแยกกันได้ ★
-- [signal · quality] สองเสียงชัด ไม่มีเสียงแตก หอน หรือซ้อน ★
-- [signal · signal] จอรวมภาพและจอออกอากาศแยกกันทำงาน ★
-- [delivery · signal] ผู้ชมส่วนตัวได้รับภาพออกอากาศและเสียง ★
-- [delivery · evidence] แสดงสถานะบันทึกภาพออกอากาศและแยกสามกล้อง ★
-- [delivery · evidence] หยุดบันทึกอย่างสมบูรณ์แล้ว
-- [delivery · diagnostics] ระบุสาเหตุและแก้ปัญหาแล้ว ★
-- [delivery · safety] เริ่มถ่ายทอดหลังซ้อมเท่านั้น
+- [signal · signal] สามกล้องอยู่ในจอรวมภาพ ★
+- [signal · signal] OBS ได้ภาพ PGM ผ่าน Capture ★
+- [signal · quality] OBS มีเสียงทั้งสามไมค์ที่ฝังใน PGM (ไม่ซ้อน) ★
+- [signal · signal] ฟังตรวจที่ HS5 ได้ ★
+- [rehearsal · evidence] ใช้ครบสามมุมกล้องในรายการ
+- [delivery · diagnostics] แก้ปัญหาที่เกิดระหว่างงานได้ ★
 - [physical · safety] ติดตั้งอุปกรณ์ที่ต้องใช้ครบทุกจุด
 - [physical · config] อุปกรณ์ที่ใช้งานผ่านการตรวจไฟเลี้ยงครบ
 - [physical · signal] ต่อสายตรงตามผังช่องสัญญาณ ★
+- [physical · safety] ตรวจไฟเลี้ยงที่ติดป้ายแล้ว โดยไม่ทำงานกับไฟฟ้าหลัก
 - [physical · safety] เดินสายตามผนังหรือราง ไม่กีดขวางทางเดิน
-- [physical · safety] ทดสอบตบมือหรือสเลตเพื่อให้ภาพและเสียงตรงกัน
 - [physical · safety] ตรวจเสียงด้วยระดับพูดจริง เผื่อระดับก่อนเสียงแตก
-- [physical · safety] ตรวจสื่อบันทึก: เชื่อมต่อแล้ว มีพื้นที่ว่าง และบันทึกไฟล์ทดสอบได้
-- [physical · safety] ยืนยันสิทธิ์และรหัสสตรีมทดสอบส่วนตัว โดยปกปิดรหัสและไม่เผยแพร่สาธารณะ
-- [physical · safety] ปรับแสงสมดุลด้วยการควบคุมจำลอง ภายใต้การดูแลผู้เชี่ยวชาญ
-- [physical · safety] แผนเก็บงาน: ปิดเครื่อง ม้วนสาย เก็บเข้ากล่อง
-- [rehearsal · evidence] ออกอากาศตามคิวครบ 5 คิว ★
+- [physical · safety] ตั้งไมค์ระดับปาก หันหลบลำโพง
+- [rehearsal · evidence] ออกอากาศตามคิวครบ 4 คิว ★
 - [rehearsal · quality] ไม่มีภาพดำออกอากาศระหว่างซ้อม
 - [delivery · evidence] คำถามทบทวนความเข้าใจ
 - [delivery · evidence] ตรวจรับงานและเก็บงาน ★
 
-**Pass criteria (spec):** เลือกแหล่งภาพได้สามแหล่ง; เสียงพูดสองคนสะอาด; จอรวมภาพและจอออกอากาศแยกกัน; ผู้ชมส่วนตัวรับสตรีมได้; บันทึกภาพออกอากาศและแยกสามกล้อง; แก้ปัญหาแล้ว; เดินสายปลอดภัย; บันทึกการทำงานครบ
+**Pass criteria (spec):** เลือก PGM ได้ครบสามกล้อง; ฟังตรวจได้; เสียงฝังใน Capture ถูกต้อง; OBS มีภาพและมิเตอร์เสียง
 
-**Reward:** ผลฝึกถ่ายทอดสะพานจันทรา
+**Reward:** ใบอนุญาตถ่ายทอดสะพานจันทรา
 
 ## AU · หอคอยกระจกแห่งภาพสลับ
 _หอประชุมใหญ่ · ถ่ายทอดงานไปหลายปลายทาง_

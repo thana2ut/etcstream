@@ -108,16 +108,15 @@ test("studio monitors reflect partial patching, selected camera, audio and strea
   assert.match(studioSignalFeed(state, "recording"), /NOT READY/);
   assert.ok(!venueScreenLive(state, "monitor"));
   state = solve(SCENARIOS["s-5"]);
-  assert.match(studioSignalFeed(state, "inputs"), /CAM-A: READY\nCAM-B: READY\nCAM-C: READY/);
-  state = setControl(state, "sw", "pgm", "SDI 3");
-  assert.match(studioSignalFeed(state, "program"), /CAM-C/);
+  assert.match(studioSignalFeed(state, "inputs"), /CAM1: READY\nCAM2: READY\nCAM3: READY/);
+  state = setControl(state, "sw", "pgm", "HDMI 3");
+  assert.match(studioSignalFeed(state, "program"), /CAM3/);
   assert.match(studioSignalFeed(state, "audio"), /HOST VOICE/);
-  state = setControl(state, "sw", "stream", true);
-  assert.match(studioSignalFeed(state, "recording"), /STREAM LIVE/);
+  assert.match(studioSignalFeed(state, "recording"), /OBS ● CAM3 .* · AUDIO/);
   assert.ok(venueScreenLive(state, "monitor"));
-  state = act(state, { kind: "port", portId: "cam3:sdi-out" });
+  state = act(state, { kind: "port", portId: "cam3:hdmi-out" });
   assert.match(studioSignalFeed(state, "program"), /NO PROGRAM/);
-  assert.match(studioSignalFeed(state, "inputs"), /CAM-C: NO INPUT/);
+  assert.match(studioSignalFeed(state, "inputs"), /CAM3: NO INPUT/);
 });
 
 test("studio cameras cover the interview set from three distinct angles and stored bodies fit their return desk", () => {
@@ -147,7 +146,7 @@ test("studio camera marks, active cameras and microphone stands share operating 
   const layout = LAYOUTS.studioMission;
   for (const level of [1, 2, 3, 4, 5]) {
     const scenario = SCENARIOS[`s-${level}`];
-    for (const id of ["cam1", "cam2", "cam3", "micH", "micG"]) {
+    for (const id of ["cam1", "cam2", "cam3"]) {
       const device = scenario.devices.find((d) => d.id === id);
       if (!device) continue;
       assert.deepEqual(device.position, layout.places[id].p, `${scenario.id}: ${id} drifts from its mark/stand`);

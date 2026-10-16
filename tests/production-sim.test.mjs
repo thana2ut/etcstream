@@ -14,7 +14,7 @@ test("every named model carries source_url, verified_ports and asset_license; ge
   for (const m of Object.values(MODELS)) {
     assert.ok(m.verifiedPorts.length > 0 && m.assetLicense, m.modelId);
     if (m.generic) assert.equal(m.manufacturer, "Generic Training Device", m.modelId);
-    else assert.match(m.sourceUrl, /^https:\/\/(www\.)?(blackmagicdesign|proav\.roland|usa\.yamaha|shure)\./, m.modelId);
+    else assert.match(m.sourceUrl, /^https:\/\/(www\.)?(blackmagicdesign|proav\.roland|usa\.yamaha|shure|magewell)\./, m.modelId);
   }
 });
 test("all 25 stages present Thai instructions while retaining simulator identifiers", () => {
@@ -114,44 +114,39 @@ test("XS: removing a mandatory link breaks the completed graph (no connected-cou
 
 /* ───────── room 02 programmatic tests ───────── */
 const ST = SCENARIOS["s-5"].simDevices;
-test("ST 1: 2160p50 into the HD8 3G input fails even though BNC fits; 1080p50 passes", () => {
-  let s = solve("s-3", { stopAt: "signal" });
-  s = setControl(s, "cam2", "format", "2160p50");
-  assert.ok(!simContext(s).view.monitor.picture.includes("CAM-B"));
-  assert.equal(simContext(s).view.sw.problem.code, "SDI_RATE");
-});
-test("ST 2: camera RETURN IN → HD8 SDI IN is input-to-input; camera SDI OUT accepted", () => {
-  assert.equal(canConnect(ST, "cam2:sdi-ret", "sw:sdi-in-2").code, "INPUT_TO_INPUT");
-  assert.ok(canConnect(ST, "cam2:sdi-out", "sw:sdi-in-2").ok);
-});
-test("ST 3: MG12XU USB cannot feed an XLR analog input; ST OUT L/R → HD8 XLR accepted", () => {
-  const scenario = SCENARIOS["s-5"];
-  assert.notEqual(scenario.ports["mix:usb"].connector, scenario.ports["sw:xlr-1"].connector);
-  assert.ok(canConnect(ST, "mix:st-l", "sw:xlr-1").ok);
-});
-test("ST 4: HDMI multiview is not the Program feed; assigned PGM SDI via the powered converter is", () => {
-  const s = solve("s-4", { stopAt: "signal" });
-  const ctx = simContext(s);
-  assert.match(ctx.view.monitor.picture, /^MULTIVIEW/);
-  assert.equal(ctx.view.pgm.picture, ctx.view.sw.picture);
-  assert.ok(!simContext(setControl(s, "conv", "power", false)).view.pgm.picture);
-});
-test("ST 5: removing storage stops ISO but not the picture; removing WAN stops ingest but not multiview", () => {
+test("ST: MULTIVIEW is observation only — Capture fed from MV makes OBS show the grid, PGM OUT fixes it", () => {
   let s = solve("s-5", { stopAt: "signal" });
-  s = setControl(setControl(s, "sw", "stream", true), "sw", "record", true);
-  const noDisk = simContext(setControl(s, "ssd", "state", "Not mounted"));
-  assert.ok(!noDisk.view.ssd.recording && noDisk.view.wan.live && noDisk.view.monitor.picture);
-  const wanLead = SCENARIOS["s-5"].canonical.find((c) => c.from === "net:wan").cableId;
-  const noWan = simContext(dropHeldEnd(act(s, { kind: "end", cableId: wanLead, end: "b" }), [0, 0.8, 0]));
-  assert.ok(!noWan.view.wan.live && /MULTIVIEW/.test(noWan.view.monitor.picture));
-  const muted = simContext(setControl(s, "mix", "ch1-on", false));
-  assert.ok(!muted.view.wan.audio.includes("HOST VOICE"));
+  assert.equal(simContext(s).view.host.picture, simContext(s).view.sw.picture);
+  const mvLead = SCENARIOS["s-5"].canonical.find((c) => c.from === "sw:hdmi-mv-out").cableId;
+  const pgmLead = SCENARIOS["s-5"].canonical.find((c) => c.from === "sw:hdmi-pgm-out").cableId;
+  s = attach(s, mvLead, "b", "capture:hdmi-in");
+  s = attach(s, pgmLead, "b", "monitor:hdmi-in");
+  assert.match(simContext(s).view.host.picture, /^MULTIVIEW/);
+  assert.equal(runTest(s, "signal").sim.testsPassed.signal, false);
 });
-test("ST 6: camera return only works from an output assigned CAM RETURN", () => {
-  let s = solve("s-4", { stopAt: "signal" });
-  assert.ok(simContext(s).view.cam2.audio.some((a) => a.startsWith("RETURN")));
-  s = setControl(s, "sw", "sdi-out-2", "OFF");
-  assert.ok(!(simContext(s).view.cam2.audio ?? []).some((a) => a.startsWith("RETURN")));
+test("ST: Capture USB is a DEVICE that must reach the notebook USB HOST", () => {
+  assert.ok(canConnect(ST, "capture:usb", "host:usb-1").ok);
+  assert.equal(canConnect(ST, "capture:usb", "sw:hdmi-pgm-out").code, "OUTPUT_TO_OUTPUT");
+});
+test("ST: each wireless mic is its own RX channel — unpairing RX 2 drops only the guest", () => {
+  let s = solve("s-2", { stopAt: "signal" });
+  s = setControl(s, "rx2", "pair", "Not paired");
+  const a = simContext(s).view.mix.audio;
+  assert.ok(a.includes("HOST VOICE") && !a.includes("GUEST VOICE"));
+});
+test("ST: Broadcast and Monitor buses are separate — HS5 keeps sound when the Broadcast send is off", () => {
+  let s = solve("s-5", { stopAt: "signal" });
+  for (const n of [1, 2, 3]) s = setControl(s, "mix", `ch${n}-aux`, false);
+  const v = simContext(s).view;
+  assert.ok(v.speaker.audio.includes("HOST VOICE"));
+  assert.ok(!(v.host.audio ?? []).includes("HOST VOICE"));
+});
+test("ST: unplugging the Capture USB stops OBS but not the multiview", () => {
+  let s = solve("s-5", { stopAt: "signal" });
+  const lead = SCENARIOS["s-5"].canonical.find((c) => c.from === "capture:usb").cableId;
+  s = dropHeldEnd(act(s, { kind: "end", cableId: lead, end: "b" }), [0, 0.8, 0]);
+  const v = simContext(s).view;
+  assert.ok(!v.host.picture && /MULTIVIEW/.test(v.monitor.picture));
 });
 
 /* ───────── room 03 deterministic engineering tests ───────── */
@@ -311,9 +306,9 @@ test("three meaningful errors pause the mission; the targeted mini check resumes
   assert.ok(!s.sim.paused && s.sim.errors === 0);
 });
 test("signal trace names node → port → cable → node → port and the first faulty node", () => {
-  const s = setControl(solve("s-4", { stopAt: "signal" }), "conv", "power", false);
+  const s = setControl(solve("s-5", { stopAt: "signal" }), "rx1", "power", false);
   const ctx = simContext(s);
-  const { hops, first } = traceTo(SCENARIOS["s-4"].simDevices, ctx, "pgm", SCENARIOS["s-4"].cableMeta);
+  const { hops, first } = traceTo(SCENARIOS["s-5"].simDevices, ctx, "speaker", SCENARIOS["s-5"].cableMeta);
   assert.ok(hops.some((h) => h.port && h.port.includes("→ [")));
   assert.match(first.note, /POWER/);
   assert.ok(first.fix);

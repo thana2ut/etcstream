@@ -8,14 +8,14 @@ export function studioSignalFeed(state: TrainingState, channel: "program" | "inp
   if (!ctx || scenarioOf(state).layout !== "studioMission") return "STUDIO SIM\nOFFLINE";
   const sw = ctx.view.sw;
   if (channel === "inputs") {
-    const names = ["CAM-A", "CAM-B", "CAM-C"];
+    const names = ["CAM1", "CAM2", "CAM3"];
     const present = (sw as { inputs?: string[] } | undefined)?.inputs ?? [];
     return `INPUTS | SIM\n${names.map((n) => `${n}: ${present.some((x) => x.startsWith(n)) ? "READY" : "NO INPUT"}`).join("\n")}`;
   }
   if (channel === "audio") return `AUDIO | SIM\n${sw?.audio?.length ? sw.audio.join(" + ") : "NO PROGRAM AUDIO"}`;
   if (channel === "recording") {
-    const live = ctx.view.wan?.live, rec = ctx.view.ssd?.recording;
-    return `REC / STREAM | SIM\n${live || rec ? `${rec ? "REC ●" : "REC —"}  ${live ? "STREAM LIVE" : "STREAM —"}` : "NOT READY"}`;
+    const obs = ctx.view.host;
+    return `CAPTURE / OBS | SIM\n${obs?.picture ? `OBS ● ${obs.picture}${obs.audio?.length ? " · AUDIO" : " · NO AUDIO"}` : "NOT READY"}`;
   }
   return `PGM | SIM\n${sw?.powered && sw.picture && sw.picture !== "BLACK" ? sw.picture : "NO PROGRAM"}`;
 }

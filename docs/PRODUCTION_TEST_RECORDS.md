@@ -12,8 +12,8 @@ _Generated 2026-10-16 by `node scripts/generate-production-docs.mjs` — every s
 | ST-01 | COMPLETED | 100 | CERTIFIED | 0 | — | 0/0 |
 | ST-02 | COMPLETED | 100 | CERTIFIED | 0 | — | 0/0 |
 | ST-03 | COMPLETED | 100 | CERTIFIED | 4 | — | 4/4 |
-| ST-04 | COMPLETED | 100 | CERTIFIED | 4 | f-uhd, f-conv | 3/3 |
-| ST-05 | COMPLETED | 100 | CERTIFIED | 8 | s-mute | 5/5 |
+| ST-04 | COMPLETED | 100 | CERTIFIED | 0 | f-roles, f-bus, f-usb, f-obs | 0/0 |
+| ST-05 | COMPLETED | 100 | CERTIFIED | 4 | s-mute | 4/4 |
 | AU-01 | COMPLETED | 100 | CERTIFIED | 1 | — | 1/1 |
 | AU-02 | COMPLETED | 100 | CERTIFIED | 0 | — | 0/0 |
 | AU-03 | COMPLETED | 100 | CERTIFIED | 4 | — | 4/4 |

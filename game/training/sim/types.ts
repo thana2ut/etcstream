@@ -65,7 +65,7 @@ export interface EquipmentDefinition {
   assetLicense: string;
   /** Needs power before it emits anything (abstracted safe power task, never mains wiring). */
   needsPower: boolean;
-  role: "source" | "mic" | "mixer" | "converter" | "router" | "switcher" | "encoder" | "host" | "display" | "speaker" | "recorder" | "storage" | "network" | "ingest" | "interface" | "safety" | "decoy" | "wireless-tx" | "wireless-rx";
+  role: "source" | "mic" | "mixer" | "converter" | "router" | "switcher" | "encoder" | "host" | "display" | "speaker" | "recorder" | "storage" | "network" | "ingest" | "interface" | "safety" | "decoy" | "wireless-tx" | "wireless-rx" | "capture";
   ports: PortDefinition[];
   controls: ControlDefinition[];
   /** Device-level notes surfaced in Inspect Mode (what it is NOT). */
