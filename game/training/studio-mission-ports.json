@@ -1,0 +1,442 @@
+{
+  "cam1:hdmi-out": {
+    "asset": "hc-x2000",
+    "node": "PORT_VIDEO_OUT",
+    "scale": 1,
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "normal": [
+      0,
+      0,
+      1
+    ],
+    "local": [
+      0.048,
+      1.3,
+      0.168
+    ]
+  },
+  "sw:in1": {
+    "asset": "hds7105",
+    "node": "PORT_IN1",
+    "scale": 5,
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "normal": [
+      0,
+      0,
+      -1
+    ],
+    "local": [
+      -0.3365,
+      0.055,
+      -0.2725
+    ]
+  },
+  "cam2:hdmi-out": {
+    "asset": "hc-x2000",
+    "node": "PORT_VIDEO_OUT",
+    "scale": 1,
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "normal": [
+      0,
+      0,
+      1
+    ],
+    "local": [
+      0.048,
+      1.3,
+      0.168
+    ]
+  },
+  "sw:in2": {
+    "asset": "hds7105",
+    "node": "PORT_IN2",
+    "scale": 5,
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "normal": [
+      0,
+      0,
+      -1
+    ],
+    "local": [
+      -0.2475,
+      0.055,
+      -0.2725
+    ]
+  },
+  "cam3:hdmi-out": {
+    "asset": "hc-x2000",
+    "node": "PORT_VIDEO_OUT",
+    "scale": 1,
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "normal": [
+      0,
+      0,
+      1
+    ],
+    "local": [
+      0.048,
+      1.3,
+      0.168
+    ]
+  },
+  "sw:in3": {
+    "asset": "hds7105",
+    "node": "PORT_IN3",
+    "scale": 5,
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "normal": [
+      0,
+      0,
+      -1
+    ],
+    "local": [
+      -0.1535,
+      0.055,
+      -0.2725
+    ]
+  },
+  "sw:pgm-out": {
+    "asset": "hds7105",
+    "node": "PORT_PGM",
+    "scale": 5,
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "normal": [
+      0,
+      0,
+      -1
+    ],
+    "local": [
+      0.1435,
+      0.055,
+      -0.2725
+    ]
+  },
+  "sw:multiview-out": {
+    "asset": "hds7105",
+    "node": "PORT_MULTIVIEW",
+    "scale": 5,
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "normal": [
+      0,
+      0,
+      -1
+    ],
+    "local": [
+      0.043,
+      0.055,
+      -0.2725
+    ]
+  },
+  "sw:line-in": {
+    "asset": "hds7105",
+    "node": "PORT_LINE_IN",
+    "scale": 5,
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "normal": [
+      0,
+      0,
+      -1
+    ],
+    "local": [
+      0.3605,
+      0.055,
+      -0.2725
+    ]
+  },
+  "mix:ch3-line": {
+    "asset": "pmx402d",
+    "node": "PORT_CH3_LINE",
+    "scale": 1,
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "normal": [
+      0,
+      1,
+      0
+    ],
+    "local": [
+      -0.11413,
+      0.288,
+      -0.259677
+    ]
+  },
+  "mix:ch1-mic": {
+    "asset": "pmx402d",
+    "node": "PORT_CH1_MIC",
+    "scale": 1,
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "normal": [
+      0,
+      1,
+      0
+    ],
+    "local": [
+      -0.248641,
+      0.288,
+      -0.320968
+    ]
+  },
+  "mix:main-out": {
+    "asset": "pmx402d",
+    "node": "PORT_MAIN_OUT_L",
+    "scale": 1,
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "normal": [
+      0,
+      1,
+      0
+    ],
+    "local": [
+      0.01875,
+      0.288,
+      -0.33871
+    ]
+  },
+  "mix:monitor-out": {
+    "asset": "pmx402d",
+    "node": "PORT_AUX_SEND",
+    "scale": 1,
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "normal": [
+      0,
+      1,
+      0
+    ],
+    "local": [
+      0.061141,
+      0.288,
+      -0.298387
+    ]
+  },
+  "monitor:hdmi-in": {
+    "asset": "samsung-u8000f",
+    "node": "PORT_HDMI_1",
+    "scale": 1,
+    "offset": [
+      0,
+      0.294,
+      0
+    ],
+    "normal": [
+      0,
+      0,
+      -1
+    ],
+    "local": [
+      0.315,
+      0.199,
+      -0.09
+    ]
+  },
+  "speaker:trs-in": {
+    "asset": "yamaha-hs5",
+    "node": "PORT_TRS_INPUT",
+    "scale": 1,
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "normal": [
+      0,
+      0,
+      -1
+    ],
+    "local": [
+      -0.138,
+      0.478,
+      -0.232
+    ]
+  },
+  "capture:hdmi-in": {
+    "asset": "magewell-capture",
+    "node": "PORT_HDMI_IN",
+    "scale": 3.2,
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "normal": [
+      -1,
+      0,
+      0
+    ],
+    "local": [
+      -0.15616,
+      0.024,
+      0
+    ]
+  },
+  "capture:usb-out": {
+    "asset": "magewell-capture",
+    "node": "PORT_USB_3_0",
+    "scale": 3.2,
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "normal": [
+      1,
+      0,
+      0
+    ],
+    "local": [
+      0.15616,
+      0.024,
+      0
+    ]
+  },
+  "pc:usb-in": {
+    "asset": "hp-laptop",
+    "node": "PORT_USB_A_LEFT",
+    "scale": 1.3407821229050279,
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "normal": [
+      -1,
+      0,
+      0
+    ],
+    "local": [
+      -0.24067,
+      0.014749,
+      -0.008045
+    ]
+  },
+  "rx:audio-out": {
+    "asset": "comica-wm100-plus-rx",
+    "node": "PORT_AUDIO_OUT",
+    "scale": 1,
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "normal": [
+      0,
+      1,
+      0
+    ],
+    "local": [
+      0.0391,
+      0.275,
+      0
+    ]
+  },
+  "tx1:mic-in": {
+    "asset": "comica-wm100-plus-tx",
+    "node": "PORT_MIC_IN",
+    "scale": 1,
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "normal": [
+      0,
+      1,
+      0
+    ],
+    "local": [
+      0.03565,
+      0.26,
+      0
+    ]
+  },
+  "tx2:mic-in": {
+    "asset": "comica-wm100-plus-tx",
+    "node": "PORT_MIC_IN",
+    "scale": 1,
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "normal": [
+      0,
+      1,
+      0
+    ],
+    "local": [
+      0.03565,
+      0.26,
+      0
+    ]
+  },
+  "mic:xlr-out": {
+    "asset": "sennheiser-xs1",
+    "node": "PORT_XLR_OUTPUT",
+    "scale": 1,
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "normal": [
+      -1,
+      0,
+      0
+    ],
+    "local": [
+      -0.108,
+      0.027,
+      0
+    ]
+  }
+}

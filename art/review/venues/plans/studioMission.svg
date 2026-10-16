@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="503.59999999999997" height="529.2" viewBox="0 0 503.59999999999997 529.2"><style>text{font-family:Tahoma,sans-serif;font-size:10px;fill:#e2e8f0}.title{font-size:18px}.small{font-size:8px}</style><rect width="100%" height="100%" fill="#0f172a"/><text x="30" y="32" class="title">s-5 • เตรียมระบบภาพและเสียงของสตูดิโอภารกิจ</text><text x="30" y="54">Stage / local NORTH = −Z (top) • metres • development plan</text><rect x="55" y="90" width="393.59999999999997" height="319.20000000000005" fill="#1e293b" stroke="#94a3b8"/>
+<rect x="122.19999999999997" y="289.79999999999995" width="129.60000000000002" height="27.599999999999998" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="186.99999999999997" y="303.6" text-anchor="middle">sm-prod</text>
+<rect x="57.39999999999999" y="345.6" width="67.19999999999999" height="16.799999999999997" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="90.99999999999997" y="354" text-anchor="middle">sm-cables</text>
+<rect x="367" y="332.40000000000003" width="67.19999999999999" height="24" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="400.59999999999997" y="344.40000000000003" text-anchor="middle">sm-equip</text>
+<rect x="136.59999999999997" y="127.2" width="52.800000000000004" height="16.799999999999997" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="162.99999999999997" y="135.60000000000002" text-anchor="middle">sm-presenter</text>
+<rect x="81.39999999999999" y="279" width="28.799999999999997" height="10.8" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="95.79999999999998" y="284.4" text-anchor="middle">sm-tv</text>
+<rect x="430.59999999999997" y="272.4" width="14.399999999999999" height="33.599999999999994" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="437.79999999999995" y="289.20000000000005" text-anchor="middle">sm-storage</text>
+<rect x="251.79999999999998" y="391.20000000000005" width="19.200000000000003" height="14.399999999999999" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="261.4" y="398.40000000000003" text-anchor="middle">sm-case-0</text>
+<rect x="273.4" y="391.20000000000005" width="19.200000000000003" height="14.399999999999999" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="283" y="398.40000000000003" text-anchor="middle">sm-case-1</text>
+<rect x="295" y="391.20000000000005" width="19.200000000000003" height="14.399999999999999" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="304.59999999999997" y="398.40000000000003" text-anchor="middle">sm-case-2</text>
+<path d="M138.99999999999997,137.88 L147.05679999999998,135.60000000000002" fill="none" stroke="#fb923c" stroke-width="0.6" opacity="0.35"/>
+<path d="M179.79999999999998,137.88 L173.4568,135.60000000000002" fill="none" stroke="#fb923c" stroke-width="0.6" opacity="0.35"/>
+<path d="M164.152,202.032 L195.07599999999996,310.14" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M297.9736,196.9752 L192.93999999999997,310.14" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M320.99199999999996,289.91279999999995 L190.68399999999997,310.14" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M185.96799999999996,310.14 L97.08399999999997,276.6432" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M163.9384,309.6 L142.2616,297.3672" fill="none" stroke="#fb923c" stroke-width="0.6" opacity="0.35"/>
+<path d="M156.808,136.8 L139.03359999999998,295.896" fill="none" stroke="#fb923c" stroke-width="0.6" opacity="0.35"/>
+<path d="M145.44879999999998,295.47119999999995 L178.34799999999998,310.14" fill="none" stroke="#fb923c" stroke-width="0.6" opacity="0.35"/>
+<path d="M146.4664,296.4384 L103.77999999999997,304.5624" fill="none" stroke="#fb923c" stroke-width="0.6" opacity="0.35"/>
+<path d="M183.55599999999998,310.14 L208.45119999999997,306" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M215.94879999999998,306 L230.42319999999998,303.408" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<polyline points="429.4,382.79999999999995 285.4,382.176 197.632,335.112 255.304,210.40800000000002 177.35199999999998,210.36" fill="none" stroke="#4ade80" stroke-width="2" stroke-dasharray="5 4"/><rect x="443.59999999999997" y="368.20000000000005" width="10" height="10" fill="#a3e635"/><text x="438.59999999999997" y="364.20000000000005" text-anchor="end">DOOR</text>
+<circle cx="186.99999999999997" cy="303.6" r="3" fill="#67e8f9"/><text class="small" x="191.99999999999997" y="299.6">sw</text>
+<circle cx="144.99999999999997" cy="303.6" r="3" fill="#67e8f9"/><text class="small" x="149.99999999999997" y="299.6">mix</text>
+<circle cx="162.99999999999997" cy="198" r="5" fill="#f472b6"/><text class="small" x="167.99999999999997" y="194">cam1</text>
+<circle cx="299.79999999999995" cy="193.2" r="5" fill="#f472b6"/><text class="small" x="304.79999999999995" y="189.2">cam2</text>
+<circle cx="323.79999999999995" cy="286.79999999999995" r="5" fill="#f472b6"/><text class="small" x="328.79999999999995" y="282.79999999999995">cam3</text>
+<circle cx="95.79999999999998" cy="284.4" r="3" fill="#67e8f9"/><text class="small" x="100.79999999999998" y="280.4">monitor</text>
+<circle cx="162.99999999999997" cy="309.6" r="3" fill="#67e8f9"/><text class="small" x="167.99999999999997" y="305.6">rx</text>
+<circle cx="159.39999999999998" cy="136.8" r="3" fill="#67e8f9"/><text class="small" x="164.39999999999998" y="132.8">mic</text>
+<circle cx="108.99999999999997" cy="308.40000000000003" r="3" fill="#67e8f9"/><text class="small" x="113.99999999999997" y="304.40000000000003">speaker</text>
+<circle cx="212.2" cy="306" r="3" fill="#67e8f9"/><text class="small" x="217.2" y="302">capture</text>
+<circle cx="236.2" cy="303.6" r="3" fill="#67e8f9"/><text class="small" x="241.2" y="299.6">pc</text>
+<circle cx="138.99999999999997" cy="135.60000000000002" r="3" fill="#67e8f9"/><text class="small" x="143.99999999999997" y="131.60000000000002">lav1</text>
+<circle cx="146.2" cy="135.60000000000002" r="3" fill="#67e8f9"/><text class="small" x="151.2" y="131.60000000000002">tx1</text>
+<circle cx="179.79999999999998" cy="135.60000000000002" r="3" fill="#67e8f9"/><text class="small" x="184.79999999999998" y="131.60000000000002">lav2</text>
+<circle cx="172.6" cy="135.60000000000002" r="3" fill="#67e8f9"/><text class="small" x="177.6" y="131.60000000000002">tx2</text>
+<circle cx="429.4" cy="382.79999999999995" r="7" fill="#4ade80"/><text x="438.4" y="382.79999999999995">SPAWN</text><text x="30" y="459.20000000000005">Pink: cameras • cyan: operating gear • brown: furniture • green: spawn</text><text x="30" y="479.20000000000005">Lines: logical source → destination graph (not installed cable geometry)</text><text x="30" y="499.20000000000005">Green dashed: walked route checkpoints (schematic); A–J views captured in engine.</text></svg>

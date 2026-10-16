@@ -108,17 +108,17 @@ export function CableInspector({ cable, onClose }: { cable: CatalogCable; onClos
         <color attach="background" args={["#10151f"]} />
         <Stage cable={cable} auto={false} />
       </Canvas>
-      <p className="inspector-hint">ลากเพื่อหมุน · เลื่อนล้อเมาส์เพื่อซูม · ESC ปิด</p>
+      <p className="inspector-hint">Drag to rotate · scroll to zoom · ESC closes</p>
     </div>
     <aside className="inspector-panel glass-card">
-      <button type="button" className="inspector-close" onClick={onClose} aria-label="ปิดหน้าดูสาย">✕</button>
-      <span className="inspector-role">สาย / หัวต่อ · {cable.status}</span>
+      <button type="button" className="inspector-close" onClick={onClose} aria-label="Close the lead view">✕</button>
+      <span className="inspector-role">Lead / connector · {cable.status}</span>
       <h2 id="cable-inspector-title">{cable.name}</h2>
       <strong className="inspector-model">{cable.id}</strong>
-      <h3>หัวต่อ</h3><p>{cable.ends}</p>
-      <h3>ใช้ต่อ</h3><p className="inspector-flow">{cable.use}</p>
-      <h3>ควรรู้</h3><p>{cable.note}</p>
-      <p className="inspector-unverified">{CABLE_MODEL_FILES[cable.id] ? "โมเดล 3D จากไฟล์ปั้น" : "โมเดล 3D ชั่วคราว (รอปั้นโมเดลจริง) — หัวต่อเป็นรูปทรงฝึก ไม่ใช่สัดส่วนสินค้าจริง"}</p>
+      <h3>Connectors</h3><p>{cable.ends}</p>
+      <h3>Used for</h3><p className="inspector-flow">{cable.use}</p>
+      <h3>Key facts</h3><p>{cable.note}</p>
+      <p className="inspector-unverified">{CABLE_MODEL_FILES[cable.id] ? "Sculpted 3D model" : "Provisional 3D model — training-shape connectors, not product proportions"}</p>
     </aside>
   </div>;
 }

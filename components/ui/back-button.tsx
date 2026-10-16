@@ -16,9 +16,9 @@ interface BackButtonProps {
 export function BackButton({
   onClick,
   href,
-  label = "ย้อนกลับ",
+  label = "Back",
   className = "",
-  ariaLabel = "ย้อนกลับ",
+  ariaLabel = "Back",
 }: BackButtonProps) {
   const handleClick = () => {
     // The click sound comes from the global listener in AudioProvider (plays "ui_close" for back buttons).

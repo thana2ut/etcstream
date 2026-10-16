@@ -56,7 +56,7 @@ export default function Home() {
     try { window.sessionStorage.setItem(PHASE_KEY, phase === "inscribing" ? "welcome" : phase); } catch { /* storage blocked: reload starts at landing */ }
   }, [phase, restored]);
 
-  // Click "ก้าวเข้าสู่เส้นทาง >" on Landing (REF 01)
+  // Click "Begin the path >" on Landing (REF 01)
   const handleStartJourney = () => {
     if (typeof window !== "undefined") {
       let skipIntro = false;
@@ -131,7 +131,7 @@ export default function Home() {
       <FantasyBackground
         variant={phase === "welcome" ? "palace" : phase === "name" ? "chamber" : "palace"}
         image={phase === "landing" ? "/images/xianxia/bg-landing.webp" : "/images/xianxia/bg-gate.webp"}
-        clouds
+        clouds={phase === "landing"}
       />
 
       {/* Header */}
@@ -141,12 +141,12 @@ export default function Home() {
       {restored && phase === "landing" && (
         <>
           <div className="landing-hero-center">
-            <Image src="/images/xianxia/emblem.webp" alt="ตราสำนัก etcstream" width={170} height={141} className="brand-sigil landing-sigil" priority />
-            <h1 className="landing-title-text">สำนักวิถีแห่งสายสัญญาณ</h1>
+            <Image src="/images/xianxia/emblem.webp" alt="etcstream academy emblem" width={170} height={141} className="brand-sigil landing-sigil" priority />
+            <h1 className="landing-title-text">Academy of the Signal Path</h1>
             <div className="xianxia-divider" aria-hidden="true">◆</div>
             <p className="landing-narrative-text">
-              เรียนรู้ศาสตร์ภาพ เสียง และเส้นทางสัญญาณ
-              ผ่านการฝึกและภารกิจในโลกแห่งสำนัก
+              Learn picture, sound and signal paths
+              through practice and missions in the academy
             </p>
 
             <ActionButton
@@ -154,12 +154,12 @@ export default function Home() {
               size="lg"
               onClick={handleStartJourney}
             >
-              ก้าวเข้าสู่เส้นทาง
+              Begin the path
             </ActionButton>
           </div>
 
           {/* 4 Academy Principles Bottom Bar */}
-          <section className="principles-four-bar" aria-label="หลักวิชาแห่งสำนัก">
+          <section className="principles-four-bar" aria-label="Academy principles">
             <div className="principle-item">
               <div className="principle-icon-circle">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -168,8 +168,8 @@ export default function Home() {
                 </svg>
               </div>
               <div className="principle-texts">
-                <span className="principle-title">เรียนรู้จากของจริง</span>
-                <span className="principle-desc">เนื้อหาจริง สถานการณ์จริง</span>
+                <span className="principle-title">Learn from real practice</span>
+                <span className="principle-desc">Real content, real situations</span>
               </div>
             </div>
 
@@ -182,8 +182,8 @@ export default function Home() {
                 </svg>
               </div>
               <div className="principle-texts">
-                <span className="principle-title">ฝึกให้เข้าใจ</span>
-                <span className="principle-desc">ลงมือทำ สร้างทักษะจริง</span>
+                <span className="principle-title">Train for understanding</span>
+                <span className="principle-desc">Hands-on, real skills</span>
               </div>
             </div>
 
@@ -198,8 +198,8 @@ export default function Home() {
                 </svg>
               </div>
               <div className="principle-texts">
-                <span className="principle-title">พัฒนาตัวเอง</span>
-                <span className="principle-desc">ต่อยอดสู่ระดับที่สูงขึ้น</span>
+                <span className="principle-title">Grow</span>
+                <span className="principle-desc">Build towards higher levels</span>
               </div>
             </div>
 
@@ -215,8 +215,8 @@ export default function Home() {
                 </svg>
               </div>
               <div className="principle-texts">
-                <span className="principle-title">เป็นส่วนหนึ่งของสำนัก</span>
-                <span className="principle-desc">ร่วมเส้นทางกับผู้คนที่มีเป้าหมายเดียวกัน</span>
+                <span className="principle-title">Join the academy</span>
+                <span className="principle-desc">Share the path with people who have the same goal</span>
               </div>
             </div>
           </section>
@@ -229,15 +229,15 @@ export default function Home() {
           <Image src="/branding/etcstream-logo.png" alt="" width={56} height={48} className="brand-sigil name-sigil" />
           <h1 id="name-title" className="name-entry-title">{copy.name.heading}</h1>
           <p className="name-entry-desc">
-            ทุกผู้ฝึกย่อมเริ่มต้นที่สำนักนี้ ด้วยการจารึกนามของตนเอง
-            ชื่อของคุณจะถูกใช้ตลอดเส้นทางการฝึกฝน
-            ในทุกภารกิจ และทุกเรื่องราวแห่งสำนัก
+            Every trainee starts here by writing their name.
+            Your name is used throughout your training,
+            in every mission and every academy story.
           </p>
 
           {hydrated && player && !changeName ? (
             <div className="returning-player-box">
               <p className="returning-name-label" style={{ fontSize: "1.1rem", marginBottom: "20px" }}>
-                ยินดีต้อนรับกลับ <strong>{player.nickname}</strong>
+                Welcome back <strong>{player.nickname}</strong>
               </p>
               <div className="btn-group-center" style={{ display: "flex", gap: "14px", justifyContent: "center" }}>
                 <ActionButton variant="gold" size="md" onClick={() => setPhase("welcome")}>
@@ -274,10 +274,10 @@ export default function Home() {
                   }}
                   maxLength={20}
                   autoComplete="nickname"
-                  placeholder="พิมพ์ชื่อของคุณ..."
+                  placeholder="Type your name..."
                   className="cultivation-input"
                 />
-                <span className="name-input-hint">2-20 ตัวอักษร (ไทย อังกฤษ ตัวเลข และเว้นวรรค)</span>
+                <span className="name-input-hint">2–20 characters (Thai or English letters, numbers and spaces)</span>
               </div>
 
               {error && <p className="form-error" role="alert" style={{ color: "var(--danger)", marginBottom: "16px" }}>{error}</p>}
@@ -303,8 +303,8 @@ export default function Home() {
       {/* REF 04: WELCOME PERSONALIZED PHASE */}
       {restored && phase === "welcome" && (
         <section className="welcome-hero-card" aria-labelledby="welcome-title">
-          <Image src="/branding/etcstream-logo.png" alt="โลโก้ etcstream" width={72} height={60} className="brand-sigil welcome-sigil" />
-          <p className="welcome-greeting-label">ยินดีต้อนรับ</p>
+          <Image src="/branding/etcstream-logo.png" alt="etcstream logo" width={72} height={60} className="brand-sigil welcome-sigil" />
+          <p className="welcome-greeting-label">Welcome</p>
           <h1 id="welcome-title" className="welcome-player-name">
             {currentDisplayName}
           </h1>
@@ -319,18 +319,18 @@ export default function Home() {
                 router.push("/academy");
               }}
             >
-              ก้าวเข้าสู่สำนัก
+              Enter the academy
             </ActionButton>
 
             <BackButton
               onClick={handleBackFromWelcome}
-              label="ย้อนกลับ"
+              label="Back"
               className="welcome-back-btn"
             />
           </div>
 
           <p className="welcome-philosophy-quote">
-            “การเดินทางครั้งใหม่ เริ่มจากความเข้าใจเล็ก ๆ ในการฝึก”
+            “Every new journey starts with a small piece of understanding.”
           </p>
         </section>
       )}

@@ -25,7 +25,7 @@ export default function Academy() {
 
   if (!hydrated || !player) {
     return (
-      <main className="fantasy-viewport" style={{ justifyContent: "center", alignItems: "center" }}>
+      <main className="fantasy-viewport academy-page" style={{ justifyContent: "center", alignItems: "center" }}>
         <p style={{ color: "var(--gold-soft)", fontSize: "1.1rem" }}>{copy.academy.loading}</p>
       </main>
     );
@@ -44,7 +44,7 @@ export default function Academy() {
   };
 
   return (
-    <main className="fantasy-viewport">
+      <main className="fantasy-viewport academy-page">
       {/* 100% Procedural Fantasy Background */}
       <FantasyBackground variant="academy" image="/images/xianxia/bg-academy.webp" />
 
@@ -52,7 +52,7 @@ export default function Academy() {
       <AcademyHeader
         traineeName={player.nickname}
         onBack={handleBackToEntry}
-        backLabel="ย้อนกลับ"
+        backLabel="Back"
       />
 
       {/* Main Content Area */}
@@ -61,14 +61,14 @@ export default function Academy() {
         <div className="chamber-hero-header">
           <h1 className="chamber-title">{copy.academy.eyebrow}</h1>
           <p className="chamber-desc">
-            ยินดีต้อนรับ ผู้ฝึก<strong>{player.nickname}</strong> ณ สถานที่แห่งนี้มีสองเส้นทาง
-            เส้นทางหนึ่งเพื่อฝึกฝนตนเอง อีกเส้นทางจะนำนักไปสู่ภารกิจที่เปลี่ยนทุกจังหวะการฝึกให้กลายเป็นประสบการณ์จริง
+            Welcome, trainee <strong>{player.nickname}</strong>. Two paths begin here:
+            one for free practice, the other into missions that turn practice into real production experience.
           </p>
         </div>
 
-        {/* Dual Path Cards (โหมดห้องเรียน vs รับภารกิจ) */}
-        <section className="dual-paths-grid" aria-label="เลือกเส้นทางแห่งการฝึก">
-          {/* Left: ห้องฝึกปราณสัญญาณ (โหมดห้องเรียน) */}
+        {/* Dual Path Cards (practice vs missions) */}
+        <section className="dual-paths-grid" aria-label="Choose a training path">
+          {/* Left: practice room */}
           <article className="path-portal-card portal-cyan glass-card scholar-door-frame">
             <div className="portal-arch-artwork">
               <div className="portal-arcane-art portal-arcane-classroom" aria-hidden="true"><span>⌁</span></div>
@@ -81,7 +81,7 @@ export default function Academy() {
               <h2 className="portal-heading">{copy.academy.classroom.subtitle}</h2>
               <span className="portal-subtitle">{copy.academy.classroom.title}</span>
               <p className="portal-desc">
-                ฝึกได้อิสระ ไม่มีเวลา สอนชัด ลองถูกเพื่อความเข้าใจที่แท้จริง
+                Free practice with no timer — try things until you truly understand them.
               </p>
               <ActionButton variant="cyan" size="md" onClick={enterClassroom}>
                 {copy.academy.classroom.action}
@@ -89,7 +89,7 @@ export default function Academy() {
             </div>
           </article>
 
-          {/* Right: หอจารึกแห่งภารกิจ (รับภารกิจ) */}
+          {/* Right: Mission Hall */}
           <article className="path-portal-card portal-violet glass-card scholar-door-frame">
             <div className="portal-arch-artwork">
               <div className="portal-arcane-art portal-arcane-mission" aria-hidden="true"><span>✦</span></div>
@@ -100,12 +100,12 @@ export default function Academy() {
             </div>
             <div className="portal-content-body">
               <h2 className="portal-heading">{copy.academy.mission.subtitle}</h2>
-              <span className="portal-subtitle">รับภารกิจสำนัก</span>
+              <span className="portal-subtitle">Take an academy mission</span>
               <p className="portal-desc">
-                เลือกบทภารกิจที่เจ้าสนใจ แล้วไต่ระดับบททดสอบทีละขั้น
+                Five production rooms, five levels each — climb from guided to certification.
               </p>
               <ActionButton variant="gold" size="md" href="/missions">
-                เปิดหอภารกิจ
+                Open the Mission Hall
               </ActionButton>
             </div>
           </article>

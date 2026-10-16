@@ -42,12 +42,16 @@ export function ShadowThrottle({ every = 4 }: { every?: number }) {
 }
 
 /** Compile every material's shader up front (and again once late assets arrive) so nothing hitches on first sight. */
-export function ShaderWarmup() {
+export function ShaderWarmup({ active }: { active: boolean }) {
   const { gl, scene, camera } = useThree();
   useEffect(() => {
+    // Warm shaders while an intro/modal covers the scene. Never compile again
+    // during live play because a synchronous compile can cause a visible hitch.
+    if (active) return;
     const run = () => { try { gl.compile(scene, camera); } catch { /* compile is an optimisation only */ } };
-    const a = window.setTimeout(run, 50), b = window.setTimeout(run, 1500), c = window.setTimeout(run, 4000);
-    return () => { window.clearTimeout(a); window.clearTimeout(b); window.clearTimeout(c); };
-  }, [gl, scene, camera]);
+    const a = window.setTimeout(run, 80);
+    const b = window.setTimeout(run, 1200);
+    return () => { window.clearTimeout(a); window.clearTimeout(b); };
+  }, [active, gl, scene, camera]);
   return null;
 }

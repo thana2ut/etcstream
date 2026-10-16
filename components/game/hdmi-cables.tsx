@@ -8,6 +8,8 @@ import type { PortDef } from "@/game/training/scenarios";
 import { useTrainingStore } from "@/game/stores/training-store";
 import { PlugMesh } from "./cable-plugs";
 import { itemVisualTransform } from "./placeable-equipment";
+import { classroomCableRoute } from "@/game/training/cable-route";
+import * as studioAnchors from "@/game/training/studio-mission-ports.json";
 
 const up = new Vector3(0, 1, 0);
 const a = new Vector3();
@@ -87,6 +89,20 @@ function Cable({ id }: { id: CableId }) {
       const node = ends.current[end];
       if (!node) continue;
       tipDir.copy(self).sub(other);
+      const anchor = scenario.layout === "studioMission" && cable[end].portId ? (studioAnchors as Record<string, { normal: number[] }>)[cable[end].portId!] : null;
+      if (anchor) {
+        const port = scenario.ports[cable[end].portId!], device = scenario.devices.find((d) => d.id === port.device);
+        const yaw = (device?.yaw ?? 0) + (useTrainingStore.getState().items[port.device]?.turn ?? 0);
+        const [x, y, z] = anchor.normal;
+        tipDir.set(-(x * Math.cos(yaw) + z * Math.sin(yaw)), -y, -(-x * Math.sin(yaw) + z * Math.cos(yaw)));
+      }
+      const panel = cable[end].portId ? scenario.ports[cable[end].portId!]?.normal : undefined;
+      if (panel) {
+        const port = scenario.ports[cable[end].portId!];
+        const yaw = useTrainingStore.getState().items[port.device]?.turn ?? 0;
+        const [x, y, z] = panel;
+        tipDir.set(-(x * Math.cos(yaw) + z * Math.sin(yaw)), -y, -(-x * Math.sin(yaw) + z * Math.cos(yaw)));
+      }
       if (adapter || tipDir.lengthSq() < 1e-6) tipDir.set(0, 0, -1);
       node.quaternion.setFromUnitVectors(negZ, tipDir.normalize());
     }
@@ -95,6 +111,8 @@ function Cable({ id }: { id: CableId }) {
     last.current.a.copy(a); last.current.b.copy(b);
     const tabletop = a.y >= 0.79 && b.y >= 0.79;
     const sag = Math.min(0.24, 0.09 + a.distanceTo(b) * 0.035);
+    const floorRoute = scenario.layout && scenario.layout !== "studio" && !carrying && cable.a.portId && cable.b.portId && !def.locked && a.distanceTo(b) > 2
+      ? classroomCableRoute(a.toArray() as Point3, b.toArray() as Point3, scenario.layout) : null;
     for (let index = 0; index < segmentCount; index++) {
       const mesh = segments.current[index];
       if (!mesh) continue;
@@ -104,6 +122,7 @@ function Cable({ id }: { id: CableId }) {
       finish.copy(a).lerp(b, t1);
       start.y = tabletop ? Math.max(0.79, start.y - Math.sin(Math.PI * t0) * sag) : start.y - Math.sin(Math.PI * t0) * sag * 0.35;
       finish.y = tabletop ? Math.max(0.79, finish.y - Math.sin(Math.PI * t1) * sag) : finish.y - Math.sin(Math.PI * t1) * sag * 0.35;
+      if (floorRoute) { start.set(...floorRoute[index]); finish.set(...floorRoute[index + 1]); }
       midpoint.copy(start).add(finish).multiplyScalar(0.5);
       direction.copy(finish).sub(start);
       segmentRotation.setFromUnitVectors(up, unit.copy(direction).normalize());

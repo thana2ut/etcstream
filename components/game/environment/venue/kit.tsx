@@ -1,5 +1,6 @@
 "use client";
 
+import { SCENE_FONT } from "@/game/rendering/scene-font";
 import { useLayoutEffect, useMemo, useRef, type ReactNode } from "react";
 import { Environment, Lightformer } from "@react-three/drei";
 import { CuboidCollider, CylinderCollider, RigidBody } from "@react-three/rapier";
@@ -14,7 +15,7 @@ import { tex } from "./textures";
 
 export type V3 = [number, number, number];
 export type XZ = [number, number];
-export const FONT = "/fonts/geist-regular.ttf";
+export const FONT = SCENE_FONT;
 /** Footprint the procedural venues were designed around (the studio GLB room itself is larger). */
 export const W = 11.5, D = 8.8, H = 3.2;
 /** Floor light stands: in the back corners, clear of the round table, both side tables (and their cable rows) and the backdrop. */

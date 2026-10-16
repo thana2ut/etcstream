@@ -1,5 +1,6 @@
 "use client";
 
+import { sceneText } from "@/game/rendering/scene-font";
 import { memo } from "react";
 import { Text } from "@react-three/drei";
 import { CuboidCollider, RigidBody } from "@react-three/rapier";
@@ -36,7 +37,7 @@ function Desk({ f, look, skirt }: { f: Furniture; look: FurnitureLook; skirt?: s
     {/* cable grommet + power strip under the rear edge */}
     <Cyl p={[w * 0.32, h + 0.001, -d / 2 + 0.12]} rt={0.035} h={0.004} c="#0e0f12" />
     <RB p={[0, h - 0.08, -d / 2 + 0.08]} s={[0.42, 0.04, 0.06]} rad={0.012} c="#e8e8e4" />
-    {f.label && <Text font={FONT} position={[0, h - 0.06, d / 2 + 0.012]} fontSize={0.05} color="#f2d9a6" anchorX="center" outlineWidth={0.003} outlineColor="#000">{f.label}</Text>}
+    {f.label && <Text font={FONT} position={[0, h - 0.06, d / 2 + 0.012]} fontSize={0.05} color="#f2d9a6" anchorX="center" outlineWidth={0.003} outlineColor="#000">{sceneText(f.label)}</Text>}
   </group>;
 }
 
@@ -50,7 +51,7 @@ function FlightCase({ f, look }: { f: Furniture; look: FurnitureLook }) {
     {[-1, 1].flatMap((a) => [-1, 1].flatMap((b) => [0.09, h - 0.05].map((y) => <Ball key={`${a}${b}${y}`} p={[a * (w / 2), y, b * (d / 2)]} r={0.028} {...CHROME} />)))}
     {[-w / 3, w / 3].map((x) => <RB key={x} p={[x, h * 0.62, d / 2 + 0.008]} s={[0.07, 0.09, 0.02]} rad={0.006} {...CHROME} />)}
     {[-1, 1].flatMap((a) => [-1, 1].map((b) => <mesh key={`w${a}${b}`} position={[a * (w / 2 - 0.1), 0.045, b * (d / 2 - 0.1)]} rotation={[0, 0, Math.PI / 2]}><cylinderGeometry args={[0.045, 0.045, 0.035, 16]} /><meshStandardMaterial color="#141414" roughness={0.9} /></mesh>))}
-    {f.label && <Text font={FONT} position={[0, h * 0.4, d / 2 + 0.015]} fontSize={0.06} color="#f2d9a6" anchorX="center" outlineWidth={0.003} outlineColor="#000">{f.label}</Text>}
+    {f.label && <Text font={FONT} position={[0, h * 0.4, d / 2 + 0.015]} fontSize={0.06} color="#f2d9a6" anchorX="center" outlineWidth={0.003} outlineColor="#000">{sceneText(f.label)}</Text>}
   </group>;
 }
 
@@ -63,7 +64,7 @@ function AvCabinet({ f }: { f: Furniture }) {
     {[0.32, 0.62].map((y) => <RB key={y} p={[-0.02, y, 0]} s={[w - 0.08, 0.02, d - 0.1]} rad={0.004} c="#8f969e" m={0.5} />)}
     {Array.from({ length: 4 }, (_, i) => <mesh key={i} position={[-0.05, 0.36, -d / 2 + 0.35 + i * (d - 0.7) / 3]} rotation={[0, Math.PI / 2, 0]}><torusGeometry args={[0.1, 0.018, 8, 28]} /><meshStandardMaterial color={["#1b1b1f", "#2d6cdf", "#1b1b1f", "#d0b030"][i]} roughness={0.6} /></mesh>)}
     <RB p={[0, h + 0.005, 0]} s={[w + 0.02, 0.01, d + 0.02]} rad={0.003} c="#d6d9dc" />
-    <Text font={FONT} position={[-w / 2 - 0.012, h - 0.12, 0]} rotation={[0, -Math.PI / 2, 0]} fontSize={0.07} color="#1d2a3d">ตู้ AV · อุปกรณ์พกพา</Text>
+    <Text font={FONT} position={[-w / 2 - 0.012, h - 0.12, 0]} rotation={[0, -Math.PI / 2, 0]} fontSize={0.07} color="#1d2a3d">{sceneText("AV cabinet · portable equipment")}</Text>
   </group>;
 }
 
@@ -73,17 +74,27 @@ function CableRack({ f }: { f: Furniture }) {
     {[-1, 1].flatMap((a) => [-1, 1].map((b) => <RB key={`${a}${b}`} p={[a * (w / 2 - 0.02), h / 2, b * (d / 2 - 0.02)]} s={[0.035, h, 0.035]} rad={0.008} {...BLACK_METAL} />))}
     {[0.15, 0.55, h].map((y) => <RB key={y} p={[0, y, 0]} s={[w, 0.025, d]} rad={0.006} c="#3a3e45" m={0.5} />)}
     {Array.from({ length: Math.floor(w / 0.3) }, (_, i) => <mesh key={i} position={[-w / 2 + 0.18 + i * 0.3, 0.3, 0]} rotation={[0, 0, 0]}><torusGeometry args={[0.11, 0.02, 8, 28]} /><meshStandardMaterial color={["#1b1b1f", "#e08a2e", "#3a6fd8", "#1b1b1f", "#d8c040"][i % 5]} roughness={0.6} /></mesh>)}
-    {f.label && <Text font={FONT} position={[0, h - 0.1, d / 2 + 0.03]} fontSize={0.06} color="#f2d9a6" anchorX="center" outlineWidth={0.003} outlineColor="#000">{f.label}</Text>}
+    {f.label && <Text font={FONT} position={[0, h - 0.1, d / 2 + 0.03]} fontSize={0.06} color="#f2d9a6" anchorX="center" outlineWidth={0.003} outlineColor="#000">{sceneText(f.label)}</Text>}
   </group>;
 }
 
 function RackCabinet({ f }: { f: Furniture }) {
   const [w, h, d] = f.size;
+  // Playable stadium rack bays are open, with their fronts toward the service aisle (+X).
+  // A solid decorative cabinet here would hide the real CCU/router sockets.
+  if (f.id.startsWith("xl-rack-")) return <group rotation={[0, Math.PI / 2, 0]}>
+    {[-1, 1].map(side => <RB key={side} p={[side * (w / 2 - 0.015), h / 2, 0]} s={[0.03, h, d]} rad={0.006} c="#24282e" m={0.6} />)}
+    {[0.025, h - 0.025].map(y => <RB key={y} p={[0, y, 0]} s={[w, 0.05, d]} rad={0.008} c="#24282e" m={0.6} />)}
+    {[-1, 1].map(side => <group key={side}>
+      <RB p={[side * (w / 2 - 0.06), h / 2, d / 2 - 0.02]} s={[0.025, h - 0.1, 0.025]} rad={0.003} c="#6d747d" m={0.75} />
+      {Array.from({length:12},(_,i)=><Ball key={i} p={[side*(w/2-0.06),0.15+i*0.15,d/2-0.003]} r={0.005} c="#101114" />)}
+    </group>)}
+  </group>;
   return <group>
     <RB p={[0, h / 2, 0]} s={[w, h, d]} rad={0.02} c="#15171b" m={0.4} r={0.5} />
     {Array.from({ length: 9 }, (_, u) => <group key={u} position={[0, 0.2 + u * 0.19, d / 2 + 0.006]}>
       <RB p={[0, 0, 0]} s={[w - 0.08, 0.15, 0.01]} rad={0.004} c={u % 2 ? "#262a31" : "#1e2127"} m={0.5} />
-      {[0, 1, 2, 3].map((l) => <Ball key={l} p={[-w / 2 + 0.12 + l * 0.05, 0.03, 0.008]} r={0.006} c={["#38ff6a", "#38ff6a", "#ffb020", "#3a8bff"][(l + u) % 4]} e={["#38ff6a", "#38ff6a", "#ffb020", "#3a8bff"][(l + u) % 4]} ei={2.4} />)}
+      {[0, 1, 2, 3].map((l) => <Ball key={l} p={[-w / 2 + 0.12 + l * 0.05, 0.03, 0.008]} r={0.006} c="#35404b" />)}
     </group>)}
   </group>;
 }
@@ -176,7 +187,7 @@ function PowerCase({ f }: { f: Furniture }) {
   return <group>
     <RB p={[0, h / 2, 0]} s={[w, h, d]} rad={0.04} c="#e8b925" m={0.3} r={0.4} />
     <RB p={[0, h * 0.6, d / 2 + 0.005]} s={[w * 0.6, h * 0.3, 0.01]} rad={0.006} c="#20232a" />
-    <Text font={FONT} position={[0, h * 0.6, d / 2 + 0.012]} fontSize={0.06} color="#ffd34d">UPS · POWER</Text>
+    <Text font={FONT} position={[0, h * 0.6, d / 2 + 0.012]} fontSize={0.06} color="#ffd34d">{sceneText("UPS · POWER")}</Text>
   </group>;
 }
 

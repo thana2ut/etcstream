@@ -22,7 +22,7 @@ export function useGameAudio(): AudioControlsContextValue {
 }
 
 const CLICKABLE = "button, a[href], [role='button'], [role='tab'], summary, input[type='checkbox'], input[type='radio'], select";
-const CLOSING = "[aria-label='ย้อนกลับ'], [aria-label^='ปิด'], .modal-close-x";
+const CLOSING = "[aria-label='Back'], [aria-label^='Close'], .modal-close-x";
 const TAB = "[role='tab'], .tab-pill-btn";
 const SELECT = ".mission-difficulty-tile";
 

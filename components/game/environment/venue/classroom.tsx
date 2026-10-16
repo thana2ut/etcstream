@@ -1,13 +1,18 @@
 "use client";
 
+import { SCENE_FONT, sceneText } from "@/game/rendering/scene-font";
+
 import { CuboidCollider, RigidBody } from "@react-three/rapier";
 import { LAYOUTS, VENUE_SCALE } from "@/game/training/venue-layouts";
 import { LayoutColliders, LayoutFurniture } from "./layout-furniture";
 import { AvCart, VenueLighting, Ball, BLACK_METAL, CHROME, Cyl, D as BASE_D, H, Lathe, RB, Slab, STEEL, Tube, W as BASE_W, type V3 } from "./kit";
 import { tex } from "./textures";
+import { Text } from "@react-three/drei";
+import { useTrainingStore } from "@/game/stores/training-store";
+import { venueScreenFeed, venueScreenLive } from "@/game/training/monitor-feed";
 
 /**
- * Mission classroom (บทที่ 01) — modern media-training classroom, built to the reference concept
+ * Mission classroom (chapter 01) — modern media-training classroom, built to the reference concept
  * (art/reference/venues/classroom-01/02, docs/VENUE_VISUAL_REFERENCES.md):
  *  front: wood-slat feature wall, centred projector screen over the teacher desk, grey acoustic panels, corner speakers,
  *         track lights, mobile whiteboard (left), classroom TV on a stand (right, layout furniture)
@@ -22,30 +27,16 @@ const k = (v: number) => +(v * K).toFixed(3);
 const BACK = -D / 2;
 const L = -W / 2, R = W / 2;
 
-/** Whiteboard writing: lesson title and a signal-flow sketch in marker. */
-function boardTexture() {
-  return tex.sign("classroom-board", 1024, 384, (c, w, h) => {
-    c.fillStyle = "#fbfbf8"; c.fillRect(0, 0, w, h);
-    c.fillStyle = "#1d4fb0"; c.font = "bold 54px 'Sarabun','Leelawadee UI',sans-serif"; c.fillText("HDMI 101 · พื้นฐานการต่อสัญญาณภาพ", 40, 78);
-    c.strokeStyle = "#1d4fb0"; c.lineWidth = 3; c.beginPath(); c.moveTo(40, 96); c.lineTo(760, 98); c.stroke();
-    const boxes: [number, string][] = [[60, "CAMERA"], [400, "SWITCHER"], [740, "MONITOR"]];
-    c.lineWidth = 5; c.font = "bold 34px sans-serif";
-    for (const [x, label] of boxes) { c.strokeStyle = "#222"; c.strokeRect(x, 150, 230, 90); c.fillStyle = "#222"; c.fillText(label, x + 22, 207); }
-    c.strokeStyle = "#c0302a"; c.fillStyle = "#c0302a";
-    for (const x of [290, 630]) { c.beginPath(); c.moveTo(x + 10, 195); c.lineTo(x + 100, 195); c.stroke(); c.beginPath(); c.moveTo(x + 100, 182); c.lineTo(x + 112, 195); c.lineTo(x + 100, 208); c.fill(); }
-    c.fillStyle = "#1e7a3a"; c.font = "30px 'Sarabun','Leelawadee UI',sans-serif"; c.fillText("✔ ต่อ OUTPUT → INPUT เสมอ   ✔ ตรวจทุกช่วงก่อนออกอากาศ", 40, 320);
-    void h;
-  });
-}
-/** Projected slide: soft blue abstract (as in the reference). */
-function slideTexture() {
-  return tex.sign("classroom-slide-2", 800, 450, (c, w, h) => {
-    c.fillStyle = "#e9eefb"; c.fillRect(0, 0, w, h);
-    c.fillStyle = "#6f86d8"; c.beginPath(); c.moveTo(0, 0); c.lineTo(w * 0.55, 0); c.bezierCurveTo(w * 0.42, 70, w * 0.2, 60, 0, 110); c.fill();
-    c.fillStyle = "#8ea0e2"; c.beginPath(); c.arc(w * 0.84, h * 0.66, 92, 0, 7); c.fill();
-    c.fillStyle = "#5f78cf"; c.fillRect(0, h - 46, w, 46);
-    c.fillStyle = "#c9d3f3"; c.beginPath(); c.moveTo(0, h - 46); c.bezierCurveTo(w * 0.3, h - 80, w * 0.6, h - 20, w, h - 70); c.lineTo(w, h - 46); c.fill();
-  });
+/** A repeated presentation output, driven by the existing TV/Projector input route. */
+function ProjectionSurface() {
+  const feed = useTrainingStore((state) => venueScreenFeed(state, "monitor"));
+  const ready = useTrainingStore((state) => venueScreenLive(state, "monitor"));
+  return <group position={[0, 1.9, BACK + 0.195]}>
+    <Slab p={[0, 0, 0]} s={[3.9, 2.08, 0.004]} c={ready ? "#263d60" : "#d1d2cf"} r={0.9} />
+    <Text font={SCENE_FONT} position={[0, 0, 0.006]} fontSize={0.12} color={ready ? "#e5efff" : "#454c53"} textAlign="center">
+      {sceneText(ready ? `Simulated picture from the real patch\n${feed}` : `No picture from the system\n${feed}`)}
+    </Text>
+  </group>;
 }
 /** View through the windows: sky, campus trees and a city block. */
 function windowView() {
@@ -156,7 +147,10 @@ function Softbox({ p, yaw }: { p: V3; yaw: number }) {
 function MobileWhiteboard({ p, yaw }: { p: V3; yaw: number }) {
   return <group position={p} rotation={[0, yaw, 0]}>
     <RB p={[0, 1.45, 0]} s={[1.8, 1.1, 0.04]} rad={0.015} {...CHROME} c="#c8ccd1" />
-    <Slab p={[0, 1.45, 0.022]} s={[1.74, 1.04, 0.004]} map={boardTexture()} c="#ffffff" r={0.12} />
+    <Slab p={[0, 1.45, 0.022]} s={[1.74, 1.04, 0.004]} c="#fbfbf8" r={0.12} />
+    <Text font={SCENE_FONT} position={[0, 1.78, 0.027]} fontSize={0.07} color="#1d4fb0">{sceneText("HDMI 101 | picture signal practice")}</Text>
+    <Text font={SCENE_FONT} position={[0, 1.45, 0.027]} fontSize={0.065} color="#283a4d">{sceneText("CAMERA -> SWITCHER -> MONITOR")}</Text>
+    <Text font={SCENE_FONT} position={[0, 1.15, 0.027]} fontSize={0.045} color="#1e7a3a">{sceneText("Patch OUTPUT to INPUT, then check Program")}</Text>
     <RB p={[0, 0.87, 0.05]} s={[1.6, 0.03, 0.08]} rad={0.01} {...CHROME} c="#b8bdc3" />
     {[-0.93, 0.93].map((x) => <group key={x}>
       <RB p={[x, 0.95, 0]} s={[0.04, 1.9, 0.04]} rad={0.01} {...STEEL} />
@@ -205,27 +199,12 @@ function CeilingProjector({ p }: { p: V3 }) {
   </group>;
 }
 
-/** Teacher desk dressing: dark modesty panel, monitor, keyboard + mouse, gooseneck mic, office chair. */
+/** The functional scenario gear occupies the desk; only its modesty panel and chair are scenery. */
 function TeacherDeskDressing({ x, z }: { x: number; z: number }) {
-  const top = 0.76;
   return <group position={[x, 0, z]}>
-    <RB p={[0, 0.4, 0.37]} s={[1.86, 0.7, 0.03]} rad={0.006} c="#2f3338" r={0.6} />
-    {/* monitor on a stand at the back edge */}
-    <group position={[-0.1, top, -0.22]}>
-      <RB p={[0, 0.01, 0]} s={[0.24, 0.02, 0.18]} rad={0.006} {...BLACK_METAL} />
-      <RB p={[0, 0.17, -0.02]} s={[0.04, 0.3, 0.03]} rad={0.006} {...BLACK_METAL} />
-      <RB p={[0, 0.36, 0]} s={[0.6, 0.36, 0.03]} rad={0.01} c="#121316" r={0.4} />
-      <Slab p={[0, 0.36, 0.016]} s={[0.56, 0.32, 0.002]} c="#2a3550" e="#3d5aa0" ei={0.35} />
-    </group>
-    <RB p={[-0.1, top + 0.012, 0.06]} s={[0.42, 0.018, 0.13]} rad={0.005} c="#1c1d20" />
-    <RB p={[0.2, top + 0.012, 0.08]} s={[0.06, 0.018, 0.1]} rad={0.012} c="#1c1d20" />
-    <group position={[0.15, top, -0.2]}>
-      <Cyl p={[0, 0.01, 0]} rt={0.05} h={0.02} c="#1b1c1f" />
-      <Tube pts={[[0, 0.02, 0], [0, 0.2, 0.02], [0.02, 0.3, 0.09]]} r={0.006} c="#1b1c1f" />
-      <Cyl p={[0.02, 0.31, 0.1]} rt={0.012} h={0.05} rot={[0.9, 0, 0]} c="#111" />
-    </group>
+    <RB p={[0, 0.4, 0.7]} s={[3.5, 0.7, 0.03]} rad={0.006} c="#2f3338" r={0.6} />
     {/* office chair behind the desk */}
-    <group position={[0.1, 0, -0.75]} rotation={[0, Math.PI, 0]}>
+    <group position={[0.1, 0, -1.05]} rotation={[0, Math.PI, 0]}>
       {[0, 1, 2, 3, 4].map((i) => { const a = (i / 5) * Math.PI * 2; return <Tube key={i} pts={[[0, 0.08, 0], [Math.cos(a) * 0.3, 0.05, Math.sin(a) * 0.3]]} r={0.014} {...BLACK_METAL} />; })}
       <Cyl p={[0, 0.27, 0]} rt={0.025} h={0.38} {...CHROME} />
       <RB p={[0, 0.48, 0]} s={[0.48, 0.07, 0.46]} rad={0.03} c="#1f2e55" r={0.7} />
@@ -255,7 +234,7 @@ function WindowGearTable({ x, z, len }: { x: number; z: number; len: number }) {
     {[-0.8, -0.45].map((dz) => <group key={dz} position={[0.05, h, dz]}>
       <RB p={[0, 0.035, 0]} s={[0.16, 0.06, 0.22]} rad={0.01} c="#1c1d20" />
       {[-0.07, 0.07].map((a) => <Cyl key={a} p={[-0.04, 0.15, a]} rt={0.005} h={0.18} c="#111" />)}
-      <Ball p={[0.081, 0.045, 0.06]} r={0.006} c="#38ff6a" e="#38ff6a" ei={2.4} />
+      <Ball p={[0.081, 0.045, 0.06]} r={0.006} c="#284735" />
     </group>)}
     <group position={[0.05, h, 0.15]}>
       <RB p={[0, 0.03, 0]} s={[0.3, 0.05, 0.36]} rad={0.012} c="#26282c" />
@@ -273,7 +252,7 @@ export function Classroom() {
   const ceiling = tex.tiles("#e9e9e6", "#c9c9c4", 2, [W / 1.2, D / 1.2]);
   const slats = tex.wood("#b88a58", [6, 1]);
   const door = tex.wood("#a8723f", [1, 2]);
-  const slide = slideTexture();
+
   return <>
     <color attach="background" args={["#e3e6e9"]} />
     <VenueLighting mood="classroom" intensity={0.5} />
@@ -285,7 +264,7 @@ export function Classroom() {
     <spotLight position={[0, H - 0.2, BACK + 2.2]} target-position={[0, 1.6, BACK]} angle={0.9} penumbra={0.7} intensity={6} distance={6} color="#fff1d8" />
 
     {/* shell: polished tile floor, white walls with a grey lower band and skirting, suspended ceiling */}
-    <Slab p={[0, -0.05, 0]} s={[W, 0.1, D]} map={floor} c="#ffffff" r={0.14} m={0.18} />
+    <Slab p={[0, -0.05, 0]} s={[W, 0.1, D]} map={floor} c="#ffffff" r={0.32} m={0.08} />
     <Slab p={[0, H + 0.02, 0]} s={[W, 0.04, D]} map={ceiling} c="#ffffff" r={0.9} />
     {([[0, BACK, W, 0], [0, D / 2, W, 0], [L, 0, D, 1], [R, 0, D, 1]] as const).map(([x, z, len, side], i) => <group key={i}>
       <Slab p={[x, H / 2, z]} s={side ? [0.1, H, len] : [len, H, 0.1]} map={wall} c="#ffffff" r={0.85} />
@@ -308,8 +287,9 @@ export function Classroom() {
       {/* projector screen centred over the teacher desk */}
       <RB p={[0, 2.98, 0.14]} s={[4.3, 0.12, 0.14]} rad={0.04} c="#f2f2f0" />
       <RB p={[0, 1.9, 0.12]} s={[4.06, 2.24, 0.02]} rad={0.004} c="#1a1a1a" />
-      <Slab p={[0, 1.9, 0.135]} s={[3.9, 2.08, 0.004]} map={slide} c="#ffffff" e="#ffffff" ei={0.08} r={0.9} />
+
     </group>
+    <ProjectionSurface />
     <TrackLights z={BACK + 1.0} xs={[-3.2, -1.6, 0, 1.6, 3.2]} />
     <TeacherDeskDressing x={0} z={k(-3.0)} />
     <MobileWhiteboard p={[k(-3.1), 0, BACK + 0.95]} yaw={0.18} />
@@ -324,7 +304,7 @@ export function Classroom() {
       <RB p={[0, 0.03, 0]} s={[0.2, 0.05, 0.14]} rad={0.01} c="#1c1d20" />
       <Cyl p={[-0.07, 0.13, -0.05]} rt={0.005} h={0.16} c="#111" />
       <Cyl p={[0.07, 0.13, -0.05]} rt={0.005} h={0.16} c="#111" />
-      <Ball p={[0.06, 0.04, 0.071]} r={0.006} c="#38ff6a" e="#38ff6a" ei={2.4} />
+      <Ball p={[0.06, 0.04, 0.071]} r={0.006} c="#284735" />
     </group>)}
     <WindowGearTable x={L + 0.42} z={k(-1.35)} len={2.4} />
     <Plant p={[L + 0.45, 0, k(-2.95)]} s={0.85} />
@@ -358,7 +338,7 @@ export function Classroom() {
       <CuboidCollider position={[k(-5.1), 1.1, k(1.45)]} args={[0.3, 1.1, 0.3]} />
       <CuboidCollider position={[L + 0.42, 0.4, k(-1.35)]} args={[0.32, 0.4, 1.22]} />
       <CuboidCollider position={[R - 0.55, 0.36, k(-1.65)]} args={[0.34, 0.36, 0.34]} />
-      <CuboidCollider position={[0.1, 0.5, k(-3.0) - 0.75]} args={[0.3, 0.5, 0.3]} />
+      <CuboidCollider position={[0.1, 0.5, k(-3.0) - 1.05]} args={[0.3, 0.5, 0.3]} />
     </RigidBody>
   </>;
 }

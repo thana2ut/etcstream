@@ -1,0 +1,130 @@
+[
+  {
+    "label": "A จุดเริ่ม",
+    "value": "0"
+  },
+  {
+    "label": "B มองย้อน",
+    "value": "1"
+  },
+  {
+    "label": "C ฝั่งตะวันตก",
+    "value": "2"
+  },
+  {
+    "label": "D ฝั่งตะวันออก",
+    "value": "3"
+  },
+  {
+    "label": "E มุมห้อง 1",
+    "value": "4"
+  },
+  {
+    "label": "E มุมห้อง 2",
+    "value": "5"
+  },
+  {
+    "label": "E มุมห้อง 3",
+    "value": "6"
+  },
+  {
+    "label": "E มุมห้อง 4",
+    "value": "7"
+  },
+  {
+    "label": "F ผังมุมสูง",
+    "value": "8"
+  },
+  {
+    "label": "G ระดับพื้น",
+    "value": "9"
+  },
+  {
+    "label": "H เพดาน",
+    "value": "10"
+  },
+  {
+    "label": "J จุดคืนอุปกรณ์",
+    "value": "11"
+  },
+  {
+    "label": "I Mini HDMI Switcher (USB Webcam) · ด้านหน้า",
+    "value": "12"
+  },
+  {
+    "label": "I Mini HDMI Switcher (USB Webcam) · ด้านหลัง",
+    "value": "13"
+  },
+  {
+    "label": "I Classroom HDMI Camera · ด้านหน้า",
+    "value": "14"
+  },
+  {
+    "label": "I Classroom HDMI Camera · ด้านหลัง",
+    "value": "15"
+  },
+  {
+    "label": "I Teacher Presentation Laptop · ด้านหน้า",
+    "value": "16"
+  },
+  {
+    "label": "I Teacher Presentation Laptop · ด้านหลัง",
+    "value": "17"
+  },
+  {
+    "label": "I Classroom TV / Projector · ด้านหน้า",
+    "value": "18"
+  },
+  {
+    "label": "I Classroom TV / Projector · ด้านหลัง",
+    "value": "19"
+  },
+  {
+    "label": "I Small Audio Mixer (PA + AUX) · ด้านหน้า",
+    "value": "20"
+  },
+  {
+    "label": "I Small Audio Mixer (PA + AUX) · ด้านหลัง",
+    "value": "21"
+  },
+  {
+    "label": "I Wireless Receiver · ด้านหน้า",
+    "value": "22"
+  },
+  {
+    "label": "I Wireless Receiver · ด้านหลัง",
+    "value": "23"
+  },
+  {
+    "label": "I Active Classroom Speaker · ด้านหน้า",
+    "value": "24"
+  },
+  {
+    "label": "I Active Classroom Speaker · ด้านหลัง",
+    "value": "25"
+  },
+  {
+    "label": "I Streaming Notebook / OBS · ด้านหน้า",
+    "value": "26"
+  },
+  {
+    "label": "I Streaming Notebook / OBS · ด้านหลัง",
+    "value": "27"
+  },
+  {
+    "label": "I Lavalier 1 · ด้านหน้า",
+    "value": "28"
+  },
+  {
+    "label": "I Lavalier 1 · ด้านหลัง",
+    "value": "29"
+  },
+  {
+    "label": "I Wireless TX 1 · ด้านหน้า",
+    "value": "30"
+  },
+  {
+    "label": "I Wireless TX 1 · ด้านหลัง",
+    "value": "31"
+  }
+]

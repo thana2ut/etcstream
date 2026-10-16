@@ -2,6 +2,9 @@ import { nearestTablePlacement, STUDIO } from "./studio-room-layout";
 import { clampToSurface, LAYOUTS, nearStaging, onSurface, type VenueLayout } from "./venue-layouts";
 import { feedbackCopy } from "@/game/content/feedback-copy";
 import { SCENARIOS, type Connector, type PlaceableItemId, type PortDef, type Point3, type Requirement, type Scenario, type ScenarioId } from "./scenarios";
+import { canConnect, evaluate, portOf, scoreOf, testRoute, validateLevel } from "./sim/engine";
+import type { ConceptId, ControlValue, EvalContext, FaultScenario, SimRuntime, TestStage } from "./sim/types";
+import { CONCEPTS } from "./sim/library";
 
 /**
  * Signal-flow training engine (pure state transitions, unit-tested).
@@ -46,6 +49,8 @@ export interface TrainingState {
   hiddenCables?: string[];
   /** Leads currently inside the trainee's bag (packed, not in the room yet): not rendered, taken out one at a time. */
   bagged?: string[];
+  /** Production simulation runtime (mission stages only). */
+  sim?: SimRuntime;
 }
 
 export function scenarioOf(state: Pick<TrainingState, "scenarioId">): Scenario {
@@ -86,6 +91,7 @@ export function initialTrainingState(scenarioId: ScenarioId = "hdmi-basic", hidd
     notice: null,
     hiddenCables,
     bagged,
+    sim: scenario.stage ? initSim(scenario, attemptSeed(scenarioId)) : undefined,
   };
 }
 
@@ -126,7 +132,7 @@ export function getPort(state: TrainingState, portId: PortId): PortDef | undefin
   const key = `${state.scenarioId}:${cableId}:${host}`;
   let socket = socketPortCache.get(key);
   if (!socket) {
-    socket = { label: `${def.label} (ที่ ${base.label})`, device: base.device, direction: base.direction, connector: def.socketB, position: base.position, radius: 0.03 };
+    socket = { label: `${def.label} (on ${base.label})`, device: base.device, direction: base.direction, connector: def.socketB, position: base.position, radius: 0.03 };
     socketPortCache.set(key, socket);
   }
   return socket;
@@ -147,6 +153,7 @@ export function socketPorts(state: TrainingState): PortId[] {
 /** Does a plug fit the port? XLR is gendered: device inputs take a male plug, outputs a female plug. */
 export function plugFits(plug: Connector, port: PortDef): boolean {
   if (port.connector === "XLR") return plug === (port.direction === "INPUT" ? "XLR-M" : "XLR-F");
+  if (port.connector === "COMBO") return plug === "XLR-M" || plug === "6.35mm";
   return plug === port.connector;
 }
 
@@ -229,16 +236,19 @@ export function portAvailable(state: TrainingState, portId: PortId): boolean {
 
 function isComplete(state: TrainingState, cables: TrainingState["cables"], actionsDone: Record<string, boolean>): boolean {
   const scenario = scenarioOf(state);
+  if (scenario.stage) return Boolean(state.sim?.signedOff);
   return scenario.requirements.every((req) => requirementDone(state, req, cables)) && scenario.actions.every((action) => actionsDone[action.id]);
 }
 
 export function trainingProgress(state: TrainingState): number {
   const scenario = scenarioOf(state);
+  if (scenario.stage) { const ctx = simContext(state); return ctx ? validateLevel(ctx).filter((r) => r.result.ok).length : 0; }
   return scenario.requirements.filter((req) => requirementDone(state, req)).length + scenario.actions.filter((action) => state.actionsDone[action.id]).length;
 }
 
 export function trainingTotal(state: Pick<TrainingState, "scenarioId">): number {
   const scenario = scenarioOf(state);
+  if (scenario.stage) return scenario.stage.objectives.length;
   return scenario.requirements.length + scenario.actions.length;
 }
 
@@ -261,22 +271,24 @@ function withCables(state: TrainingState, cables: TrainingState["cables"], extra
   pruneSockets(cables);
   const actionsDone = settleActions(state, cables, state.actionsDone);
   const programSource = state.programSource && actionsDone[`select-${state.programSource}`] ? state.programSource : undefined;
-  return { ...state, ...extra, cables, actionsDone, programSource, completed: isComplete(state, cables, actionsDone) };
+  const next = { ...state, ...extra, cables, actionsDone, programSource };
+  if (next.sim) return settleSim({ ...next, completed: Boolean(next.sim.signedOff) });
+  return { ...next, completed: isComplete(state, cables, actionsDone) };
 }
 
 function runAction(state: TrainingState, actionId: string): TrainingState {
   const scenario = scenarioOf(state);
   const action = scenario.actions.find((a) => a.id === actionId);
   if (!action) return state;
-  if (state.held || state.heldItem) return { ...state, notice: notice("มือไม่ว่าง", "กด F เพื่อวางสิ่งที่ถืออยู่ก่อน", "error") };
-  if (state.actionsDone[actionId] && !action.source) return { ...state, notice: notice(action.doneLabel, "ขั้นนี้เสร็จแล้ว", "info") };
+  if (state.held || state.heldItem) return { ...state, notice: notice("Hands full", "Press F to set down what you are holding first", "error") };
+  if (state.actionsDone[actionId] && !action.source) return { ...state, notice: notice(action.doneLabel, "This step is already done", "info") };
   // Trace back along the flow and report the first missing link (never guess past it).
   for (const need of action.needs) {
     const req = scenario.requirements.find((r) => r.id === need);
     const ok = req ? requirementDone(state, req) : state.actionsDone[need];
     if (!ok) {
       const label = req?.label ?? scenario.actions.find((a) => a.id === need)?.label ?? need;
-      return { ...state, notice: notice("ยังไม่มีสัญญาณครบเส้นทาง", `ย้อนตรวจ: ${label}`, "error") };
+      return { ...state, notice: notice("Signal path incomplete", `Trace back: ${label}`, "error") };
     }
   }
   const actionsDone = { ...state.actionsDone, [actionId]: true };
@@ -284,7 +296,7 @@ function runAction(state: TrainingState, actionId: string): TrainingState {
   return {
     ...state, actionsDone, completed, programSource: action.source ?? state.programSource,
     notice: completed
-      ? notice("ระบบพร้อมใช้งาน", "เส้นทางสัญญาณและการตั้งค่าครบทุกเงื่อนไขของบทเรียน", "success")
+      ? notice("System ready", "Signal path and settings meet every condition of the lesson", "success")
       : notice(action.doneLabel, action.label, "success"),
   };
 }
@@ -295,11 +307,11 @@ export function interactWithTarget(state: TrainingState, target: TrainingTarget 
   const cables = cloneCables(state.cables);
 
   if (target.kind === "action") return runAction(state, target.actionId);
-  if (target.kind === "device") return { ...state, notice: notice("อุปกรณ์ติดตั้งประจำที่", "กด E ค้าง 2 วินาทีเพื่อเปิดดูรายละเอียด", "info") };
+  if (target.kind === "device") return { ...state, notice: notice("Installed equipment", "Hold E for 2 seconds to inspect it", "info") };
 
   if (target.kind === "item") {
     if (!state.items[target.itemId]) return state;
-    if (state.held || state.heldItem) return { ...state, notice: notice("มือไม่ว่าง", "กด F เพื่อวางสิ่งที่ถืออยู่ก่อน", "error") };
+    if (state.held || state.heldItem) return { ...state, notice: notice("Hands full", "Press F to set down what you are holding first", "error") };
     // Lifting the switcher unplugs everything seated in it.
     for (const [cableId, cable] of Object.entries(cables)) for (const end of CABLE_ENDS) {
       const portId = cable[end].portId;
@@ -310,21 +322,21 @@ export function interactWithTarget(state: TrainingState, target: TrainingTarget 
         cable[end].loosePosition = portPosition(state, portId);
       }
     }
-    return withCables(state, cables, { heldItem: target.itemId, notice: notice("หยิบอุปกรณ์แล้ว", "นำไปใกล้โต๊ะทำงานแล้วกด F เพื่อวาง", "info") });
+    return withCables(state, cables, { heldItem: target.itemId, notice: notice("Equipment picked up", "Carry it to its station and press F to set it down", "info") });
   }
 
   if (target.kind === "end") {
     if (!cables[target.cableId] || !cableDef(state, target.cableId)) return state;
-    if (cableDef(state, target.cableId).locked) return { ...state, notice: notice("ติดตั้งมากับเครื่องแล้ว", "ไมค์หนีบปกเสียบอยู่กับตัวส่ง TX แล้ว ไม่ต้องต่อเพิ่ม", "info") };
+    if (cableDef(state, target.cableId).locked) return { ...state, notice: notice("Factory-fitted", "This lavalier lead is already in its transmitter", "info") };
     const fixedMic = cableDef(state, target.cableId).fixedA;
     if (fixedMic && target.end === "a") {
-      if (state.held || state.heldItem) return { ...state, notice: notice("มือไม่ว่าง", "กด F เพื่อวางสิ่งที่ถืออยู่ก่อน", "error") };
+      if (state.held || state.heldItem) return { ...state, notice: notice("Hands full", "Press F to set down what you are holding first", "error") };
       // The capsule and its captive lead travel together; disconnect the TX plug if needed.
       const connected = Boolean(cables[target.cableId].b.portId);
       cables[target.cableId].b.portId = null;
       return withCables(state, cables, {
         held: { cableId: target.cableId, end: "b" },
-        notice: notice(connected ? "ถอดไมค์จากตัวส่งแล้ว" : "หยิบไมค์พร้อมสายแล้ว", "นำปลั๊ก 3.5 mm ไปเสียบช่อง MIC INPUT ของ TX", "info"),
+        notice: notice(connected ? "Mic unplugged from the transmitter" : "Mic and lead picked up", "Plug the 3.5 mm into the transmitter MIC INPUT", "info"),
       });
     }
     // 1 / 2 + E: take only the head / tail of the aimed cable; the other end stays where it is.
@@ -337,17 +349,17 @@ export function interactWithTarget(state: TrainingState, target: TrainingTarget 
       chosen.portId = null;
       return withCables(state, cables, {
         held: { cableId: target.cableId, end: endPick, single: true },
-        notice: notice(wasIn ? feedbackCopy.training.disconnected.title : (endPick === "a" ? "หยิบหัวสาย" : "หยิบปลายสาย"), `${def.label} · ปลาย ${def.ends[endPick === "a" ? 0 : 1]} เท่านั้น`, "info"),
+        notice: notice(wasIn ? feedbackCopy.training.disconnected.title : (endPick === "a" ? "Took the cable head" : "Took the cable tail"), `${def.label} · ${def.ends[endPick === "a" ? 0 : 1]} end only`, "info"),
       });
     }
     // Holding a cable carries the whole lead: aiming at its other (loose) end just chooses which plug goes in first.
     if (state.held && !state.held.single && !state.heldItem && state.held.cableId === target.cableId) {
       if (state.held.end === target.end) return state;
       if (!cables[target.cableId][target.end].portId && !(target.end === "a" && cableDef(state, target.cableId).fixedA)) {
-        return { ...state, held: { cableId: target.cableId, end: target.end }, notice: notice("สลับหัวสาย", `ถือปลาย ${cableDef(state, target.cableId).ends[target.end === "a" ? 0 : 1]} ไว้เสียบก่อน`, "info") };
+        return { ...state, held: { cableId: target.cableId, end: target.end }, notice: notice("Switched ends", `Holding the ${cableDef(state, target.cableId).ends[target.end === "a" ? 0 : 1]} end to plug in first`, "info") };
       }
     }
-    if (state.held || state.heldItem) return { ...state, notice: notice(feedbackCopy.training.alreadyHolding.title, "กด F เพื่อวางสิ่งที่ถืออยู่ก่อน", "error") };
+    if (state.held || state.heldItem) return { ...state, notice: notice(feedbackCopy.training.alreadyHolding.title, "Press F to set down what you are holding first", "error") };
     const def = cableDef(state, target.cableId);
     if (target.end === "b" && def.socketB) return interactWithTarget(state, { ...target, end: "a" }); // an adapter is one rigid piece
     const selected = cables[target.cableId][target.end];
@@ -363,33 +375,40 @@ export function interactWithTarget(state: TrainingState, target: TrainingTarget 
 
   const port = getPort(state, target.portId);
   if (!port) return state;
-  if (state.heldItem) return { ...state, notice: notice("กำลังถืออุปกรณ์", "วางอุปกรณ์บนโต๊ะทำงานก่อนต่อสาย", "error") };
-  if (!portAvailable(state, target.portId)) return { ...state, notice: notice("อุปกรณ์ยังไม่พร้อม", "วาง Video Switcher บนโต๊ะทำงานก่อน แล้วจึงต่อสาย", "error") };
+  if (state.heldItem) return { ...state, notice: notice("Carrying equipment", "Install the equipment before cabling", "error") };
+  if (!portAvailable(state, target.portId)) return { ...state, notice: notice("Device not installed", "Set this device down at its station first, then cable it", "error") };
   const occupied = occupiedEnd(state, target.portId);
   if (!state.held) {
     if (!occupied) return { ...state, notice: notice(feedbackCopy.training.pickUpFirst.title, feedbackCopy.training.pickUpFirst.detail, "error") };
     if (occupied.end === "a" && cableDef(state, occupied.cableId).fixedA) return state;
-    if (cableDef(state, occupied.cableId).locked) return { ...state, notice: notice("ติดตั้งมากับเครื่องแล้ว", "ไมค์หนีบปกเสียบอยู่กับตัวส่ง TX แล้ว ไม่ต้องต่อเพิ่ม", "info") };
+    if (cableDef(state, occupied.cableId).locked) return { ...state, notice: notice("Factory-fitted", "This lavalier lead is already in its transmitter", "info") };
     cables[occupied.cableId][occupied.end].portId = null;
     return withCables(state, cables, { held: occupied, notice: notice(feedbackCopy.training.disconnected.title, feedbackCopy.training.disconnected.detail, "info") });
   }
   if (occupied) return { ...state, notice: notice(feedbackCopy.connection.portOccupied.title, feedbackCopy.connection.portOccupied.detail, "error") };
+  if (state.sim?.paused) return { ...state, notice: notice("Mission paused", "Complete the targeted learning review to resume.", "error") };
+  if (state.sim && state.sim.weatherNow === "lightning") return { ...state, notice: notice("Weather hold — lightning", "Unsafe state: setup is paused. Record NO-GO and wait for the all-clear.", "error") };
   const connector = endConnector(state, state.held);
   const lead = cableDef(state, state.held.cableId);
-  if (port.signalType && lead.signalType && port.signalType !== lead.signalType) return { ...state, notice: notice("ชนิดสัญญาณไม่ตรงกัน", "หัวต่อที่เสียบได้อาจส่งสัญญาณคนละชนิด โปรดตรวจเส้นทางอีกครั้ง", "error") };
-  if (target.portId === SOCKET + state.held.cableId) return { ...state, notice: notice("เสียบเข้าตัวเองไม่ได้", "เสียบหัวแปลงเข้าพอร์ตของอุปกรณ์", "error") };
+  if (port.signalType && lead.signalType && port.signalType !== lead.signalType) return { ...state, notice: notice("Signal type mismatch", "A plug that fits can still carry a different signal — check the path", "error") };
+  if (target.portId === SOCKET + state.held.cableId) return { ...state, notice: notice("Cannot plug into itself", "Plug the adapter into a device port", "error") };
   if (!plugFits(connector, port)) {
-    const need = port.connector === "XLR" ? (port.direction === "INPUT" ? "XLR ตัวผู้ (M)" : "XLR ตัวเมีย (F)") : port.connector;
-    return { ...state, notice: notice("หัวสายไม่ตรงกับพอร์ต", `ปลายสายนี้เป็น ${connector} แต่พอร์ต ${port.label} ต้องใช้ ${need}`, "error") };
+    const need = port.connector === "XLR" ? (port.direction === "INPUT" ? "XLR male (M)" : "XLR female (F)") : port.connector;
+    return { ...state, notice: notice("Plug does not fit this socket", `This end is ${connector}; ${port.label} needs ${need}`, "error") };
   }
   const otherEnd: CableEnd = state.held.end === "a" ? "b" : "a";
   const otherPort = cables[state.held.cableId][otherEnd].portId;
   const otherReal = resolvePort(state, otherPort), targetReal = resolvePort(state, target.portId);
   if (otherReal && targetReal) {
     const other = getPort(state, otherReal)!, here = getPort(state, targetReal)!;
+    if (scenario.simDevices && state.sim) {
+      const v = canConnect(scenario.simDevices, otherReal, targetReal);
+      if (!v.ok) return registerError(state, v.concept, `${v.title}: ${v.detail}`, v.code);
+    } else {
     if (other.direction === here.direction) return { ...state, notice: notice(feedbackCopy.connection.invalidDirection.title, feedbackCopy.connection.invalidDirection.technical, "error") };
-    if (other.signalType && here.signalType && other.signalType !== here.signalType) return { ...state, notice: notice("ชนิดสัญญาณไม่ตรงกัน", "ต้องใช้อุปกรณ์แปลงสัญญาณที่ถูกต้อง", "error") };
+    if (other.signalType && here.signalType && other.signalType !== here.signalType) return { ...state, notice: notice("Signal type mismatch", "A correct, powered converter is required", "error") };
     if (!scenario.requirements.some((req) => linksRequirement(req, otherReal, targetReal))) return { ...state, notice: notice(feedbackCopy.connection.invalidRoute.title, feedbackCopy.connection.invalidRoute.detail, "error") };
+    }
   }
   cables[state.held.cableId][state.held.end].portId = target.portId;
   if (lead.fixedA && state.held.end === "b") {
@@ -401,6 +420,13 @@ export function interactWithTarget(state: TrainingState, target: TrainingTarget 
   const leadDef = cableDef(state, state.held.cableId);
   const keepOther = !state.held.single && !cables[state.held.cableId][otherSide].portId && !leadDef.socketB && !(otherSide === "a" && leadDef.fixedA);
   const next = withCables(state, cables, { held: keepOther ? { cableId: state.held.cableId, end: otherSide } : null });
+  if (next.sim && otherReal && targetReal) {
+    const ctx = simContext(next);
+    const [o, i] = getPort(state, otherReal)!.direction === "OUTPUT" ? [otherReal, targetReal] : [targetReal, otherReal];
+    const sig = ctx?.inp[i];
+    next.sim = { ...next.sim, log: [...next.sim.log, { t: next.sim.tick, kind: "connect", text: `${o} → [${leadDef.label}] → ${i}` }] };
+    return { ...next, notice: notice("Connected", `${leadDef.label} · ${getPort(state, o)!.label} → ${getPort(state, i)!.label}${sig ? "" : " · no signal yet (check power, format, configuration)"}`, "success") };
+  }
   return {
     ...next,
     notice: next.completed
@@ -413,11 +439,11 @@ export function interactWithTarget(state: TrainingState, target: TrainingTarget 
 export function stowHeldCable(state: TrainingState): TrainingState {
   if (!state.held) return state;
   const def = cableDef(state, state.held.cableId);
-  if (def.fixedA || def.locked) return { ...state, notice: notice("เก็บคืนไม่ได้", "สายไมค์นี้ติดกับตัวไมค์ ไม่ได้อยู่ในกระเป๋า", "error") };
+  if (def.fixedA || def.locked) return { ...state, notice: notice("Cannot stow", "This mic lead is attached to its mic, not part of the bag", "error") };
   const cables = cloneCables(state.cables);
   cables[def.id] = { a: { portId: null, loosePosition: [...def.start[0]] }, b: { portId: null, loosePosition: [...def.start[1]] } };
   const bagged = [...(state.bagged ?? []).filter((id) => id !== def.id), def.id];
-  return withCables(state, cables, { held: null, bagged, notice: notice("เก็บสายคืนกระเป๋าแล้ว", def.label, "info") });
+  return withCables(state, cables, { held: null, bagged, notice: notice("Lead returned to the bag", def.label, "info") });
 }
 
 export function dropHeldEnd(state: TrainingState, position: Point3): TrainingState {
@@ -460,7 +486,7 @@ function returnToSideTable(state: TrainingState, position: Point3): TrainingStat
       if (!cables[def.id].b.portId) cables[def.id].b.loosePosition = [...def.start[1]];
     }
     return { ...state, cables, heldItem: null, items: { ...state.items, [item.id]: { ...state.items[item.id], position: [...item.start], turn: 0 } },
-      notice: notice("วางคืนโต๊ะอุปกรณ์แล้ว", `${item.label} กลับที่เดิม`, "info") };
+      notice: notice("Returned to storage", `${item.label} is back in its case`, "info") };
   }
   if (state.held) {
     const def = cableDef(state, state.held.cableId);
@@ -492,10 +518,10 @@ export function placeHeldOnCenterTable(state: TrainingState, position: Point3, t
     }
     const def = scenarioOf(state).placeables.find((p) => p.id === state.heldItem)!;
     if (Math.hypot(position[0] - def.zone[0], position[2] - def.zone[2]) > 1.6) {
-      return { ...state, notice: notice("ยังไม่ใช่ตำแหน่งใช้งาน", `นำ ${def.label} ไปที่: ${def.zoneLabel ?? "ตำแหน่งใช้งานของอุปกรณ์"} แล้วกด F`, "error") };
+      return { ...state, notice: notice("Not its station", `Take ${def.label} to: ${def.zoneLabel ?? "its station"} and press F`, "error") };
     }
   } else if (!nearestTablePlacement(position[0], position[2], kind)) {
-    return { ...state, notice: notice("ยังวางตรงนี้ไม่ได้", "เข้าใกล้โต๊ะทำงานหลักแล้วกด F อีกครั้ง", "error") };
+    return { ...state, notice: notice("Cannot set down here", "Move closer to the main work table and press F again", "error") };
   }
   if (state.held) return dropHeldEnd(state, cablePlacement(state, state.held.cableId, state.held.end));
   const itemId = state.heldItem as PlaceableItemId;
@@ -506,8 +532,8 @@ export function placeHeldOnCenterTable(state: TrainingState, position: Point3, t
     ...placed,
     heldItem: null,
     notice: legacy
-      ? notice("วางอุปกรณ์บนโต๊ะทำงานแล้ว", "เล็งอุปกรณ์แล้วกด E เพื่อหยิบอีกครั้ง", "success")
-      : notice("ติดตั้งอุปกรณ์ที่ตำแหน่งใช้งานแล้ว", `${scenarioOf(state).placeables.find((p) => p.id === itemId)?.zoneLabel ?? ""} · ตรวจพอร์ตก่อนต่อสาย`, "success"),
+      ? notice("Set down on the work table", "Aim at it and press E to pick it up again", "success")
+      : notice("Installed at its station", `${scenarioOf(state).placeables.find((p) => p.id === itemId)?.zoneLabel ?? ""} · inspect the ports before cabling`, "success"),
   };
 }
 
@@ -533,24 +559,253 @@ export function heldPlugFits(state: TrainingState, portId: PortId): boolean | nu
 
 export function targetInstruction(state: TrainingState, target: TrainingTarget | null): string {
   const scenario = scenarioOf(state);
-  if (!target) return state.held || state.heldItem ? "F · วางบนโต๊ะทำงาน หรือวางคืนโต๊ะอุปกรณ์" : feedbackCopy.training.aimHint;
-  if (target.kind === "item") return state.held || state.heldItem ? "F · วางสิ่งที่ถือบนโต๊ะทำงาน" : `E · หยิบ${state.items[target.itemId].label} · ค้าง 2 วิ = ดูรายละเอียด`;
-  if (target.kind === "device") return "E ค้าง 2 วิ · ดูรายละเอียดอุปกรณ์";
+  if (!target) return state.held || state.heldItem ? "F · Set down at a station, or return to storage" : feedbackCopy.training.aimHint;
+  if (target.kind === "item") return state.held || state.heldItem ? "F · Set down what you are holding" : `E · Pick up ${state.items[target.itemId].label} · hold 2 s = inspect`;
+  if (target.kind === "device") return "E hold 2 s · Inspect equipment";
   if (target.kind === "action") {
     const action = scenario.actions.find((a) => a.id === target.actionId);
     return action ? (state.actionsDone[action.id] ? action.doneLabel : `E · ${action.label}`) : "";
   }
   if (target.kind === "end") {
     const def = cableDef(state, target.cableId);
-    if (def.locked) return `${def.label} · ต่อกับ TX มาแล้ว`;
-    if (state.held) return "F · วางสายที่ถืออยู่ก่อน (หรือนำไปต่อเข้าพอร์ต)";
-    if (target.end === "a" && def.fixedA) return `E · หยิบ${def.label} พร้อมปลั๊กไปเสียบ TX`;
+    if (def.locked) return `${def.label} · already in its transmitter`;
+    if (state.held) return "F · Set down the lead you hold first (or plug it into a port)";
+    if (target.end === "a" && def.fixedA) return `E · Pick up ${def.label} to plug into the transmitter`;
     const connector = def.ends[target.end === "a" ? 0 : 1];
-    return state.cables[target.cableId][target.end].portId ? feedbackCopy.training.disconnectHint : `E · หยิบ${def.label} ทั้งเส้น · 1+E หัวสาย · 2+E ปลายสาย (${connector})`;
+    return state.cables[target.cableId][target.end].portId ? feedbackCopy.training.disconnectHint : `E · Pick up ${def.label} · 1+E head only · 2+E tail only (${connector})`;
   }
   const port = getPort(state, target.portId);
   if (!port) return "";
   const label = `${port.label} · ${port.direction}`;
-  if (state.held) return `E · ต่อสายเข้าพอร์ต ${label}`;
-  return occupiedEnd(state, target.portId) ? `E · ถอดสายจาก ${port.label}` : label;
+  if (state.held) return `E · Plug into ${label}`;
+  return occupiedEnd(state, target.portId) ? `E · Unplug from ${port.label}` : label;
+}
+
+/* ═════════════════════════ Production simulation runtime (mission stages) ═════════════════════════
+ * Pure transitions over TrainingState.sim. Every observable result is recomputed from the real cable graph +
+ * device configuration (game/training/sim/engine.ts) — the HUD never trusts cable colour. */
+let attemptCounter = 0;
+/** Deterministic per-attempt seed (restart = next attempt): the L5 surprise fault varies between attempts, never randomly within one. */
+export function attemptSeed(id: string): number { attemptCounter += 1; return [...id].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, attemptCounter) >>> 0; }
+
+function applyFaultConfig(sim: SimRuntime, f: FaultScenario): SimRuntime {
+  const config = { ...sim.config };
+  const locked = [...sim.locked];
+  for (const c of f.config ?? []) { config[c.device] = { ...(config[c.device] ?? {}), [c.key]: c.value }; if (c.lock) locked.push(`${c.device}.${c.key}`); }
+  return { ...sim, config, locked };
+}
+
+export function initSim(scenario: Scenario, seed: number): SimRuntime {
+  const stage = scenario.stage!;
+  let sim: SimRuntime = {
+    stageId: stage.id, config: { site: { decision: "(undecided)" } }, pgmHistory: [], cueIndex: 0, cueMisses: 0, testsPassed: {}, diagnosed: [], recovered: [],
+    activeFaults: [], surpriseArmed: false, seed, errors: 0, totalErrors: 0, paused: false, log: [], tick: 0, signedOff: false, evidence: [], quizOk: false,
+    fallbackUsed: false, locked: [], weatherNow: stage.weather, recoveryOrder: [],
+  };
+  for (const c of stage.startConfig ?? []) sim.config[c.device] = { ...(sim.config[c.device] ?? {}), [c.key]: c.value };
+  for (const f of stage.faults ?? []) { sim = applyFaultConfig(sim, f); sim.activeFaults = [...sim.activeFaults, f.id]; }
+  return sim;
+}
+
+const ctxCache = new WeakMap<object, EvalContext>();
+/** Evaluated signal graph for the current state (cached per state snapshot). */
+export function simContext(state: TrainingState): EvalContext | null {
+  const scenario = scenarioOf(state);
+  if (!scenario.stage || !state.sim || !scenario.simDevices) return null;
+  const hit = ctxCache.get(state);
+  if (hit) return hit;
+  const devs = scenario.simDevices;
+  const edges: EvalContext["edges"] = [];
+  for (const [cableId, c] of Object.entries(state.cables)) {
+    const a = resolvePort(state, c.a.portId), b = resolvePort(state, c.b.portId);
+    if (!a || !b) continue;
+    const pa = portOf(devs, a), pb = portOf(devs, b);
+    if (!pa || !pb || pa.dir === pb.dir) continue;
+    edges.push(pa.dir === "OUTPUT" ? { from: a, to: b, cableId } : { from: b, to: a, cableId });
+  }
+  const placeable = new Set(scenario.placeables.map((p) => p.id));
+  const ctx = evaluate({ stage: scenario.stage, devices: devs, edges, cables: scenario.cableMeta ?? {}, placed: (d) => !placeable.has(d) || isItemPlaced(state, d), sim: state.sim });
+  ctxCache.set(state, ctx);
+  return ctx;
+}
+
+const allFaults = (scenario: Scenario): FaultScenario[] => [...(scenario.stage?.faults ?? []), ...(scenario.stage?.surpriseFaults ?? [])];
+
+/** Clear recovered faults (root cause fixed) and unlock what they held. */
+function settleSim(state: TrainingState): TrainingState {
+  if (!state.sim || state.sim.activeFaults.length === 0) return state;
+  const ctx = simContext(state);
+  if (!ctx) return state;
+  const scenario = scenarioOf(state);
+  let sim = state.sim;
+  for (const id of state.sim.activeFaults) {
+    const f = allFaults(scenario).find((x) => x.id === id);
+    if (!f || !f.cleared(ctx)) continue;
+    sim = { ...sim, activeFaults: sim.activeFaults.filter((x) => x !== id), recovered: [...sim.recovered, id], recoveryOrder: [...sim.recoveryOrder, id],
+      locked: sim.locked.filter((k) => !(f.config ?? []).some((c) => `${c.device}.${c.key}` === k)),
+      log: [...sim.log, { t: sim.tick, kind: "recover", text: `Recovered: ${f.label}` }] };
+  }
+  return sim === state.sim ? state : { ...state, sim };
+}
+
+/** A meaningful error: counted deterministically; three → Mission Paused → targeted review. */
+export function registerError(state: TrainingState, concept: ConceptId, text: string, code = "ERROR"): TrainingState {
+  if (!state.sim) return { ...state, notice: notice("Not possible", text, "error") };
+  const errors = state.sim.errors + 1;
+  const paused = errors >= 3;
+  const sim: SimRuntime = { ...state.sim, errors, totalErrors: state.sim.totalErrors + 1, lastErrorConcept: concept, paused, reviewConcept: paused ? concept : state.sim.reviewConcept,
+    log: [...state.sim.log, { t: state.sim.tick, kind: "reject", text, code }] };
+  return { ...state, sim, notice: notice(paused ? "Mission Paused — targeted review" : "Rejected", paused ? `Three meaningful errors. Review: ${CONCEPTS[concept].title}` : text, "error") };
+}
+
+function stageCtl(state: TrainingState) { return scenarioOf(state).stage!; }
+
+/** Operator control on a device (or the "site" preflight/safety panel). */
+export function setControl(state: TrainingState, device: string, key: string, value: ControlValue): TrainingState {
+  if (!state.sim) return state;
+  if (state.sim.paused) return { ...state, notice: notice("Mission paused", "Complete the targeted learning review to resume.", "error") };
+  if (state.sim.locked.includes(`${device}.${key}`)) return { ...state, notice: notice("Not under your control", "This condition is external (e.g. an ISP outage). Work around it with the equipment actually provided.", "error") };
+  const stage = stageCtl(state);
+  const before = simContext(state);
+  const prev = before?.cfg(device, key) ?? state.sim.config[device]?.[key];
+  const sim: SimRuntime = { ...state.sim, tick: state.sim.tick + 1, config: { ...state.sim.config, [device]: { ...(state.sim.config[device] ?? {}), [key]: value } } };
+  sim.log = [...sim.log, { t: sim.tick, kind: "config", text: `${device}.${key} = ${String(value)}` }];
+  let next: TrainingState = { ...state, sim, notice: notice("Set", `${device} · ${key} = ${String(value)}`, "info") };
+  // Safety: GO during lightning is a critical safety bypass.
+  if (device === "site" && key === "decision" && value === "GO" && sim.weatherNow === "lightning") {
+    next = { ...next, sim: { ...next.sim!, log: [...next.sim!.log, { t: sim.tick, kind: "reject", text: "GO declared during a lightning warning", code: "SAFETY_BYPASS" }] } };
+    return registerError(next, "safety", "GO with lightning nearby is a critical safety bypass. Record NO-GO and hold for the all-clear.", "SAFETY_BYPASS");
+  }
+  // Recording stopped cleanly → the file closes and becomes evidence.
+  if (key === "record" && value === false && prev === true && before) {
+    const dev = device === "sw" ? Object.keys(before.view).find((d) => before.view[d]?.recording && scenarioOf(state).simDevices?.[d]?.model === "generic-recording-ssd") : before.view[device]?.recording ? device : undefined;
+    const file = dev ? before.view[dev]?.file : undefined;
+    if (dev && file) next.sim = { ...next.sim!, evidence: [...next.sim!.evidence, `${device === "host" ? "OBS local recording saved" : device === "rec" ? "rec · HyperDeck clip closed" : `${dev} · ISO disk file closed`} · ${file}`] };
+  }
+  // Going on air before rehearsal in a certification is logged.
+  if (key === "stream" && value === true && stage.guidance === "certification" && !state.sim.testsPassed.rehearsal) {
+    next.sim = { ...next.sim!, log: [...next.sim!.log, { t: sim.tick, kind: "config", text: "Stream started before the rehearsal passed", code: "EARLY_STREAM" }] };
+  }
+  next = settleSim(next);
+  // Program takes drive the run-of-show.
+  if (device === "sw" && key === "pgm") next = afterTake(next, String(state.sim.config.sw?.pvw ?? ""), String(value));
+  return { ...next, completed: Boolean(next.sim?.signedOff) };
+}
+
+function afterTake(state: TrainingState, pvwBefore: string, opt: string): TrainingState {
+  const ctx = simContext(state);
+  const content = ctx?.view.sw?.picture ?? "BLACK";
+  const stage = stageCtl(state);
+  let sim: SimRuntime = { ...state.sim!, pgmHistory: [...state.sim!.pgmHistory, content], log: [...state.sim!.log, { t: state.sim!.tick, kind: "take", text: `TAKE ${opt} → ${content}` }] };
+  if (content.includes("HOLDING") && sim.activeFaults.length) sim = { ...sim, fallbackUsed: true };
+  const next: TrainingState = { ...state, sim };
+  const live = stage.cues.length > 0 && sim.testsPassed.signal && sim.cueIndex < stage.cues.length;
+  if (!live) return { ...next, notice: notice("TAKE", `Program: ${content}`, "info") };
+  const cue = stage.cues[sim.cueIndex];
+  if (stage.previewBeforeTake && pvwBefore !== opt) {
+    return registerError({ ...next, sim: { ...sim, cueMisses: sim.cueMisses + 1 } }, "output-assign", `Cue "${cue.call}": the shot was not in PREVIEW before TAKE. Preview first, then take.`, "NO_PREVIEW");
+  }
+  if (content.includes(cue.expect)) {
+    sim = { ...sim, cueIndex: sim.cueIndex + 1, evidence: [...sim.evidence, `CUE ${sim.cueIndex + 1}: ${cue.call} → ${content}`] };
+    return { ...next, sim, notice: notice(`Cue ${sim.cueIndex}/${stage.cues.length} ✓`, sim.cueIndex < stage.cues.length ? `Next: ${stage.cues[sim.cueIndex].call}` : "Run-of-show complete — run the rehearsal test.", "success") };
+  }
+  return registerError({ ...next, sim: { ...sim, cueMisses: sim.cueMisses + 1 } }, "output-assign", `Cue "${cue.call}" — Program shows ${content}. Wrong source on air.`, "WRONG_TAKE");
+}
+
+export const STAGE_ORDER: TestStage[] = ["physical", "signal", "rehearsal", "delivery"];
+/** Physical-layer, signal, operator-rehearsal and stream/record tests, in order. */
+export function runTest(state: TrainingState, test: TestStage): TrainingState {
+  if (!state.sim) return state;
+  const ctx = simContext(state)!;
+  const idx = STAGE_ORDER.indexOf(test);
+  const missing = STAGE_ORDER.slice(0, idx).find((s) => !state.sim!.testsPassed[s]);
+  if (missing) return { ...state, notice: notice("Test order", `Pass the ${missing} test first.`, "error") };
+  const routed = testRoute(ctx, test);
+  const results = routed.results.filter((r) => r.id !== "signoff");
+  const pass = results.every((r) => r.result.ok);
+  let sim: SimRuntime = { ...state.sim, tick: state.sim.tick + 1, diagnosed: [...new Set([...state.sim.diagnosed, ...state.sim.activeFaults])], testsPassed: { ...state.sim.testsPassed, [test]: pass } };
+  if (pass && test === "signal" && sim.cueStart === undefined) sim.cueStart = sim.pgmHistory.length;
+  sim.log = [...sim.log, { t: sim.tick, kind: "test", text: `${test} test: ${pass ? "PASS" : `FAIL (${results.filter((r) => !r.result.ok).length})`}` }];
+  let cables = state.cables;
+  let extra = "";
+  const scenario = scenarioOf(state);
+  if (pass && test === "rehearsal" && scenario.stage?.surpriseFaults?.length && !sim.surpriseArmed) {
+    const pool = scenario.stage.surpriseFaults;
+    const f = pool[sim.seed % pool.length];
+    sim = applyFaultConfig({ ...sim, surpriseArmed: true, activeFaults: [...sim.activeFaults, f.id], testsPassed: { ...sim.testsPassed, delivery: false } }, f);
+    if (f.unplug?.length) {
+      cables = cloneCables(cables);
+      for (const [from, to] of f.unplug) for (const c of Object.values(cables)) {
+        const joins = (c.a.portId === from && c.b.portId === to) || (c.a.portId === to && c.b.portId === from);
+        if (!joins) continue;
+        const at = portPosition(state, to);
+        for (const end of CABLE_ENDS) if (c[end].portId === to) { c[end].portId = null; c[end].loosePosition = [+(at[0] + 0.05).toFixed(3), +Math.max(0.03, at[1] - 0.3).toFixed(3), +(at[2] + 0.1).toFixed(3)]; }
+      }
+    }
+    sim.log = [...sim.log, { t: sim.tick, kind: "fault", text: "Unexpected problem during the show (cause hidden)" }];
+    extra = " ⚠ Something just went wrong on the live show — find it.";
+  }
+  const cert = scenario.stage?.guidance === "certification";
+  const firstFail = results.find((r) => !r.result.ok);
+  const detail = pass ? `All ${results.length} checks passed.${extra}` : `${firstFail!.label}: ${firstFail!.result.reason ?? ""}${cert ? "" : ` → ${firstFail!.result.fix ?? ""}`}`;
+  return { ...state, cables, sim, notice: notice(`${test.toUpperCase()} TEST ${pass ? "PASS" : "FAIL"}`, detail, pass ? "success" : "error") };
+}
+
+/** Signal trace requested by the learner: logs the diagnosis of any live fault. */
+export function markTrace(state: TrainingState, dest: string): TrainingState {
+  if (!state.sim) return state;
+  return { ...state, sim: { ...state.sim, diagnosed: [...new Set([...state.sim.diagnosed, ...state.sim.activeFaults])], log: [...state.sim.log, { t: state.sim.tick, kind: "test", text: `Trace → ${dest}` }] } };
+}
+
+/** Timed stream test against the local private ingest (simulated duration). */
+export function streamTest(state: TrainingState, seconds: number): TrainingState {
+  const ctx = simContext(state);
+  if (!ctx || !state.sim) return state;
+  const ingest = Object.keys(ctx.view).find((d) => scenarioOf(state).simDevices?.[d]?.model === "generic-test-ingest");
+  const v = ingest ? ctx.view[ingest] : undefined;
+  if (!v?.live) return { ...state, notice: notice("Stream test failed", v?.status ?? "No ingest in this job.", "error") };
+  const text = `STREAM TEST ${seconds} s · ${v.picture} · audio: ${(v.audio ?? []).join(" + ") || "none"}`;
+  return { ...state, sim: { ...state.sim, evidence: [...state.sim.evidence, text] }, notice: notice("Stream test passed", text, "success") };
+}
+
+/** Outdoor: hold for the all-clear (only after recording NO-GO). */
+export function requestAllClear(state: TrainingState): TrainingState {
+  if (!state.sim) return state;
+  if (state.sim.config.site?.decision !== "NO-GO (hold)") return { ...state, notice: notice("Record NO-GO first", "Stop work and hold before requesting the all-clear.", "error") };
+  return { ...state, sim: { ...state.sim, weatherNow: "clear", log: [...state.sim.log, { t: state.sim.tick, kind: "config", text: "Held 30 min (simulated): lightning cleared" }] }, notice: notice("All-clear", "Storm has passed (simulated 30-minute hold). Reassess and decide GO.", "success") };
+}
+
+export function answerQuiz(state: TrainingState, choice: number): TrainingState {
+  const q = scenarioOf(state).stage?.quiz;
+  if (!state.sim || !q) return state;
+  const ok = choice === q.answer;
+  return { ...state, sim: { ...state.sim, quizOk: ok || state.sim.quizOk }, notice: notice(ok ? "Correct" : "Not quite", q.why, ok ? "success" : "error") };
+}
+
+/** Targeted Learning Review → Mini Mastery Check → Resume. */
+export function answerReview(state: TrainingState, choice: number): TrainingState {
+  if (!state.sim?.paused || !state.sim.reviewConcept) return state;
+  const c = CONCEPTS[state.sim.reviewConcept];
+  if (choice !== c.check.answer) return { ...state, notice: notice("Not yet", c.check.why, "error") };
+  return { ...state, sim: { ...state.sim, paused: false, errors: 0, log: [...state.sim.log, { t: state.sim.tick, kind: "review", text: `Reviewed: ${c.title}` }] }, notice: notice("Resumed", `${c.title} — mastered.`, "success") };
+}
+
+/** Sign-off: every objective (except sign-off itself) must pass on the CURRENT graph. */
+export function signOff(state: TrainingState): TrainingState {
+  if (!state.sim) return state;
+  const ctx = simContext(state)!;
+  const missing = STAGE_ORDER.find((s) => !state.sim!.testsPassed[s]);
+  if (missing) return { ...state, notice: notice("Not ready to sign off", `Run and pass the ${missing} test.`, "error") };
+  const failed = validateLevel(ctx).filter((r) => r.id !== "signoff" && !r.result.ok);
+  if (failed.length) return { ...state, notice: notice("Not ready to sign off", failed.slice(0, 3).map((r) => r.label).join(" · "), "error") };
+  const sim: SimRuntime = { ...state.sim, signedOff: true, log: [...state.sim.log, { t: state.sim.tick, kind: "test", text: "Signed off — post-event wrap complete" }] };
+  const signed: TrainingState = { ...state, sim };
+  const score = scoreOf(validateLevel(simContext(signed)!), sim);
+  if (!score.criticalOk || score.score < 70) return { ...state, notice: notice("Retry with feedback", `Score ${score.score}/100 · critical gates ${score.criticalOk ? "passed" : "FAILED"}`, "error") };
+  return { ...signed, completed: true, notice: notice(`${score.grade} · ${score.score}/100`, `${scenarioOf(state).stage!.reward} — simulation training record.`, "success") };
+}
+
+export function stageScore(state: TrainingState) {
+  const ctx = simContext(state);
+  return ctx && state.sim ? scoreOf(validateLevel(ctx), state.sim) : null;
 }

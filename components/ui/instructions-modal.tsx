@@ -48,15 +48,15 @@ export function InstructionsModal({ isOpen, onClose, onBack }: InstructionsModal
         {/* Modal Header with Back button & Tabs */}
         <div className="modal-header-tabs">
           <div className="modal-header-left">
-            <BackButton onClick={handleBack} label="ย้อนกลับ" />
-            <nav className="tab-pill-list" aria-label="หมวดหมู่คำชี้แจง">
+            <BackButton onClick={handleBack} label="Back" />
+            <nav className="tab-pill-list" aria-label="Briefing sections">
               <button
                 type="button"
                 className={`tab-pill-btn ${activeTab === "notice" ? "is-active" : ""}`}
                 onClick={() => setActiveTab("notice")}
               >
                 <span className="tab-icon">📖</span>
-                <span>คำชี้แจง</span>
+                <span>Briefing</span>
               </button>
               <button
                 type="button"
@@ -64,7 +64,7 @@ export function InstructionsModal({ isOpen, onClose, onBack }: InstructionsModal
                 onClick={() => setActiveTab("context")}
               >
                 <span className="tab-icon">🌐</span>
-                <span>บริบท</span>
+                <span>Context</span>
               </button>
               <button
                 type="button"
@@ -72,7 +72,7 @@ export function InstructionsModal({ isOpen, onClose, onBack }: InstructionsModal
                 onClick={() => setActiveTab("howToPlay")}
               >
                 <span className="tab-icon">🧭</span>
-                <span>วิธีเล่น</span>
+                <span>How to play</span>
               </button>
               <button
                 type="button"
@@ -80,7 +80,7 @@ export function InstructionsModal({ isOpen, onClose, onBack }: InstructionsModal
                 onClick={() => setActiveTab("rules")}
               >
                 <span className="tab-icon">🛡️</span>
-                <span>กฎสำนัก</span>
+                <span>Academy rules</span>
               </button>
               <button
                 type="button"
@@ -88,7 +88,7 @@ export function InstructionsModal({ isOpen, onClose, onBack }: InstructionsModal
                 onClick={() => setActiveTab("roles")}
               >
                 <span className="tab-icon">👤</span>
-                <span>บทบาท</span>
+                <span>Your role</span>
               </button>
             </nav>
           </div>
@@ -97,7 +97,7 @@ export function InstructionsModal({ isOpen, onClose, onBack }: InstructionsModal
             type="button"
             className="modal-close-x"
             onClick={handleClose}
-            aria-label="ปิดหน้าต่าง"
+            aria-label="Close window"
           >
             ✕
           </button>
@@ -107,8 +107,8 @@ export function InstructionsModal({ isOpen, onClose, onBack }: InstructionsModal
         <div className="modal-content-scroll" tabIndex={0}>
           {activeTab === "notice" && (
             <div className="tab-pane pane-notice">
-              <Image src="/images/xianxia/emblem.webp" alt="โลโก้ etcstream" width={54} height={46} className="brand-sigil modal-sigil" />
-              <h2 id="modal-heading" className="modal-title">คำชี้แจงแห่งสำนัก</h2>
+              <Image src="/images/xianxia/emblem.webp" alt="etcstream logo" width={54} height={46} className="brand-sigil modal-sigil" />
+              <h2 id="modal-heading" className="modal-title">Academy briefing</h2>
               <div className="ornate-gold-divider">
                 <span className="line" />
                 <span className="diamond">◈</span>
@@ -117,20 +117,20 @@ export function InstructionsModal({ isOpen, onClose, onBack }: InstructionsModal
 
               <div className="instruction-body-text">
                 <p>
-                  ยินดีต้อนรับสู่ <span className="tech-term">etcstream</span>
+                  Welcome to <span className="tech-term">etcstream</span>
                 </p>
                 <p>
-                  ที่นี่คือพื้นที่ฝึกจำลองสำหรับเรียนรู้การเชื่อมต่อระบบภาพ เสียง และการถ่ายทอดสด ผ่านอุปกรณ์และพอร์ตที่อ้างอิงจากการใช้งานจริง
+                  This is a simulated training space for learning how to connect picture, sound and live-streaming systems, using equipment and ports modelled on real gear.
                 </p>
                 <p>
-                  เจ้าจะได้ฝึกตั้งแต่การเลือกสาย มองหาพอร์ต ไปจนถึงการสร้างเส้นทางสัญญาณให้ระบบทำงานครบถ้วน
+                  You will practise choosing leads, finding ports and building complete signal paths until the system works end to end.
                 </p>
               </div>
 
               <div className="instruction-highlight-box">
                 <span className="instruction-highlight-icon" aria-hidden="true">✦</span>
                 <p className="instruction-highlight-text">
-                  จงจำไว้ — การต่อสายที่ดี เริ่มจากความเข้าใจ ไม่ใช่การลองสุ่ม
+                  Remember — good cabling starts with understanding, not trial and error.
                 </p>
               </div>
             </div>
@@ -138,7 +138,7 @@ export function InstructionsModal({ isOpen, onClose, onBack }: InstructionsModal
 
           {activeTab === "context" && (
             <div className="tab-pane pane-context">
-              <h2 id="modal-heading" className="modal-title">วิถีแห่งสายสัญญาณ</h2>
+              <h2 id="modal-heading" className="modal-title">The way of the signal</h2>
               <div className="ornate-gold-divider">
                 <span className="line" />
                 <span className="diamond">◈</span>
@@ -146,21 +146,21 @@ export function InstructionsModal({ isOpen, onClose, onBack }: InstructionsModal
               </div>
 
               <div className="instruction-body-text">
-                <p>ภายในสำนักแห่งนี้ สัญญาณทุกเส้นมีต้นทางและปลายทางของมัน</p>
+                <p>In this academy every signal has a source and a destination.</p>
                 <p>
-                  ภาพจาก <span className="tech-term">Camera</span> อาจต้องเดินทางผ่าน{" "}
-                  <span className="tech-term">Video Switcher</span> ก่อนถึง{" "}
-                  <span className="tech-term">Monitor</span> เช่นเดียวกับเสียงและข้อมูลที่ต้องผ่านอุปกรณ์อย่างถูกลำดับ
+                  A picture from a <span className="tech-term">Camera</span> may travel through a{" "}
+                  <span className="tech-term">Video Switcher</span> before reaching a{" "}
+                  <span className="tech-term">Monitor</span> — sound and data likewise pass through devices in the right order.
                 </p>
-                <p>เหล่าผู้ฝึกเรียกการไหลนี้ว่า “ปราณสัญญาณ”</p>
+                <p>Trainees call this flow the “signal path”.</p>
               </div>
 
               <div className="instruction-highlight-box">
                 <span className="instruction-highlight-icon" aria-hidden="true">✦</span>
                 <p className="instruction-highlight-text">
-                  หน้าที่ของเจ้าคือมองให้ออกว่า
+                  Your job is to see
                   <br className="hide-mobile" />
-                  สัญญาณเริ่มจากไหน ผ่านอะไร และควรไปจบที่ใด
+                  where a signal starts, what it passes through and where it must end.
                 </p>
               </div>
             </div>
@@ -168,7 +168,7 @@ export function InstructionsModal({ isOpen, onClose, onBack }: InstructionsModal
 
           {activeTab === "howToPlay" && (
             <div className="tab-pane pane-how-to-play">
-              <h2 id="modal-heading" className="modal-title">ฝึกวิชา</h2>
+              <h2 id="modal-heading" className="modal-title">Practice</h2>
               <div className="ornate-gold-divider">
                 <span className="line" />
                 <span className="diamond">◈</span>
@@ -176,36 +176,36 @@ export function InstructionsModal({ isOpen, onClose, onBack }: InstructionsModal
               </div>
 
               <div className="instruction-body-text">
-                <p>เจ้าจะเล่นผ่านมุมมองบุคคลที่หนึ่ง และลงมือกับอุปกรณ์ในห้องฝึกด้วยตัวเอง</p>
+                <p>You play in first person and handle the equipment in the room yourself. Press C for the Operator Console.</p>
               </div>
 
-              <div className="instruction-flow-track" aria-label="ขั้นตอนการฝึกวิชา">
-                <span className="flow-step-node">สำรวจ</span>
+              <div className="instruction-flow-track" aria-label="Practice steps">
+                <span className="flow-step-node">Survey</span>
                 <span className="flow-sep-arrow" aria-hidden="true">→</span>
-                <span className="flow-step-node">หยิบสาย</span>
+                <span className="flow-step-node">Take leads</span>
                 <span className="flow-sep-arrow" aria-hidden="true">→</span>
-                <span className="flow-step-node">ตรวจพอร์ต</span>
+                <span className="flow-step-node">Check ports</span>
                 <span className="flow-sep-arrow" aria-hidden="true">→</span>
-                <span className="flow-step-node">เชื่อมต่อ</span>
+                <span className="flow-step-node">Connect</span>
                 <span className="flow-sep-arrow" aria-hidden="true">→</span>
-                <span className="flow-step-node">ทดสอบระบบ</span>
+                <span className="flow-step-node">Test</span>
               </div>
 
               <div className="instruction-body-text">
                 <p>
-                  มองหา <span className="tech-term">INPUT</span>,{" "}
-                  <span className="tech-term">OUTPUT</span> และชนิดพอร์ตให้ถูกต้อง เช่น{" "}
+                  Look for <span className="tech-term">INPUT</span>,{" "}
+                  <span className="tech-term">OUTPUT</span> and the right port type, such as{" "}
                   <span className="tech-term">HDMI</span>,{" "}
-                  <span className="tech-term">USB</span> หรือ{" "}
+                  <span className="tech-term">USB</span> or{" "}
                   <span className="tech-term">XLR</span>
                 </p>
-                <p>ถ้าระบบยังไม่ทำงาน อย่ารีบเสียบสายเพิ่ม</p>
+                <p>If the system does not work yet, do not rush to add cables.</p>
               </div>
 
               <div className="instruction-highlight-box">
                 <span className="instruction-highlight-icon" aria-hidden="true">✦</span>
                 <p className="instruction-highlight-text">
-                  ย้อนดูเส้นทาง แล้วหาว่าปราณสัญญาณขาดหายตรงไหน
+                  Trace the path back and find where the signal stops.
                 </p>
               </div>
             </div>
@@ -213,7 +213,7 @@ export function InstructionsModal({ isOpen, onClose, onBack }: InstructionsModal
 
           {activeTab === "rules" && (
             <div className="tab-pane pane-rules">
-              <h2 id="modal-heading" className="modal-title">กฎแห่งสำนัก</h2>
+              <h2 id="modal-heading" className="modal-title">Academy rules</h2>
               <div className="ornate-gold-divider">
                 <span className="line" />
                 <span className="diamond">◈</span>
@@ -221,23 +221,23 @@ export function InstructionsModal({ isOpen, onClose, onBack }: InstructionsModal
               </div>
 
               <div className="instruction-body-text">
-                <p>กฎมีไม่มาก แต่ทุกข้อสำคัญ</p>
+                <p>There are few rules, and each one matters.</p>
                 <p>
-                  เชื่อมต่อสายให้ตรงชนิดพอร์ต และให้สัญญาณเดินจาก{" "}
+                  Match each lead to its port type and send the signal from{" "}
                   <span className="tech-term">OUTPUT</span> →{" "}
                   <span className="tech-term">INPUT</span>
                 </p>
                 <p>
-                  การเชื่อมต่อผิดจะถูกบันทึก แต่การหยิบสายแล้ววางคืนโดยยังไม่ได้เสียบ ไม่นับเป็นความผิด
+                  Wrong connections are logged; picking up a lead and putting it down unplugged is not a mistake. Three meaningful errors pause the mission for a short targeted review.
                 </p>
-                <p>ภารกิจจะสำเร็จเมื่อระบบทำงานครบตามเป้าหมาย</p>
+                <p>A mission succeeds only when every destination validates on the live signal graph.</p>
               </div>
 
               <blockquote className="instruction-quote-card">
                 <p className="quote-body-text">
-                  “ผู้เชี่ยวชาญไม่ได้จำว่าต้องเสียบตรงไหน
+                  “Experts do not memorise where to plug in;
                   <br className="hide-mobile" />
-                  แต่เข้าใจว่าสัญญาณกำลังเดินทางไปที่ใด”
+                  they understand where the signal is going.”
                 </p>
               </blockquote>
             </div>
@@ -245,7 +245,7 @@ export function InstructionsModal({ isOpen, onClose, onBack }: InstructionsModal
 
           {activeTab === "roles" && (
             <div className="tab-pane pane-roles">
-              <h2 id="modal-heading" className="modal-title">บทบาทของเจ้า</h2>
+              <h2 id="modal-heading" className="modal-title">Your role</h2>
               <div className="ornate-gold-divider">
                 <span className="line" />
                 <span className="diamond">◈</span>
@@ -254,28 +254,28 @@ export function InstructionsModal({ isOpen, onClose, onBack }: InstructionsModal
 
               <div className="instruction-role-container">
                 <div className="instruction-role-badge">
-                  <span className="role-badge-prefix">บทบาท</span>
-                  <span className="role-badge-name">ผู้ฝึกปราณแห่งสายสัญญาณ</span>
+                  <span className="role-badge-prefix">Role</span>
+                  <span className="role-badge-name">Production trainee</span>
                 </div>
               </div>
 
               <div className="instruction-body-text">
                 <p>
-                  ตั้งแต่ก้าวเข้าสู่สำนัก เจ้าจะได้รับบทบาท{" "}
-                  <strong className="tech-term-gold">ผู้ฝึกปราณแห่งสายสัญญาณ</strong>
+                  From the moment you enter the academy you are a{" "}
+                  <strong className="tech-term-gold">production trainee</strong>
                 </p>
                 <p>
-                  หน้าที่ของเจ้าคือเรียนรู้ศาสตร์แห่งภาพ เสียง และข้อมูล ฝึกอ่านเส้นทางของระบบ แก้การเชื่อมต่อที่ผิดพลาด และทำให้สัญญาณกลับมาไหลได้อีกครั้ง
+                  acting as the live-production operator: learn picture, sound and data, read the system path, fix wrong connections and get the signal flowing again.
                 </p>
                 <p>
-                  ทุกภารกิจที่ผ่านไป จะทำให้เจ้ามองเห็นระบบชัดขึ้นกว่าเดิม
+                  Every mission you complete makes the system clearer.
                 </p>
               </div>
 
               <div className="instruction-highlight-box">
                 <span className="instruction-highlight-icon" aria-hidden="true">✦</span>
                 <p className="instruction-highlight-text">
-                  อย่าเพียงต่อให้ติด — จงเข้าใจว่าทำไมมันถึงทำงาน
+                  Do not just make it work — understand why it works.
                 </p>
               </div>
             </div>
@@ -291,11 +291,11 @@ export function InstructionsModal({ isOpen, onClose, onBack }: InstructionsModal
               onChange={(e) => setDontShowAgain(e.target.checked)}
               className="styled-checkbox"
             />
-            <span>ไม่แสดงอีกในครั้งถัดไป</span>
+            <span>Do not show again</span>
           </label>
 
           <ActionButton variant="gold" size="lg" onClick={handleClose}>
-            ปิดจารึกและดำเนินต่อ
+            Close and continue
           </ActionButton>
         </div>
       </div>

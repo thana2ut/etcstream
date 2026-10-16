@@ -33,7 +33,7 @@ class RoomBoundary extends Component<{ children: ReactNode }, { failed: boolean 
   static getDerivedStateFromError() { return { failed: true }; }
   componentDidCatch(error: Error) { if (process.env.NODE_ENV === "development") console.error("Studio asset failed", error); }
   render() {
-    return this.state.failed ? <><FallbackRoom /><Html center position={[0, 2.2, -1]}><div role="status" style={{ width: 260, padding: 12, background: "#111", color: "white" }}>โหลดฉากสตูดิโอไม่สำเร็จ ใช้ห้องสำรองชั่วคราว กรุณาโหลดหน้าใหม่เพื่อลองอีกครั้ง</div></Html></> : this.props.children;
+    return this.state.failed ? <><FallbackRoom /><Html center position={[0, 2.2, -1]}><div role="status" style={{ width: 260, padding: 12, background: "#111", color: "white" }}>Could not load the studio scene; using a fallback room. Reload the page to try again.</div></Html></> : this.props.children;
   }
 }
 

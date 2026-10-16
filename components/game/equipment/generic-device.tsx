@@ -1,9 +1,13 @@
 "use client";
 
+import { SCENE_FONT, sceneText } from "@/game/rendering/scene-font";
 import { Billboard, RoundedBox, Text } from "@react-three/drei";
 import type { DeviceDef } from "@/game/training/scenarios";
+import { useTrainingStore } from "@/game/stores/training-store";
+import { requirementDone, scenarioOf, simContext } from "@/game/training/hdmi-training";
+import { venueScreenFeed } from "@/game/training/monitor-feed";
 
-const FONT = "/fonts/geist-regular.ttf";
+const FONT = SCENE_FONT;
 
 /**
  * Clean, recognisable placeholders for GENERIC TRAINING MODEL / provisional equipment.
@@ -24,14 +28,16 @@ function Rod({ a, b, r = 0.012, c = "#22252a" }: { a: [number, number, number]; 
 }
 
 export function GenericLabel({ device, y }: { device: DeviceDef; y: number }) {
-  const tag = device.status === "CONFIRMED" ? device.model : device.status === "PROVISIONAL" ? "รุ่นรอยืนยัน" : device.status === "UNKNOWN" ? "รุ่นไม่ทราบ" : "แบบฝึก";
+  const tag = device.status === "CONFIRMED" ? device.model : device.status === "PROVISIONAL" ? "model to verify" : device.status === "UNKNOWN" ? "model unknown" : "training stand-in";
   return <Billboard position={[0, y, 0]}>
-    <Text font={FONT} fontSize={0.05} color="#f6ddaa" anchorX="center" anchorY="bottom" outlineWidth={0.004} outlineColor="#000">{device.label}</Text>
-    <Text font={FONT} position={[0, -0.01, 0]} fontSize={0.028} color="#8be4f4" anchorX="center" anchorY="top" outlineWidth={0.003} outlineColor="#000">{tag}</Text>
+    <Text font={FONT} fontSize={0.05} color="#f6ddaa" anchorX="center" anchorY="bottom" outlineWidth={0.004} outlineColor="#000">{sceneText(device.label)}</Text>
+    <Text font={FONT} position={[0, -0.01, 0]} fontSize={0.028} color="#8be4f4" anchorX="center" anchorY="top" outlineWidth={0.003} outlineColor="#000">{sceneText(tag)}</Text>
   </Billboard>;
 }
 
 function TripodCamera({ device }: { device: DeviceDef }) {
+  // Tally lights when this camera's picture is on the simulated Program bus.
+  const tally = useTrainingStore((state) => { const ctx = simContext(state); const pic = ctx?.view[device.id]?.picture; return Boolean(pic && ctx?.view.sw?.picture === pic); });
   const broadcast = /Broadcast|Long-lens/.test(device.label), ptz = device.label.startsWith("PTZ");
   if (ptz) return <group>
     <Rod a={[0, 0, 0]} b={[0, 1.15, 0]} r={0.03} />
@@ -50,13 +56,14 @@ function TripodCamera({ device }: { device: DeviceDef }) {
     <mesh position={[0, 1.28, -0.16 - lens / 2]} rotation={[Math.PI / 2, 0, 0]} castShadow><cylinderGeometry args={[broadcast ? 0.075 : 0.05, broadcast ? 0.07 : 0.045, lens, 18]} /><meshStandardMaterial color="#15181d" metalness={0.5} roughness={0.35} /></mesh>
     <mesh position={[0, 1.28, -0.16 - lens - 0.005]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[broadcast ? 0.068 : 0.044, broadcast ? 0.068 : 0.044, 0.01, 18]} /><meshStandardMaterial color="#26385a" metalness={0.9} roughness={0.05} /></mesh>
     <Rb p={[-0.1, 1.42, 0.05]} s={[0.07, 0.07, 0.14]} c="#1b1d22" />
-    <mesh position={[0.05, 1.4, -0.04]}><sphereGeometry args={[0.012, 8, 8]} /><meshStandardMaterial color="#ff2020" emissive="#ff2020" emissiveIntensity={2} /></mesh>
+    <mesh position={[0.05, 1.4, -0.04]}><sphereGeometry args={[0.012, 8, 8]} /><meshStandardMaterial color={tally ? "#ff2020" : "#462c2c"} emissive="#ff2020" emissiveIntensity={tally ? 2 : 0} /></mesh>
     {/* rear connector plate (ports are placed here) */}
     <Rb p={[0, 1.28, broadcast ? 0.24 : 0.18]} s={[0.12, 0.1, 0.02]} c="#0d0f12" />
   </group>;
 }
 
 function Display({ device }: { device: DeviceDef }) {
+  const feed = useTrainingStore((state) => venueScreenFeed(state, device.id));
   const [w, h, d] = device.size;
   const wall = device.label.includes("Wall");
   const floor = device.position[1] < 0.3;
@@ -68,22 +75,23 @@ function Display({ device }: { device: DeviceDef }) {
     {!wall && !floor && <Rb p={[0, 0.04, -0.02]} s={[w * 0.35, 0.08, 0.16]} c="#1d2026" />}
     <group position={[0, floor ? 1.1 : wall ? 0 : 0.08, 0]}>
       <Rb p={[0, h / 2, 0]} s={[w, h, Math.max(d, 0.05)]} c="#0e1014" m={0.4} r={0.35} />
-      {wall
-        ? Array.from({ length: 12 }, (_, i) => <mesh key={i} position={[-w / 2 + (i % 4 + 0.5) * (w / 4), h - (Math.floor(i / 4) + 0.5) * (h / 3), d / 2 + 0.004]}>
-          <planeGeometry args={[w / 4 - 0.05, h / 3 - 0.05]} /><meshBasicMaterial color={["#1d3a6a", "#2a5a3a", "#5a2a2a", "#3a3a5a"][i % 4]} toneMapped={false} />
-        </mesh>)
-        : <mesh position={[0, h / 2, d / 2 + 0.004]}><planeGeometry args={[w - 0.04, h - 0.04]} /><meshBasicMaterial color="#0c1a2c" toneMapped={false} /></mesh>}
+      <mesh position={[0, h / 2, d / 2 + 0.004]}><planeGeometry args={[w - 0.04, h - 0.04]} /><meshBasicMaterial color="#0c1a2c" toneMapped={false} /></mesh>
+      {feed && <Text font={FONT} position={[0, h / 2, d / 2 + 0.009]} fontSize={Math.min(w * 0.07, 0.06)} color="#c5d4e6" maxWidth={w - 0.06} textAlign="center">{sceneText(feed)}</Text>}
     </group>
   </group>;
 }
 
 function RackUnit({ device }: { device: DeviceDef }) {
+  const linked = useTrainingStore((state) => {
+    const s = scenarioOf(state);
+    return s.requirements.some(r => [...r.from, ...r.to].some(id => s.ports[id]?.device === device.id) && requirementDone(state, r));
+  });
   const [w, h, d] = device.size;
   return <group>
     <Rb p={[0, h / 2, 0]} s={[w, h, d]} c="#15171b" m={0.4} />
     {Array.from({ length: Math.max(2, Math.floor(h / 0.2)) }, (_, u) => <group key={u} position={[0, 0.16 + u * 0.19, d / 2 + 0.006]}>
       <Rb p={[0, 0, 0]} s={[w - 0.06, 0.15, 0.01]} c={u % 2 ? "#262a31" : "#1e2127"} />
-      {[0, 1, 2].map((l) => <mesh key={l} position={[-w / 2 + 0.1 + l * 0.05, 0.03, 0.01]}><sphereGeometry args={[0.006, 6, 6]} /><meshStandardMaterial color="#38ff6a" emissive="#38ff6a" emissiveIntensity={2.4} /></mesh>)}
+      {[0, 1, 2].map((l) => <mesh key={l} position={[-w / 2 + 0.1 + l * 0.05, 0.03, 0.01]}><sphereGeometry args={[0.006, 6, 6]} /><meshStandardMaterial color={linked ? "#38ff6a" : "#26382e"} emissive="#38ff6a" emissiveIntensity={linked ? 1 : 0} /></mesh>)}
     </group>)}
   </group>;
 }
@@ -116,13 +124,18 @@ function Laptop({ device }: { device: DeviceDef }) {
 function Mic({ device }: { device: DeviceDef }) {
   const onFloor = device.position[1] < 0.3;
   const shotgun = /Shotgun/.test(device.label);
+  const stageHandheld = /Wireless Handheld/.test(device.label) && device.position[1] > 0.3;
   return <group>
+    {stageHandheld && <>
+      <mesh position={[0, -0.785, 0]}><cylinderGeometry args={[0.15, 0.17, 0.03, 16]} /><meshStandardMaterial color="#202328" roughness={0.7} /></mesh>
+      <Rod a={[0, -0.77, 0]} b={[0, 0, 0]} r={0.013} />
+    </>}
     {onFloor && <>
       {[0, 1, 2].map((k) => { const a = (k / 3) * Math.PI * 2; return <Rod key={k} a={[0, 0.3, 0]} b={[Math.cos(a) * 0.3, 0.01, Math.sin(a) * 0.3]} r={0.01} />; })}
       <Rod a={[0, 0.3, 0]} b={[0, shotgun ? 1.9 : 1.45, 0]} r={0.012} />
       {shotgun && <Rod a={[0, 1.9, 0]} b={[0, 2.0, -0.9]} r={0.012} />}
     </>}
-    <group position={onFloor ? [0, shotgun ? 1.95 : 1.48, shotgun ? -0.9 : 0] : [0, 0.03, 0]} rotation={onFloor ? [0.3, 0, 0] : [Math.PI / 2, 0, 0]}>
+    <group position={onFloor ? [0, shotgun ? 1.95 : 1.48, shotgun ? -0.9 : 0] : [0, 0.03, 0]} rotation={onFloor || stageHandheld ? [0.3, 0, 0] : [Math.PI / 2, 0, 0]}>
       <mesh castShadow><cylinderGeometry args={[shotgun ? 0.012 : 0.016, shotgun ? 0.012 : 0.011, shotgun ? 0.3 : 0.18, 12]} /><meshStandardMaterial color="#1c1c1e" metalness={0.4} roughness={0.5} /></mesh>
       {!shotgun && <mesh position={[0, 0.11, 0]}><sphereGeometry args={[0.026, 14, 12]} /><meshStandardMaterial color="#555a60" metalness={0.7} roughness={0.35} /></mesh>}
     </group>
@@ -134,7 +147,20 @@ function Bodypack({ device }: { device: DeviceDef }) {
   return <group>
     <Rb p={[0, h / 2, 0]} s={[w, h, d]} c="#15181d" />
     <Rod a={[w * 0.3, h, 0]} b={[w * 0.3, h + 0.12, 0]} r={0.004} c="#0e0e0e" />
-    <mesh position={[-w * 0.25, h * 0.75, d / 2 + 0.002]}><circleGeometry args={[0.008, 10]} /><meshBasicMaterial color="#38ff6a" /></mesh>
+    <mesh position={[-w * 0.25, h * 0.75, d / 2 + 0.002]}><circleGeometry args={[0.008, 10]} /><meshBasicMaterial color="#26382e" /></mesh>
+  </group>;
+}
+
+function Speaker({ device }: { device: DeviceDef }) {
+  const [w, h, d] = device.size;
+  return <group>
+    <Rb p={[0, h / 2, 0]} s={[w, h, d]} c="#202329" r={0.85} />
+    <Rb p={[0, h / 2, -d / 2 - 0.003]} s={[w * 0.86, h * 0.88, 0.012]} c="#0e1014" r={0.95} />
+    {[0.3, 0.72].map((y, i) => <mesh key={y} position={[0, h * y, -d / 2 - 0.011]}>
+      <torusGeometry args={[w * (i ? 0.17 : 0.31), 0.007, 6, 20]} /><meshStandardMaterial color="#42464b" roughness={0.9} />
+    </mesh>)}
+    <Rb p={[0, h / 2, d / 2 + 0.003]} s={[w * 0.62, h * 0.65, 0.008]} c="#0c1017" />
+    {[-1, 1].map((x) => <Rb key={x} p={[x * w * 0.3, 0.008, 0]} s={[0.045, 0.016, d * 0.8]} c="#111317" />)}
   </group>;
 }
 
@@ -142,9 +168,11 @@ export function GenericDevice({ device, bare = false }: { device: DeviceDef; bar
   const [, h] = device.size;
   const kind = device.kind;
   const tall = device.size[1] >= 0.8 && kind === "box";
-  const display = /Monitor|Wall|TV|Screen|Display|Destination/.test(device.label) && kind === "box" && !tall;
+  // Large monitors are still screens; height alone must not turn them into a rack.
+  const display = kind === "box" && /Monitor|Wall|TV|Screen|Display|Destination|Projector/.test(device.label) && !/Processor|Converter|Encoder|Router|Interface/.test(device.label);
   let body, labelY;
   if (kind === "camera") { body = <TripodCamera device={device} />; labelY = 1.68; }
+  else if (["speaker", "pa"].includes(device.id) && device.generic) { body = <Speaker device={device} />; labelY = h + 0.12; }
   else if (display) { body = <Display device={device} />; labelY = (device.position[1] < 0.3 ? 1.1 : 0.08) + h + 0.12; }
   else if (tall) { body = <RackUnit device={device} />; labelY = h + 0.15; }
   else if (kind === "laptop") { body = <Laptop device={device} />; labelY = 0.4; }

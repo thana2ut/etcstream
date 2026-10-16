@@ -360,6 +360,15 @@
 @keyframes cloud-drift-near { from { background-position-x: 0; } to { background-position-x: -2600px; } }
 @media (prefers-reduced-motion: reduce) { .cloud-layer-drift { animation: none; } .cloud-layer { transition: none; } }
 
+/* Touch and compact devices have less GPU headroom; keep the painted backdrop
+   but stop continuous full-screen texture/filter animation. */
+@media (hover: none), (max-width: 768px) {
+  .xianxia-backdrop-image,
+  .xianxia-mist,
+  .cloud-layer-drift { animation: none; }
+  .cloud-layer-near .cloud-layer-drift { filter: none; }
+}
+
 /* Second mentor (fire sage) mirrors the first on the right; she faces the dialog. */
 .xianxia-mentor-right {
   left: auto;
@@ -558,7 +567,9 @@
 /* Mission detail opens as its own page over the hall (levels + start button visible without hunting for them). */
 .mission-detail-page { position: fixed; inset: 0; z-index: 200; overflow-y: auto; background: #050d1a; animation: mission-detail-in .22s ease-out; }
 .mission-detail-inner { position: relative; z-index: 1; width: min(1100px, 100%); margin: 0 auto; padding: clamp(16px, 3vw, 32px) 16px 40px; display: flex; flex-direction: column; gap: 14px; min-height: 100%; justify-content: center; }
-.mission-detail-back { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 9999px; border: 1px solid rgba(233, 194, 122, .55); background: rgba(5, 15, 36, .85); color: #f3e2b6; font-weight: 700; cursor: pointer; }
+.mission-detail-back { position: relative; align-self: flex-start; display: inline-flex; align-items: center; justify-content: center; width: 166px; min-height: 48px; padding: 0 18px; border-radius: 9999px; border: 1px solid rgba(233, 194, 122, .55); background: rgba(5, 15, 36, .88); color: #f3e2b6; font-size: .95rem; font-weight: 700; line-height: 1; text-align: center; cursor: pointer; }
+.mission-detail-back-arrow { position: absolute; left: 16px; top: 50%; display: grid; place-items: center; width: 18px; height: 18px; transform: translateY(-50%); }
+.mission-detail-back-arrow svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 .mission-detail-back:hover { border-color: #ffe3a3; box-shadow: 0 0 14px rgba(245, 184, 66, .35); }
 .mission-detail-page .mission-choice-panel { margin-top: 0; }
 @keyframes mission-detail-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
@@ -677,6 +688,74 @@
   }
 }
 
+/* ---------- Interior pages keep the original display typography ---------- */
+.academy-page,
+.mission-hall-page,
+.play-page {
+  font-family: var(--font-thai);
+}
+
+.academy-page :is(h1, h2, h3, h4, strong, .banner-heading,
+  .mission-name-label, .mission-level-label, .mission-plaque-subtitle,
+  .mission-choice-subtitle, .mission-difficulty-heading,
+  .mission-difficulty-tile strong, .mission-choice-footer strong,
+  .detail-mission-h1, .grade-headline, .inspector-panel h3,
+  .inspector-compact h2),
+.mission-hall-page :is(h1, h2, h3, h4, strong, .banner-heading,
+  .mission-name-label, .mission-level-label, .mission-plaque-subtitle,
+  .mission-choice-subtitle, .mission-difficulty-heading,
+  .mission-difficulty-tile strong, .mission-choice-footer strong,
+  .detail-mission-h1, .grade-headline, .inspector-panel h3,
+  .inspector-compact h2) {
+  font-family: var(--font-legacy-brush);
+}
+
+.play-page :is(h1, h2, h3, h4, strong, .banner-heading, .intro-mode-title,
+  .mission-name-label, .mission-level-label, .detail-mission-h1,
+  .grade-headline, .hud-panel-title) {
+  font-family: var(--font-legacy-brush);
+}
+
+.academy-page p,
+.academy-page span,
+.academy-page small,
+.mission-hall-page p,
+.mission-hall-page span,
+.mission-hall-page small {
+  font-family: var(--font-thai);
+}
+
+.play-page p,
+.play-page span,
+.play-page small {
+  font-family: var(--font-thai);
+}
+
+/* The training detail view uses one readable family throughout, including
+   the destination heading, equipment name, labels, buttons, and modal copy. */
+.play-page :is(h1, h2, h3, h4, h5, h6, p, span, strong, small, label, li,
+  button, a, input, textarea, select, summary) {
+  font-family: var(--font-thai) !important;
+}
+
+.cl-screen :is(h1, h2, h3, h4, h5, h6, p, span, strong, small, label, li,
+  button, a, input, textarea, select, summary) {
+  font-family: var(--font-thai) !important;
+}
+
+/* Mission detail title: readable single-family treatment for the selected name. */
+.mission-detail-page .mission-choice-intro h2 {
+  font-family: var(--font-thai) !important;
+}
+
+/* Keep the exit confirmation message on one balanced line on desktop. */
+.exit-confirm-modal { max-width: 680px; }
+.exit-confirm-desc { white-space: nowrap; }
+
+@media (max-width: 620px) {
+  .exit-confirm-desc { white-space: normal; }
+}
+
 /* ---------- Final heading hierarchy ---------- */
 /* Large: the academy gateway title is the single visual anchor of the page. */
 .chamber-title {
@@ -749,3 +828,9 @@
 .game-screen .hud-objective-panel { display: flex; flex-direction: column; overflow: hidden; }
 .game-screen .hud-objective-panel > * { flex: none; }
 .game-screen .hud-objective-panel > .hud-checklist { flex: 1 1 auto; min-height: 60px; max-height: none; overflow-y: auto; }
+
+/* Brush-font tone marks rise above the line box: keep big headings clear of the eyebrow above them. */
+.mission-hall-eyebrow + h1,
+.mission-hall-eyebrow + h2 { margin-top: .32em; }
+.mission-hall-heading h1 { font-size: clamp(2.15rem, 4.6vw, 4.1rem); }
+.mission-draw h2 { font-size: clamp(1.6rem, 3.1vw, 2.5rem); }

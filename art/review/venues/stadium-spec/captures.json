@@ -1,0 +1,394 @@
+[
+  {
+    "label": "A จุดเริ่ม",
+    "value": "0"
+  },
+  {
+    "label": "B มองย้อน",
+    "value": "1"
+  },
+  {
+    "label": "C ฝั่งตะวันตก",
+    "value": "2"
+  },
+  {
+    "label": "D ฝั่งตะวันออก",
+    "value": "3"
+  },
+  {
+    "label": "E มุมห้อง 1",
+    "value": "4"
+  },
+  {
+    "label": "E มุมห้อง 2",
+    "value": "5"
+  },
+  {
+    "label": "E มุมห้อง 3",
+    "value": "6"
+  },
+  {
+    "label": "E มุมห้อง 4",
+    "value": "7"
+  },
+  {
+    "label": "F ผังมุมสูง",
+    "value": "8"
+  },
+  {
+    "label": "G ระดับพื้น",
+    "value": "9"
+  },
+  {
+    "label": "H เพดาน",
+    "value": "10"
+  },
+  {
+    "label": "J จุดคืนอุปกรณ์",
+    "value": "11"
+  },
+  {
+    "label": "I CCU / Base Station 1 · ด้านหน้า",
+    "value": "12"
+  },
+  {
+    "label": "I CCU / Base Station 1 · ด้านหลัง",
+    "value": "13"
+  },
+  {
+    "label": "I CCU / Base Station 2 · ด้านหน้า",
+    "value": "14"
+  },
+  {
+    "label": "I CCU / Base Station 2 · ด้านหลัง",
+    "value": "15"
+  },
+  {
+    "label": "I CCU / Base Station 3 · ด้านหน้า",
+    "value": "16"
+  },
+  {
+    "label": "I CCU / Base Station 3 · ด้านหลัง",
+    "value": "17"
+  },
+  {
+    "label": "I CCU / Base Station 4 · ด้านหน้า",
+    "value": "18"
+  },
+  {
+    "label": "I CCU / Base Station 4 · ด้านหลัง",
+    "value": "19"
+  },
+  {
+    "label": "I CCU / Base Station 5 · ด้านหน้า",
+    "value": "20"
+  },
+  {
+    "label": "I CCU / Base Station 5 · ด้านหลัง",
+    "value": "21"
+  },
+  {
+    "label": "I CCU / Base Station 6 · ด้านหน้า",
+    "value": "22"
+  },
+  {
+    "label": "I CCU / Base Station 6 · ด้านหลัง",
+    "value": "23"
+  },
+  {
+    "label": "I SDI Video Router · ด้านหน้า",
+    "value": "24"
+  },
+  {
+    "label": "I SDI Video Router · ด้านหลัง",
+    "value": "25"
+  },
+  {
+    "label": "I Broadcast Production Switcher · ด้านหน้า",
+    "value": "26"
+  },
+  {
+    "label": "I Broadcast Production Switcher · ด้านหลัง",
+    "value": "27"
+  },
+  {
+    "label": "I Broadcast Camera 1 · Main High Wide · ด้านหน้า",
+    "value": "28"
+  },
+  {
+    "label": "I Broadcast Camera 1 · Main High Wide · ด้านหลัง",
+    "value": "29"
+  },
+  {
+    "label": "I Broadcast Camera 2 · Field Left · ด้านหน้า",
+    "value": "30"
+  },
+  {
+    "label": "I Broadcast Camera 2 · Field Left · ด้านหลัง",
+    "value": "31"
+  },
+  {
+    "label": "I Broadcast Camera 3 · Field Right · ด้านหน้า",
+    "value": "32"
+  },
+  {
+    "label": "I Broadcast Camera 3 · Field Right · ด้านหลัง",
+    "value": "33"
+  },
+  {
+    "label": "I Broadcast Camera 4 · Goal / End · ด้านหน้า",
+    "value": "34"
+  },
+  {
+    "label": "I Broadcast Camera 4 · Goal / End · ด้านหลัง",
+    "value": "35"
+  },
+  {
+    "label": "I Broadcast Camera 5 · Long-lens · ด้านหน้า",
+    "value": "36"
+  },
+  {
+    "label": "I Broadcast Camera 5 · Long-lens · ด้านหลัง",
+    "value": "37"
+  },
+  {
+    "label": "I Broadcast Camera 6 · Mobile Field · ด้านหน้า",
+    "value": "38"
+  },
+  {
+    "label": "I Broadcast Camera 6 · Mobile Field · ด้านหลัง",
+    "value": "39"
+  },
+  {
+    "label": "I Replay Server · ด้านหน้า",
+    "value": "40"
+  },
+  {
+    "label": "I Replay Server · ด้านหลัง",
+    "value": "41"
+  },
+  {
+    "label": "I Replay Controller · ด้านหน้า",
+    "value": "42"
+  },
+  {
+    "label": "I Replay Controller · ด้านหลัง",
+    "value": "43"
+  },
+  {
+    "label": "I Graphics Workstation · ด้านหน้า",
+    "value": "44"
+  },
+  {
+    "label": "I Graphics Workstation · ด้านหลัง",
+    "value": "45"
+  },
+  {
+    "label": "I HDMI → SDI Converter · ด้านหน้า",
+    "value": "46"
+  },
+  {
+    "label": "I HDMI → SDI Converter · ด้านหลัง",
+    "value": "47"
+  },
+  {
+    "label": "I Multiview Wall · ด้านหน้า",
+    "value": "48"
+  },
+  {
+    "label": "I Multiview Wall · ด้านหลัง",
+    "value": "49"
+  },
+  {
+    "label": "I Venue Screen Processor (SDI→HDMI) · ด้านหน้า",
+    "value": "50"
+  },
+  {
+    "label": "I Venue Screen Processor (SDI→HDMI) · ด้านหลัง",
+    "value": "51"
+  },
+  {
+    "label": "I Stadium Display · ด้านหน้า",
+    "value": "52"
+  },
+  {
+    "label": "I Stadium Display · ด้านหลัง",
+    "value": "53"
+  },
+  {
+    "label": "I Commentator Mic 1 · ด้านหน้า",
+    "value": "54"
+  },
+  {
+    "label": "I Commentator Mic 1 · ด้านหลัง",
+    "value": "55"
+  },
+  {
+    "label": "I Commentator Mic 2 · ด้านหน้า",
+    "value": "56"
+  },
+  {
+    "label": "I Commentator Mic 2 · ด้านหลัง",
+    "value": "57"
+  },
+  {
+    "label": "I Crowd Mic L · ด้านหน้า",
+    "value": "58"
+  },
+  {
+    "label": "I Crowd Mic L · ด้านหลัง",
+    "value": "59"
+  },
+  {
+    "label": "I Crowd Mic R · ด้านหน้า",
+    "value": "60"
+  },
+  {
+    "label": "I Crowd Mic R · ด้านหลัง",
+    "value": "61"
+  },
+  {
+    "label": "I Field Mic · ด้านหน้า",
+    "value": "62"
+  },
+  {
+    "label": "I Field Mic · ด้านหลัง",
+    "value": "63"
+  },
+  {
+    "label": "I Wireless Receiver (Presenter) · ด้านหน้า",
+    "value": "64"
+  },
+  {
+    "label": "I Wireless Receiver (Presenter) · ด้านหลัง",
+    "value": "65"
+  },
+  {
+    "label": "I Audio Stagebox (Analog) · ด้านหน้า",
+    "value": "66"
+  },
+  {
+    "label": "I Audio Stagebox (Analog) · ด้านหลัง",
+    "value": "67"
+  },
+  {
+    "label": "I Digital Broadcast Audio Console · ด้านหน้า",
+    "value": "68"
+  },
+  {
+    "label": "I Digital Broadcast Audio Console · ด้านหลัง",
+    "value": "69"
+  },
+  {
+    "label": "I Stadium PA (Active) · ด้านหน้า",
+    "value": "70"
+  },
+  {
+    "label": "I Stadium PA (Active) · ด้านหลัง",
+    "value": "71"
+  },
+  {
+    "label": "I SDI Audio Embedder · ด้านหน้า",
+    "value": "72"
+  },
+  {
+    "label": "I SDI Audio Embedder · ด้านหลัง",
+    "value": "73"
+  },
+  {
+    "label": "I Active SDI DA 1×4 · ด้านหน้า",
+    "value": "74"
+  },
+  {
+    "label": "I Active SDI DA 1×4 · ด้านหลัง",
+    "value": "75"
+  },
+  {
+    "label": "I Main Hardware Encoder · ด้านหน้า",
+    "value": "76"
+  },
+  {
+    "label": "I Main Hardware Encoder · ด้านหลัง",
+    "value": "77"
+  },
+  {
+    "label": "I Primary Network · ด้านหน้า",
+    "value": "78"
+  },
+  {
+    "label": "I Primary Network · ด้านหลัง",
+    "value": "79"
+  },
+  {
+    "label": "I Main Ingest (simulation) · ด้านหน้า",
+    "value": "80"
+  },
+  {
+    "label": "I Main Ingest (simulation) · ด้านหลัง",
+    "value": "81"
+  },
+  {
+    "label": "I Backup Encoder · ด้านหน้า",
+    "value": "82"
+  },
+  {
+    "label": "I Backup Encoder · ด้านหลัง",
+    "value": "83"
+  },
+  {
+    "label": "I Backup Network · ด้านหน้า",
+    "value": "84"
+  },
+  {
+    "label": "I Backup Network · ด้านหลัง",
+    "value": "85"
+  },
+  {
+    "label": "I Backup Ingest (simulation) · ด้านหน้า",
+    "value": "86"
+  },
+  {
+    "label": "I Backup Ingest (simulation) · ด้านหลัง",
+    "value": "87"
+  },
+  {
+    "label": "I Program Recorder · ด้านหน้า",
+    "value": "88"
+  },
+  {
+    "label": "I Program Recorder · ด้านหลัง",
+    "value": "89"
+  },
+  {
+    "label": "I Intercom Main Station · ด้านหน้า",
+    "value": "90"
+  },
+  {
+    "label": "I Intercom Main Station · ด้านหลัง",
+    "value": "91"
+  },
+  {
+    "label": "I Commentary Unit · ด้านหน้า",
+    "value": "92"
+  },
+  {
+    "label": "I Commentary Unit · ด้านหลัง",
+    "value": "93"
+  },
+  {
+    "label": "I Lavalier 1 · ด้านหน้า",
+    "value": "94"
+  },
+  {
+    "label": "I Lavalier 1 · ด้านหลัง",
+    "value": "95"
+  },
+  {
+    "label": "I Wireless TX 1 · ด้านหน้า",
+    "value": "96"
+  },
+  {
+    "label": "I Wireless TX 1 · ด้านหลัง",
+    "value": "97"
+  }
+]

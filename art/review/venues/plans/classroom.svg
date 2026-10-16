@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="510.20000000000005" height="516.24" viewBox="0 0 510.20000000000005 516.24"><style>text{font-family:Tahoma,sans-serif;font-size:10px;fill:#e2e8f0}.title{font-size:18px}.small{font-size:8px}</style><rect width="100%" height="100%" fill="#0f172a"/><text x="30" y="32" class="title">xs-5 • เตรียมระบบนำเสนอและถ่ายทอดในห้องเรียน</text><text x="30" y="54">Stage / local NORTH = −Z (top) • metres • development plan</text><rect x="55" y="90" width="400.20000000000005" height="306.24" fill="#1e293b" stroke="#94a3b8"/>
+<rect x="348.1" y="334.44" width="57.599999999999994" height="19.200000000000003" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="376.90000000000003" y="344.04" text-anchor="middle">xs-operator</text>
+<rect x="433.82800000000003" y="210.60000000000002" width="14.879999999999999" height="72" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="441.26800000000003" y="246.6" text-anchor="middle">xs-cabinet</text>
+<rect x="294.1" y="375.192" width="26.400000000000002" height="10.8" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="307.29999999999995" y="380.592" text-anchor="middle">xs-cable-shelf</text>
+<rect x="211.9" y="121.92" width="86.4" height="33.599999999999994" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="255.10000000000002" y="138.72" text-anchor="middle">xs-teacher</text>
+<rect x="386.86" y="102" width="28.799999999999997" height="10.8" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="401.26" y="107.39999999999999" text-anchor="middle">xs-tv</text>
+<rect x="131.14000000000001" y="198.24" width="60" height="13.200000000000001" fill="#475569" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="161.14000000000001" y="204.84" text-anchor="middle">xs-student-0-l</text>
+<rect x="305.428" y="198.24" width="42" height="13.200000000000001" fill="#475569" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="326.428" y="204.84" text-anchor="middle">xs-student-0-r</text>
+<rect x="131.14000000000001" y="241.728" width="60" height="13.200000000000001" fill="#475569" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="161.14000000000001" y="248.32799999999997" text-anchor="middle">xs-student-1-l</text>
+<rect x="305.428" y="241.728" width="42" height="13.200000000000001" fill="#475569" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="326.428" y="248.32799999999997" text-anchor="middle">xs-student-1-r</text>
+<rect x="131.14000000000001" y="285.24" width="60" height="13.200000000000001" fill="#475569" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="161.14000000000001" y="291.84000000000003" text-anchor="middle">xs-student-2-l</text>
+<path d="M284.668,152.256 L272.5,152.856" fill="none" stroke="#fb923c" stroke-width="0.6" opacity="0.35"/>
+<path d="M118.32400000000001,167.51999999999998 L251.86,148.584" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M246.412,132.21599999999998 L254.02,148.584" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M256.18,148.584 L401.26,108.09599999999999" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M222.05200000000002,152.856 L225.10000000000002,137.904" fill="none" stroke="#fb923c" stroke-width="0.6" opacity="0.35"/>
+<path d="M227.26,137.904 L85.85200000000002,117.84" fill="none" stroke="#fb923c" stroke-width="0.6" opacity="0.35"/>
+<path d="M229.42000000000002,137.904 L258.34000000000003,148.584" fill="none" stroke="#fb923c" stroke-width="0.6" opacity="0.35"/>
+<path d="M255.10000000000002,148.584 L283.684,139.05599999999998" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<polyline points="432.58,310.968 382.324,268.104 341.788,153.83999999999997 205.39600000000002,170.44799999999998 136.3,170.088" fill="none" stroke="#4ade80" stroke-width="2" stroke-dasharray="5 4"/><rect x="450.20000000000005" y="334.12" width="10" height="10" fill="#a3e635"/><text x="445.20000000000005" y="330.12" text-anchor="end">DOOR</text>
+<circle cx="255.10000000000002" cy="143.928" r="3" fill="#67e8f9"/><text class="small" x="260.1" y="139.928">sw</text>
+<circle cx="122.86000000000001" cy="166.56" r="5" fill="#f472b6"/><text class="small" x="127.86000000000001" y="162.56">cam1</text>
+<circle cx="246.412" cy="128.28" r="3" fill="#67e8f9"/><text class="small" x="251.412" y="124.28">slides</text>
+<circle cx="401.26" cy="109.152" r="3" fill="#67e8f9"/><text class="small" x="406.26" y="105.152">monitor</text>
+<circle cx="227.26" cy="134.208" r="3" fill="#67e8f9"/><text class="small" x="232.26" y="130.208">mix</text>
+<circle cx="222.05200000000002" cy="149.16" r="3" fill="#67e8f9"/><text class="small" x="227.05200000000002" y="145.16">rx</text>
+<circle cx="84.58" cy="114.35999999999999" r="3" fill="#67e8f9"/><text class="small" x="89.58" y="110.35999999999999">speaker</text>
+<circle cx="284.668" cy="135.24" r="3" fill="#67e8f9"/><text class="small" x="289.668" y="131.24">pc</text>
+<circle cx="284.668" cy="149.16" r="3" fill="#67e8f9"/><text class="small" x="289.668" y="145.16">lav1</text>
+<circle cx="272.5" cy="149.16" r="3" fill="#67e8f9"/><text class="small" x="277.5" y="145.16">tx1</text>
+<circle cx="432.58" cy="310.968" r="7" fill="#4ade80"/><text x="441.58" y="310.968">SPAWN</text><text x="30" y="446.24">Pink: cameras • cyan: operating gear • brown: furniture • green: spawn</text><text x="30" y="466.24">Lines: logical source → destination graph (not installed cable geometry)</text><text x="30" y="486.24">Green dashed: walked route checkpoints (schematic); A–J views captured in engine.</text></svg>

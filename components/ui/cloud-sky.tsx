@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { memo, useEffect, useRef } from "react";
 
 /**
  * Drifting cloud layers with depth. Each layer is a seamless procedural cloud tile
@@ -25,7 +25,7 @@ const LAYERS = [
   { tile: cloudTile(41, 0.0045, 4, 3.2), className: "cloud-layer-near" },
 ];
 
-export function CloudSky() {
+export const CloudSky = memo(function CloudSky() {
   const root = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -52,4 +52,4 @@ export function CloudSky() {
       ))}
     </div>
   );
-}
+});

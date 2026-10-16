@@ -7,6 +7,7 @@ import { Euler, MathUtils, Object3D, Raycaster, Vector2, Vector3 } from "three";
 import { useTrainingStore } from "@/game/stores/training-store";
 import type { Point3, TrainingTarget } from "@/game/training/hdmi-training";
 import { TRAINING_INPUT_EVENT, type TrainingInputDetail } from "@/game/input/training-input";
+import type { ReviewView } from "@/game/training/environment-review";
 
 import { dropHeight, LAYOUTS, onSurface, type LayoutId, type VenueLayout } from "@/game/training/venue-layouts";
 
@@ -38,7 +39,7 @@ function dropPoint(camera: import("three").Camera, layout: VenueLayout): Point3 
   return [x, dropHeight(layout, x, z), z];
 }
 
-export function FirstPersonController({ active, fallbackLook, touch, onExitFallback, venue = "studio" }: { active: boolean; fallbackLook: boolean; touch: boolean; onExitFallback: () => void; venue?: LayoutId }) {
+export function FirstPersonController({ active, fallbackLook, touch, onExitFallback, venue = "studio", reviewView, reviewTelemetry = false }: { active: boolean; fallbackLook: boolean; touch: boolean; onExitFallback: () => void; venue?: LayoutId; reviewView?: ReviewView; reviewTelemetry?: boolean }) {
   const { gl, camera, scene } = useThree();
   const body = useRef<RapierRigidBody>(null);
   const keys = useRef(new Set<string>());
@@ -46,6 +47,7 @@ export function FirstPersonController({ active, fallbackLook, touch, onExitFallb
   const angles = useRef({ yaw: layout.spawnYaw, pitch: -0.12 });
   const targets = useRef<Object3D[]>([]);
   const frame = useRef(0);
+  const telemetryFrame = useRef(0);
 
   useEffect(() => {
     const element = gl.domElement;
@@ -68,7 +70,7 @@ export function FirstPersonController({ active, fallbackLook, touch, onExitFallb
       angles.current.pitch = MathUtils.clamp(angles.current.pitch - event.movementY * 0.0018, -1.25, 1.25);
     };
     const onKeyDown = (event: KeyboardEvent) => {
-      if (!canControl() || useTrainingStore.getState().inspecting) return;
+      if (!canControl() || useTrainingStore.getState().inspecting || useTrainingStore.getState().consoleOpen) return;
       if (event.code === "Escape" && fallbackLook) { onExitFallback(); return; }
       if (Object.values(BINDINGS).includes(event.code as typeof BINDINGS[keyof typeof BINDINGS])) event.preventDefault();
       if ([BINDINGS.forward, BINDINGS.back, BINDINGS.left, BINDINGS.right].includes(event.code as typeof BINDINGS.forward)) keys.current.add(event.code);
@@ -87,7 +89,7 @@ export function FirstPersonController({ active, fallbackLook, touch, onExitFallb
       endInteract();
     };
     const onTouchInput = (event: Event) => {
-      if (!canControl() || useTrainingStore.getState().inspecting) return;
+      if (!canControl() || useTrainingStore.getState().inspecting || useTrainingStore.getState().consoleOpen) return;
       const detail = (event as CustomEvent<TrainingInputDetail>).detail;
       if (detail.type === "move") {
         if (detail.pressed) keys.current.add(detail.code);
@@ -140,6 +142,22 @@ export function FirstPersonController({ active, fallbackLook, touch, onExitFallb
   });
 
   useFrame(() => {
+    if (reviewTelemetry && ++telemetryFrame.current % 15 === 0) {
+      const p = body.current?.translation();
+      if (p) gl.domElement.setAttribute("data-review-player", JSON.stringify({ x: p.x, y: p.y, z: p.z, ...angles.current }));
+    }
+    if (reviewView) {
+      camera.position.set(...reviewView.eye);
+      camera.lookAt(...reviewView.target);
+      if (++frame.current % 15 === 0) {
+        const reviewTargets: Object3D[] = [];
+        scene.traverse((object) => { if (object.userData.trainingTarget?.kind === "port") reviewTargets.push(object); });
+        camera.updateMatrixWorld();
+        raycaster.setFromCamera(lookCenter, camera);
+        useTrainingStore.getState().focus((raycaster.intersectObjects(reviewTargets, false)[0]?.object.userData.trainingTarget as TrainingTarget | undefined) ?? null);
+      }
+      return;
+    }
     const translation = body.current?.translation();
     if (translation) camera.position.set(translation.x, translation.y + 0.84, translation.z);
     camera.quaternion.setFromEuler(look.set(angles.current.pitch, angles.current.yaw, 0, "YXZ"));

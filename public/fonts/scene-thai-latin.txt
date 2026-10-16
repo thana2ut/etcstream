@@ -1,0 +1,11 @@
+Etcstream Scene Thai Latin
+
+Derived locally by scripts/build-scene-font.py from the two fonts already shipped
+with this project. Kart supplies Thai and its original shaping tables; empty
+ASCII letter outlines are filled from Geist Regular. Original files are unchanged.
+
+Kart source and usage notice: Kart-chinesestyle.txt
+Geist license: OFL.txt (SIL Open Font License 1.1)
+
+This combined asset uses its own family name. It is not an official Kart or Geist
+release and is not sold as a font product.

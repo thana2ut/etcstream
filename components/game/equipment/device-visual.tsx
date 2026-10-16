@@ -1,11 +1,24 @@
 "use client";
 
+import { SCENE_FONT, sceneText } from "@/game/rendering/scene-font";
 import { Billboard, Text } from "@react-three/drei";
 import type { DeviceDef } from "@/game/training/scenarios";
 import { GlbModel, Hcx2000Model } from "./hc-x2000";
 import { GenericDevice } from "./generic-device";
+import { Hds7105Model } from "./hds7105";
+import { SamsungTv } from "./samsung-tv";
+import { useTrainingStore } from "@/game/stores/training-store";
+import { studioSignalFeed, venueScreenFeed } from "@/game/training/monitor-feed";
+import { DoubleSide } from "three";
 
-const ROOM_FONT = "/fonts/geist-regular.ttf";
+const ROOM_FONT = SCENE_FONT;
+
+function MissionStudioMonitor() {
+  const feed = useTrainingStore((state) => venueScreenFeed(state, "monitor") === "MULTIVIEW" ? studioSignalFeed(state, "inputs") : venueScreenFeed(state, "monitor"));
+  return <group position={[0, 0.294, 0]}><SamsungTv />
+    <Text font={ROOM_FONT} position={[0, 0.003, 0.022]} fontSize={0.035} maxWidth={0.9} color="#cbd8e6" textAlign="center">{sceneText(feed)}</Text>
+  </group>;
+}
 
 function Box({ position, scale, color }: { position: [number, number, number]; scale: [number, number, number]; color: string }) {
   return <mesh position={position} castShadow receiveShadow><boxGeometry args={scale} /><meshStandardMaterial color={color} metalness={0.15} roughness={0.5} /></mesh>;
@@ -16,10 +29,10 @@ function Box({ position, scale, color }: { position: [number, number, number]; s
 export function DeviceLabel({ device, y }: { device: Pick<DeviceDef, "label" | "model">; y: number }) {
   return <Billboard position={[0, y, 0]}>
     <Text font={ROOM_FONT} fontSize={0.055} color="#f6ddaa" anchorX="center" anchorY="bottom" textAlign="center" outlineWidth={0.004} outlineColor="#000">
-      {device.model || device.label}
+      {sceneText(device.model || device.label)}
     </Text>
     {device.model && <Text font={ROOM_FONT} position={[0, -0.012, 0]} fontSize={0.034} color="#8be4f4" anchorX="center" anchorY="top" textAlign="center" outlineWidth={0.003} outlineColor="#000">
-      {device.label}
+      {sceneText(device.label)}
     </Text>}
   </Billboard>;
 }
@@ -28,9 +41,16 @@ export function DeviceLabel({ device, y }: { device: Pick<DeviceDef, "label" | "
 export function DeviceVisual({ device, bare = false }: { device: DeviceDef; bare?: boolean }) {
   const [w, h, d] = device.size;
   if (device.generic) return <GenericDevice device={device} bare={bare} />;
+  if (device.id === "sw" && device.model.startsWith("DeviceWell HDS7105")) return <group><Hds7105Model />{!bare && <DeviceLabel device={device} y={h + 0.16} />}</group>;
+  if (device.id === "monitor" && device.model.startsWith("Samsung")) return <><MissionStudioMonitor />{!bare && <DeviceLabel device={device} y={0.75} />}</>;
   if (device.kind === "camera") {
     return <group>
       <Hcx2000Model />
+      {device.id === "cam2" && device.model.startsWith("Studio Camera") && <group>
+        {[-0.1, 0.1].map((x) => <Box key={x} position={[x, 1.18, -0.35]} scale={[0.012, 0.018, 0.6]} color="#282d33" />)}
+        <Box position={[0, 1.17, -0.54]} scale={[0.32, 0.04, 0.28]} color="#10151b" />
+        <mesh position={[0, 1.36, -0.57]} rotation={[-Math.PI / 4, 0, 0]}><planeGeometry args={[0.3, 0.3]} /><meshStandardMaterial color="#8c9dab" metalness={0.1} roughness={0.15} transparent opacity={0.24} side={DoubleSide} /></mesh>
+      </group>}
       {!bare && <DeviceLabel device={device} y={1.72} />}
     </group>;
   }
@@ -40,7 +60,7 @@ export function DeviceVisual({ device, bare = false }: { device: DeviceDef; bare
       {!bare && <DeviceLabel device={device} y={h + 0.16} />}
     </group>;
   }
-  if (device.id === "speaker" && device.model === "Yamaha HS5") {
+  if (device.id === "speaker" && device.model.startsWith("Yamaha HS5")) {
     return <group>
       <GlbModel url="/models/equipment/yamaha-hs5.glb" fallback={<Box position={[0, h / 2, 0]} scale={[w, h, d]} color={device.color} />} />
       {!bare && <DeviceLabel device={device} y={h + 0.16} />}

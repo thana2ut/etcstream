@@ -7,12 +7,12 @@ import { missionChapters } from "./mission-catalog";
  */
 export interface SectRank { id: string; title: string; role: string; minCleared: number }
 export const SECT_RANKS: readonly SectRank[] = [
-  { id: "trainee", title: "ศิษย์ฝึกหัด", role: "เพิ่งเริ่มรู้จัก OUTPUT → INPUT", minCleared: 0 },
-  { id: "assistant", title: "ผู้ช่วยช่างสัญญาณ", role: "ต่อภาพและเสียงพื้นฐานได้เอง", minCleared: 3 },
-  { id: "technician", title: "ช่างเทคนิคภาพ-เสียง", role: "ดูแลห้องเรียนและสตูดิโอได้ครบ", minCleared: 8 },
-  { id: "operator", title: "ผู้ควบคุมการผลิต", role: "คุมงานเวทีและสลับภาพหลายกล้อง", minCleared: 13 },
-  { id: "chief", title: "หัวหน้าทีมถ่ายทอด", role: "วางระบบภาคสนามและแก้ปัญหาหน้างาน", minCleared: 19 },
-  { id: "master", title: "จอมถ่ายทอด", role: "ควบคุม Full Live Production ได้ทุกสถานที่", minCleared: 25 },
+  { id: "trainee", title: "Apprentice", role: "Just learning OUTPUT → INPUT", minCleared: 0 },
+  { id: "assistant", title: "Assistant Signal Tech", role: "Patches basic picture and sound alone", minCleared: 3 },
+  { id: "technician", title: "AV Technician", role: "Runs classrooms and studios end to end", minCleared: 8 },
+  { id: "operator", title: "Production Operator", role: "Runs stage events and multi-camera switching", minCleared: 13 },
+  { id: "chief", title: "Broadcast Crew Chief", role: "Plans field systems and fixes live problems", minCleared: 19 },
+  { id: "master", title: "Master of Transmission", role: "Runs full live production at any venue", minCleared: 25 },
 ];
 
 export type CompletedMap = Record<string, number[] | undefined>;

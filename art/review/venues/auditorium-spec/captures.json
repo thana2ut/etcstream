@@ -1,0 +1,258 @@
+[
+  {
+    "label": "A จุดเริ่ม",
+    "value": "0"
+  },
+  {
+    "label": "B มองย้อน",
+    "value": "1"
+  },
+  {
+    "label": "C ฝั่งตะวันตก",
+    "value": "2"
+  },
+  {
+    "label": "D ฝั่งตะวันออก",
+    "value": "3"
+  },
+  {
+    "label": "E มุมห้อง 1",
+    "value": "4"
+  },
+  {
+    "label": "E มุมห้อง 2",
+    "value": "5"
+  },
+  {
+    "label": "E มุมห้อง 3",
+    "value": "6"
+  },
+  {
+    "label": "E มุมห้อง 4",
+    "value": "7"
+  },
+  {
+    "label": "F ผังมุมสูง",
+    "value": "8"
+  },
+  {
+    "label": "G ระดับพื้น",
+    "value": "9"
+  },
+  {
+    "label": "H เพดาน",
+    "value": "10"
+  },
+  {
+    "label": "J จุดคืนอุปกรณ์",
+    "value": "11"
+  },
+  {
+    "label": "I Production 3G-SDI Switcher · ด้านหน้า",
+    "value": "12"
+  },
+  {
+    "label": "I Production 3G-SDI Switcher · ด้านหลัง",
+    "value": "13"
+  },
+  {
+    "label": "I Camera C (Rear Centre) · ด้านหน้า",
+    "value": "14"
+  },
+  {
+    "label": "I Camera C (Rear Centre) · ด้านหลัง",
+    "value": "15"
+  },
+  {
+    "label": "I Camera L (Left Aisle) · ด้านหน้า",
+    "value": "16"
+  },
+  {
+    "label": "I Camera L (Left Aisle) · ด้านหลัง",
+    "value": "17"
+  },
+  {
+    "label": "I Camera R (Right Aisle) · ด้านหน้า",
+    "value": "18"
+  },
+  {
+    "label": "I Camera R (Right Aisle) · ด้านหลัง",
+    "value": "19"
+  },
+  {
+    "label": "I PTZ Camera (SDI) · ด้านหน้า",
+    "value": "20"
+  },
+  {
+    "label": "I PTZ Camera (SDI) · ด้านหลัง",
+    "value": "21"
+  },
+  {
+    "label": "I Presentation Laptop · ด้านหน้า",
+    "value": "22"
+  },
+  {
+    "label": "I Presentation Laptop · ด้านหลัง",
+    "value": "23"
+  },
+  {
+    "label": "I HDMI → SDI Converter · ด้านหน้า",
+    "value": "24"
+  },
+  {
+    "label": "I HDMI → SDI Converter · ด้านหลัง",
+    "value": "25"
+  },
+  {
+    "label": "I SDI → HDMI Converter · ด้านหน้า",
+    "value": "26"
+  },
+  {
+    "label": "I SDI → HDMI Converter · ด้านหลัง",
+    "value": "27"
+  },
+  {
+    "label": "I LED / Projector (HDMI IN) · ด้านหน้า",
+    "value": "28"
+  },
+  {
+    "label": "I LED / Projector (HDMI IN) · ด้านหลัง",
+    "value": "29"
+  },
+  {
+    "label": "I FOH Multiview Monitor · ด้านหน้า",
+    "value": "30"
+  },
+  {
+    "label": "I FOH Multiview Monitor · ด้านหลัง",
+    "value": "31"
+  },
+  {
+    "label": "I Program Recorder · ด้านหน้า",
+    "value": "32"
+  },
+  {
+    "label": "I Program Recorder · ด้านหลัง",
+    "value": "33"
+  },
+  {
+    "label": "I Production PC / OBS · ด้านหน้า",
+    "value": "34"
+  },
+  {
+    "label": "I Production PC / OBS · ด้านหลัง",
+    "value": "35"
+  },
+  {
+    "label": "I Podium Microphone · ด้านหน้า",
+    "value": "36"
+  },
+  {
+    "label": "I Podium Microphone · ด้านหลัง",
+    "value": "37"
+  },
+  {
+    "label": "I Wireless Handheld 1 · ด้านหน้า",
+    "value": "38"
+  },
+  {
+    "label": "I Wireless Handheld 1 · ด้านหลัง",
+    "value": "39"
+  },
+  {
+    "label": "I Handheld RX 1 · ด้านหน้า",
+    "value": "40"
+  },
+  {
+    "label": "I Handheld RX 1 · ด้านหลัง",
+    "value": "41"
+  },
+  {
+    "label": "I Lav RX 1 · ด้านหน้า",
+    "value": "42"
+  },
+  {
+    "label": "I Lav RX 1 · ด้านหลัง",
+    "value": "43"
+  },
+  {
+    "label": "I Wireless Handheld 2 · ด้านหน้า",
+    "value": "44"
+  },
+  {
+    "label": "I Wireless Handheld 2 · ด้านหลัง",
+    "value": "45"
+  },
+  {
+    "label": "I Handheld RX 2 · ด้านหน้า",
+    "value": "46"
+  },
+  {
+    "label": "I Handheld RX 2 · ด้านหลัง",
+    "value": "47"
+  },
+  {
+    "label": "I Lav RX 2 · ด้านหน้า",
+    "value": "48"
+  },
+  {
+    "label": "I Lav RX 2 · ด้านหลัง",
+    "value": "49"
+  },
+  {
+    "label": "I Analog Stagebox · ด้านหน้า",
+    "value": "50"
+  },
+  {
+    "label": "I Analog Stagebox · ด้านหลัง",
+    "value": "51"
+  },
+  {
+    "label": "I Digital FOH Mixer · ด้านหน้า",
+    "value": "52"
+  },
+  {
+    "label": "I Digital FOH Mixer · ด้านหลัง",
+    "value": "53"
+  },
+  {
+    "label": "I Active PA Speaker · ด้านหน้า",
+    "value": "54"
+  },
+  {
+    "label": "I Active PA Speaker · ด้านหลัง",
+    "value": "55"
+  },
+  {
+    "label": "I Lavalier 1 · ด้านหน้า",
+    "value": "56"
+  },
+  {
+    "label": "I Lavalier 1 · ด้านหลัง",
+    "value": "57"
+  },
+  {
+    "label": "I Wireless TX 1 · ด้านหน้า",
+    "value": "58"
+  },
+  {
+    "label": "I Wireless TX 1 · ด้านหลัง",
+    "value": "59"
+  },
+  {
+    "label": "I Lavalier 2 · ด้านหน้า",
+    "value": "60"
+  },
+  {
+    "label": "I Lavalier 2 · ด้านหลัง",
+    "value": "61"
+  },
+  {
+    "label": "I Wireless TX 2 · ด้านหน้า",
+    "value": "62"
+  },
+  {
+    "label": "I Wireless TX 2 · ด้านหลัง",
+    "value": "63"
+  }
+]

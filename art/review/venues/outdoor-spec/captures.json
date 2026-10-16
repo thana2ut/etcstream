@@ -1,0 +1,194 @@
+[
+  {
+    "label": "A จุดเริ่ม",
+    "value": "0"
+  },
+  {
+    "label": "B มองย้อน",
+    "value": "1"
+  },
+  {
+    "label": "C ฝั่งตะวันตก",
+    "value": "2"
+  },
+  {
+    "label": "D ฝั่งตะวันออก",
+    "value": "3"
+  },
+  {
+    "label": "E มุมห้อง 1",
+    "value": "4"
+  },
+  {
+    "label": "E มุมห้อง 2",
+    "value": "5"
+  },
+  {
+    "label": "E มุมห้อง 3",
+    "value": "6"
+  },
+  {
+    "label": "E มุมห้อง 4",
+    "value": "7"
+  },
+  {
+    "label": "F ผังมุมสูง",
+    "value": "8"
+  },
+  {
+    "label": "G ระดับพื้น",
+    "value": "9"
+  },
+  {
+    "label": "H เพดาน",
+    "value": "10"
+  },
+  {
+    "label": "J จุดคืนอุปกรณ์",
+    "value": "11"
+  },
+  {
+    "label": "I Portable Field 3G-SDI Switcher · ด้านหน้า",
+    "value": "12"
+  },
+  {
+    "label": "I Portable Field 3G-SDI Switcher · ด้านหลัง",
+    "value": "13"
+  },
+  {
+    "label": "I Far Camera A (via Fiber) · ด้านหน้า",
+    "value": "14"
+  },
+  {
+    "label": "I Far Camera A (via Fiber) · ด้านหลัง",
+    "value": "15"
+  },
+  {
+    "label": "I Near Camera B · ด้านหน้า",
+    "value": "16"
+  },
+  {
+    "label": "I Near Camera B · ด้านหลัง",
+    "value": "17"
+  },
+  {
+    "label": "I Near Camera C · ด้านหน้า",
+    "value": "18"
+  },
+  {
+    "label": "I Near Camera C · ด้านหลัง",
+    "value": "19"
+  },
+  {
+    "label": "I SDI → Fiber TX · ด้านหน้า",
+    "value": "20"
+  },
+  {
+    "label": "I SDI → Fiber TX · ด้านหลัง",
+    "value": "21"
+  },
+  {
+    "label": "I Fiber → SDI RX · ด้านหน้า",
+    "value": "22"
+  },
+  {
+    "label": "I Fiber → SDI RX · ด้านหลัง",
+    "value": "23"
+  },
+  {
+    "label": "I Portable Multiview Monitor (SDI) · ด้านหน้า",
+    "value": "24"
+  },
+  {
+    "label": "I Portable Multiview Monitor (SDI) · ด้านหลัง",
+    "value": "25"
+  },
+  {
+    "label": "I Wireless Receiver · ด้านหน้า",
+    "value": "26"
+  },
+  {
+    "label": "I Wireless Receiver · ด้านหลัง",
+    "value": "27"
+  },
+  {
+    "label": "I Shotgun Mic (Condenser) · ด้านหน้า",
+    "value": "28"
+  },
+  {
+    "label": "I Shotgun Mic (Condenser) · ด้านหลัง",
+    "value": "29"
+  },
+  {
+    "label": "I Ambient Mic (Dynamic) · ด้านหน้า",
+    "value": "30"
+  },
+  {
+    "label": "I Ambient Mic (Dynamic) · ด้านหลัง",
+    "value": "31"
+  },
+  {
+    "label": "I Field Audio Mixer · ด้านหน้า",
+    "value": "32"
+  },
+  {
+    "label": "I Field Audio Mixer · ด้านหลัง",
+    "value": "33"
+  },
+  {
+    "label": "I Active PA Speaker · ด้านหน้า",
+    "value": "34"
+  },
+  {
+    "label": "I Active PA Speaker · ด้านหลัง",
+    "value": "35"
+  },
+  {
+    "label": "I Analog Audio Embedder · ด้านหน้า",
+    "value": "36"
+  },
+  {
+    "label": "I Analog Audio Embedder · ด้านหลัง",
+    "value": "37"
+  },
+  {
+    "label": "I SDI Hardware Encoder · ด้านหน้า",
+    "value": "38"
+  },
+  {
+    "label": "I SDI Hardware Encoder · ด้านหลัง",
+    "value": "39"
+  },
+  {
+    "label": "I 4G / 5G Router · ด้านหน้า",
+    "value": "40"
+  },
+  {
+    "label": "I 4G / 5G Router · ด้านหลัง",
+    "value": "41"
+  },
+  {
+    "label": "I Live Ingest (simulation) · ด้านหน้า",
+    "value": "42"
+  },
+  {
+    "label": "I Live Ingest (simulation) · ด้านหลัง",
+    "value": "43"
+  },
+  {
+    "label": "I Lavalier 1 · ด้านหน้า",
+    "value": "44"
+  },
+  {
+    "label": "I Lavalier 1 · ด้านหลัง",
+    "value": "45"
+  },
+  {
+    "label": "I Wireless TX 1 · ด้านหน้า",
+    "value": "46"
+  },
+  {
+    "label": "I Wireless TX 1 · ด้านหลัง",
+    "value": "47"
+  }
+]

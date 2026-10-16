@@ -1,44 +1,32 @@
 "use client";
 
+import { SCENE_FONT, sceneText } from "@/game/rendering/scene-font";
 import { useMemo } from "react";
 import { CylinderGeometry, DoubleSide } from "three";
 import { LightStand, VenueLighting, BLACK_METAL, CHROME, Cyl, D, g, Instanced, merge, place, RB, Slab, STEEL, Tube, type Placement, type V3 } from "./kit";
-import { CuboidCollider, RigidBody } from "@react-three/rapier";
-import { LAYOUTS } from "@/game/training/venue-layouts";
+import { CuboidCollider, CylinderCollider, RigidBody } from "@react-three/rapier";
+import { LAYOUTS, STUDIO_MISSION_SETS } from "@/game/training/venue-layouts";
 import { LayoutColliders, LayoutFurniture } from "./layout-furniture";
 import { tex } from "./textures";
+import { Text } from "@react-three/drei";
+import { useTrainingStore } from "@/game/stores/training-store";
+import { studioSignalFeed } from "@/game/training/monitor-feed";
 
 /**
  * Mission Hall S venue (layout `studioMission`): enlarged TV studio — black box, green cyclorama, pipe lighting grid, jib,
  * gallery window. Mission-only: the free-practice Studio Room 01 (studio-room-01.tsx / GLB) is a separate scene and is untouched.
  */
 const ROOM = { x0: -8.6, x1: 8.6, z0: -D / 2 - 0.05, z1: 9.5, h: 6.4 };
-const THAI = "'Sarabun','Leelawadee UI','Tahoma',sans-serif";
+const SETS = STUDIO_MISSION_SETS;
 
-function multiview(i: number) {
-  return tex.sign(`mv${i}`, 320, 180, (c, w, h) => {
-    const hues = ["#244a7a", "#2f6b3a", "#6b2f2f", "#5a4a20", "#2b2b55", "#204f55", "#553366", "#3d3d3d", "#1f3f6a"];
-    const grd = c.createLinearGradient(0, 0, w, h); grd.addColorStop(0, hues[i % hues.length]); grd.addColorStop(1, "#0a0c10");
-    c.fillStyle = grd; c.fillRect(0, 0, w, h);
-    c.fillStyle = "rgba(255,255,255,.18)"; c.beginPath(); c.arc(w * 0.5, h * 0.55, 34, 0, 7); c.fill(); c.fillRect(w * 0.5 - 50, h * 0.72, 100, 60);
-    c.fillStyle = i === 0 ? "#e33" : i === 1 ? "#2c2" : "#000"; c.fillRect(0, h - 26, w, 26);
-    c.fillStyle = "#fff"; c.font = "bold 18px sans-serif"; c.fillText(i === 0 ? "PGM" : i === 1 ? "PVW" : `CAM ${i - 1}`, 10, h - 8);
-    c.strokeStyle = i < 2 ? (i ? "#2c2" : "#e33") : "#666"; c.lineWidth = 4; c.strokeRect(2, 2, w - 4, h - 4);
-  });
-}
-function onAirSign() {
-  return tex.sign("on-air", 256, 96, (c, w, h) => {
-    c.fillStyle = "#c40f12"; c.fillRect(0, 0, w, h);
-    c.fillStyle = "#fff"; c.font = `bold 54px ${THAI}`; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText("ON AIR", w / 2, h / 2 + 2);
-  });
-}
-function studioSign() {
-  return tex.sign("studio-a", 512, 128, (c, w, h) => {
-    c.fillStyle = "#111318"; c.fillRect(0, 0, w, h);
-    c.fillStyle = "#e9edf5"; c.font = `bold 60px ${THAI}`; c.textBaseline = "middle"; c.fillText("STUDIO A", 24, h / 2);
-    c.fillStyle = "#3a7bff"; c.fillRect(330, 40, 160, 48);
-    c.fillStyle = "#fff"; c.font = `bold 30px ${THAI}`; c.fillText("สตูดิโอ 1", 350, h / 2 + 2);
-  });
+/** Installed repeaters show only state from the playable signal graph. */
+function SignalPanel({ channel, size }: { channel: "program" | "inputs" | "recording" | "audio"; size: [number, number] }) {
+  const feed = useTrainingStore((state) => studioSignalFeed(state, channel));
+  const [w, h] = size;
+  return <group>
+    <mesh><planeGeometry args={[w, h]} /><meshBasicMaterial color="#080e17" toneMapped={false} /></mesh>
+    <Text font={SCENE_FONT} position={[0, 0, 0.003]} fontSize={Math.min(h / 5.8, w / 23)} maxWidth={w * 0.94} color="#cbd8e6" textAlign="center">{sceneText(feed)}</Text>
+  </group>;
 }
 
 /** Night city skyline for the news-set video wall. */
@@ -137,6 +125,11 @@ function InterviewCorner({ p, yaw }: { p: V3; yaw: number }) {
       </group>)}
     </group>
     <pointLight position={[0, 2.0, 0.4]} intensity={5} distance={4.5} color="#ffcc88" />
+    <RigidBody type="fixed" colliders={false}>
+      {[-0.85, 0.85].map((x) => <CuboidCollider key={x} position={[x, 0.45, 0]} rotation={[0, x < 0 ? 0.5 : -0.5, 0]} args={[0.42, 0.45, 0.42]} />)}
+      <CylinderCollider position={[0, 0.24, 0.15]} args={[0.24, 0.36]} />
+      <CylinderCollider position={[1.55, 0.3, -0.9]} args={[0.3, 0.22]} />
+    </RigidBody>
   </group>;
 }
 /** Straight dolly track (two rails on sleepers). */
@@ -149,9 +142,9 @@ function DollyTrack({ p, len, yaw }: { p: V3; len: number; yaw: number }) {
 /** Hanging production monitor from the grid. */
 function HangingMonitor({ p, yaw, i }: { p: V3; yaw: number; i: number }) {
   return <group position={p} rotation={[0, yaw, 0]}>
-    <Tube pts={[[0, 0.55, 0], [0, 0.32, 0]]} r={0.015} {...STEEL} />
+    <Tube pts={[[0, 0.8, 0], [0, 0.32, 0]]} r={0.015} {...STEEL} />
     <RB p={[0, 0, 0]} s={[1.0, 0.6, 0.06]} rad={0.015} c="#0a0a0c" />
-    <mesh position={[0, 0, 0.032]}><planeGeometry args={[0.94, 0.54]} /><meshBasicMaterial map={multiview(i)} toneMapped={false} /></mesh>
+    <group position={[0, 0, 0.032]}><SignalPanel channel={i % 2 ? "inputs" : "program"} size={[0.94, 0.54]} /></group>
   </group>;
 }
 
@@ -160,6 +153,7 @@ function StandSoftbox({ p, yaw, h = 2.2 }: { p: V3; yaw: number; h?: number }) {
   const legs = [0, 1, 2].map((i) => i * (Math.PI * 2) / 3);
   return <group position={p} rotation={[0, yaw, 0]}>
     {legs.map((a, i) => <Tube key={i} pts={[[0, 0.6, 0], [Math.cos(a) * 0.5, 0.02, Math.sin(a) * 0.5]]} r={0.013} {...BLACK_METAL} />)}
+    <RB p={[0.23, 0.07, 0.03]} s={[0.3, 0.13, 0.22]} rad={0.035} map={tex.fabric("#242629", [2, 2])} c="#ffffff" r={0.95} />
     <Cyl p={[0, (h + 0.6) / 2, 0]} rt={0.016} h={h - 0.6} {...STEEL} />
     <group position={[0, h, 0]} rotation={[0.15, 0, 0]}>
       <RB p={[0, 0, -0.14]} s={[0.14, 0.14, 0.14]} rad={0.02} c="#111" />
@@ -174,6 +168,8 @@ function GridSpot({ p, target }: { p: V3; target: V3 }) {
   const yaw = Math.atan2(dx, dz), pitch = Math.atan2(-dy, Math.hypot(dx, dz));
   return <group position={p}>
     <Tube pts={[[0, 0.25, 0], [0, 0.05, 0]]} r={0.012} {...BLACK_METAL} />
+    <Cyl p={[0, 0.1, 0]} rt={0.045} h={0.025} rot={[0, 0, Math.PI / 2]} {...STEEL} />
+    <Tube pts={[[0.06, -0.1, 0], [0.14, 0.05, 0.05], [0.08, 0.23, 0], [-0.05, 0.23, -0.05], [-0.08, -0.08, 0]]} r={0.004} {...STEEL} />
     <group rotation={[0, yaw, 0]}><group rotation={[pitch - Math.PI / 2, 0, 0]}>
       <Cyl p={[0, -0.12, 0]} rt={0.09} rb={0.11} h={0.26} {...BLACK_METAL} />
       <Cyl p={[0, -0.255, 0]} rt={0.085} h={0.005} c="#fff7e2" e="#fff0cc" ei={2.6} />
@@ -187,7 +183,7 @@ function MonitorBridge({ p }: { p: V3 }) {
     <RB p={[0, 0.6, 0]} s={[2.0, 0.04, 0.05]} rad={0.01} {...BLACK_METAL} />
     {[-0.66, 0, 0.66].map((x, i) => <group key={x} position={[x, 0.86, 0]} rotation={[0, x * -0.25, 0]}>
       <RB p={[0, 0, 0]} s={[0.62, 0.38, 0.04]} rad={0.01} c="#0a0a0c" />
-      <mesh position={[0, 0, 0.022]}><planeGeometry args={[0.58, 0.34]} /><meshBasicMaterial map={multiview(i)} toneMapped={false} /></mesh>
+      <group position={[0, 0, 0.022]}><SignalPanel channel={i === 0 ? "program" : i === 1 ? "inputs" : "recording"} size={[0.58, 0.34]} /></group>
     </group>)}
   </group>;
 }
@@ -249,7 +245,7 @@ export function Studio() {
   const panelTex = tex.fabric("#1b1c20", [3, 2]);
   const floorTex = tex.paint("#202328", [12, 10]);
   const cycTex = tex.paint("#2fb34a", [6, 3]);
-  const cove = useMemo(() => new CylinderGeometry(0.9, 0.9, 9.2, 24, 1, true, Math.PI, Math.PI / 2), []);
+  const cove = useMemo(() => new CylinderGeometry(0.9, 0.9, 7.0, 24, 1, true, Math.PI, Math.PI / 2), []);
   const gridAt = useMemo<Placement[]>(() => {
     const list: Placement[] = [];
     for (let x = -6; x <= 6; x += 2) for (const z of [-3, -1, 1.5, 4]) if ((x + z * 3) % 4 !== 0) list.push({ p: [x, h - 1.15, z], ry: z > 2 ? 0 : Math.PI });
@@ -257,13 +253,21 @@ export function Studio() {
   }, [h]);
   return <>
     <color attach="background" args={["#0b0c0e"]} />
-    <VenueLighting mood="studio" intensity={1.0} />
+    <VenueLighting mood="studio" intensity={0.65} />
     <hemisphereLight args={["#b8c0d0", "#2a2a30", 0.7]} />
     <ambientLight intensity={0.09} />
     {/* key/fill from the grid onto the set */}
     <spotLight position={[-3, h - 1.2, 3.5]} target-position={[0, 0.8, -1]} angle={0.6} penumbra={0.5} intensity={60} distance={14} color="#fff2dc" castShadow shadow-mapSize={[2048, 2048]} shadow-normalBias={0.03} />
     <spotLight position={[3.5, h - 1.2, 3]} target-position={[0, 0.8, -1]} angle={0.65} penumbra={0.7} intensity={35} distance={14} color="#e8f0ff" />
     <pointLight position={[0, 3, 6]} intensity={5} distance={12} color="#cdd8ff" />
+    <pointLight position={[-2.7, 2.6, 4.7]} intensity={12} distance={5.5} color="#edf2ff" />
+    <pointLight position={[6.2, 2.5, 6.4]} intensity={10} distance={4.5} color="#edf2ff" />
+    <RB p={[6.2, 2.9, 6.4]} s={[1.8, 0.06, 0.2]} rad={0.015} c="#1d2025" />
+    <Slab p={[6.2, 2.865, 6.4]} s={[1.65, 0.005, 0.15]} c="#f2f5ff" e="#f2f5ff" ei={1.5} />
+    {[-0.6, 0.6].map((dx) => <Tube key={`storage-hanger-${dx}`} pts={[[6.2 + dx, 2.93, 6.4], [6.2 + dx, h - 0.9, 6.4]]} r={0.004} {...STEEL} />)}
+    <RB p={[-2.7, 2.85, 4.7]} s={[2.8, 0.06, 0.2]} rad={0.015} c="#1d2025" />
+    <Slab p={[-2.7, 2.815, 4.7]} s={[2.65, 0.005, 0.15]} c="#f2f5ff" e="#f2f5ff" ei={1.5} />
+    {[-3.8, -1.6].map((x) => <Tube key={`work-hanger-${x}`} pts={[[x, 2.88, 4.7], [x, h - 0.9, 4.7]]} r={0.004} {...STEEL} />)}
     {/* dimmed house lights over the camera floor behind the set */}
     {[-4, 0, 4].map((x) => <group key={x}>
       <pointLight position={[x, h - 1.0, 6.8]} intensity={7} distance={9} color="#ffe2b8" />
@@ -272,7 +276,7 @@ export function Studio() {
     {/* work light over both side tables so plugs and cables read clearly */}
 
     {/* floor: sealed concrete with gaffer-tape marks */}
-    <Slab p={[(x0 + x1) / 2, -0.05, (z0 + z1) / 2]} s={[x1 - x0, 0.1, z1 - z0]} map={floorTex} c="#ffffff" r={0.16} m={0.3} />
+    <Slab p={[(x0 + x1) / 2, -0.05, (z0 + z1) / 2]} s={[x1 - x0, 0.1, z1 - z0]} map={floorTex} c="#ffffff" r={0.43} m={0.12} />
     {/* gaffer-tape marks at the three tripod positions of the mission layout */}
     {(["cam1", "cam2", "cam3"] as const).map((id) => { const [x, , z] = LAYOUTS.studioMission.places[id].p; return <group key={id}>
       <Slab p={[x, 0.002, z]} s={[0.4, 0.004, 0.05]} c="#f2c230" />
@@ -291,9 +295,10 @@ export function Studio() {
 
     {/* green cyclorama: wall + floor cove + floor sweep (behind the backdrop collider) */}
     <Slab p={[0, h / 2, z0]} s={[x1 - x0, h, 0.1]} c="#141518" r={0.95} />
-    <Slab p={[0, 0.9 + (h - 1.4) / 2, z0 + 0.07]} s={[9.2, h - 1.4, 0.02]} map={cycTex} c="#ffffff" r={0.9} />
-    <mesh geometry={cove} position={[0, 0.9, z0 + 0.98]} rotation={[0, 0, Math.PI / 2]} receiveShadow><meshStandardMaterial map={cycTex} side={DoubleSide} roughness={0.9} /></mesh>
-    {[-1, 1].map((s) => <RB key={s} p={[s * 4.7, h / 2, z0 + 0.4]} s={[0.25, h, 0.8]} rad={0.04} c="#26282c" />)}
+    <Slab p={[-3.7, 0.9 + (h - 1.4) / 2, z0 + 0.07]} s={[7.0, h - 1.4, 0.02]} map={cycTex} c="#ffffff" r={0.9} />
+    <mesh geometry={cove} position={[-3.7, 0.9, z0 + 0.98]} rotation={[0, 0, Math.PI / 2]} receiveShadow><meshStandardMaterial map={cycTex} side={DoubleSide} roughness={0.9} /></mesh>
+    <Slab p={[-3.7, 0.003, -2.5]} s={[7.0, 0.006, 1.94]} map={cycTex} c="#ffffff" r={0.95} />
+    {[-1, 1].map((s) => <RB key={s} p={[-3.7 + s * 3.6, h / 2, z0 + 0.4]} s={[0.25, h, 0.8]} rad={0.04} c="#26282c" />)}
 
     {/* pipe lighting grid with fresnels, LED panels and hoist chains */}
     {Array.from({ length: 7 }, (_, i) => <Tube key={`gx${i}`} pts={[[x0 + 1, h - 0.9, -3.5 + i * 1.6], [x1 - 1, h - 0.9, -3.5 + i * 1.6]]} r={0.024} {...STEEL} />)}
@@ -320,21 +325,21 @@ export function Studio() {
       {[-0.36, 0.36].map((dz) => <RB key={dz} p={[-0.07, 1.12, dz]} s={[0.04, 2.2, 0.7]} rad={0.015} c="#3c4048" m={0.4} r={0.4} />)}
       {[-0.06, 0.06].map((dz) => <Tube key={dz} pts={[[-0.1, 1.0, dz], [-0.16, 1.0, dz], [-0.16, 1.2, dz], [-0.1, 1.2, dz]]} r={0.012} {...CHROME} />)}
       <RB p={[-0.08, 2.55, 0]} s={[0.08, 0.3, 0.8]} rad={0.03} c="#1a1a1a" />
-      <Slab p={[-0.125, 2.55, 0]} rot={[0, -Math.PI / 2, 0]} s={[0.72, 0.24, 0.005]} map={onAirSign()} c="#ffffff" e="#ff2020" ei={0.9} />
+      <Text font={SCENE_FONT} position={[-0.13, 2.55, 0]} rotation={[0, -Math.PI / 2, 0]} fontSize={0.12} color="#c9d4df">STUDIO</Text>
     </group>
-    <Slab p={[(x0 + x1) / 2, h - 0.6, z1 - 0.07]} s={[3, 0.75, 0.02]} map={studioSign()} c="#ffffff" />
+    <Text font={SCENE_FONT} position={[0, h - 0.6, z1 - 0.07]} rotation={[0, Math.PI, 0]} fontSize={0.28} color="#c9d4df">{sceneText("STUDIO A | mission studio")}</Text>
 
-    {/* multiview monitor wall on the left */}
-    <group position={[x0 + 0.12, 2.6, 3.4]} rotation={[0, Math.PI / 2, 0]}>
-      <RB p={[0, 0, -0.02]} s={[4.3, 2.5, 0.08]} rad={0.03} {...BLACK_METAL} />
-      {Array.from({ length: 9 }, (_, i) => <group key={i} position={[-1.4 + (i % 3) * 1.4, 0.8 - Math.floor(i / 3) * 0.8, 0.03]}>
+    {/* Mounted repeaters: internal input/program/audio/OBS state, not decorative success images. */}
+    <group position={[x0 + 0.12, 2.5, 3.4]} rotation={[0, Math.PI / 2, 0]}>
+      <RB p={[0, 0, -0.06]} s={[2.9, 1.7, 0.12]} rad={0.03} {...BLACK_METAL} />
+      {(["program", "inputs", "audio", "recording"] as const).map((channel, i) => <group key={channel} position={[-0.7 + (i % 2) * 1.4, 0.4 - Math.floor(i / 2) * 0.8, 0.03]}>
         <RB p={[0, 0, 0]} s={[1.34, 0.76, 0.05]} rad={0.012} c="#0a0a0c" />
-        <mesh position={[0, 0, 0.027]}><planeGeometry args={[1.28, 0.72]} /><meshBasicMaterial map={multiview(i)} toneMapped={false} /></mesh>
+        <group position={[0, 0, 0.027]}><SignalPanel channel={channel} size={[1.28, 0.72]} /></group>
       </group>)}
     </group>
 
     {/* a jib parked in the back-left corner (scenery; the mission cameras are interactive devices) */}
-    <Jib p={[-6.8, 0, 8.4]} ry={Math.PI / 2 + 0.45} />
+    <Jib p={SETS.jib} ry={0} />
     {/* cable snakes and a coiled cable on the floor */}
     <mesh position={[6.6, 0.02, 0.5]} rotation={[Math.PI / 2, 0, 0]}><torusGeometry args={[0.32, 0.03, 8, 32]} /><meshStandardMaterial color="#111" roughness={0.7} /></mesh>
     <RB p={[7.4, 0.35, -1.6]} s={[0.6, 0.7, 0.6]} rad={0.04} map={tex.fabric("#202124", [2, 2])} c="#ffffff" r={0.85} />
@@ -343,41 +348,41 @@ export function Studio() {
     <RB p={[0, 0.02, 1.9]} s={[6.4, 0.04, 0.22]} rad={0.015} c="#202226" />
     <RB p={[0, 0.02, 2.6]} s={[0.22, 0.04, 1.4]} rad={0.015} c="#202226" />
     {/* reference zones (art/reference/venues/studio-01/02): news set back-left, interview corner back-right */}
-    <NewsSet p={[-6.3, 0, -2.1]} yaw={0.35} />
-    <InterviewCorner p={[6.2, 0, -1.6]} yaw={-0.45} />
-    <WoodSlatWall p={[x1 - 0.12, 0, -1.2]} w={4.2} h={3.6} rot={[0, -Math.PI / 2, 0]} />
-    <DollyTrack p={[-2.2, 0, -0.6]} len={3.6} yaw={0.9} />
+    <NewsSet p={SETS.news} yaw={0} />
+    <InterviewCorner p={SETS.interview} yaw={-0.45} />
+    <WoodSlatWall p={[x1 - 0.12, 0, 2.0]} w={4.2} h={3.6} rot={[0, -Math.PI / 2, 0]} />
+    <DollyTrack p={[1.5, 0, -1.2]} len={2.2} yaw={0.2} />
     {/* chroma key fill: softboxes on stands around the green cyclorama */}
-    {([[-4.0, -1.0, 0.5], [4.0, -1.0, -0.5], [-2.2, -3.0, 0.9], [2.2, -3.0, -0.9]] as const).map(([x, z, ry], i) => <StandSoftbox key={i} p={[x, 0, z]} yaw={Math.PI + ry} />)}
-    <LightStand p={[-4.6, 0, 0.6]} h={2.6} />
-    <LightStand p={[4.6, 0, 0.6]} h={2.6} />
+    {SETS.softboxes.map(([x, z], i) => <StandSoftbox key={i} p={[x, 0, z]} yaw={Math.atan2(-3.7 - x, -2.3 - z)} />)}
+    <group position={[2.0, 0, -2.4]} rotation={[0, 1.69, 0]}><LightStand p={[0, 0, 0]} h={2.6} /></group>
+    <group position={[7.6, 0, 0.1]} rotation={[0, -0.635, 0]}><LightStand p={[0, 0, 0]} h={2.6} /></group>
     {/* denser grid: spots aimed at the news set, the presenter table and the interview corner */}
-    {([[-6.5, -0.5], [-5.0, 0.2], [-6.0, 1.0]] as const).map(([x, z], i) => <GridSpot key={`n${i}`} p={[x, h - 1.0, z]} target={[-6.3, 1.0, -2.1]} />)}
-    {([[-1.5, 0.5], [0, 0.0], [1.5, 0.5]] as const).map(([x, z], i) => <GridSpot key={`p${i}`} p={[x, h - 1.0, z]} target={[0, 1.0, -2.0]} />)}
-    {([[5.0, 0.5], [6.6, 0.2]] as const).map(([x, z], i) => <GridSpot key={`i${i}`} p={[x, h - 1.0, z]} target={[6.2, 0.8, -1.6]} />)}
-    <spotLight position={[-5.5, h - 1.0, 0.6]} target-position={[-6.3, 0.9, -2.1]} angle={0.55} penumbra={0.6} intensity={30} distance={10} color="#fff1dc" />
-    <spotLight position={[5.6, h - 1.0, 0.4]} target-position={[6.2, 0.6, -1.6]} angle={0.55} penumbra={0.7} intensity={18} distance={9} color="#ffd8a8" />
+    {([[3.0, -0.5], [5.0, 0.2], [6.0, 1.0]] as const).map(([x, z], i) => <GridSpot key={`n${i}`} p={[x, h - 1.0, z]} target={[4.5, 1.0, -2.7]} />)}
+    {([[-5.5, 0.5], [-3.7, 0.0], [-1.5, 0.5]] as const).map(([x, z], i) => <GridSpot key={`p${i}`} p={[x, h - 1.0, z]} target={[-3.7, 1.0, -2.3]} />)}
+    {([[5.0, 0.5], [6.6, 0.2]] as const).map(([x, z], i) => <GridSpot key={`i${i}`} p={[x, h - 1.0, z]} target={[6.2, 0.8, 2.0]} />)}
+    <spotLight position={[4.5, h - 1.0, 0.6]} target-position={[4.5, 0.9, -2.7]} angle={0.55} penumbra={0.6} intensity={30} distance={10} color="#fff1dc" />
+    <spotLight position={[5.6, h - 1.0, 0.4]} target-position={[6.2, 0.6, 2.0]} angle={0.55} penumbra={0.7} intensity={18} distance={9} color="#ffd8a8" />
     {/* production desk: multiview bridge at the far edge (screens face the operator) */}
-    <MonitorBridge p={[0, 0.76, 2.92]} />
-    {/* floor cable covers from the camera marks to the production desk, and a cable cart by the cable table */}
-    <CableCover a={[-3.0, 0.9]} b={[-1.2, 2.7]} />
-    <CableCover a={[3.0, 0.9]} b={[1.2, 2.7]} />
-    <CableCover a={[0, 1.4]} b={[0, 2.7]} />
-    <CableCart p={[-7.2, 0, 5.3]} yaw={Math.PI / 2} />
-    {[[-3.2, 2.0, 0.35, 2], [3.2, 2.0, -0.35, 3], [0, -0.6, 0, 4]].map(([x, z, ry, i]) => <HangingMonitor key={i} p={[x, h - 2.1, z]} yaw={ry} i={i} />)}
-    {/* cable reels and stacked road cases along the back wall */}
-    {[-2.4, -1.4].map((x) => <group key={x} position={[x, 0, z1 - 0.6]}>
-      {[-0.2, 0.2].map((dz) => <Cyl key={dz} p={[0, 0.38, dz]} rt={0.38} h={0.04} rot={[Math.PI / 2, 0, 0]} c="#d77a22" r={0.6} />)}
-      <Cyl p={[0, 0.38, 0]} rt={0.24} h={0.36} rot={[Math.PI / 2, 0, 0]} c="#121212" r={0.7} />
+    <MonitorBridge p={[-2.7, 0.76, 4.18]} />
+    {/* Protected crossings leave the cross-studio lane at z 1.5–2.5 open. */}
+    <CableCover a={[-3.7, 0.7]} b={[-3.7, 3.8]} />
+    <CableCover a={[2.0, 0.7]} b={[2.0, 3.0]} />
+    <CableCover a={[2.0, 3.0]} b={[-2.7, 3.0]} />
+    <CableCover a={[-5.1, 5.6]} b={[-0.2, 5.6]} />
+    <CableCart p={[-7.35, 0, 1.5]} yaw={Math.PI / 2} />
+    {[[-3.7, 0.8, 0, 1], [4.5, 0.8, 0, 2]].map(([x, z, ry, i]) => <HangingMonitor key={i} p={[x, h - 1.7, z]} yaw={ry} i={i} />)}
+    {/* Real case hardware and colliders come from LayoutFurniture. */}
+    {/* Installed utility plates: infrastructure only; AC power is not a gameplay prerequisite. */}
+    {[-5.8, 3.8, 6.0].map((x) => <group key={x} position={[x, 0.35, z1 - 0.06]} rotation={[0, Math.PI, 0]}>
+      <RB p={[0, 0, 0]} s={[0.22, 0.13, 0.02]} rad={0.008} {...BLACK_METAL} />
+      {[-0.055, 0.055].map((dx) => <RB key={dx} p={[dx, 0, 0.013]} s={[0.05, 0.06, 0.008]} rad={0.005} c="#090b0e" />)}
     </group>)}
-    {[0.4, 1.3, 2.2].map((x, i) => <RB key={x} p={[x, 0.36 + (i === 1 ? 0.7 : 0), z1 - 0.55]} s={[0.8, 0.7, 0.6]} rad={0.03} map={tex.fabric("#1d1e21", [2, 2])} c="#ffffff" r={0.85} />)}
     <RigidBody type="fixed" colliders={false}>
-      <CuboidCollider position={[-6.3, 0.9, -2.1]} rotation={[0, 0.35, 0]} args={[1.95, 0.9, 1.35]} />
-      <CuboidCollider position={[6.2, 0.5, -1.6]} rotation={[0, -0.45, 0]} args={[1.4, 0.5, 0.9]} />
-      <CuboidCollider position={[-1.9, 0.4, z1 - 0.6]} args={[0.9, 0.4, 0.4]} />
-      <CuboidCollider position={[-7.2, 0.6, 5.3]} args={[0.3, 0.6, 0.52]} />
-      {([[-4.0, -1.0], [4.0, -1.0], [-2.2, -3.0], [2.2, -3.0], [-4.6, 0.6], [4.6, 0.6]] as const).map(([x, z]) => <CuboidCollider key={`${x}${z}`} position={[x, 1.1, z]} args={[0.3, 1.1, 0.3]} />)}
-      <CuboidCollider position={[1.3, 0.7, z1 - 0.55]} args={[1.3, 0.7, 0.32]} />
+      <CuboidCollider key="news-set" position={[4.5, 0.9, -2.7]} rotation={[0, 0, 0]} args={[1.95, 0.9, 1.35]} />
+      <CuboidCollider key="jib" position={[SETS.jib[0], 0.7, SETS.jib[2]]} args={[0.9, 0.7, 0.8]} />
+      <CuboidCollider key="cable-cart" position={[-7.35, 0.6, 1.5]} args={[0.3, 0.6, 0.52]} />
+      {[...SETS.softboxes, [2.0, -2.4], [7.6, 0.1]].map(([x, z]) => <CuboidCollider key={`${x}${z}`} position={[x, 1.1, z]} args={[0.3, 1.1, 0.3]} />)}
+
     </RigidBody>
     <LayoutFurniture layout={LAYOUTS.studioMission} look={{ top: "#2b2e33", frame: { ...BLACK_METAL } }} />
     <LayoutColliders layout={LAYOUTS.studioMission} />

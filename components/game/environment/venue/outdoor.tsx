@@ -1,20 +1,24 @@
 "use client";
 
+import { SignalScreen } from "./signal-screen";
+import { SCENE_CANVAS_FONT } from "@/game/rendering/scene-font";
 import { useMemo } from "react";
+import { CuboidCollider, RigidBody } from "@react-three/rapier";
 import { BackSide, BufferGeometry, DoubleSide, Float32BufferAttribute, IcosahedronGeometry } from "three";
 import { VenueLighting, BLACK_METAL, CHROME, ConeGeo, Cyl, g, Instanced, Lathe, merge, place, RB, Slab, STEEL, Tube, type Placement, type V3, type XZ } from "./kit";
 import { tex } from "./textures";
 import { LAYOUTS, VENUE_SCALE } from "@/game/training/venue-layouts";
 import { LayoutColliders, LayoutFurniture } from "./layout-furniture";
 
-const THAI = "'Sarabun','Leelawadee UI','Tahoma',sans-serif";
+const THAI = SCENE_CANVAS_FONT;
 const L = LAYOUTS.outdoor;
 /** Control tent over the production desk (its legs are layout obstacles). */
 // The field site is enlarged with its layout (VENUE_SCALE, a game-design choice); tent, stage dressing and props follow.
 const K = VENUE_SCALE.outdoor, k = (v: number) => +(v * K).toFixed(3);
 const STAGE = L.furniture.find((f) => f.kind === "stage")!;
 const TENT = { x0: k(1.9), x1: k(6.1), z0: k(6.6), z1: k(10.9), eave: 2.6, peak: 3.6 };
-const TENT_POLES: XZ[] = [[TENT.x0, TENT.z0], [TENT.x1, TENT.z0], [TENT.x0, TENT.z1], [TENT.x1, TENT.z1]];
+const CROWD_RAILS: Placement[] = [-6.5, -4.6, 4.6, 6.5].map((x) => ({ p: [x, 0, 4.1] as V3 }));
+const FIELD_FURNITURE = { ...L, furniture: L.furniture.filter((f) => f.kind !== "chairBlock") };
 
 function skyTexture() {
   return tex.sign("sky", 32, 512, (c, w, h) => {
@@ -24,18 +28,20 @@ function skyTexture() {
   });
 }
 function bannerTexture() {
-  return tex.sign("outdoor-banner", 1024, 256, (c, w, h) => {
-    const grd = c.createLinearGradient(0, 0, w, 0); grd.addColorStop(0, "#0f3c75"); grd.addColorStop(1, "#1d66b8");
-    c.fillStyle = grd; c.fillRect(0, 0, w, h);
-    c.fillStyle = "#ffcc33"; c.fillRect(0, h - 24, w, 24);
-    c.fillStyle = "#ffffff"; c.font = `bold 92px ${THAI}`; c.fillText("OPEN AIR LIVE", 40, 120);
-    c.font = `40px ${THAI}`; c.fillText("งานกิจกรรมกลางแจ้ง · ระบบภาพและเสียงสนาม", 44, 190);
+  return tex.sign("outdoor-led-waves", 1024, 512, (c, w, h) => {
+    const sky = c.createLinearGradient(0, 0, w, h); sky.addColorStop(0, "#0c287d"); sky.addColorStop(1, "#167ccc");
+    c.fillStyle = sky; c.fillRect(0, 0, w, h);
+    for (let i = 0; i < 4; i++) {
+      c.beginPath(); c.moveTo(0, h * (0.3 + i * 0.1));
+      c.bezierCurveTo(w * 0.4, h * (1.0 + i * 0.04), w * 0.65, h * 0.4, w, h * (0.65 + i * 0.08));
+      c.lineTo(w, h); c.lineTo(0, h); c.closePath(); c.fillStyle = ["#225bb5", "#2989d2", "#42a7e0", "#66c0ec"][i]; c.fill();
+    }
   });
 }
 function facadeSign() {
   return tex.sign("facade-sign", 1024, 160, (c, w, h) => {
     c.fillStyle = "#f4efe6"; c.fillRect(0, 0, w, h);
-    c.fillStyle = "#7a2a20"; c.font = `bold 80px ${THAI}`; c.textAlign = "center"; c.fillText("อาคารกิจกรรมนักศึกษา", w / 2, 108);
+    c.fillStyle = "#7a2a20"; c.font = `bold 80px ${THAI}`; c.textAlign = "center"; c.fillText("Student Activity Centre", w / 2, 108);
   });
 }
 
@@ -95,8 +101,9 @@ function useCones() {
 }
 
 /** Pop-up event canopy: square legs, scissor-truss eaves, pyramid roof with valance. */
-function Canopy() {
-  const { x0, x1, z0, z1, eave, peak } = TENT;
+function Canopy({ tent = TENT }: { tent?: typeof TENT }) {
+  const { x0, x1, z0, z1, eave, peak } = tent;
+  const poles: XZ[] = [[x0, z0], [x1, z0], [x0, z1], [x1, z1]];
   const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
   /** Four-sided pyramid roof built from explicit triangles (eave corners → peak), so it always sits flush on the frame. */
   const roof = useMemo(() => {
@@ -110,7 +117,7 @@ function Canopy() {
     geo.computeVertexNormals();
     return geo;
   }, [cx, cz, eave, peak, x0, x1, z0, z1]);
-  const canvas = tex.fabric("#c9302c", [6, 6]);
+  const canvas = tex.fabric("#f5f2ec", [6, 6]);
   const white = tex.fabric("#f5f2ec", [6, 6]);
   const edges: [V3, V3][] = [[[x0, eave, z0], [x1, eave, z0]], [[x1, eave, z0], [x1, eave, z1]], [[x1, eave, z1], [x0, eave, z1]], [[x0, eave, z1], [x0, eave, z0]]];
   return <group>
@@ -120,7 +127,7 @@ function Canopy() {
     {[[cx, z0 - 0.06, x1 - x0 + 0.22, 0], [cx, z1 + 0.06, x1 - x0 + 0.22, 0], [x0 - 0.06, cz, z1 - z0 + 0.22, 1], [x1 + 0.06, cz, z1 - z0 + 0.22, 1]].map(([a, b, len, side], i) =>
       <RB key={i} p={[a, eave - 0.14, b]} s={side ? [0.012, 0.3, len] : [len, 0.3, 0.012]} rad={0.004} map={canvas} c="#ffffff" r={0.85} />)}
     {/* legs with foot plates, sandbags and height pins */}
-    {TENT_POLES.map(([x, z]) => <group key={`${x}${z}`}>
+    {poles.map(([x, z]) => <group key={`${x}${z}`}>
       <RB p={[x, eave / 2, z]} s={[0.05, eave, 0.05]} rad={0.008} {...CHROME} c="#d9dce0" r={0.3} />
       <RB p={[x, 0.008, z]} s={[0.18, 0.016, 0.18]} rad={0.004} {...STEEL} />
       <RB p={[x + 0.16, 0.06, z]} s={[0.34, 0.12, 0.2]} rad={0.05} map={tex.fabric("#2d3a2c")} c="#ffffff" r={0.95} />
@@ -142,7 +149,7 @@ function Canopy() {
       </group>;
     })}
     {/* roof rafters to the peak */}
-    {TENT_POLES.map(([x, z]) => <Tube key={`r${x}${z}`} pts={[[x + Math.sign(cx - x) * 0.05, eave - 0.03, z + Math.sign(cz - z) * 0.05], [cx, peak - 0.1, cz]]} r={0.012} {...CHROME} c="#d9dce0" />)}
+    {poles.map(([x, z]) => <Tube key={`r${x}${z}`} pts={[[x + Math.sign(cx - x) * 0.05, eave - 0.03, z + Math.sign(cz - z) * 0.05], [cx, peak - 0.1, cz]]} r={0.012} {...CHROME} c="#d9dce0" />)}
   </group>;
 }
 
@@ -160,8 +167,8 @@ function Building() {
       if (r === 0 && Math.abs(x) < 2) return null;
       return <group key={`${r}${c}`} position={[x, y, z + 1.01]}>
         <RB p={[0, 0, 0]} s={[1.5, 1.55, 0.08]} rad={0.02} c="#f4f1ec" />
-        <Slab p={[0, 0, 0.03]} s={[1.32, 1.37, 0.02]} {...glass} />
-        <RB p={[0, 0, 0.05]} s={[0.04, 1.37, 0.03]} rad={0.01} c="#f4f1ec" />
+        <Slab p={[0, 0, 0.055]} s={[1.32, 1.37, 0.02]} {...glass} />
+        <RB p={[0, 0, 0.09]} s={[0.04, 1.37, 0.03]} rad={0.01} c="#f4f1ec" />
         <RB p={[0, -0.84, 0.08]} s={[1.6, 0.06, 0.16]} rad={0.015} c="#cfc6b6" />
         {(r + c) % 4 === 0 && <RB p={[0.4, -0.5, 0.3]} s={[0.7, 0.45, 0.35]} rad={0.04} c="#f0f0ee" />}
       </group>;
@@ -182,13 +189,60 @@ function Building() {
   </group>;
 }
 
-/** Yellow/black cable protector ramp across the walkway. */
+/** Low rubber cable protector: black body and a broad yellow hinged lid. */
 function CableRamp({ p, ry = 0, len = 1.8 }: { p: V3; ry?: number; len?: number }) {
-  const hump = useMemo(() => place(g.cyl(0.25, 0.25, len, 24, false), [0, -0.2, 0], [0, 0, Math.PI / 2], [1, 1, 0.75]), [len]);
   return <group position={p} rotation={[0, ry, 0]}>
-    <mesh geometry={hump} castShadow receiveShadow><meshStandardMaterial color="#1c1c1c" roughness={0.85} /></mesh>
-    <RB p={[0, 0.052, 0]} s={[len, 0.008, 0.1]} rad={0.003} c="#f2c230" />
+    <RB p={[0, 0.025, 0]} s={[len, 0.05, 0.62]} rad={0.022} c="#202226" r={0.9} />
+    <RB p={[0, 0.055, 0]} s={[len - 0.04, 0.015, 0.31]} rad={0.006} c="#e8b62b" r={0.75} />
+    {Array.from({ length: Math.ceil(len / 0.18) }, (_, i) => <Slab key={i} p={[-len / 2 + 0.09 + i * 0.18, 0.065, 0]} s={[0.035, 0.003, 0.26]} c="#3a3430" />)}
   </group>;
+}
+
+/** Repeated white event chairs fit inside the existing chair-block colliders. */
+function EventSeating() {
+  const parts = useMemo(() => [
+    { geo: merge([place(g.rbox([0.42, 0.045, 0.4], 0.012), [0, 0.46, 0]), place(g.rbox([0.42, 0.36, 0.04], 0.02), [0, 0.71, 0.18], [-0.1, 0, 0])]), mat: { c: "#eeeef0", r: 0.55 } },
+    { geo: merge([-1, 1].flatMap((x) => [-1, 1].map((z) => place(g.cyl(0.012, 0.012, 0.45, 8), [x * 0.17, 0.225, z * 0.16])))), mat: CHROME },
+  ], []);
+  const at = useMemo<Placement[]>(() => L.furniture.filter((f) => f.kind === "chairBlock").flatMap((f) => [-1, 0, 1].map((v) => ({ p: [f.center[0] + v * 0.52, 0, f.center[2]] as V3 }))), []);
+  return <Instanced parts={parts} at={at} />;
+}
+
+/** Box truss uses shared batched geometry for its chords and diagonal bracing. */
+function Truss({ p, height = 6.2 }: { p: V3; height?: number }) {
+  const parts = useMemo(() => [{ geo: merge([
+    ...[-1, 1].flatMap((a) => [-1, 1].map((b) => g.tube([[a * 0.18, 0, b * 0.18], [a * 0.18, height, b * 0.18]], 0.025))),
+    ...Array.from({ length: Math.ceil(height / 0.45) }, (_, i) => [-1, 1].flatMap((v) => [
+      g.tube([[-0.18, i * 0.45, v * 0.18], [0.18, Math.min(height, (i + 1) * 0.45), v * 0.18]], 0.012),
+      g.tube([[v * 0.18, i * 0.45, -0.18], [v * 0.18, Math.min(height, (i + 1) * 0.45), 0.18]], 0.012),
+    ])).flat(),
+  ]), mat: CHROME }], [height]);
+  const at = useMemo<Placement[]>(() => [{ p }], [p]);
+  return <Instanced parts={parts} at={at} />;
+}
+
+function StageRig() {
+  const back = STAGE.center[2] - STAGE.size[2] / 2 + 0.2;
+  const front = STAGE.center[2] + STAGE.size[2] / 2 - 0.2;
+  const width = STAGE.size[0] - 0.4;
+  return <>
+    {[-1, 1].flatMap((v) => [back, front].map((z) => <Truss key={`${v}-${z}`} p={[v * width / 2, STAGE.size[1], z]} height={5.2} />))}
+    {[back, front].map((z) => <group key={z} position={[-width / 2, 6.2, z]} rotation={[0, 0, -Math.PI / 2]}><Truss p={[0, 0, 0]} height={width} /></group>)}
+    {[-1, 1].map((v) => <group key={v} position={[v * width / 2, 6.2, back]} rotation={[Math.PI / 2, 0, 0]}><Truss p={[0, 0, 0]} height={front - back} /></group>)}
+    <Slab p={[0, 6.45, (front + back) / 2]} s={[width + 0.7, 0.09, front - back + 0.75]} map={tex.fabric("#e1e1dc")} r={0.8} />
+    <RB p={[0, 3.6, back + 0.12]} s={[9.8, 4.0, 0.16]} rad={0.025} c="#131720" />
+    <mesh position={[0, 3.6, back + 0.21]}><planeGeometry args={[9.6, 3.8]} /><meshBasicMaterial map={bannerTexture()} toneMapped={false} /></mesh>
+    {[-1, 1].map((v) => <group key={`array-${v}`}>
+      <Tube pts={[[v * (width / 2 - 0.65), 6.1, front], [v * (width / 2 - 0.65), 5.65, front]]} r={0.018} {...BLACK_METAL} />
+      {Array.from({ length: 5 }, (_, i) => <RB key={i} p={[v * (width / 2 - 0.65), 5.45 - i * 0.36, front]} s={[0.75, 0.34, 0.52]} rot={[i * 0.025, 0, 0]} rad={0.015} map={tex.fabric("#1b1d22")} />)}
+      <RB p={[v * (width / 2 - 0.6), 1.45, front - 0.25]} s={[1.0, 0.9, 0.75]} rad={0.025} c="#181a20" />
+    </group>)}
+    {[-5, -3, -1, 1, 3, 5].map((x) => <group key={x}>
+      <Cyl p={[x, 5.88, front]} rt={0.11} h={0.3} rot={[0.7, 0, 0]} c="#15181d" />
+      <Cyl p={[x, 5.75, front + 0.1]} rt={0.09} h={0.012} rot={[0.7, 0, 0]} c="#fff0d2" e="#ffe3aa" ei={1.5} />
+      <RB p={[x, 1.18, front - 0.1]} s={[0.68, 0.32, 0.45]} rot={[-0.3, 0, 0]} rad={0.02} map={tex.fabric("#24262b")} />
+    </group>)}
+  </>;
 }
 
 function LampPost({ p }: { p: V3 }) {
@@ -204,7 +258,6 @@ export function Outdoor() {
   const tree = useTree();
   const barrier = useBarrier();
   const cones = useCones();
-  const banner = bannerTexture();
   const sky = skyTexture();
   const { minX, maxX, minZ, maxZ } = L.bounds;
   const barriers = useMemo<Placement[]>(() => {
@@ -246,18 +299,34 @@ export function Outdoor() {
     <Instanced parts={cones} at={coneAt} />
     {[[minX - 1.5, -6], [maxX + 1.5, -6], [minX - 1.5, 6], [maxX + 1.5, 6]].map(([x, z]) => <LampPost key={`${x}${z}`} p={[x, 0, z]} />)}
 
-    {/* banner on a truss frame (the backdrop collider) */}
-    {/* stage truss + banner behind the stage (far end of the site) */}
-    <group position={[0, STAGE.size[1], STAGE.center[2] - STAGE.size[2] / 2 + 0.15]} scale={[K, 1, 1]}>
-      {[-5.8, 5.8].map((x) => <group key={x}>
-        {[-1, 1].flatMap((a) => [-1, 1].map((b) => <Tube key={`${a}${b}`} pts={[[x + a * 0.15, 0.02, b * 0.15], [x + a * 0.15, 4.2, b * 0.15]]} r={0.022} {...CHROME} />))}
-        {Array.from({ length: 14 }, (_, i) => <Tube key={i} pts={[[x - 0.15, 0.1 + i * 0.29, 0.15], [x + 0.15, 0.26 + i * 0.29, 0.15]]} r={0.009} {...CHROME} />)}
-      </group>)}
-      {[-1, 1].flatMap((a) => [-1, 1].map((b) => <Tube key={`t${a}${b}`} pts={[[-6.0, 4.2 + a * 0.15, b * 0.15], [6.0, 4.2 + a * 0.15, b * 0.15]]} r={0.022} {...CHROME} />))}
-      <Slab p={[0, 2.6, 0.03]} s={[11.2, 2.8, 0.01]} map={banner} c="#ffffff" r={0.8} />
-      {/* PA stacks on the stage wings */}
-      {[-1, 1].map((s) => <group key={s}>{[0, 1, 2].map((k) => <RB key={k} p={[s * 5.0, 0.3 + k * 0.62, 0.9]} s={[0.9, 0.6, 0.7]} rad={0.04} c="#141518" />)}</group>)}
-    </group>
+    {/* Rails leave the centre route and both camera/service aisles open. */}
+    <Instanced parts={barrier} at={CROWD_RAILS} />
+    <RigidBody type="fixed" colliders={false}>
+      {CROWD_RAILS.map(({ p }, i) => <CuboidCollider key={i} position={[p[0], 0.55, p[2]]} args={[0.925, 0.55, 0.1]} />)}
+    </RigidBody>
+    {/* Raised monitor bridge keeps the original tabletop controls reachable. */}
+    {[-1.25, 1.25].map((x) => <group key={`foh-monitor-${x}`} position={[L.work.center[0] + x, L.work.center[1], L.work.center[2] - 0.33]}>
+      <RB p={[0, 0.08, 0]} s={[0.32, 0.035, 0.2]} rad={0.01} {...BLACK_METAL} />
+      <RB p={[0, 0.3, -0.04]} s={[0.04, 0.44, 0.04]} rad={0.006} {...BLACK_METAL} />
+      <RB p={[0, 0.63, -0.04]} s={[0.92, 0.54, 0.05]} rad={0.018} c="#15191f" />
+      <group position={[0, 0.63, -0.011]}><SignalScreen device="monitor" width={0.85} height={0.47} title="FOH • SIM" /></group>
+    </group>)}
+    <StageRig />
+    <EventSeating />
+    {/* Side technical tents and delay towers are outside the walkable perimeter. */}
+    {[-1, 1].map((v) => <group key={`technical-${v}`}>
+      <Canopy tent={{ x0: v * 20 - 2.2, x1: v * 20 + 2.2, z0: -1, z1: 3.4, eave: 2.6, peak: 3.6 }} />
+      <LayoutFurniture layout={{ ...L, furniture: [
+        { id: "support-rack", kind: "rackCabinet", center: [v * 20, 0, 1], size: [0.7, 1.9, 0.7] },
+        { id: "support-case", kind: "roadCase", center: [v * 20 + 1.1, 0, 1.3], size: [0.9, 0.8, 0.65] },
+      ] }} />
+      <Truss p={[v * 17.8, 0, -5.5]} height={7} />
+      {Array.from({ length: 5 }, (_, i) => <RB key={i} p={[v * 17.8, 5.9 - i * 0.38, -5.1]} s={[0.8, 0.36, 0.55]} rad={0.015} map={tex.fabric("#1b1d22")} />)}
+      <Slab p={[v * 17.8, 6.8, -5.1]} s={[1.3, 0.12, 0.18]} {...BLACK_METAL} />
+      {[-0.45, 0, 0.45].map((x) => <Cyl key={x} p={[v * 17.8 + x, 6.55, -5.1]} rt={0.1} h={0.25} rot={[0.5, 0, 0]} c="#171a20" />)}
+    </group>)}
+    {/* Service cables hug the right perimeter; no raised prop crosses the centre aisle. */}
+    {[0, 1, 2].map((i) => <Tube key={`service-cable-${i}`} pts={[[k(5.4), 0.015, k(10.6 + i * 0.05)], [k(11.3 + i * 0.05), 0.015, k(10.6 + i * 0.05)], [k(11.3 + i * 0.05), 0.015, k(-8.5)]]} r={0.012} c="#16181b" />)}
 
     {/* long cable runs follow the site edge; ramps where they cross walkways */}
     <RB p={[k(11.5), 0.025, k(0.6)]} s={[0.22, 0.05, k(19.0)]} rad={0.02} c="#24262b" />
@@ -279,7 +348,7 @@ export function Outdoor() {
       <Tube pts={[[-0.22, 0.44, 0], [-0.2, 0.52, 0], [0.2, 0.52, 0], [0.22, 0.44, 0]]} r={0.012} c="#f4f4f4" />
     </group>
 
-    <LayoutFurniture layout={L} look={{ top: "#d9cdb6", frame: { ...STEEL, c: "#9aa0a6" }, caseColor: "#2b2f2a" }} />
+    <LayoutFurniture layout={FIELD_FURNITURE} look={{ top: "#32363d", frame: { ...STEEL, c: "#9aa0a6" }, caseColor: "#2b2f2a" }} />
     <LayoutColliders layout={L} />
   </>;
 }

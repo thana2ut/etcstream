@@ -5,7 +5,8 @@ import {
 } from "@/game/training/hdmi-training";
 
 import { soundEngine } from "@/game/audio/sound-engine";
-import { scenarioOf, stowHeldCable } from "@/game/training/hdmi-training";
+import { answerQuiz, answerReview, markTrace, requestAllClear, runTest, scenarioOf, setControl, signOff, stowHeldCable, streamTest } from "@/game/training/hdmi-training";
+import type { ControlValue, TestStage } from "@/game/training/sim/types";
 import { MAX_WRONG_STREAK } from "@/game/content/cable-catalog";
 
 interface TrainingStore extends TrainingState {
@@ -36,6 +37,17 @@ interface TrainingStore extends TrainingState {
   setInspecting: (id: string | null) => void;
   setInspectHold: (start: number | null) => void;
   turnHeld: () => void;
+  /** Operator Console overlay (mission stages): device controls, tests, trace, run-of-show, sign-off. */
+  consoleOpen: boolean;
+  setConsoleOpen: (open: boolean) => void;
+  control: (device: string, key: string, value: ControlValue) => void;
+  test: (stage: TestStage) => void;
+  trace: (dest: string) => void;
+  streamCheck: (seconds: number) => void;
+  allClear: () => void;
+  quiz: (choice: number) => void;
+  review: (choice: number) => void;
+  signOff: () => void;
 }
 
 function targetKey(target: TrainingTarget | null): string {
@@ -57,13 +69,13 @@ export const useTrainingStore = create<TrainingStore>((set, get) => ({
     const state = get();
     const c = state.cables[cableId];
     if (!c || state.hiddenCables?.includes(cableId) || !state.bagged?.includes(cableId)) return false;
-    if (state.held || state.heldItem) { set({ notice: { title: "มือไม่ว่าง", detail: "กด F เพื่อวางสิ่งที่ถืออยู่ก่อน แล้วค่อยหยิบสายจากกระเป๋า", tone: "error" } }); return false; }
+    if (state.held || state.heldItem) { set({ notice: { title: "Hands full", detail: "Press F to set down what you hold, then take a lead from the bag", tone: "error" } }); return false; }
     if (c.a.portId || c.b.portId) return false;
-    const label = scenarioOf(state).cables.find((x) => x.id === cableId)?.label ?? "สาย";
-    set({ held: { cableId, end: "a" }, bagged: state.bagged.filter((id) => id !== cableId), notice: { title: "หยิบสายจากกระเป๋าแล้ว", detail: `${label} · เล็งพอร์ตแล้วกด E เพื่อเสียบ`, tone: "info" } });
+    const label = scenarioOf(state).cables.find((x) => x.id === cableId)?.label ?? "Lead";
+    set({ held: { cableId, end: "a" }, bagged: state.bagged.filter((id) => id !== cableId), notice: { title: "Lead taken from the bag", detail: `${label} · aim at a port and press E to plug in`, tone: "info" } });
     return true;
   },
-  reset: (scenarioId, hiddenCables, bagged) => set((state) => ({ ...initialTrainingState(scenarioId ?? state.scenarioId, hiddenCables ?? [], bagged ?? []), wrongStreak: 0, failed: false, focusedTarget: null, heldTurn: 0, inspecting: null, inspectHoldStart: null, pickMode: "whole" })),
+  reset: (scenarioId, hiddenCables, bagged) => set((state) => ({ ...initialTrainingState(scenarioId ?? state.scenarioId, hiddenCables ?? [], bagged ?? []), wrongStreak: 0, failed: false, focusedTarget: null, heldTurn: 0, inspecting: null, consoleOpen: false, inspectHoldStart: null, pickMode: "whole" })),
   focus: (target) => {
     if (targetKey(get().focusedTarget) !== targetKey(target)) set({ focusedTarget: target });
   },
@@ -71,8 +83,9 @@ export const useTrainingStore = create<TrainingStore>((set, get) => ({
     set((state) => {
       if (state.failed) return state;
       const next = { ...interactWithTarget(state, state.focusedTarget, state.pickMode), pickMode: state.focusedTarget?.kind === "end" ? "whole" as const : state.pickMode };
-      // Mission levels: a plug pushed into a port it does not belong to counts as a wrong connection; MAX in a row fails the level.
-      if (scenarioOf(state).venueScale && state.held && state.focusedTarget?.kind === "port") {
+      // Legacy mission levels: MAX wrong connections in a row fails the level. Production stages use the
+      // simulation's three-error review loop (Mission Paused → targeted review → mini check) instead.
+      if (scenarioOf(state).venueScale && !scenarioOf(state).stage && state.held && state.focusedTarget?.kind === "port") {
         const streak = next.notice?.tone === "error" ? state.wrongStreak + 1 : 0;
         Object.assign(next, { wrongStreak: streak, failed: streak >= MAX_WRONG_STREAK });
       }
@@ -91,6 +104,16 @@ export const useTrainingStore = create<TrainingStore>((set, get) => ({
   setInspecting: (id) => set({ inspecting: id, inspectHoldStart: null }),
   setInspectHold: (start) => set({ inspectHoldStart: start }),
   turnHeld: () => set((state) => ({ heldTurn: state.heldItem ? (state.heldTurn + Math.PI / 4) % (Math.PI * 2) : 0 })),
+  consoleOpen: false,
+  setConsoleOpen: (open) => set({ consoleOpen: open }),
+  control: (device, key, value) => set((state) => { const next = setControl(state, device, key, value); if (next.notice?.tone === "error") soundEngine.play("connection_error"); return next; }),
+  test: (stage) => set((state) => runTest(state, stage)),
+  trace: (dest) => set((state) => markTrace(state, dest)),
+  streamCheck: (seconds) => set((state) => streamTest(state, seconds)),
+  allClear: () => set((state) => requestAllClear(state)),
+  quiz: (choice) => set((state) => answerQuiz(state, choice)),
+  review: (choice) => set((state) => answerReview(state, choice)),
+  signOff: () => set((state) => { const next = signOff(state); if (next.completed) soundEngine.play("connection_success"); return next; }),
   // Device front faces the player (facing = camera yaw), plus any extra R-key turn.
   drop: (position, facing = 0) => set((state) => ({ ...placeHeldOnCenterTable(state, position, facing + state.heldTurn), heldTurn: state.heldItem ? 0 : state.heldTurn })),
 }));

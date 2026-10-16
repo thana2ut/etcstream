@@ -1,0 +1,170 @@
+[
+  {
+    "label": "A จุดเริ่ม",
+    "value": "0"
+  },
+  {
+    "label": "B มองย้อน",
+    "value": "1"
+  },
+  {
+    "label": "C ฝั่งตะวันตก",
+    "value": "2"
+  },
+  {
+    "label": "D ฝั่งตะวันออก",
+    "value": "3"
+  },
+  {
+    "label": "E มุมห้อง 1",
+    "value": "4"
+  },
+  {
+    "label": "E มุมห้อง 2",
+    "value": "5"
+  },
+  {
+    "label": "E มุมห้อง 3",
+    "value": "6"
+  },
+  {
+    "label": "E มุมห้อง 4",
+    "value": "7"
+  },
+  {
+    "label": "F ผังมุมสูง",
+    "value": "8"
+  },
+  {
+    "label": "G ระดับพื้น",
+    "value": "9"
+  },
+  {
+    "label": "H เพดาน",
+    "value": "10"
+  },
+  {
+    "label": "J จุดคืนอุปกรณ์",
+    "value": "11"
+  },
+  {
+    "label": "I DeviceWell HDS7105 · ด้านหน้า",
+    "value": "12"
+  },
+  {
+    "label": "I DeviceWell HDS7105 · ด้านหลัง",
+    "value": "13"
+  },
+  {
+    "label": "I Audio Mixer · ด้านหน้า",
+    "value": "14"
+  },
+  {
+    "label": "I Audio Mixer · ด้านหลัง",
+    "value": "15"
+  },
+  {
+    "label": "I Studio Camera 1 · ด้านหน้า",
+    "value": "16"
+  },
+  {
+    "label": "I Studio Camera 1 · ด้านหลัง",
+    "value": "17"
+  },
+  {
+    "label": "I Studio Camera 2 · ด้านหน้า",
+    "value": "18"
+  },
+  {
+    "label": "I Studio Camera 2 · ด้านหลัง",
+    "value": "19"
+  },
+  {
+    "label": "I Studio Camera 3 · ด้านหน้า",
+    "value": "20"
+  },
+  {
+    "label": "I Studio Camera 3 · ด้านหลัง",
+    "value": "21"
+  },
+  {
+    "label": "I Samsung TV (Multiview) · ด้านหน้า",
+    "value": "22"
+  },
+  {
+    "label": "I Samsung TV (Multiview) · ด้านหลัง",
+    "value": "23"
+  },
+  {
+    "label": "I Wireless Receiver (2TX/1RX) · ด้านหน้า",
+    "value": "24"
+  },
+  {
+    "label": "I Wireless Receiver (2TX/1RX) · ด้านหลัง",
+    "value": "25"
+  },
+  {
+    "label": "I Sennheiser XS 1 · ด้านหน้า",
+    "value": "26"
+  },
+  {
+    "label": "I Sennheiser XS 1 · ด้านหลัง",
+    "value": "27"
+  },
+  {
+    "label": "I Yamaha HS5 Monitor Speaker · ด้านหน้า",
+    "value": "28"
+  },
+  {
+    "label": "I Yamaha HS5 Monitor Speaker · ด้านหลัง",
+    "value": "29"
+  },
+  {
+    "label": "I Magewell USB Capture HDMI Gen 2 · ด้านหน้า",
+    "value": "30"
+  },
+  {
+    "label": "I Magewell USB Capture HDMI Gen 2 · ด้านหลัง",
+    "value": "31"
+  },
+  {
+    "label": "I HP Notebook / OBS · ด้านหน้า",
+    "value": "32"
+  },
+  {
+    "label": "I HP Notebook / OBS · ด้านหลัง",
+    "value": "33"
+  },
+  {
+    "label": "I Lavalier 1 · ด้านหน้า",
+    "value": "34"
+  },
+  {
+    "label": "I Lavalier 1 · ด้านหลัง",
+    "value": "35"
+  },
+  {
+    "label": "I Wireless TX 1 · ด้านหน้า",
+    "value": "36"
+  },
+  {
+    "label": "I Wireless TX 1 · ด้านหลัง",
+    "value": "37"
+  },
+  {
+    "label": "I Lavalier 2 · ด้านหน้า",
+    "value": "38"
+  },
+  {
+    "label": "I Lavalier 2 · ด้านหลัง",
+    "value": "39"
+  },
+  {
+    "label": "I Wireless TX 2 · ด้านหน้า",
+    "value": "40"
+  },
+  {
+    "label": "I Wireless TX 2 · ด้านหลัง",
+    "value": "41"
+  }
+]

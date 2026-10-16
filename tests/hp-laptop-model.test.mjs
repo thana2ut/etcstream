@@ -30,5 +30,5 @@ test("training room uses the authored HP model instead of the procedural placeho
   const visual = fs.readFileSync(path.join(projectRoot, "components/game/equipment/device-visual.tsx"), "utf8");
   const scenarios = fs.readFileSync(path.join(projectRoot, "game/training/scenarios.ts"), "utf8");
   assert.match(visual, /\/models\/equipment\/hp-laptop\.glb/);
-  assert.match(scenarios, /HP 15\.6-inch \(ตามภาพอ้างอิง\)/);
+  assert.match(scenarios, /HP 15\.6-inch \(from reference photos\)/);
 });

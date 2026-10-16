@@ -20,77 +20,218 @@ export interface MissionChapter {
   difficulties: readonly MissionDifficulty[];
 }
 
+/* <generated:stages> */
+const GENERATED: Record<"xs" | "s" | "m" | "l" | "xl", { title: string; subtitle: string; levels: MissionDifficulty[] }> = {
+  "xs": {
+    "title": "The Gate of First Images",
+    "subtitle": "Classroom · Teaching & Hybrid-Lesson Production",
+    "levels": [
+      {
+        "level": 1,
+        "title": "CL-01 · Wake the First Image",
+        "flavor": "Guided · laptop to projector through the switcher · 10–12 min",
+        "objective": "Show the lesson laptop on the classroom screen — and never the operator multiview."
+      },
+      {
+        "level": 2,
+        "title": "CL-02 · The Teacher Appears",
+        "flavor": "Guided · two sources, clean cuts · 12–15 min",
+        "objective": "Show the instructor and cut to a slide without ever cutting to black."
+      },
+      {
+        "level": 3,
+        "title": "CL-03 · Written Under the Lantern",
+        "flavor": "Scenario · three-source lecture · 15–18 min",
+        "objective": "Teach with a camera, slides and a document camera — every word readable."
+      },
+      {
+        "level": 4,
+        "title": "CL-04 · The Vanished Voice",
+        "flavor": "Disruption · OBS workstation fault-finding · 18–22 min",
+        "objective": "Deliver the remote classroom feed through OBS. Students hear nothing and lips are out of sync — fix it."
+      },
+      {
+        "level": 5,
+        "title": "CL-05 · Classroom Practical Certification",
+        "flavor": "Certification · hybrid lesson from storage to sign-off · 25–35 min",
+        "objective": "Prepare and operate a real hybrid lesson: teacher, slide deck and handout, audio, local projection, ISO recording and a private mock livestream."
+      }
+    ]
+  },
+  "s": {
+    "title": "The Moon Bridge of Sound",
+    "subtitle": "Studio · Interview & Multi-camera Broadcast",
+    "levels": [
+      {
+        "level": 1,
+        "title": "ST-01 · Hear the Voice",
+        "flavor": "Guided · single mic to the mixer · 10–12 min",
+        "objective": "Make the host's spoken voice clear at the mixer."
+      },
+      {
+        "level": 2,
+        "title": "ST-02 · Twin Voices Under Moonlight",
+        "flavor": "Partial · two independently adjustable mics · 13–16 min",
+        "objective": "Host and guest must be independently adjustable."
+      },
+      {
+        "level": 3,
+        "title": "ST-03 · The Three-Lens Council",
+        "flavor": "Scenario · three cameras + sound into SDI · 18–22 min",
+        "objective": "Shoot host, guest and the two-shot."
+      },
+      {
+        "level": 4,
+        "title": "ST-04 · The Silent Return",
+        "flavor": "Disruption · SDI, monitoring and return fault isolation · 20–25 min",
+        "objective": "The guest camera disappears and the director cannot monitor the show."
+      },
+      {
+        "level": 5,
+        "title": "ST-05 · Studio Practical Certification",
+        "flavor": "Certification · five-minute two-person interview · 30–40 min",
+        "objective": "Produce a 5-minute two-person interview from a blank studio: three angles, independently gained mics, multiview + PGM confidence, ISO + PGM recording and a private stream."
+      }
+    ]
+  },
+  "m": {
+    "title": "The Glass Tower of Switched Images",
+    "subtitle": "Auditorium · Multi-destination Live Event",
+    "levels": [
+      {
+        "level": 1,
+        "title": "AU-01 · Light the Great Screen",
+        "flavor": "Guided · one configurable output to the audience · 10–14 min",
+        "objective": "Show slides to the audience without showing the tech multiview."
+      },
+      {
+        "level": 2,
+        "title": "AU-02 · Voice Across the Hall",
+        "flavor": "Partial · PA and feedback safety · 15–18 min",
+        "objective": "Make the podium announcement heard across the hall — without howling."
+      },
+      {
+        "level": 3,
+        "title": "AU-03 · Three Views, Three Destinations",
+        "flavor": "Scenario · independent PGM / AUX / multiview · 18–22 min",
+        "objective": "Slides on the audience screen, current slides on the confidence screen, all sources on the FOH multiview — simultaneously."
+      },
+      {
+        "level": 4,
+        "title": "AU-04 · The Echo in the Tower",
+        "flavor": "Disruption · FOH vs broadcast audio · 20–25 min",
+        "objective": "Send the hall performance to the private OBS test viewer while keeping the house PA stable."
+      },
+      {
+        "level": 5,
+        "title": "AU-05 · Auditorium Practical Certification",
+        "flavor": "Certification · keynote event from empty FOH · 30–40 min",
+        "objective": "Set up and operate a simulated keynote from an empty FOH: audience PGM, performer confidence, FOH multiview, house PA, private stream and local recording."
+      }
+    ]
+  },
+  "l": {
+    "title": "The Vault of Ancient Port Seals",
+    "subtitle": "Outdoor Production Compound · Ports, Conversion, Patch & Safety",
+    "levels": [
+      {
+        "level": 1,
+        "title": "OUT-01 · Name the Sacred Ports",
+        "flavor": "Guided · connector literacy & converter direction · 10–12 min",
+        "objective": "Get Camera A's SDI picture onto the field HDMI monitor with the correct direction-specific converter."
+      },
+      {
+        "level": 2,
+        "title": "OUT-02 · Cross the Cable Path",
+        "flavor": "Partial · rated SDI runs and public-crossing safety · 15–18 min",
+        "objective": "Two field cameras, one control shelter, one public walkway. Bring both pictures in — safely."
+      },
+      {
+        "level": 3,
+        "title": "OUT-03 · Read the Router Seals",
+        "flavor": "Scenario · conversion and Videohub crosspoints · 18–22 min",
+        "objective": "Laptop slides and Camera A into the switcher through the Videohub: OUT 1 ← IN 1 to SDI IN 3, OUT 2 ← IN 2 to SDI IN 1."
+      },
+      {
+        "level": 4,
+        "title": "OUT-04 · The Broken Long Run",
+        "flavor": "Disruption · fault diagnosis and transmission · 22–27 min",
+        "objective": "The portable webcast is faulted. Restore it in a sensible order: safety → source → patch → monitor → record → WAN → ingest."
+      },
+      {
+        "level": 5,
+        "title": "OUT-05 · Field Rigging Practical Certification",
+        "flavor": "Certification · weather-safe portable broadcast · 35–45 min",
+        "objective": "Build and run a weather-safe interview/demo production from packed gear: two cameras + presentation, voice mix, MV/PGM, ISO record, Internet stream and a fallback network plan."
+      }
+    ]
+  },
+  "xl": {
+    "title": "The Throne of Broadcast",
+    "subtitle": "Sports Stadium · Multi-camera Outside Broadcast",
+    "levels": [
+      {
+        "level": 1,
+        "title": "SP-01 · The First Field View",
+        "flavor": "Guided · main camera to the director's multiview · 12–15 min",
+        "objective": "See the entire playing area on the director's monitor."
+      },
+      {
+        "level": 2,
+        "title": "SP-02 · Eyes Around the Arena",
+        "flavor": "Partial · three-camera coverage on cue · 16–20 min",
+        "objective": "Follow a play from wide → sideline → finish."
+      },
+      {
+        "level": 3,
+        "title": "SP-03 · The Score Is Written",
+        "flavor": "Scenario · commentary mix + licensed score graphics · 20–25 min",
+        "objective": "Make a comprehensible live sports program: two voices over controlled ambience, and a correct score card."
+      },
+      {
+        "level": 4,
+        "title": "SP-04 · The Broken Transmission",
+        "flavor": "Disruption · switcher → encoder → WAN → viewer · 24–30 min",
+        "objective": "Put the sports program on a private remote viewer and preserve local PGM recording."
+      },
+      {
+        "level": 5,
+        "title": "SP-05 · Sports Outside Broadcast Practical Certification",
+        "flavor": "Certification · complete mock live football broadcast · 40–50 min",
+        "objective": "From unsorted cases to handoff: four cameras, two commentators and ambience, verified live score, independent MV/PGM, tested recording and a separate hardware encoder to a private viewer."
+      }
+    ]
+  }
+};
+/* </generated:stages> */
+
+const chapter = (n: number, slug: string, room: keyof typeof GENERATED, venueId: VenueId, venue: string, venueConcept: string, description: string, themeHint: string): MissionChapter => ({
+  id: `mission_0${n}`, slug, title: GENERATED[room].title, subtitle: GENERATED[room].subtitle, description, themeHint, venueId, venue, venueConcept,
+  difficulties: GENERATED[room].levels,
+});
+
+/** Five rooms × five stages (game/training/sim/stages.ts). Slugs are stable: saved progress keys depend on them. */
 export const missionChapters: readonly MissionChapter[] = [
-  {
-    id: "mission_01", slug: "gate-of-first-light", title: "ห้องประตูแรกแห่งภาพ", subtitle: "วิถีเปิดทางสัญญาณภาพ",
-    description: "ภารกิจแรกของผู้ฝึก เจ้ามีหน้าที่ปลุกเส้นทางภาพจากต้นทางไปยังปลายทาง ให้สัญญาณเดินทางอย่างถูกต้องและนิ่งพอสำหรับการใช้งาน",
-    themeHint: "ประตูหินเรืองแสง วงแหวนแสงสีฟ้า และแท่นสัญญาณแรกเริ่ม",
-    venueId: "classroom", venue: "ห้องเรียน", venueConcept: "งานขนาดเล็ก ฝึกพื้นฐาน",
-    difficulties: [
-      { level: 1, title: "เส้นทางภาพ · Video Path", flavor: "ฝึกตามขนาดงานและอุปกรณ์ของสถานที่", objective: "ตั้งกล้องบนขาตั้งหลังห้อง ต่อ Camera HDMI OUT → Mini Switcher HDMI IN 1 และ HDMI OUT (Program) → TV หน้าห้อง" },
-      { level: 2, title: "เส้นทางเสียง · Audio Path", flavor: "ฝึกตามขนาดงานและอุปกรณ์ของสถานที่", objective: "ต่อ Lavalier → TX, Pair กับ RX แล้ว RX → Mixer CH1 และ Mixer MAIN (PA) → ลำโพง Active หน้าห้อง" },
-      { level: 3, title: "สลับภาพและตรวจสัญญาณ", flavor: "ฝึกตามขนาดงานและอุปกรณ์ของสถานที่", objective: "เพิ่ม Laptop ผู้สอน → HDMI IN 2 แล้วสลับ Program ระหว่าง Camera กับ Presentation โดย TV ยังได้ Program" },
-      { level: 4, title: "พอร์ตและการแก้ปัญหา", flavor: "ฝึกตามขนาดงานและอุปกรณ์ของสถานที่", objective: "ระบบห้องเรียนถูกต่อไว้บางส่วนและมีสายผิดจุด ไล่ตรวจแล้วแก้สาย Pair และการตั้งค่าให้ถูก" },
-      { level: 5, title: "ระบบ Production ครบเส้นทาง", flavor: "ฝึกตามขนาดงานและอุปกรณ์ของสถานที่", objective: "ห้องเรียน Hybrid ครบ: ภาพกล้อง+สไลด์ → Switcher → TV, เสียงแยก PA/STREAM, USB Webcam → Notebook → OBS" },
-    ],
-  },
-  {
-    id: "mission_02", slug: "moonbridge-of-echoes", title: "สะพานจันทราแห่งเสียง", subtitle: "วิถีประสานคลื่นและจังหวะ",
-    description: "สะพานแห่งนี้สอนให้ผู้ฝึกเข้าใจจังหวะของสัญญาณและความต่อเนื่องของเส้นทาง ณ ห้องสตูดิโอ ภารกิจจะเน้นความนิ่ง ความถูกต้อง และการอ่านทางให้แม่น",
-    themeHint: "สะพานแสงจันทรา หมอกสีฟ้า และลมหายใจของคลื่นสัญญาณ",
-    venueId: "studio", venue: "ห้องสตูดิโอ", venueConcept: "งาน Production ในสตูดิโอ",
-    difficulties: [
-      { level: 1, title: "เส้นทางภาพ · Video Path", flavor: "ฝึกตามขนาดงานและอุปกรณ์ของสถานที่", objective: "ต่อ Studio Camera 1 → HDS7105 VIDEO IN 1 และ MULTIVIEW OUT → Samsung TV" },
-      { level: 2, title: "เส้นทางเสียง · Audio Path", flavor: "ฝึกตามขนาดงานและอุปกรณ์ของสถานที่", objective: "Pair Lav 1/2 กับ RX, RX + XS 1 → Mixer, MAIN → HDS7105 LINE IN และ MONITOR → HS5" },
-      { level: 3, title: "สลับภาพและตรวจสัญญาณ", flavor: "ฝึกตามขนาดงานและอุปกรณ์ของสถานที่", objective: "ต่อกล้อง 3 มุมเข้าอินพุตแยกกัน ตรวจ Multiview และเลือก Program ทีละกล้อง" },
-      { level: 4, title: "พอร์ตและการแก้ปัญหา", flavor: "ฝึกตามขนาดงานและอุปกรณ์ของสถานที่", objective: "สตูดิโอมีสายหาย/ต่อจอจาก PGM ผิด แก้ให้ TV เป็น Multiview และเส้นเสียง/Capture ครบ" },
-      { level: 5, title: "ระบบ Production ครบเส้นทาง", flavor: "ฝึกตามขนาดงานและอุปกรณ์ของสถานที่", objective: "สตูดิโอครบ: 3 กล้อง, เสียง Mixer → HDS7105, PGM → Magewell → HP Notebook → OBS, Multiview → TV, MONITOR → HS5" },
-    ],
-  },
-  {
-    id: "mission_03", slug: "mirror-tower-of-switching", title: "หอคอยกระจกสลับภาพ", subtitle: "วิถีควบคุมจังหวะและการสลับสัญญาณ",
-    description: "หอคอยแห่งนี้คือบททดสอบของผู้ที่เริ่มเข้าใจแก่นของสวิตเชอร์ ไม่ใช่แค่เชื่อมให้ติด แต่ต้องอ่านทางและคุมจังหวะของการส่งภาพให้ถูกต้อง",
-    themeHint: "หอคอยกระจก วงแสงสีคราม และแท่นควบคุมกลางห้อง",
-    venueId: "auditorium", venue: "หอประชุมอาคารกิจกรรม", venueConcept: "งานเวที / กิจกรรมขนาดกลาง",
-    difficulties: [
-      { level: 1, title: "เส้นทางภาพ · Video Path", flavor: "ฝึกตามขนาดงานและอุปกรณ์ของสถานที่", objective: "ต่อกล้อง C SDI → Switcher SDI IN 1 แล้วตั้ง AUX = Program → SDI→HDMI → จอเวที" },
-      { level: 2, title: "เส้นทางเสียง · Audio Path", flavor: "ฝึกตามขนาดงานและอุปกรณ์ของสถานที่", objective: "ไมค์ Podium → Stagebox → Multicore → FOH Mixer แยก PA BUS → ลำโพง และ BROADCAST BUS → Switcher AUDIO IN" },
-      { level: 3, title: "สลับภาพและตรวจสัญญาณ", flavor: "ฝึกตามขนาดงานและอุปกรณ์ของสถานที่", objective: "เพิ่มกล้อง L/R, PTZ และสไลด์ผ่าน HDMI→SDI ดู Multiview ที่ FOH แล้วสลับ Program" },
-      { level: 4, title: "พอร์ตและการแก้ปัญหา", flavor: "ฝึกตามขนาดงานและอุปกรณ์ของสถานที่", objective: "งานเวทีถูกต่อไว้บางส่วน จอเวทีต่อจาก PGM ผิดช่อง แก้สาย Converter และบัสเสียงให้ถูก" },
-      { level: 5, title: "ระบบ Production ครบเส้นทาง", flavor: "ฝึกตามขนาดงานและอุปกรณ์ของสถานที่", objective: "งานเวทีครบ: 5 แหล่งภาพ, จอเวทีรับ Program, ไมค์ทุกตัวผ่าน Stagebox, PA/Broadcast แยก, Recorder และ OBS" },
-    ],
-  },
-  {
-    id: "mission_04", slug: "archive-of-ancient-ports", title: "คลังผนึกพอร์ตโบราณ", subtitle: "วิถีอ่านตราแห่ง INPUT และ OUTPUT",
-    description: "ที่นี่คือคลังความรู้ของผู้ฝึกสายสัญญาณ บททดสอบหลักคือความเข้าใจ INPUT, OUTPUT และการจับคู่พอร์ตให้ถูกต้อง",
-    themeHint: "ห้องสมุดโบราณ ตราประทับเรืองแสง และผนึกพอร์ตโบราณ",
-    venueId: "outdoor", venue: "พื้นที่ภายนอกอาคาร", venueConcept: "งาน Outdoor และระยะสายไกล",
-    difficulties: [
-      { level: 1, title: "เส้นทางภาพ · Video Path", flavor: "ฝึกตามขนาดงานและอุปกรณ์ของสถานที่", objective: "ต่อกล้องไกลผ่าน Fiber TX → Fiber RX และกล้องใกล้ด้วย SDI เข้า Field Switcher ดูผลที่จอ Multiview" },
-      { level: 2, title: "เส้นทางเสียง · Audio Path", flavor: "ฝึกตามขนาดงานและอุปกรณ์ของสถานที่", objective: "ไมค์พิธีกร (ไร้สาย), Shotgun (+48V เฉพาะช่องนี้), Ambient → Field Mixer และ PA BUS → ลำโพง" },
-      { level: 3, title: "สลับภาพและตรวจสัญญาณ", flavor: "ฝึกตามขนาดงานและอุปกรณ์ของสถานที่", objective: "รับ 3 กล้องจากระยะต่างกัน ตรวจ Multiview และเลือก Program รวมกล้อง Fiber" },
-      { level: 4, title: "พอร์ตและการแก้ปัญหา", flavor: "ฝึกตามขนาดงานและอุปกรณ์ของสถานที่", objective: "ระบบภาคสนามมีสายหายและ Embedder ได้ Multiview แทน Program แก้ให้สตรีมถูกต้อง" },
-      { level: 5, title: "ระบบ Production ครบเส้นทาง", flavor: "ฝึกตามขนาดงานและอุปกรณ์ของสถานที่", objective: "ภาคสนามครบ: Fiber + SDI → Switcher, เสียงแยก PA/Broadcast, PGM → Embedder → Encoder → Router → Ingest" },
-    ],
-  },
-  {
-    id: "mission_05", slug: "throne-of-the-grand-transmission", title: "บัลลังก์จอมถ่ายทอด", subtitle: "วิถีแห่งผู้ควบคุมการถ่ายทอด",
-    description: "ภารกิจสูงสุดของสำนัก ผู้ฝึกจะต้องพิสูจน์ว่าตนเข้าใจโครงสร้างของการส่งภาพอย่างแท้จริง นี่คือด่านพิธีการที่รวมสิ่งที่เรียนมาทั้งหมด",
-    themeHint: "บัลลังก์ทอง หอพิธีถ่ายทอด และรัศมีแห่งการควบคุม",
-    venueId: "stadium", venue: "สนามกีฬาและงานถ่ายทอดสด", venueConcept: "งานขนาดใหญ่ Full Live Production",
-    difficulties: [
-      { level: 1, title: "เส้นทางภาพ · Video Path", flavor: "ฝึกตามขนาดงานและอุปกรณ์ของสถานที่", objective: "ต่อกล้อง 1–2 → Camera Fiber → CCU → Router → Switcher ตั้ง Crosspoint แล้วเลือก Program ดู Multiview Wall" },
-      { level: 2, title: "เส้นทางเสียง · Audio Path", flavor: "ฝึกตามขนาดงานและอุปกรณ์ของสถานที่", objective: "ไมค์ผู้บรรยาย 2 + Crowd L/R + Field → Stagebox → Multicore → Console แยก Broadcast กับ VENUE PA" },
-      { level: 3, title: "สลับภาพและตรวจสัญญาณ", flavor: "ฝึกตามขนาดงานและอุปกรณ์ของสถานที่", objective: "เพิ่มกล้อง 3–6, Replay (มี Controller) และ Graphics ผ่าน Router แล้วสลับ Program" },
-      { level: 4, title: "พอร์ตและการแก้ปัญหา", flavor: "ฝึกตามขนาดงานและอุปกรณ์ของสถานที่", objective: "ระบบถ่ายทอดมีสายหายและ Embedder ได้ Multiview แก้ Crosspoint, เสียง, Main/Backup ให้ถูก" },
-      { level: 5, title: "ระบบ Production ครบเส้นทาง", flavor: "ฝึกตามขนาดงานและอุปกรณ์ของสถานที่", objective: "ถ่ายทอดสดเต็มระบบ: 6 กล้อง, Router 8 เส้น, เสียงฝังผ่าน Embedder → DA → Main/Backup/Recorder, จอสนาม, Intercom, Tally" },
-    ],
-  },
+  chapter(1, "gate-of-first-light", "xs", "classroom", "Classroom", "Teaching & hybrid lesson",
+    "Your first post as a production trainee: bring a lesson to life — slides, teacher camera and document camera on the projector, clean speech, an ISO recording and a private mock livestream.",
+    "A glowing stone gate over a real classroom AV desk"),
+  chapter(2, "moonbridge-of-echoes", "s", "studio", "Studio", "Interview & multi-camera broadcast",
+    "Run sound and vision for a three-camera interview: microphones, SDI cameras, multiview and PGM confidence, ISO recording and a private stream.",
+    "A moonlit bridge over the studio cable canal — it carries no signal by magic"),
+  chapter(3, "mirror-tower-of-switching", "m", "auditorium", "Auditorium", "Multi-destination live event",
+    "Feed different pictures to different destinations — audience PGM, performer confidence and FOH multiview — while the house PA and the stream mix stay independent.",
+    "A glass tower motif above a practical FOH booth"),
+  chapter(4, "archive-of-ancient-ports", "l", "outdoor", "Outdoor compound", "Ports, conversion, patch & field safety",
+    "Read every connector seal, convert in the right direction, patch through a router and keep a field broadcast safe — weather and power are GO/NO-GO decisions.",
+    "Engraved connector seals on inspection pedestals"),
+  chapter(5, "throne-of-the-grand-transmission", "xl", "stadium", "Stadium", "Multi-camera outside broadcast",
+    "The final trial: a four-camera sports broadcast with commentary, a verified score, independent MV/PGM, local recording and a separate hardware encoder to a private viewer.",
+    "A throne behind the OB director console — never in the optical path"),
 ];
 
 export const getMissionBySlug = (slug: string | null | undefined) => missionChapters.find((mission) => mission.slug === slug) ?? null;
 export const getDifficultyMeta = (mission: MissionChapter, level: number) => mission.difficulties.find((difficulty) => difficulty.level === level) ?? null;
 export const getMissionDifficultyLabel = (mission: MissionChapter, level: number) => {
   const difficulty = getDifficultyMeta(mission, level);
-  return difficulty ? `ระดับ ${level} · ${difficulty.title}` : "";
+  return difficulty ? `Level ${level} · ${difficulty.title}` : "";
 };

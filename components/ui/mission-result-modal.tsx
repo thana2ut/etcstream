@@ -44,7 +44,7 @@ export function MissionResultModal({
       <Image src="/images/xianxia/mentor.webp" alt="" width={1024} height={1536} className="xianxia-mentor" aria-hidden="true" />
       <div className="result-modal-container glass-card result-panel gold-border-frame with-corner-runes">
         <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: "8px" }}>
-          <BackButton onClick={onReturnToAcademy} label="ย้อนกลับ" />
+          <BackButton onClick={onReturnToAcademy} label="Back" />
         </div>
 
         {/* Header */}
@@ -59,8 +59,8 @@ export function MissionResultModal({
             <strong className="mission-name-label">{missionTitle}</strong>
           </div>
           {difficultyLabel && <p className="result-level-label">{difficultyLabel}</p>}
-          {merit !== undefined && completed && <p className="result-level-label">ได้รับ +{merit} เกียรติภูมิ</p>}
-          {rankUp && completed && <p className="result-rank-up" role="status">✦ เลื่อนขั้นเป็น “{rankUp}” ✦</p>}
+          {merit !== undefined && completed && <p className="result-level-label">+{merit} merit earned</p>}
+          {rankUp && completed && <p className="result-rank-up" role="status">✦ Promoted to “{rankUp}” ✦</p>}
           {progressError && <p className="form-error" role="alert">{progressError}</p>}
         </div>
 
@@ -71,17 +71,17 @@ export function MissionResultModal({
             <div className="metric-row">
               <span className="metric-icon">🎯</span>
               <span className="metric-name">{resultCopy.metrics.completion}</span>
-              <strong className="metric-val">{connectedRoutes}/{requiredRoutes} {studioFull ? "ขั้น" : "เส้นทาง"}</strong>
+              <strong className="metric-val">{connectedRoutes}/{requiredRoutes} {studioFull ? "steps" : "checks"}</strong>
             </div>
             <div className="metric-row">
               <span className="metric-icon tone-success">✓</span>
-              <span className="metric-name">{studioFull ? "ขั้นที่ผ่าน" : resultCopy.metrics.correct}</span>
+              <span className="metric-name">{studioFull ? "Steps passed" : resultCopy.metrics.correct}</span>
               <strong className="metric-val">{connectedRoutes}</strong>
             </div>
             <div className="metric-row highlight-row">
               <span className="metric-icon">✦</span>
-              <span className="metric-name">สถานะสัญญาณ</span>
-              <strong className="metric-val gold-accent">{completed ? "สมบูรณ์" : "กำลังฝึก"}</strong>
+              <span className="metric-name">Signal status</span>
+              <strong className="metric-val gold-accent">{completed ? "Complete" : "In training"}</strong>
             </div>
           </div>
 
@@ -97,14 +97,14 @@ export function MissionResultModal({
 
           {/* Right: Narrative Evaluation */}
           <div className="narrative-column">
-            <span className="narrative-tag">ผลการประเมิน · {difficultyLabel ?? "ห้องฝึก"}</span>
-            <h2 className="grade-headline">{completed ? "ผ่านการฝึก" : "กำลังฝึก"}</h2>
+            <span className="narrative-tag">Assessment · {difficultyLabel ?? "Practice room"}</span>
+            <h2 className="grade-headline">{completed ? "Training passed" : "In training"}</h2>
             <p className="grade-narrative-text">
               {completed
                 ? studioFull
-                  ? "ต่อเส้นทางภาพและเสียงผ่าน Switcher, Mixer, Capture Card ไปถึงจอและ OBS ได้ครบแล้ว"
-                  : "เจ้าสร้างเส้นทางภาพจากกล้อง ผ่านเครื่องสลับภาพ ไปถึงจอแสดงผลได้ครบแล้ว"
-                : "ตรวจสอบเส้นทางสัญญาณที่เหลือก่อนเข้ารับการประเมิน"}
+                  ? "Picture and sound now reach the monitor and OBS through the switcher, mixer and capture card."
+                  : "Every destination in this job validated on the live signal graph — see the Operator Console sign-off for your score."
+                : "Check the remaining signal paths before assessment."}
             </p>
           </div>
         </div>
@@ -119,11 +119,11 @@ export function MissionResultModal({
             <ul className="feedback-item-list">
               <li>
                 <span className="check-bullet">✓</span>
-                <span>{studioFull ? "ต่อสายภาพและเสียงตรงชนิดพอร์ตและทิศทางสัญญาณ" : "เชื่อมสาย HDMI ถูกต้องตามเส้นทางที่กำหนด"}</span>
+                <span>{studioFull ? "Picture and sound leads matched port type and signal direction" : "Physical, signal, rehearsal and stream/record tests passed in order"}</span>
               </li>
               <li>
                 <span className="check-bullet">✓</span>
-                <span>{studioFull ? "ตั้ง Mixer และเลือก Capture Device ใน OBS จำลองครบ" : "เข้าใจทิศทางของสัญญาณ OUTPUT และ INPUT อย่างชัดเจน"}</span>
+                <span>{studioFull ? "Mixer set and the capture device selected in simulated OBS" : "Clear understanding of OUTPUT → INPUT and device configuration"}</span>
               </li>
             </ul>
           </div>
@@ -136,7 +136,7 @@ export function MissionResultModal({
             <ul className="feedback-item-list">
               <li>
                 <span className="star-bullet">✦</span>
-                <span>{studioFull ? "ทบทวนเส้นทาง TX → RX แบบไร้สาย และการใช้หัวแปลง 3.5/6.35 มม." : "ทบทวนทิศทาง HDMI OUT → HDMI IN ก่อนต่อสายครั้งต่อไป"}</span>
+                <span>{studioFull ? "Review the wireless TX → RX path and 3.5/6.35 mm adapters" : "Review the event log and any targeted reviews before the next stage"}</span>
               </li>
             </ul>
           </div>

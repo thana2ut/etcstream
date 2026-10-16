@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="952.4000000000001" height="880.8" viewBox="0 0 952.4000000000001 880.8"><style>text{font-family:Tahoma,sans-serif;font-size:10px;fill:#e2e8f0}.title{font-size:18px}.small{font-size:8px}</style><rect width="100%" height="100%" fill="#0f172a"/><text x="30" y="32" class="title">xl-5 • เตรียมระบบ Live Production สนามกีฬา</text><text x="30" y="54">Pitch / local NORTH = +Z (bottom) • metres • development plan</text><rect x="55" y="90" width="842.4000000000001" height="670.8" fill="#1e293b" stroke="#94a3b8"/>
+<rect x="189.40000000000003" y="157.2" width="105.60000000000001" height="21.6" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="242.20000000000005" y="168" text-anchor="middle">xl-switch</text>
+<rect x="189.40000000000003" y="222.72" width="105.60000000000001" height="21.6" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="242.20000000000005" y="233.52" text-anchor="middle">xl-replay</text>
+<rect x="189.40000000000003" y="288.24" width="105.60000000000001" height="21.6" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="242.20000000000005" y="299.04" text-anchor="middle">xl-graphics</text>
+<rect x="357.88" y="187.2" width="43.2" height="24" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="379.4800000000001" y="199.2" text-anchor="middle">xl-audio</text>
+<rect x="491.32000000000005" y="418.08" width="100.80000000000001" height="24" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="541.72" y="430.08" text-anchor="middle">xl-cases</text>
+<rect x="369.6400000000001" y="342.96" width="38.400000000000006" height="12" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="388.84000000000003" y="348.96" text-anchor="middle">xl-cable-rack</text>
+<rect x="618.04" y="264.48" width="72" height="19.200000000000003" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="654.04" y="274.08" text-anchor="middle">xl-commentary</text>
+<rect x="82.12000000000002" y="117.11999999999998" width="14.399999999999999" height="14.399999999999999" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="89.32000000000004" y="124.32" text-anchor="middle">xl-rack-ccu</text>
+<rect x="82.12000000000002" y="142.07999999999998" width="14.399999999999999" height="14.399999999999999" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="89.32000000000004" y="149.28" text-anchor="middle">xl-rack-router</text>
+<rect x="82.12000000000002" y="198.24" width="14.399999999999999" height="14.399999999999999" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="89.32000000000004" y="205.44" text-anchor="middle">xl-rack-encoder</text>
+<rect x="82.12000000000002" y="223.2" width="14.399999999999999" height="14.399999999999999" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="89.32000000000004" y="230.39999999999998" text-anchor="middle">xl-rack-network</text>
+<rect x="82.12000000000002" y="248.16" width="14.399999999999999" height="14.399999999999999" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="89.32000000000004" y="255.36" text-anchor="middle">xl-rack-live</text>
+<rect x="82.12000000000002" y="310.56" width="14.399999999999999" height="14.399999999999999" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="89.32000000000004" y="317.76" text-anchor="middle">xl-rack-backup</text>
+<rect x="82.12000000000002" y="335.52" width="14.399999999999999" height="14.399999999999999" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="89.32000000000004" y="342.71999999999997" text-anchor="middle">xl-rack-backup-net</text>
+<rect x="133.00000000000009" y="97.32" width="218.39999999999998" height="7.199999999999999" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="242.20000000000005" y="100.92" text-anchor="middle">xl-wall</text>
+<rect x="441.40000000000003" y="560.64" width="38.400000000000006" height="38.400000000000006" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="460.6" y="579.84" text-anchor="middle">xl-cam1-platform</text>
+<path d="M398.20000000000005,727.08 L385.72,726.48" fill="none" stroke="#fb923c" stroke-width="0.6" opacity="0.35"/>
+<path d="M460.6,573.768 L94.86400000000003,126.47999999999999" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M94.86400000000003,124.32 L96.18400000000007,153.35999999999999" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M96.18400000000007,151.728 L237.68320000000006,168.024" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M162.21040000000005,711.384 L94.86400000000003,125.39999999999999" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M94.86400000000003,123.24 L96.18400000000007,150.096" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M96.18400000000007,148.464 L239.49040000000008,168.024" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M758.9896000000001,711.384 L94.86400000000003,125.39999999999999" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M94.86400000000003,123.24 L96.18400000000007,146.832" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M96.18400000000007,145.2 L241.29760000000005,168.024" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M868.6408000000001,486.9216 L94.86400000000003,125.39999999999999" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M94.86400000000003,123.24 L96.18400000000007,153.35999999999999" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M96.18400000000007,151.728 L243.10240000000005,168.024" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M302.56960000000004,686.436 L94.86400000000003,125.39999999999999" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M94.86400000000003,123.24 L96.18400000000007,150.096" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M96.18400000000007,148.464 L244.90960000000007,168.024" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M619.0840000000001,714.6984 L94.86400000000003,125.39999999999999" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M94.86400000000003,123.24 L96.18400000000007,146.832" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M96.18400000000007,145.2 L246.71680000000006,168.024" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M222.40000000000003,232.584 L96.18400000000007,152.52" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M96.18400000000007,150.35999999999999 L237.68320000000006,168.024" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M260.9200000000001,232.584 L224.56000000000003,232.584" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M255.01600000000002,294.36 L284.80000000000007,298.104" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M286.96000000000004,298.104 L96.18400000000007,148.2" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M96.18400000000007,146.04 L239.49040000000008,168.024" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M241.29760000000005,168.024 L242.20000000000005,111.81600000000002" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M243.10240000000005,168.024 L852.616,622.44" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M852.616,624.5999999999999 L873.784,667.2" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M632.2,271.68 L620.2432,299.736" fill="none" stroke="#fb923c" stroke-width="0.6" opacity="0.35"/>
+<path d="M675.8800000000001,271.68 L618.7864000000001,299.736" fill="none" stroke="#fb923c" stroke-width="0.6" opacity="0.35"/>
+<path d="M91.84000000000005,685.92 L617.3296,299.736" fill="none" stroke="#fb923c" stroke-width="0.6" opacity="0.35"/>
+<path d="M866.8000000000001,604.8 L615.8704,299.736" fill="none" stroke="#fb923c" stroke-width="0.6" opacity="0.35"/>
+<path d="M554.2,730.2 L614.4136000000001,299.736" fill="none" stroke="#fb923c" stroke-width="0.6" opacity="0.35"/>
+<path d="M399.76000000000005,207 L612.9568000000002,299.736" fill="none" stroke="#fb923c" stroke-width="0.6" opacity="0.35"/>
+<path d="M616.6,299.736 L377.32000000000005,198.264" fill="none" stroke="#fb923c" stroke-width="0.6" opacity="0.35"/>
+<path d="M379.4800000000001,198.264 L844.0312,721.9032" fill="none" stroke="#fb923c" stroke-width="0.6" opacity="0.35"/>
+<path d="M381.6400000000001,198.264 L96.18400000000007,182.64000000000001" fill="none" stroke="#fb923c" stroke-width="0.6" opacity="0.35"/>
+<path d="M244.90960000000007,168.024 L96.18400000000007,180.48" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M96.18400000000007,178.32 L96.18400000000007,289.79999999999995" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M96.18400000000007,287.64 L96.18400000000007,206.52" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M96.18400000000007,285.48 L96.18400000000007,318.84000000000003" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M96.18400000000007,283.32 L96.18400000000007,367.68" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M96.18400000000007,204.35999999999999 L96.18400000000007,231.48" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M96.18400000000007,229.32 L96.18400000000007,255.36" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M96.18400000000007,316.68 L96.18400000000007,343.79999999999995" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M96.18400000000007,341.64 L102.42400000000006,367.68" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M292.12000000000006,184.224 L654.04,287.18399999999997" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M246.71680000000006,168.024 L94.86400000000003,122.16" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<polyline points="498.04,361.44 375.47200000000004,272.304 328.81600000000003,272.304 328.81600000000003,103.20000000000002 68.03200000000007,103.20000000000002 68.03200000000007,381.6 420.2800000000001,381.6 420.2800000000001,317.35200000000003 645.1120000000001,317.35200000000003 645.1120000000001,696.84" fill="none" stroke="#4ade80" stroke-width="2" stroke-dasharray="5 4"/><rect x="424.40000000000003" y="309.64" width="10" height="10" fill="#a3e635"/><text x="419.40000000000003" y="305.64" text-anchor="end">DOOR</text>
+<circle cx="89.32000000000004" cy="124.32" r="3" fill="#67e8f9"/><text class="small" x="94.32000000000004" y="120.32">ccu1</text>
+<circle cx="89.32000000000004" cy="124.32" r="3" fill="#67e8f9"/><text class="small" x="94.32000000000004" y="120.32">ccu2</text>
+<circle cx="89.32000000000004" cy="124.32" r="3" fill="#67e8f9"/><text class="small" x="94.32000000000004" y="120.32">ccu3</text>
+<circle cx="89.32000000000004" cy="124.32" r="3" fill="#67e8f9"/><text class="small" x="94.32000000000004" y="120.32">ccu4</text>
+<circle cx="89.32000000000004" cy="124.32" r="3" fill="#67e8f9"/><text class="small" x="94.32000000000004" y="120.32">ccu5</text>
+<circle cx="89.32000000000004" cy="124.32" r="3" fill="#67e8f9"/><text class="small" x="94.32000000000004" y="120.32">ccu6</text>
+<circle cx="89.32000000000004" cy="149.28" r="3" fill="#67e8f9"/><text class="small" x="94.32000000000004" y="145.28">router</text>
+<circle cx="242.20000000000005" cy="163.32" r="3" fill="#67e8f9"/><text class="small" x="247.20000000000005" y="159.32">sw</text>
+<circle cx="460.6" cy="579.84" r="5" fill="#f472b6"/><text class="small" x="465.6" y="575.84">cam1</text>
+<circle cx="164.20000000000005" cy="717.12" r="5" fill="#f472b6"/><text class="small" x="169.20000000000005" y="713.12">cam2</text>
+<circle cx="757" cy="717.12" r="5" fill="#f472b6"/><text class="small" x="762" y="713.12">cam3</text>
+<circle cx="866.1999999999999" cy="492.48" r="5" fill="#f472b6"/><text class="small" x="871.1999999999999" y="488.48">cam4</text>
+<circle cx="304.6" cy="692.16" r="5" fill="#f472b6"/><text class="small" x="309.6" y="688.16">cam5</text>
+<circle cx="616.6" cy="720.24" r="5" fill="#f472b6"/><text class="small" x="621.6" y="716.24">cam6</text>
+<circle cx="223.48000000000002" cy="228.84" r="3" fill="#67e8f9"/><text class="small" x="228.48000000000002" y="224.84">replay</text>
+<circle cx="260.9200000000001" cy="228.84" r="3" fill="#67e8f9"/><text class="small" x="265.9200000000001" y="224.84">replay-ctl</text>
+<circle cx="260.9200000000001" cy="294.36" r="3" fill="#67e8f9"/><text class="small" x="265.9200000000001" y="290.36">graphics</text>
+<circle cx="285.88" cy="294.36" r="3" fill="#67e8f9"/><text class="small" x="290.88" y="290.36">conv-gfx</text>
+<circle cx="242.20000000000005" cy="113.39999999999999" r="3" fill="#67e8f9"/><text class="small" x="247.20000000000005" y="109.39999999999999">monitor</text>
+<circle cx="853.72" cy="623.52" r="3" fill="#67e8f9"/><text class="small" x="858.72" y="619.52">display-conv</text>
+<circle cx="872.44" cy="667.2" r="3" fill="#67e8f9"/><text class="small" x="877.44" y="663.2">display</text>
+<circle cx="632.2" cy="269.4" r="3" fill="#67e8f9"/><text class="small" x="637.2" y="265.4">mic0</text>
+<circle cx="675.8800000000001" cy="269.4" r="3" fill="#67e8f9"/><text class="small" x="680.8800000000001" y="265.4">mic1</text>
+<circle cx="92.44000000000005" cy="685.92" r="3" fill="#67e8f9"/><text class="small" x="97.44000000000005" y="681.92">mic2</text>
+<circle cx="866.1999999999999" cy="604.8" r="3" fill="#67e8f9"/><text class="small" x="871.1999999999999" y="600.8">mic3</text>
+<circle cx="554.2" cy="729.5999999999999" r="3" fill="#67e8f9"/><text class="small" x="559.2" y="725.5999999999999">mic4</text>
+<circle cx="399.76000000000005" cy="207" r="3" fill="#67e8f9"/><text class="small" x="404.76000000000005" y="203">rx</text>
+<circle cx="616.6" cy="305.28000000000003" r="3" fill="#67e8f9"/><text class="small" x="621.6" y="301.28000000000003">stagebox</text>
+<circle cx="379.4800000000001" cy="194.52" r="3" fill="#67e8f9"/><text class="small" x="384.4800000000001" y="190.52">mix</text>
+<circle cx="847.48" cy="723.36" r="3" fill="#67e8f9"/><text class="small" x="852.48" y="719.36">pa</text>
+<circle cx="89.32000000000004" cy="180.48" r="3" fill="#67e8f9"/><text class="small" x="94.32000000000004" y="176.48">embedder</text>
+<circle cx="89.32000000000004" cy="286.56" r="3" fill="#67e8f9"/><text class="small" x="94.32000000000004" y="282.56">da</text>
+<circle cx="89.32000000000004" cy="205.44" r="3" fill="#67e8f9"/><text class="small" x="94.32000000000004" y="201.44">encoder</text>
+<circle cx="89.32000000000004" cy="230.39999999999998" r="3" fill="#67e8f9"/><text class="small" x="94.32000000000004" y="226.39999999999998">network</text>
+<circle cx="89.32000000000004" cy="255.36" r="3" fill="#67e8f9"/><text class="small" x="94.32000000000004" y="251.36">live</text>
+<circle cx="89.32000000000004" cy="317.76" r="3" fill="#67e8f9"/><text class="small" x="94.32000000000004" y="313.76">backup</text>
+<circle cx="89.32000000000004" cy="342.71999999999997" r="3" fill="#67e8f9"/><text class="small" x="94.32000000000004" y="338.71999999999997">backup-net</text>
+<circle cx="95.56000000000003" cy="367.68" r="3" fill="#67e8f9"/><text class="small" x="100.56000000000003" y="363.68">live-backup</text>
+<circle cx="89.32000000000004" cy="367.68" r="3" fill="#67e8f9"/><text class="small" x="94.32000000000004" y="363.68">recorder</text>
+<circle cx="292.12000000000006" cy="180.48" r="3" fill="#67e8f9"/><text class="small" x="297.12000000000006" y="176.48">intercom</text>
+<circle cx="654.04" cy="283.44" r="3" fill="#67e8f9"/><text class="small" x="659.04" y="279.44">commentary</text>
+<circle cx="398.20000000000005" cy="726.48" r="3" fill="#67e8f9"/><text class="small" x="403.20000000000005" y="722.48">lav1</text>
+<circle cx="385.72" cy="726.48" r="3" fill="#67e8f9"/><text class="small" x="390.72" y="722.48">tx1</text>
+<circle cx="498.04" cy="361.44" r="7" fill="#4ade80"/><text x="507.04" y="361.44">SPAWN</text><text x="30" y="810.8">Pink: cameras • cyan: operating gear • brown: furniture • green: spawn</text><text x="30" y="830.8">Lines: logical source → destination graph (not installed cable geometry)</text><text x="30" y="850.8">Green dashed: walked route checkpoints (schematic); A–J views captured in engine.</text></svg>

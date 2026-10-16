@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="693.2" height="715.44" viewBox="0 0 693.2 715.44"><style>text{font-family:Tahoma,sans-serif;font-size:10px;fill:#e2e8f0}.title{font-size:18px}.small{font-size:8px}</style><rect width="100%" height="100%" fill="#0f172a"/><text x="30" y="32" class="title">m-5 • เตรียมระบบถ่ายทอดกิจกรรมบนเวที</text><text x="30" y="54">Stage / local NORTH = −Z (top) • metres • development plan</text><rect x="55" y="90" width="583.2" height="505.44000000000005" fill="#1e293b" stroke="#94a3b8"/>
+<rect x="309.15999999999997" y="474.48" width="100.80000000000001" height="21.6" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="359.56000000000006" y="485.28" text-anchor="middle">m-foh</text>
+<rect x="224.56" y="479.952" width="43.2" height="20.4" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="246.16000000000003" y="490.15200000000004" text-anchor="middle">m-audio</text>
+<rect x="445" y="546.552" width="62.400000000000006" height="16.799999999999997" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="476.20000000000005" y="554.952" text-anchor="middle">m-cable-rack</text>
+<rect x="105.28000000000002" y="544.752" width="139.2" height="20.4" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="174.88" y="554.952" text-anchor="middle">m-side-case</text>
+<rect x="539.5600000000001" y="546.552" width="28.799999999999997" height="16.799999999999997" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="553.96" y="554.952" text-anchor="middle">m-case-foh</text>
+<rect x="575.92" y="170.88" width="14.399999999999999" height="45.599999999999994" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="583.1200000000001" y="193.68" text-anchor="middle">m-rx-case</text>
+<rect x="119.80000000000003" y="100.92" width="453.59999999999997" height="62.400000000000006" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="346.6" y="132.12" text-anchor="middle">m-stage</text>
+<rect x="266.92" y="140.088" width="16.799999999999997" height="13.200000000000001" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="275.32" y="146.688" text-anchor="middle">m-podium</text>
+<rect x="603.52" y="184.20000000000002" width="24" height="38.400000000000006" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="615.52" y="203.4" text-anchor="middle">m-display-case</text>
+<rect x="188.44" y="188.08800000000002" width="31.200000000000003" height="14.399999999999999" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="204.04" y="195.288" text-anchor="middle">m-presenter</text>
+<rect x="329.8" y="417.432" width="33.599999999999994" height="28.799999999999997" fill="#854d0e" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="346.6" y="431.832" text-anchor="middle">m-cam-riser</text>
+<rect x="168.76" y="233.28" width="83.52" height="11.52" fill="#475569" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="210.52" y="239.04" text-anchor="middle">m-aud--4.2-0</text>
+<rect x="304.84000000000003" y="233.28" width="83.52" height="11.52" fill="#475569" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="346.6" y="239.04" text-anchor="middle">m-aud-0-0</text>
+<rect x="440.91999999999996" y="233.28" width="83.52" height="11.52" fill="#475569" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="482.68" y="239.04" text-anchor="middle">m-aud-4.2-0</text>
+<rect x="168.76" y="258.552" width="83.52" height="11.52" fill="#475569" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="210.52" y="264.312" text-anchor="middle">m-aud--4.2-1</text>
+<rect x="304.84000000000003" y="258.552" width="83.52" height="11.52" fill="#475569" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="346.6" y="264.312" text-anchor="middle">m-aud-0-1</text>
+<rect x="440.91999999999996" y="258.552" width="83.52" height="11.52" fill="#475569" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="482.68" y="264.312" text-anchor="middle">m-aud-4.2-1</text>
+<rect x="168.76" y="283.824" width="83.52" height="11.52" fill="#475569" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="210.52" y="289.584" text-anchor="middle">m-aud--4.2-2</text>
+<rect x="304.84000000000003" y="283.824" width="83.52" height="11.52" fill="#475569" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="346.6" y="289.584" text-anchor="middle">m-aud-0-2</text>
+<rect x="440.91999999999996" y="283.824" width="83.52" height="11.52" fill="#475569" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="482.68" y="289.584" text-anchor="middle">m-aud-4.2-2</text>
+<rect x="168.76" y="309.096" width="83.52" height="11.52" fill="#475569" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="210.52" y="314.856" text-anchor="middle">m-aud--4.2-3</text>
+<rect x="304.84000000000003" y="309.096" width="83.52" height="11.52" fill="#475569" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="346.6" y="314.856" text-anchor="middle">m-aud-0-3</text>
+<rect x="440.91999999999996" y="309.096" width="83.52" height="11.52" fill="#475569" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="482.68" y="314.856" text-anchor="middle">m-aud-4.2-3</text>
+<rect x="168.76" y="334.368" width="83.52" height="11.52" fill="#475569" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="210.52" y="340.12800000000004" text-anchor="middle">m-aud--4.2-4</text>
+<rect x="304.84000000000003" y="334.368" width="83.52" height="11.52" fill="#475569" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="346.6" y="340.12800000000004" text-anchor="middle">m-aud-0-4</text>
+<rect x="440.91999999999996" y="334.368" width="83.52" height="11.52" fill="#475569" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="482.68" y="340.12800000000004" text-anchor="middle">m-aud-4.2-4</text>
+<rect x="168.76" y="359.64" width="83.52" height="11.52" fill="#475569" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="210.52" y="365.4" text-anchor="middle">m-aud--4.2-5</text>
+<rect x="304.84000000000003" y="359.64" width="83.52" height="11.52" fill="#475569" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="346.6" y="365.4" text-anchor="middle">m-aud-0-5</text>
+<rect x="440.91999999999996" y="359.64" width="83.52" height="11.52" fill="#475569" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="482.68" y="365.4" text-anchor="middle">m-aud-4.2-5</text>
+<rect x="168.76" y="384.91200000000003" width="83.52" height="11.52" fill="#475569" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="210.52" y="390.672" text-anchor="middle">m-aud--4.2-6</text>
+<rect x="304.84000000000003" y="384.91200000000003" width="83.52" height="11.52" fill="#475569" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="346.6" y="390.672" text-anchor="middle">m-aud-0-6</text>
+<rect x="440.91999999999996" y="384.91200000000003" width="83.52" height="11.52" fill="#475569" stroke="#cbd5e1" stroke-width="0.5"/><text class="small" x="482.68" y="390.672" text-anchor="middle">m-aud-4.2-6</text>
+<path d="M89.008,168.40800000000002 L307.72,158.04" fill="none" stroke="#fb923c" stroke-width="0.6" opacity="0.35"/>
+<path d="M366.04,160.32 L353.08,158.04" fill="none" stroke="#fb923c" stroke-width="0.6" opacity="0.35"/>
+<path d="M346.6,436.464 L345.3232,483.504" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M77.23840000000001,335.81280000000004 L347.1304,483.504" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M615.9616,335.81280000000004 L348.93760000000003,483.504" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M71.98240000000003,210.4368 L350.7424,483.504" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M198.13600000000002,196.92000000000002 L219.16000000000003,200.664" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M221.32000000000002,200.664 L352.5496,483.504" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M354.3568,483.504 L611.776,189.36" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M611.776,191.52 L610.576,209.88" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M346.6,483.504 L314.20000000000005,474.45599999999996" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M348.76,483.504 L427.6,482.54400000000004" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M350.92,483.504 L404.0056,479.25840000000005" fill="none" stroke="#38bdf8" stroke-width="0.6" opacity="0.35"/>
+<path d="M275.32,157.07999999999998 L609.9760000000001,157.6368" fill="none" stroke="#fb923c" stroke-width="0.6" opacity="0.35"/>
+<path d="M576.64,172.608 L609.9760000000001,159.09359999999998" fill="none" stroke="#fb923c" stroke-width="0.6" opacity="0.35"/>
+<path d="M576.64,187.2 L609.9760000000001,160.55040000000002" fill="none" stroke="#fb923c" stroke-width="0.6" opacity="0.35"/>
+<path d="M576.64,201.768 L609.9760000000001,162.0096" fill="none" stroke="#fb923c" stroke-width="0.6" opacity="0.35"/>
+<path d="M576.64,216.36 L609.9760000000001,163.4664" fill="none" stroke="#fb923c" stroke-width="0.6" opacity="0.35"/>
+<path d="M609.9760000000001,164.9232 L239.12800000000001,489.024" fill="none" stroke="#fb923c" stroke-width="0.6" opacity="0.35"/>
+<path d="M241.288,489.024 L140.34640000000002,125.97600000000001" fill="none" stroke="#fb923c" stroke-width="0.6" opacity="0.35"/>
+<path d="M243.448,489.024 L353.08,483.504" fill="none" stroke="#fb923c" stroke-width="0.6" opacity="0.35"/>
+<polyline points="90.64000000000003,569.52 142.84,588.7439999999999 410.176,588.7439999999999 410.20000000000005,502.77599999999995 434.12800000000004,502.77599999999995 434.12800000000004,210.74400000000003" fill="none" stroke="#4ade80" stroke-width="2" stroke-dasharray="5 4"/><rect x="85.64000000000003" y="590.44" width="10" height="10" fill="#a3e635"/><text x="80.64000000000003" y="586.44" text-anchor="end">DOOR</text>
+<circle cx="349.84000000000003" cy="478.79999999999995" r="3" fill="#67e8f9"/><text class="small" x="354.84000000000003" y="474.79999999999995">sw</text>
+<circle cx="346.6" cy="431.832" r="5" fill="#f472b6"/><text class="small" x="351.6" y="427.832">cam1</text>
+<circle cx="80.92" cy="333" r="5" fill="#f472b6"/><text class="small" x="85.92" y="329">cam2</text>
+<circle cx="612.28" cy="333" r="5" fill="#f472b6"/><text class="small" x="617.28" y="329">cam3</text>
+<circle cx="74.44000000000001" cy="209.88" r="5" fill="#f472b6"/><text class="small" x="79.44000000000001" y="205.88">cam4</text>
+<circle cx="204.04" cy="196.92000000000002" r="3" fill="#67e8f9"/><text class="small" x="209.04" y="192.92000000000002">slides</text>
+<circle cx="220.24" cy="196.92000000000002" r="3" fill="#67e8f9"/><text class="small" x="225.24" y="192.92000000000002">conv-slides</text>
+<circle cx="615.52" cy="190.44" r="3" fill="#67e8f9"/><text class="small" x="620.52" y="186.44">conv-display</text>
+<circle cx="615.52" cy="209.88" r="3" fill="#67e8f9"/><text class="small" x="620.52" y="205.88">display</text>
+<circle cx="314.20000000000005" cy="475.56000000000006" r="3" fill="#67e8f9"/><text class="small" x="319.20000000000005" y="471.56000000000006">monitor</text>
+<circle cx="427.6" cy="478.79999999999995" r="3" fill="#67e8f9"/><text class="small" x="432.6" y="474.79999999999995">recorder</text>
+<circle cx="409.79200000000003" cy="480.432" r="3" fill="#67e8f9"/><text class="small" x="414.79200000000003" y="476.432">pc</text>
+<circle cx="275.32" cy="154.8" r="3" fill="#67e8f9"/><text class="small" x="280.32" y="150.8">mic1</text>
+<circle cx="489.15999999999997" cy="151.56" r="3" fill="#67e8f9"/><text class="small" x="494.15999999999997" y="147.56">hh1</text>
+<circle cx="576.64" cy="172.608" r="3" fill="#67e8f9"/><text class="small" x="581.64" y="168.608">hhrx1</text>
+<circle cx="576.64" cy="201.768" r="3" fill="#67e8f9"/><text class="small" x="581.64" y="197.768">lavrx1</text>
+<circle cx="511.84000000000003" cy="151.56" r="3" fill="#67e8f9"/><text class="small" x="516.84" y="147.56">hh2</text>
+<circle cx="576.64" cy="187.2" r="3" fill="#67e8f9"/><text class="small" x="581.64" y="183.2">hhrx2</text>
+<circle cx="576.64" cy="216.36" r="3" fill="#67e8f9"/><text class="small" x="581.64" y="212.36">lavrx2</text>
+<circle cx="615.52" cy="161.28" r="3" fill="#67e8f9"/><text class="small" x="620.52" y="157.28">stagebox</text>
+<circle cx="241.288" cy="485.28" r="3" fill="#67e8f9"/><text class="small" x="246.288" y="481.28">mix</text>
+<circle cx="139.24" cy="122.4" r="3" fill="#67e8f9"/><text class="small" x="144.24" y="118.4">pa</text>
+<circle cx="89.008" cy="166.128" r="3" fill="#67e8f9"/><text class="small" x="94.008" y="162.128">lav1</text>
+<circle cx="307.72" cy="158.04" r="3" fill="#67e8f9"/><text class="small" x="312.72" y="154.04">tx1</text>
+<circle cx="366.04" cy="158.04" r="3" fill="#67e8f9"/><text class="small" x="371.04" y="154.04">lav2</text>
+<circle cx="353.08" cy="158.04" r="3" fill="#67e8f9"/><text class="small" x="358.08" y="154.04">tx2</text>
+<circle cx="90.64000000000003" cy="569.52" r="7" fill="#4ade80"/><text x="99.64000000000003" y="569.52">SPAWN</text><text x="30" y="645.44">Pink: cameras • cyan: operating gear • brown: furniture • green: spawn</text><text x="30" y="665.44">Lines: logical source → destination graph (not installed cable geometry)</text><text x="30" y="685.44">Green dashed: walked route checkpoints (schematic); A–J views captured in engine.</text></svg>

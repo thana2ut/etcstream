@@ -1,0 +1,3318 @@
+[
+  {
+    "id": "xs-5",
+    "layout": "classroom",
+    "spawn": [
+      7.395,
+      0.84,
+      2.827
+    ],
+    "storage": {
+      "shape": "rect",
+      "center": [
+        7.757,
+        0.95,
+        0.145
+      ],
+      "size": [
+        0.55,
+        2.8
+      ],
+      "front": 1
+    },
+    "devices": [
+      {
+        "id": "sw",
+        "size": [
+          0.62,
+          0.16,
+          0.38
+        ],
+        "position": [
+          0,
+          0.76,
+          -4.133
+        ]
+      },
+      {
+        "id": "cam1",
+        "size": [
+          0.32,
+          1.5,
+          0.45
+        ],
+        "position": [
+          -5.51,
+          0,
+          -3.19
+        ]
+      },
+      {
+        "id": "slides",
+        "size": [
+          0.48,
+          0.03,
+          0.32
+        ],
+        "position": [
+          -0.362,
+          0.76,
+          -4.785
+        ]
+      },
+      {
+        "id": "monitor",
+        "size": [
+          0.6,
+          0.36,
+          0.08
+        ],
+        "position": [
+          6.09,
+          0.98,
+          -5.582
+        ]
+      },
+      {
+        "id": "mix",
+        "size": [
+          0.48,
+          0.18,
+          0.3
+        ],
+        "position": [
+          -1.16,
+          0.76,
+          -4.538
+        ]
+      },
+      {
+        "id": "rx",
+        "size": [
+          0.48,
+          0.18,
+          0.3
+        ],
+        "position": [
+          -1.377,
+          0.76,
+          -3.915
+        ]
+      },
+      {
+        "id": "speaker",
+        "size": [
+          0.34,
+          0.55,
+          0.3
+        ],
+        "position": [
+          -7.105,
+          0,
+          -5.365
+        ]
+      },
+      {
+        "id": "pc",
+        "size": [
+          0.48,
+          0.03,
+          0.32
+        ],
+        "position": [
+          1.232,
+          0.76,
+          -4.495
+        ]
+      },
+      {
+        "id": "lav1",
+        "size": [
+          0.08,
+          0.08,
+          0.25
+        ],
+        "position": [
+          1.232,
+          0.76,
+          -3.915
+        ]
+      },
+      {
+        "id": "tx1",
+        "size": [
+          0.48,
+          0.18,
+          0.3
+        ],
+        "position": [
+          0.725,
+          0.76,
+          -3.915
+        ]
+      }
+    ],
+    "placeables": [
+      {
+        "id": "sw",
+        "start": [
+          7.757,
+          0.95,
+          -1.075
+        ]
+      },
+      {
+        "id": "mix",
+        "start": [
+          7.757,
+          0.95,
+          -0.465
+        ]
+      },
+      {
+        "id": "rx",
+        "start": [
+          7.757,
+          0.95,
+          0.145
+        ]
+      },
+      {
+        "id": "pc",
+        "start": [
+          7.757,
+          0.95,
+          0.755
+        ]
+      },
+      {
+        "id": "tx1",
+        "start": [
+          7.757,
+          0.95,
+          1.365
+        ]
+      }
+    ],
+    "routes": [
+      {
+        "id": "lav-1",
+        "from": [
+          "lav1:audio-out"
+        ],
+        "to": [
+          "tx1:mic-in"
+        ]
+      },
+      {
+        "id": "cam-1",
+        "from": [
+          "cam1:hdmi-out"
+        ],
+        "to": [
+          "sw:hdmi-in1"
+        ]
+      },
+      {
+        "id": "slides",
+        "from": [
+          "slides:hdmi-out"
+        ],
+        "to": [
+          "sw:hdmi-in2"
+        ]
+      },
+      {
+        "id": "monitor",
+        "from": [
+          "sw:hdmi-out"
+        ],
+        "to": [
+          "monitor:hdmi-in"
+        ]
+      },
+      {
+        "id": "rx-mix",
+        "from": [
+          "rx:audio-out"
+        ],
+        "to": [
+          "mix:ch1-in"
+        ]
+      },
+      {
+        "id": "mix-pa",
+        "from": [
+          "mix:main-out"
+        ],
+        "to": [
+          "speaker:line-in"
+        ]
+      },
+      {
+        "id": "mix-stream",
+        "from": [
+          "mix:aux-out"
+        ],
+        "to": [
+          "sw:mic-in1"
+        ]
+      },
+      {
+        "id": "usb-webcam",
+        "from": [
+          "sw:usb-webcam"
+        ],
+        "to": [
+          "pc:usb-host"
+        ]
+      }
+    ],
+    "actions": [
+      {
+        "id": "wireless-pair",
+        "needs": [
+          "lav-1"
+        ]
+      },
+      {
+        "id": "bus-pa",
+        "needs": [
+          "rx-mix",
+          "wireless-pair",
+          "mix-pa"
+        ]
+      },
+      {
+        "id": "bus-stream",
+        "needs": [
+          "bus-pa",
+          "mix-stream"
+        ]
+      },
+      {
+        "id": "sw-out-program",
+        "needs": [
+          "monitor"
+        ]
+      },
+      {
+        "id": "sw-audio",
+        "needs": [
+          "mix-stream",
+          "bus-stream"
+        ]
+      },
+      {
+        "id": "select-cam-1",
+        "needs": [
+          "cam-1",
+          "sw-out-program"
+        ]
+      },
+      {
+        "id": "select-slides",
+        "needs": [
+          "slides",
+          "sw-out-program"
+        ]
+      },
+      {
+        "id": "obs-ready",
+        "needs": [
+          "usb-webcam",
+          "cam-1",
+          "slides",
+          "sw-audio",
+          "sw-out-program"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "s-5",
+    "layout": "studioMission",
+    "spawn": [
+      7.4,
+      0.84,
+      8
+    ],
+    "storage": {
+      "shape": "rect",
+      "center": [
+        6.2,
+        0.76,
+        6.4
+      ],
+      "size": [
+        2.8,
+        1
+      ],
+      "front": 1
+    },
+    "devices": [
+      {
+        "id": "sw",
+        "size": [
+          1.18,
+          0.2375,
+          0.525
+        ],
+        "position": [
+          -2.7,
+          0.76,
+          4.7
+        ]
+      },
+      {
+        "id": "mix",
+        "size": [
+          0.75,
+          0.275,
+          0.75
+        ],
+        "position": [
+          -4.45,
+          0.76,
+          4.7
+        ]
+      },
+      {
+        "id": "cam1",
+        "size": [
+          0.32,
+          1.5,
+          0.45
+        ],
+        "position": [
+          -3.7,
+          0,
+          0.3
+        ]
+      },
+      {
+        "id": "cam2",
+        "size": [
+          0.32,
+          1.5,
+          0.45
+        ],
+        "position": [
+          2,
+          0,
+          0.1
+        ]
+      },
+      {
+        "id": "cam3",
+        "size": [
+          0.32,
+          1.5,
+          0.45
+        ],
+        "position": [
+          3,
+          0,
+          4
+        ]
+      },
+      {
+        "id": "monitor",
+        "size": [
+          1,
+          0.588,
+          0.046
+        ],
+        "position": [
+          -6.5,
+          0.95,
+          3.9
+        ]
+      },
+      {
+        "id": "rx",
+        "size": [
+          0.17,
+          0.44,
+          0.07
+        ],
+        "position": [
+          -3.7,
+          0.76,
+          4.95
+        ]
+      },
+      {
+        "id": "mic",
+        "size": [
+          0.212,
+          0.052,
+          0.052
+        ],
+        "position": [
+          -3.85,
+          0.76,
+          -2.25
+        ]
+      },
+      {
+        "id": "speaker",
+        "size": [
+          0.54,
+          0.9,
+          0.43
+        ],
+        "position": [
+          -5.95,
+          0,
+          4.9
+        ]
+      },
+      {
+        "id": "capture",
+        "size": [
+          0.3072,
+          0.048,
+          0.1344
+        ],
+        "position": [
+          -1.65,
+          0.76,
+          4.8
+        ]
+      },
+      {
+        "id": "pc",
+        "size": [
+          0.48,
+          0.03,
+          0.32
+        ],
+        "position": [
+          -0.65,
+          0.76,
+          4.7
+        ]
+      },
+      {
+        "id": "lav1",
+        "size": [
+          0.08,
+          0.08,
+          0.25
+        ],
+        "position": [
+          -4.7,
+          0.76,
+          -2.3
+        ]
+      },
+      {
+        "id": "tx1",
+        "size": [
+          0.155,
+          0.43,
+          0.065
+        ],
+        "position": [
+          -4.4,
+          0.76,
+          -2.3
+        ]
+      },
+      {
+        "id": "lav2",
+        "size": [
+          0.08,
+          0.08,
+          0.25
+        ],
+        "position": [
+          -3,
+          0.76,
+          -2.3
+        ]
+      },
+      {
+        "id": "tx2",
+        "size": [
+          0.155,
+          0.43,
+          0.065
+        ],
+        "position": [
+          -3.3,
+          0.76,
+          -2.3
+        ]
+      }
+    ],
+    "placeables": [
+      {
+        "id": "rx",
+        "start": [
+          4.98,
+          0.76,
+          6.4
+        ]
+      },
+      {
+        "id": "mic",
+        "start": [
+          5.59,
+          0.76,
+          6.4
+        ]
+      },
+      {
+        "id": "capture",
+        "start": [
+          6.2,
+          0.76,
+          6.4
+        ]
+      },
+      {
+        "id": "tx1",
+        "start": [
+          6.81,
+          0.76,
+          6.4
+        ]
+      },
+      {
+        "id": "tx2",
+        "start": [
+          7.42,
+          0.76,
+          6.4
+        ]
+      }
+    ],
+    "routes": [
+      {
+        "id": "lav-1",
+        "from": [
+          "lav1:audio-out"
+        ],
+        "to": [
+          "tx1:mic-in"
+        ]
+      },
+      {
+        "id": "lav-2",
+        "from": [
+          "lav2:audio-out"
+        ],
+        "to": [
+          "tx2:mic-in"
+        ]
+      },
+      {
+        "id": "cam-1",
+        "from": [
+          "cam1:hdmi-out"
+        ],
+        "to": [
+          "sw:in1"
+        ]
+      },
+      {
+        "id": "cam-2",
+        "from": [
+          "cam2:hdmi-out"
+        ],
+        "to": [
+          "sw:in2"
+        ]
+      },
+      {
+        "id": "cam-3",
+        "from": [
+          "cam3:hdmi-out"
+        ],
+        "to": [
+          "sw:in3"
+        ]
+      },
+      {
+        "id": "monitor",
+        "from": [
+          "sw:multiview-out"
+        ],
+        "to": [
+          "monitor:hdmi-in"
+        ]
+      },
+      {
+        "id": "rx-mix",
+        "from": [
+          "rx:audio-out"
+        ],
+        "to": [
+          "mix:ch3-line"
+        ]
+      },
+      {
+        "id": "xs1-mix",
+        "from": [
+          "mic:xlr-out"
+        ],
+        "to": [
+          "mix:ch1-mic"
+        ]
+      },
+      {
+        "id": "mix-sw",
+        "from": [
+          "mix:main-out"
+        ],
+        "to": [
+          "sw:line-in"
+        ]
+      },
+      {
+        "id": "mix-hs5",
+        "from": [
+          "mix:monitor-out"
+        ],
+        "to": [
+          "speaker:trs-in"
+        ]
+      },
+      {
+        "id": "program-capture",
+        "from": [
+          "sw:pgm-out"
+        ],
+        "to": [
+          "capture:hdmi-in"
+        ]
+      },
+      {
+        "id": "capture-pc",
+        "from": [
+          "capture:usb-out"
+        ],
+        "to": [
+          "pc:usb-in"
+        ]
+      }
+    ],
+    "actions": [
+      {
+        "id": "wireless-pair",
+        "needs": [
+          "lav-1",
+          "lav-2"
+        ]
+      },
+      {
+        "id": "bus-main",
+        "needs": [
+          "rx-mix",
+          "xs1-mix",
+          "wireless-pair",
+          "mix-sw"
+        ]
+      },
+      {
+        "id": "bus-monitor",
+        "needs": [
+          "bus-main",
+          "mix-hs5"
+        ]
+      },
+      {
+        "id": "sw-audio",
+        "needs": [
+          "mix-sw",
+          "bus-main"
+        ]
+      },
+      {
+        "id": "select-cam-1",
+        "needs": [
+          "cam-1",
+          "monitor"
+        ]
+      },
+      {
+        "id": "select-cam-2",
+        "needs": [
+          "cam-2",
+          "monitor"
+        ]
+      },
+      {
+        "id": "select-cam-3",
+        "needs": [
+          "cam-3",
+          "monitor"
+        ]
+      },
+      {
+        "id": "obs-ready",
+        "needs": [
+          "program-capture",
+          "capture-pc",
+          "cam-1",
+          "cam-2",
+          "cam-3",
+          "sw-audio"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "m-5",
+    "layout": "auditorium",
+    "spawn": [
+      -10.665,
+      0.84,
+      11.07
+    ],
+    "storage": {
+      "shape": "rect",
+      "center": [
+        -7.155,
+        0.85,
+        10.463
+      ],
+      "size": [
+        5.8,
+        0.85
+      ],
+      "front": 1
+    },
+    "devices": [
+      {
+        "id": "sw",
+        "size": [
+          0.62,
+          0.16,
+          0.38
+        ],
+        "position": [
+          0.135,
+          0.76,
+          7.29
+        ]
+      },
+      {
+        "id": "cam1",
+        "size": [
+          0.32,
+          1.5,
+          0.45
+        ],
+        "position": [
+          0,
+          0.25,
+          5.333
+        ]
+      },
+      {
+        "id": "cam2",
+        "size": [
+          0.32,
+          1.5,
+          0.45
+        ],
+        "position": [
+          -11.07,
+          0,
+          1.215
+        ]
+      },
+      {
+        "id": "cam3",
+        "size": [
+          0.32,
+          1.5,
+          0.45
+        ],
+        "position": [
+          11.07,
+          0,
+          1.215
+        ]
+      },
+      {
+        "id": "cam4",
+        "size": [
+          0.32,
+          1.5,
+          0.45
+        ],
+        "position": [
+          -11.34,
+          0,
+          -3.915
+        ]
+      },
+      {
+        "id": "slides",
+        "size": [
+          0.48,
+          0.03,
+          0.32
+        ],
+        "position": [
+          -5.94,
+          0.76,
+          -4.455
+        ]
+      },
+      {
+        "id": "conv-slides",
+        "size": [
+          0.48,
+          0.18,
+          0.3
+        ],
+        "position": [
+          -5.265,
+          0.76,
+          -4.455
+        ]
+      },
+      {
+        "id": "conv-display",
+        "size": [
+          0.48,
+          0.18,
+          0.3
+        ],
+        "position": [
+          11.205,
+          0.55,
+          -4.725
+        ]
+      },
+      {
+        "id": "display",
+        "size": [
+          0.6,
+          0.12,
+          0.4
+        ],
+        "position": [
+          11.205,
+          0.55,
+          -3.915
+        ]
+      },
+      {
+        "id": "monitor",
+        "size": [
+          0.6,
+          0.36,
+          0.08
+        ],
+        "position": [
+          -1.35,
+          0.76,
+          7.155
+        ]
+      },
+      {
+        "id": "recorder",
+        "size": [
+          0.48,
+          0.18,
+          0.3
+        ],
+        "position": [
+          3.375,
+          0.76,
+          7.29
+        ]
+      },
+      {
+        "id": "pc",
+        "size": [
+          0.48,
+          0.03,
+          0.32
+        ],
+        "position": [
+          2.633,
+          0.76,
+          7.358
+        ]
+      },
+      {
+        "id": "mic1",
+        "size": [
+          0.08,
+          0.08,
+          0.25
+        ],
+        "position": [
+          -2.97,
+          1.9,
+          -6.21
+        ]
+      },
+      {
+        "id": "hh1",
+        "size": [
+          0.08,
+          0.08,
+          0.25
+        ],
+        "position": [
+          5.94,
+          1.6,
+          -6.345
+        ]
+      },
+      {
+        "id": "hhrx1",
+        "size": [
+          0.48,
+          0.18,
+          0.3
+        ],
+        "position": [
+          9.585,
+          0.85,
+          -5.468
+        ]
+      },
+      {
+        "id": "lavrx1",
+        "size": [
+          0.48,
+          0.18,
+          0.3
+        ],
+        "position": [
+          9.585,
+          0.85,
+          -4.253
+        ]
+      },
+      {
+        "id": "hh2",
+        "size": [
+          0.08,
+          0.08,
+          0.25
+        ],
+        "position": [
+          6.885,
+          1.6,
+          -6.345
+        ]
+      },
+      {
+        "id": "hhrx2",
+        "size": [
+          0.48,
+          0.18,
+          0.3
+        ],
+        "position": [
+          9.585,
+          0.85,
+          -4.86
+        ]
+      },
+      {
+        "id": "lavrx2",
+        "size": [
+          0.48,
+          0.18,
+          0.3
+        ],
+        "position": [
+          9.585,
+          0.85,
+          -3.645
+        ]
+      },
+      {
+        "id": "stagebox",
+        "size": [
+          0.5,
+          0.55,
+          0.45
+        ],
+        "position": [
+          11.205,
+          0,
+          -5.94
+        ]
+      },
+      {
+        "id": "mix",
+        "size": [
+          0.48,
+          0.18,
+          0.3
+        ],
+        "position": [
+          -4.388,
+          0.76,
+          7.56
+        ]
+      },
+      {
+        "id": "pa",
+        "size": [
+          0.34,
+          0.55,
+          0.3
+        ],
+        "position": [
+          -8.64,
+          0.8,
+          -7.56
+        ]
+      },
+      {
+        "id": "lav1",
+        "size": [
+          0.08,
+          0.08,
+          0.25
+        ],
+        "position": [
+          -10.733,
+          0.85,
+          -5.738
+        ]
+      },
+      {
+        "id": "tx1",
+        "size": [
+          0.48,
+          0.18,
+          0.3
+        ],
+        "position": [
+          -1.62,
+          0.8,
+          -6.075
+        ]
+      },
+      {
+        "id": "lav2",
+        "size": [
+          0.08,
+          0.08,
+          0.25
+        ],
+        "position": [
+          0.81,
+          0.8,
+          -6.075
+        ]
+      },
+      {
+        "id": "tx2",
+        "size": [
+          0.48,
+          0.18,
+          0.3
+        ],
+        "position": [
+          0.27,
+          0.8,
+          -6.075
+        ]
+      }
+    ],
+    "placeables": [
+      {
+        "id": "conv-slides",
+        "start": [
+          -9.875,
+          0.85,
+          10.463
+        ]
+      },
+      {
+        "id": "conv-display",
+        "start": [
+          -9.098,
+          0.85,
+          10.463
+        ]
+      },
+      {
+        "id": "hhrx1",
+        "start": [
+          -8.321,
+          0.85,
+          10.463
+        ]
+      },
+      {
+        "id": "lavrx1",
+        "start": [
+          -7.544,
+          0.85,
+          10.463
+        ]
+      },
+      {
+        "id": "hhrx2",
+        "start": [
+          -6.766,
+          0.85,
+          10.463
+        ]
+      },
+      {
+        "id": "lavrx2",
+        "start": [
+          -5.989,
+          0.85,
+          10.463
+        ]
+      },
+      {
+        "id": "tx1",
+        "start": [
+          -5.212,
+          0.85,
+          10.463
+        ]
+      },
+      {
+        "id": "tx2",
+        "start": [
+          -4.435,
+          0.85,
+          10.463
+        ]
+      }
+    ],
+    "routes": [
+      {
+        "id": "lav-1",
+        "from": [
+          "lav1:audio-out"
+        ],
+        "to": [
+          "tx1:mic-in"
+        ]
+      },
+      {
+        "id": "lav-2",
+        "from": [
+          "lav2:audio-out"
+        ],
+        "to": [
+          "tx2:mic-in"
+        ]
+      },
+      {
+        "id": "cam-1",
+        "from": [
+          "cam1:sdi-out"
+        ],
+        "to": [
+          "sw:sdi-in1"
+        ]
+      },
+      {
+        "id": "cam-2",
+        "from": [
+          "cam2:sdi-out"
+        ],
+        "to": [
+          "sw:sdi-in2"
+        ]
+      },
+      {
+        "id": "cam-3",
+        "from": [
+          "cam3:sdi-out"
+        ],
+        "to": [
+          "sw:sdi-in3"
+        ]
+      },
+      {
+        "id": "cam-4",
+        "from": [
+          "cam4:sdi-out"
+        ],
+        "to": [
+          "sw:sdi-in4"
+        ]
+      },
+      {
+        "id": "slides-conv",
+        "from": [
+          "slides:hdmi-out"
+        ],
+        "to": [
+          "conv-slides:hdmi-in"
+        ]
+      },
+      {
+        "id": "slides",
+        "from": [
+          "conv-slides:sdi-out"
+        ],
+        "to": [
+          "sw:sdi-in5"
+        ]
+      },
+      {
+        "id": "aux-conv",
+        "from": [
+          "sw:aux-out"
+        ],
+        "to": [
+          "conv-display:sdi-in"
+        ]
+      },
+      {
+        "id": "display",
+        "from": [
+          "conv-display:hdmi-out"
+        ],
+        "to": [
+          "display:hdmi-in"
+        ]
+      },
+      {
+        "id": "monitor",
+        "from": [
+          "sw:multiview-out"
+        ],
+        "to": [
+          "monitor:hdmi-in"
+        ]
+      },
+      {
+        "id": "program-record",
+        "from": [
+          "sw:pgm-out"
+        ],
+        "to": [
+          "recorder:sdi-in"
+        ]
+      },
+      {
+        "id": "usb-webcam",
+        "from": [
+          "sw:usb-webcam"
+        ],
+        "to": [
+          "pc:usb-host"
+        ]
+      },
+      {
+        "id": "stage-1",
+        "from": [
+          "mic1:xlr-out"
+        ],
+        "to": [
+          "stagebox:mic-in1"
+        ]
+      },
+      {
+        "id": "stage-2",
+        "from": [
+          "hhrx1:xlr-out"
+        ],
+        "to": [
+          "stagebox:mic-in2"
+        ]
+      },
+      {
+        "id": "stage-3",
+        "from": [
+          "hhrx2:xlr-out"
+        ],
+        "to": [
+          "stagebox:mic-in3"
+        ]
+      },
+      {
+        "id": "stage-4",
+        "from": [
+          "lavrx1:xlr-out"
+        ],
+        "to": [
+          "stagebox:mic-in4"
+        ]
+      },
+      {
+        "id": "stage-5",
+        "from": [
+          "lavrx2:xlr-out"
+        ],
+        "to": [
+          "stagebox:mic-in5"
+        ]
+      },
+      {
+        "id": "snake",
+        "from": [
+          "stagebox:multicore-out"
+        ],
+        "to": [
+          "mix:multicore-in"
+        ]
+      },
+      {
+        "id": "mix-pa",
+        "from": [
+          "mix:pa-out"
+        ],
+        "to": [
+          "pa:line-in"
+        ]
+      },
+      {
+        "id": "mix-bc",
+        "from": [
+          "mix:bc-out"
+        ],
+        "to": [
+          "sw:audio-in"
+        ]
+      }
+    ],
+    "actions": [
+      {
+        "id": "pair-hh1",
+        "needs": [
+          "stage-2"
+        ]
+      },
+      {
+        "id": "pair-hh2",
+        "needs": [
+          "stage-3"
+        ]
+      },
+      {
+        "id": "pair-lav1",
+        "needs": [
+          "lav-1",
+          "stage-4"
+        ]
+      },
+      {
+        "id": "pair-lav2",
+        "needs": [
+          "lav-2",
+          "stage-5"
+        ]
+      },
+      {
+        "id": "bus-pa",
+        "needs": [
+          "stage-1",
+          "pair-hh1",
+          "snake",
+          "mix-pa"
+        ]
+      },
+      {
+        "id": "bus-bc",
+        "needs": [
+          "bus-pa",
+          "mix-bc"
+        ]
+      },
+      {
+        "id": "bus-all",
+        "needs": [
+          "pair-hh2",
+          "pair-lav1",
+          "pair-lav2",
+          "bus-bc"
+        ]
+      },
+      {
+        "id": "sw-audio",
+        "needs": [
+          "mix-bc",
+          "bus-bc"
+        ]
+      },
+      {
+        "id": "aux-program",
+        "needs": [
+          "aux-conv",
+          "display"
+        ]
+      },
+      {
+        "id": "select-cam-1",
+        "needs": [
+          "cam-1",
+          "aux-program"
+        ]
+      },
+      {
+        "id": "select-cam-2",
+        "needs": [
+          "cam-2",
+          "aux-program"
+        ]
+      },
+      {
+        "id": "select-cam-3",
+        "needs": [
+          "cam-3",
+          "aux-program"
+        ]
+      },
+      {
+        "id": "select-cam-4",
+        "needs": [
+          "cam-4",
+          "aux-program"
+        ]
+      },
+      {
+        "id": "select-slides",
+        "needs": [
+          "slides-conv",
+          "slides",
+          "aux-program"
+        ]
+      },
+      {
+        "id": "record",
+        "needs": [
+          "program-record",
+          "sw-audio"
+        ]
+      },
+      {
+        "id": "obs-ready",
+        "needs": [
+          "usb-webcam",
+          "sw-audio",
+          "monitor"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "l-5",
+    "layout": "outdoor",
+    "spawn": [
+      -14.58,
+      0.84,
+      14.31
+    ],
+    "storage": {
+      "shape": "rect",
+      "center": [
+        -10.665,
+        0.85,
+        11.745
+      ],
+      "size": [
+        5.8,
+        0.85
+      ],
+      "front": 1
+    },
+    "devices": [
+      {
+        "id": "sw",
+        "size": [
+          0.62,
+          0.16,
+          0.38
+        ],
+        "position": [
+          4.523,
+          0.76,
+          10.53
+        ]
+      },
+      {
+        "id": "cam1",
+        "size": [
+          0.32,
+          1.5,
+          0.45
+        ],
+        "position": [
+          -10.26,
+          0,
+          -6.75
+        ]
+      },
+      {
+        "id": "cam2",
+        "size": [
+          0.32,
+          1.5,
+          0.45
+        ],
+        "position": [
+          9.18,
+          0,
+          -7.02
+        ]
+      },
+      {
+        "id": "cam3",
+        "size": [
+          0.32,
+          1.5,
+          0.45
+        ],
+        "position": [
+          0,
+          0.3,
+          5.805
+        ]
+      },
+      {
+        "id": "fiber-tx",
+        "size": [
+          0.48,
+          0.18,
+          0.3
+        ],
+        "position": [
+          -9.45,
+          0,
+          -7.223
+        ]
+      },
+      {
+        "id": "fiber-rx",
+        "size": [
+          0.48,
+          0.18,
+          0.3
+        ],
+        "position": [
+          2.093,
+          0.85,
+          11.003
+        ]
+      },
+      {
+        "id": "monitor",
+        "size": [
+          0.6,
+          0.36,
+          0.08
+        ],
+        "position": [
+          5.603,
+          0.76,
+          10.463
+        ]
+      },
+      {
+        "id": "rx",
+        "size": [
+          0.48,
+          0.18,
+          0.3
+        ],
+        "position": [
+          3.24,
+          0.76,
+          11.205
+        ]
+      },
+      {
+        "id": "mic0",
+        "size": [
+          0.08,
+          0.08,
+          0.25
+        ],
+        "position": [
+          -3.51,
+          0,
+          -8.168
+        ]
+      },
+      {
+        "id": "mic1",
+        "size": [
+          0.08,
+          0.08,
+          0.25
+        ],
+        "position": [
+          -9.72,
+          0,
+          0.54
+        ]
+      },
+      {
+        "id": "mix",
+        "size": [
+          0.48,
+          0.18,
+          0.3
+        ],
+        "position": [
+          3.51,
+          0.76,
+          10.598
+        ]
+      },
+      {
+        "id": "pa",
+        "size": [
+          0.34,
+          0.55,
+          0.3
+        ],
+        "position": [
+          -7.425,
+          1,
+          -10.26
+        ]
+      },
+      {
+        "id": "embedder",
+        "size": [
+          0.48,
+          0.18,
+          0.3
+        ],
+        "position": [
+          6.143,
+          0.76,
+          11.138
+        ]
+      },
+      {
+        "id": "encoder",
+        "size": [
+          0.48,
+          0.18,
+          0.3
+        ],
+        "position": [
+          6.683,
+          0.76,
+          10.598
+        ]
+      },
+      {
+        "id": "network",
+        "size": [
+          0.48,
+          0.18,
+          0.3
+        ],
+        "position": [
+          7.56,
+          0.76,
+          10.598
+        ]
+      },
+      {
+        "id": "live",
+        "size": [
+          0.4,
+          0.9,
+          0.4
+        ],
+        "position": [
+          9.113,
+          0,
+          11.61
+        ]
+      },
+      {
+        "id": "lav1",
+        "size": [
+          0.08,
+          0.08,
+          0.25
+        ],
+        "position": [
+          1.62,
+          1,
+          -10.125
+        ]
+      },
+      {
+        "id": "tx1",
+        "size": [
+          0.48,
+          0.18,
+          0.3
+        ],
+        "position": [
+          1.08,
+          1,
+          -10.125
+        ]
+      }
+    ],
+    "placeables": [
+      {
+        "id": "fiber-tx",
+        "start": [
+          -13.385,
+          0.85,
+          11.745
+        ]
+      },
+      {
+        "id": "fiber-rx",
+        "start": [
+          -12.478,
+          0.85,
+          11.745
+        ]
+      },
+      {
+        "id": "monitor",
+        "start": [
+          -11.572,
+          0.85,
+          11.745
+        ]
+      },
+      {
+        "id": "rx",
+        "start": [
+          -10.665,
+          0.85,
+          11.745
+        ]
+      },
+      {
+        "id": "embedder",
+        "start": [
+          -9.758,
+          0.85,
+          11.745
+        ]
+      },
+      {
+        "id": "encoder",
+        "start": [
+          -8.852,
+          0.85,
+          11.745
+        ]
+      },
+      {
+        "id": "tx1",
+        "start": [
+          -7.945,
+          0.85,
+          11.745
+        ]
+      }
+    ],
+    "routes": [
+      {
+        "id": "lav-1",
+        "from": [
+          "lav1:audio-out"
+        ],
+        "to": [
+          "tx1:mic-in"
+        ]
+      },
+      {
+        "id": "field-tx",
+        "from": [
+          "cam1:sdi-out"
+        ],
+        "to": [
+          "fiber-tx:sdi-in"
+        ]
+      },
+      {
+        "id": "fiber-link",
+        "from": [
+          "fiber-tx:fiber-out"
+        ],
+        "to": [
+          "fiber-rx:fiber-in"
+        ]
+      },
+      {
+        "id": "cam-1",
+        "from": [
+          "fiber-rx:sdi-out"
+        ],
+        "to": [
+          "sw:sdi-in1"
+        ]
+      },
+      {
+        "id": "cam-2",
+        "from": [
+          "cam2:sdi-out"
+        ],
+        "to": [
+          "sw:sdi-in2"
+        ]
+      },
+      {
+        "id": "cam-3",
+        "from": [
+          "cam3:sdi-out"
+        ],
+        "to": [
+          "sw:sdi-in3"
+        ]
+      },
+      {
+        "id": "monitor",
+        "from": [
+          "sw:multiview-out"
+        ],
+        "to": [
+          "monitor:sdi-in"
+        ]
+      },
+      {
+        "id": "rx-mix",
+        "from": [
+          "rx:xlr-out"
+        ],
+        "to": [
+          "mix:ch1-in"
+        ]
+      },
+      {
+        "id": "mic-0",
+        "from": [
+          "mic0:xlr-out"
+        ],
+        "to": [
+          "mix:ch2-mic"
+        ]
+      },
+      {
+        "id": "mic-1",
+        "from": [
+          "mic1:xlr-out"
+        ],
+        "to": [
+          "mix:ch3-mic"
+        ]
+      },
+      {
+        "id": "mix-pa",
+        "from": [
+          "mix:pa-out"
+        ],
+        "to": [
+          "pa:line-in"
+        ]
+      },
+      {
+        "id": "mix-embed",
+        "from": [
+          "mix:bc-out"
+        ],
+        "to": [
+          "embedder:audio-in"
+        ]
+      },
+      {
+        "id": "program-embed",
+        "from": [
+          "sw:pgm-out"
+        ],
+        "to": [
+          "embedder:sdi-in"
+        ]
+      },
+      {
+        "id": "program-encode",
+        "from": [
+          "embedder:sdi-out"
+        ],
+        "to": [
+          "encoder:sdi-in"
+        ]
+      },
+      {
+        "id": "network",
+        "from": [
+          "encoder:network-out"
+        ],
+        "to": [
+          "network:lan-in"
+        ]
+      },
+      {
+        "id": "destination",
+        "from": [
+          "network:wan-out"
+        ],
+        "to": [
+          "live:network-in"
+        ]
+      }
+    ],
+    "actions": [
+      {
+        "id": "fiber-ready",
+        "needs": [
+          "field-tx",
+          "fiber-link"
+        ]
+      },
+      {
+        "id": "wireless-pair",
+        "needs": [
+          "lav-1"
+        ]
+      },
+      {
+        "id": "phantom",
+        "needs": [
+          "mic-0"
+        ]
+      },
+      {
+        "id": "bus-pa",
+        "needs": [
+          "rx-mix",
+          "wireless-pair",
+          "mix-pa"
+        ]
+      },
+      {
+        "id": "bus-bc",
+        "needs": [
+          "bus-pa",
+          "phantom",
+          "mic-1"
+        ]
+      },
+      {
+        "id": "select-cam-1",
+        "needs": [
+          "cam-1",
+          "fiber-ready",
+          "monitor"
+        ]
+      },
+      {
+        "id": "select-cam-2",
+        "needs": [
+          "cam-2",
+          "monitor"
+        ]
+      },
+      {
+        "id": "select-cam-3",
+        "needs": [
+          "cam-3",
+          "monitor"
+        ]
+      },
+      {
+        "id": "embed",
+        "needs": [
+          "program-embed",
+          "mix-embed",
+          "bus-bc"
+        ]
+      },
+      {
+        "id": "network-ready",
+        "needs": [
+          "network",
+          "destination"
+        ]
+      },
+      {
+        "id": "encoder-ready",
+        "needs": [
+          "program-encode",
+          "embed",
+          "network-ready"
+        ]
+      },
+      {
+        "id": "ramp",
+        "needs": []
+      }
+    ]
+  },
+  {
+    "id": "xl-5",
+    "layout": "stadium",
+    "spawn": [
+      1.56,
+      0.84,
+      1.56
+    ],
+    "storage": {
+      "shape": "rect",
+      "center": [
+        -2.99,
+        1,
+        1.04
+      ],
+      "size": [
+        1.6,
+        0.5
+      ],
+      "front": -1,
+      "levels": [
+        0.55
+      ]
+    },
+    "devices": [
+      {
+        "id": "ccu1",
+        "size": [
+          0.5,
+          0.18,
+          0.45
+        ],
+        "position": [
+          -15.47,
+          0.12,
+          -8.32
+        ]
+      },
+      {
+        "id": "ccu2",
+        "size": [
+          0.5,
+          0.18,
+          0.45
+        ],
+        "position": [
+          -15.47,
+          0.42,
+          -8.32
+        ]
+      },
+      {
+        "id": "ccu3",
+        "size": [
+          0.5,
+          0.18,
+          0.45
+        ],
+        "position": [
+          -15.47,
+          0.72,
+          -8.32
+        ]
+      },
+      {
+        "id": "ccu4",
+        "size": [
+          0.5,
+          0.18,
+          0.45
+        ],
+        "position": [
+          -15.47,
+          1.02,
+          -8.32
+        ]
+      },
+      {
+        "id": "ccu5",
+        "size": [
+          0.5,
+          0.18,
+          0.45
+        ],
+        "position": [
+          -15.47,
+          1.3199999999999998,
+          -8.32
+        ]
+      },
+      {
+        "id": "ccu6",
+        "size": [
+          0.5,
+          0.18,
+          0.45
+        ],
+        "position": [
+          -15.47,
+          1.62,
+          -8.32
+        ]
+      },
+      {
+        "id": "router",
+        "size": [
+          0.56,
+          1.7,
+          0.56
+        ],
+        "position": [
+          -15.47,
+          0,
+          -7.28
+        ]
+      },
+      {
+        "id": "sw",
+        "size": [
+          0.62,
+          0.16,
+          0.38
+        ],
+        "position": [
+          -9.1,
+          0.76,
+          -6.695
+        ]
+      },
+      {
+        "id": "cam1",
+        "size": [
+          0.32,
+          1.5,
+          0.45
+        ],
+        "position": [
+          0,
+          0.3,
+          10.66
+        ]
+      },
+      {
+        "id": "cam2",
+        "size": [
+          0.32,
+          1.5,
+          0.45
+        ],
+        "position": [
+          -12.35,
+          0,
+          16.38
+        ]
+      },
+      {
+        "id": "cam3",
+        "size": [
+          0.32,
+          1.5,
+          0.45
+        ],
+        "position": [
+          12.35,
+          0,
+          16.38
+        ]
+      },
+      {
+        "id": "cam4",
+        "size": [
+          0.32,
+          1.5,
+          0.45
+        ],
+        "position": [
+          16.9,
+          0,
+          7.02
+        ]
+      },
+      {
+        "id": "cam5",
+        "size": [
+          0.32,
+          1.5,
+          0.45
+        ],
+        "position": [
+          -6.5,
+          0,
+          15.34
+        ]
+      },
+      {
+        "id": "cam6",
+        "size": [
+          0.32,
+          1.5,
+          0.45
+        ],
+        "position": [
+          6.5,
+          0,
+          16.51
+        ]
+      },
+      {
+        "id": "replay",
+        "size": [
+          0.48,
+          0.18,
+          0.3
+        ],
+        "position": [
+          -9.88,
+          0.76,
+          -3.965
+        ]
+      },
+      {
+        "id": "replay-ctl",
+        "size": [
+          0.48,
+          0.18,
+          0.3
+        ],
+        "position": [
+          -8.32,
+          0.76,
+          -3.965
+        ]
+      },
+      {
+        "id": "graphics",
+        "size": [
+          0.48,
+          0.03,
+          0.32
+        ],
+        "position": [
+          -8.32,
+          0.76,
+          -1.235
+        ]
+      },
+      {
+        "id": "conv-gfx",
+        "size": [
+          0.48,
+          0.18,
+          0.3
+        ],
+        "position": [
+          -7.28,
+          0.76,
+          -1.235
+        ]
+      },
+      {
+        "id": "monitor",
+        "size": [
+          3.2,
+          1.8,
+          0.12
+        ],
+        "position": [
+          -9.1,
+          1,
+          -8.775
+        ]
+      },
+      {
+        "id": "display-conv",
+        "size": [
+          0.6,
+          0.36,
+          0.08
+        ],
+        "position": [
+          16.38,
+          0,
+          12.48
+        ]
+      },
+      {
+        "id": "display",
+        "size": [
+          2.4,
+          1.3,
+          0.1
+        ],
+        "position": [
+          17.16,
+          0,
+          14.3
+        ]
+      },
+      {
+        "id": "mic0",
+        "size": [
+          0.08,
+          0.08,
+          0.25
+        ],
+        "position": [
+          7.15,
+          0.76,
+          -2.275
+        ]
+      },
+      {
+        "id": "mic1",
+        "size": [
+          0.08,
+          0.08,
+          0.25
+        ],
+        "position": [
+          8.97,
+          0.76,
+          -2.275
+        ]
+      },
+      {
+        "id": "mic2",
+        "size": [
+          0.08,
+          0.08,
+          0.25
+        ],
+        "position": [
+          -15.34,
+          0,
+          15.08
+        ]
+      },
+      {
+        "id": "mic3",
+        "size": [
+          0.08,
+          0.08,
+          0.25
+        ],
+        "position": [
+          16.9,
+          0,
+          11.7
+        ]
+      },
+      {
+        "id": "mic4",
+        "size": [
+          0.08,
+          0.08,
+          0.25
+        ],
+        "position": [
+          3.9,
+          0,
+          16.9
+        ]
+      },
+      {
+        "id": "rx",
+        "size": [
+          0.48,
+          0.18,
+          0.3
+        ],
+        "position": [
+          -2.535,
+          0.76,
+          -4.875
+        ]
+      },
+      {
+        "id": "stagebox",
+        "size": [
+          0.5,
+          0.55,
+          0.45
+        ],
+        "position": [
+          6.5,
+          0,
+          -0.78
+        ]
+      },
+      {
+        "id": "mix",
+        "size": [
+          0.48,
+          0.18,
+          0.3
+        ],
+        "position": [
+          -3.38,
+          0.76,
+          -5.395
+        ]
+      },
+      {
+        "id": "pa",
+        "size": [
+          0.34,
+          0.55,
+          0.3
+        ],
+        "position": [
+          16.12,
+          0,
+          16.64
+        ]
+      },
+      {
+        "id": "embedder",
+        "size": [
+          0.56,
+          1.7,
+          0.56
+        ],
+        "position": [
+          -15.47,
+          0,
+          -5.98
+        ]
+      },
+      {
+        "id": "da",
+        "size": [
+          0.56,
+          1.7,
+          0.56
+        ],
+        "position": [
+          -15.47,
+          0,
+          -1.56
+        ]
+      },
+      {
+        "id": "encoder",
+        "size": [
+          0.56,
+          1.7,
+          0.56
+        ],
+        "position": [
+          -15.47,
+          0,
+          -4.94
+        ]
+      },
+      {
+        "id": "network",
+        "size": [
+          0.56,
+          1.7,
+          0.56
+        ],
+        "position": [
+          -15.47,
+          0,
+          -3.9
+        ]
+      },
+      {
+        "id": "live",
+        "size": [
+          0.56,
+          1.7,
+          0.56
+        ],
+        "position": [
+          -15.47,
+          0,
+          -2.86
+        ]
+      },
+      {
+        "id": "backup",
+        "size": [
+          0.56,
+          1.7,
+          0.56
+        ],
+        "position": [
+          -15.47,
+          0,
+          -0.26
+        ]
+      },
+      {
+        "id": "backup-net",
+        "size": [
+          0.56,
+          1.7,
+          0.56
+        ],
+        "position": [
+          -15.47,
+          0,
+          0.78
+        ]
+      },
+      {
+        "id": "live-backup",
+        "size": [
+          0.56,
+          1.7,
+          0.56
+        ],
+        "position": [
+          -15.21,
+          0,
+          1.82
+        ]
+      },
+      {
+        "id": "recorder",
+        "size": [
+          0.56,
+          1.7,
+          0.56
+        ],
+        "position": [
+          -15.47,
+          0,
+          1.82
+        ]
+      },
+      {
+        "id": "intercom",
+        "size": [
+          0.48,
+          0.18,
+          0.3
+        ],
+        "position": [
+          -7.02,
+          0.76,
+          -5.98
+        ]
+      },
+      {
+        "id": "commentary",
+        "size": [
+          0.48,
+          0.18,
+          0.3
+        ],
+        "position": [
+          8.06,
+          0.76,
+          -1.69
+        ]
+      },
+      {
+        "id": "lav1",
+        "size": [
+          0.08,
+          0.08,
+          0.25
+        ],
+        "position": [
+          -2.6,
+          0,
+          16.77
+        ]
+      },
+      {
+        "id": "tx1",
+        "size": [
+          0.48,
+          0.18,
+          0.3
+        ],
+        "position": [
+          -3.12,
+          0,
+          16.77
+        ]
+      }
+    ],
+    "placeables": [
+      {
+        "id": "conv-gfx",
+        "start": [
+          -3.61,
+          1,
+          1.04
+        ]
+      },
+      {
+        "id": "rx",
+        "start": [
+          -2.99,
+          1,
+          1.04
+        ]
+      },
+      {
+        "id": "tx1",
+        "start": [
+          -2.37,
+          1,
+          1.04
+        ]
+      }
+    ],
+    "routes": [
+      {
+        "id": "lav-1",
+        "from": [
+          "lav1:audio-out"
+        ],
+        "to": [
+          "tx1:mic-in"
+        ]
+      },
+      {
+        "id": "fiber-1",
+        "from": [
+          "cam1:fiber-out"
+        ],
+        "to": [
+          "ccu1:fiber-in"
+        ]
+      },
+      {
+        "id": "ccu-1",
+        "from": [
+          "ccu1:sdi-out"
+        ],
+        "to": [
+          "router:in1"
+        ]
+      },
+      {
+        "id": "cam-1",
+        "from": [
+          "router:out1"
+        ],
+        "to": [
+          "sw:in1"
+        ]
+      },
+      {
+        "id": "fiber-2",
+        "from": [
+          "cam2:fiber-out"
+        ],
+        "to": [
+          "ccu2:fiber-in"
+        ]
+      },
+      {
+        "id": "ccu-2",
+        "from": [
+          "ccu2:sdi-out"
+        ],
+        "to": [
+          "router:in2"
+        ]
+      },
+      {
+        "id": "cam-2",
+        "from": [
+          "router:out2"
+        ],
+        "to": [
+          "sw:in2"
+        ]
+      },
+      {
+        "id": "fiber-3",
+        "from": [
+          "cam3:fiber-out"
+        ],
+        "to": [
+          "ccu3:fiber-in"
+        ]
+      },
+      {
+        "id": "ccu-3",
+        "from": [
+          "ccu3:sdi-out"
+        ],
+        "to": [
+          "router:in3"
+        ]
+      },
+      {
+        "id": "cam-3",
+        "from": [
+          "router:out3"
+        ],
+        "to": [
+          "sw:in3"
+        ]
+      },
+      {
+        "id": "fiber-4",
+        "from": [
+          "cam4:fiber-out"
+        ],
+        "to": [
+          "ccu4:fiber-in"
+        ]
+      },
+      {
+        "id": "ccu-4",
+        "from": [
+          "ccu4:sdi-out"
+        ],
+        "to": [
+          "router:in4"
+        ]
+      },
+      {
+        "id": "cam-4",
+        "from": [
+          "router:out4"
+        ],
+        "to": [
+          "sw:in4"
+        ]
+      },
+      {
+        "id": "fiber-5",
+        "from": [
+          "cam5:fiber-out"
+        ],
+        "to": [
+          "ccu5:fiber-in"
+        ]
+      },
+      {
+        "id": "ccu-5",
+        "from": [
+          "ccu5:sdi-out"
+        ],
+        "to": [
+          "router:in5"
+        ]
+      },
+      {
+        "id": "cam-5",
+        "from": [
+          "router:out5"
+        ],
+        "to": [
+          "sw:in5"
+        ]
+      },
+      {
+        "id": "fiber-6",
+        "from": [
+          "cam6:fiber-out"
+        ],
+        "to": [
+          "ccu6:fiber-in"
+        ]
+      },
+      {
+        "id": "ccu-6",
+        "from": [
+          "ccu6:sdi-out"
+        ],
+        "to": [
+          "router:in6"
+        ]
+      },
+      {
+        "id": "cam-6",
+        "from": [
+          "router:out6"
+        ],
+        "to": [
+          "sw:in6"
+        ]
+      },
+      {
+        "id": "replay-src",
+        "from": [
+          "replay:sdi-out"
+        ],
+        "to": [
+          "router:in7"
+        ]
+      },
+      {
+        "id": "replay",
+        "from": [
+          "router:out7"
+        ],
+        "to": [
+          "sw:in7"
+        ]
+      },
+      {
+        "id": "replay-control",
+        "from": [
+          "replay-ctl:control-out"
+        ],
+        "to": [
+          "replay:control-in"
+        ]
+      },
+      {
+        "id": "gfx-conv",
+        "from": [
+          "graphics:hdmi-out"
+        ],
+        "to": [
+          "conv-gfx:hdmi-in"
+        ]
+      },
+      {
+        "id": "gfx-src",
+        "from": [
+          "conv-gfx:sdi-out"
+        ],
+        "to": [
+          "router:in8"
+        ]
+      },
+      {
+        "id": "graphics",
+        "from": [
+          "router:out8"
+        ],
+        "to": [
+          "sw:in8"
+        ]
+      },
+      {
+        "id": "monitor",
+        "from": [
+          "sw:multiview-out"
+        ],
+        "to": [
+          "monitor:sdi-in"
+        ]
+      },
+      {
+        "id": "aux-venue",
+        "from": [
+          "sw:aux-out"
+        ],
+        "to": [
+          "display-conv:sdi-in"
+        ]
+      },
+      {
+        "id": "display",
+        "from": [
+          "display-conv:hdmi-out"
+        ],
+        "to": [
+          "display:hdmi-in"
+        ]
+      },
+      {
+        "id": "mic-0",
+        "from": [
+          "mic0:xlr-out"
+        ],
+        "to": [
+          "stagebox:mic-in1"
+        ]
+      },
+      {
+        "id": "mic-1",
+        "from": [
+          "mic1:xlr-out"
+        ],
+        "to": [
+          "stagebox:mic-in2"
+        ]
+      },
+      {
+        "id": "mic-2",
+        "from": [
+          "mic2:xlr-out"
+        ],
+        "to": [
+          "stagebox:mic-in3"
+        ]
+      },
+      {
+        "id": "mic-3",
+        "from": [
+          "mic3:xlr-out"
+        ],
+        "to": [
+          "stagebox:mic-in4"
+        ]
+      },
+      {
+        "id": "mic-4",
+        "from": [
+          "mic4:xlr-out"
+        ],
+        "to": [
+          "stagebox:mic-in5"
+        ]
+      },
+      {
+        "id": "rx-stage",
+        "from": [
+          "rx:xlr-out"
+        ],
+        "to": [
+          "stagebox:mic-in6"
+        ]
+      },
+      {
+        "id": "snake",
+        "from": [
+          "stagebox:multicore-out"
+        ],
+        "to": [
+          "mix:multicore-in"
+        ]
+      },
+      {
+        "id": "mix-pa",
+        "from": [
+          "mix:pa-out"
+        ],
+        "to": [
+          "pa:line-in"
+        ]
+      },
+      {
+        "id": "mix-embed",
+        "from": [
+          "mix:bc-out"
+        ],
+        "to": [
+          "embedder:audio-in"
+        ]
+      },
+      {
+        "id": "program-embed",
+        "from": [
+          "sw:pgm-out"
+        ],
+        "to": [
+          "embedder:sdi-in"
+        ]
+      },
+      {
+        "id": "embed-da",
+        "from": [
+          "embedder:sdi-out"
+        ],
+        "to": [
+          "da:sdi-in"
+        ]
+      },
+      {
+        "id": "program-encode",
+        "from": [
+          "da:out1"
+        ],
+        "to": [
+          "encoder:sdi-in"
+        ]
+      },
+      {
+        "id": "backup-encode",
+        "from": [
+          "da:out2"
+        ],
+        "to": [
+          "backup:sdi-in"
+        ]
+      },
+      {
+        "id": "program-record",
+        "from": [
+          "da:out3"
+        ],
+        "to": [
+          "recorder:sdi-in"
+        ]
+      },
+      {
+        "id": "network",
+        "from": [
+          "encoder:network-out"
+        ],
+        "to": [
+          "network:lan-in"
+        ]
+      },
+      {
+        "id": "destination",
+        "from": [
+          "network:wan-out"
+        ],
+        "to": [
+          "live:network-in"
+        ]
+      },
+      {
+        "id": "backup-network",
+        "from": [
+          "backup:network-out"
+        ],
+        "to": [
+          "backup-net:lan-in"
+        ]
+      },
+      {
+        "id": "backup-live",
+        "from": [
+          "backup-net:wan-out"
+        ],
+        "to": [
+          "live-backup:network-in"
+        ]
+      },
+      {
+        "id": "intercom",
+        "from": [
+          "intercom:party-line1"
+        ],
+        "to": [
+          "commentary:intercom-in"
+        ]
+      },
+      {
+        "id": "tally",
+        "from": [
+          "sw:tally-out"
+        ],
+        "to": [
+          "ccu1:tally-in"
+        ]
+      }
+    ],
+    "actions": [
+      {
+        "id": "xp-1",
+        "needs": [
+          "ccu-1",
+          "cam-1"
+        ]
+      },
+      {
+        "id": "xp-2",
+        "needs": [
+          "ccu-2",
+          "cam-2"
+        ]
+      },
+      {
+        "id": "xp-3",
+        "needs": [
+          "ccu-3",
+          "cam-3"
+        ]
+      },
+      {
+        "id": "xp-4",
+        "needs": [
+          "ccu-4",
+          "cam-4"
+        ]
+      },
+      {
+        "id": "xp-5",
+        "needs": [
+          "ccu-5",
+          "cam-5"
+        ]
+      },
+      {
+        "id": "xp-6",
+        "needs": [
+          "ccu-6",
+          "cam-6"
+        ]
+      },
+      {
+        "id": "xp-7",
+        "needs": [
+          "replay-src",
+          "replay"
+        ]
+      },
+      {
+        "id": "xp-8",
+        "needs": [
+          "gfx-src",
+          "graphics"
+        ]
+      },
+      {
+        "id": "select-cam-1",
+        "needs": [
+          "fiber-1",
+          "xp-1",
+          "monitor"
+        ]
+      },
+      {
+        "id": "select-cam-2",
+        "needs": [
+          "fiber-2",
+          "xp-2",
+          "monitor"
+        ]
+      },
+      {
+        "id": "select-cam-3",
+        "needs": [
+          "fiber-3",
+          "xp-3",
+          "monitor"
+        ]
+      },
+      {
+        "id": "select-cam-4",
+        "needs": [
+          "fiber-4",
+          "xp-4",
+          "monitor"
+        ]
+      },
+      {
+        "id": "select-cam-5",
+        "needs": [
+          "fiber-5",
+          "xp-5",
+          "monitor"
+        ]
+      },
+      {
+        "id": "select-cam-6",
+        "needs": [
+          "fiber-6",
+          "xp-6",
+          "monitor"
+        ]
+      },
+      {
+        "id": "select-replay",
+        "needs": [
+          "xp-7",
+          "replay-control",
+          "monitor"
+        ]
+      },
+      {
+        "id": "select-graphics",
+        "needs": [
+          "xp-8",
+          "gfx-conv",
+          "monitor"
+        ]
+      },
+      {
+        "id": "wireless-pair",
+        "needs": [
+          "lav-1"
+        ]
+      },
+      {
+        "id": "bus-bc",
+        "needs": [
+          "mic-0",
+          "mic-1",
+          "mic-2",
+          "mic-3",
+          "mic-4",
+          "snake"
+        ]
+      },
+      {
+        "id": "bus-pa",
+        "needs": [
+          "bus-bc",
+          "mix-pa"
+        ]
+      },
+      {
+        "id": "bus-presenter",
+        "needs": [
+          "rx-stage",
+          "wireless-pair",
+          "bus-pa"
+        ]
+      },
+      {
+        "id": "embed",
+        "needs": [
+          "program-embed",
+          "mix-embed",
+          "bus-presenter"
+        ]
+      },
+      {
+        "id": "aux-program",
+        "needs": [
+          "aux-venue",
+          "display"
+        ]
+      },
+      {
+        "id": "record",
+        "needs": [
+          "program-record",
+          "embed",
+          "embed-da"
+        ]
+      },
+      {
+        "id": "network-ready",
+        "needs": [
+          "network",
+          "destination"
+        ]
+      },
+      {
+        "id": "encoder-ready",
+        "needs": [
+          "program-encode",
+          "embed",
+          "embed-da",
+          "network-ready"
+        ]
+      },
+      {
+        "id": "backup-ready",
+        "needs": [
+          "backup-encode",
+          "backup-network",
+          "backup-live",
+          "embed"
+        ]
+      },
+      {
+        "id": "intercom-ready",
+        "needs": [
+          "intercom"
+        ]
+      },
+      {
+        "id": "tally-map",
+        "needs": [
+          "tally",
+          "fiber-1",
+          "fiber-2",
+          "fiber-3",
+          "fiber-4",
+          "fiber-5",
+          "fiber-6"
+        ]
+      }
+    ]
+  }
+]

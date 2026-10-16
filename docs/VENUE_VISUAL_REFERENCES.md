@@ -22,9 +22,11 @@ Shared style line used for every image:
 | 4 | Outdoor event area | `outdoor-01`, `outdoor-02` | `outdoor` · พื้นที่ภายนอกอาคาร | บทที่ 04 | `l-1..5` |
 | 5 | Stadium broadcast area | `stadium-01`, `stadium-02` | `stadium` · สนามกีฬาและงานถ่ายทอดสด | บทที่ 05 บัลลังก์จอมถ่ายทอด | `xl-1..5` |
 
-> **Open decision (venue 3):** the game describes mission 3 as an auditorium for stage / mid-size events
-> ("งานเวที / กิจกรรมขนาดกลาง"), while the reference is an executive **meeting room**. Either rename / re-theme mission 3 as a
-> meeting & conference room, or keep the auditorium and generate a new reference. Decide before modelling venue 3.
+> **Venue 3 decision (2026-10-16):** retain the large auditorium, stage, audience blocks, three aisles and rear production desks.
+> Adapt the meeting-room references through warm wood slats, neutral carpet, acoustic ceiling islands, linear lighting,
+> wood audience tables, black conference chairs, table microphones, windows with blinds, front speakers, camera and AV rack.
+> Preserve all mission device positions, furniture footprints and cable routes. Decorative equipment is not an extra mission device.
+> Implemented in `auditorium.tsx`; desktop in-game visual and walking checks completed on 2026-10-16 (see `VENUE_REVIEW_2026-10-16.md`). Owner visual approval remains separate.
 
 The existing 3D rooms are code-built (`components/game/environment/venue/*.tsx`, layouts in
 `game/training/venue-layouts.ts`). Rebuilding a room must keep every port, control and cable start inside the layout bounds
@@ -78,3 +80,25 @@ The existing 3D rooms are code-built (`components/game/environment/venue/*.tsx`,
 - Flight cases, cable reels, power boxes, cable ramps across the floor; metal barriers.
 - Pitch with markings and a goal; LED perimeter boards (no text); large grandstand under a roof canopy; floodlight towers;
   big stadium screen.
+
+
+## Implementation progress · 2026-10-16
+
+- Auditorium: retained large-hall layout; reference materials and conference equipment applied. Stage plants and acoustic panels added; the decorative front AV rack has its own matching physical collider.
+- Outdoor: covered four-post stage rig, blue LED backdrop, hanging line arrays, stage lights and monitor wedges, white audience chairs, white control/support tents, delay towers, FOH monitors, crowd rails, service cables and yellow/black ramps. Main scenario devices and layout positions are unchanged. Added props use the stage footprint or sit outside the site perimeter; crowd rails have matching colliders and leave centre and side routes clear.
+- Outdoor facade: separate glass, frame and mullion depths to eliminate coplanar flickering observed during the walkthrough.
+- All new geometry uses the existing Three.js primitives, textures and instancing helpers; no new dependency or remote asset.
+- Screenshot evidence and walking notes: `VENUE_REVIEW_2026-10-16.md`. Stadium and the shared Thai 3D font pass are implemented; see the review notes below.
+
+
+### Stadium and Thai scene text · 2026-10-16
+
+- Stadium keeps the original three mission zones and all device/port heights. The control compound now has a white canopy, fabric walls, a vinyl pitch-facing window, a dark Thai entry sign, decorative monitor feeds and operator chairs.
+- Added a shallow commentator plinth inside the existing desk footprint (not a walk-on stage, to keep microphone heights unchanged), three chairs and headsets; added matching chair colliders.
+- Added road cases, cable reels, power box, low yellow/black cable ramps, perimeter crowd barriers and windshield-covered field mics. Floor cases and reels have matching colliders. Original cameras and mission gear remain interactive.
+- Empty red/white/blue seating, access aisles and a far-stand canopy follow the reference. The near stand is moved behind the compound instead of intersecting it. Floodlight heads face the pitch; stadium screen and unbranded LED boards use procedural graphics.
+- Fixed generic display classification: large monitors/projector displays are screens regardless of height; processors/converters remain technical units. No port or scenario definitions changed.
+- All 3D text uses the existing local `Kart-chinesestyle.ttf` through `game/rendering/scene-font.ts`. Canvas signs load the named FontFace before the scene mounts, so cached signs use Kart on first entry. Thai port/action/device/furniture labels are covered by a font-glyph regression test.
+- Kart lacks a few technical symbols. 3D labels use readable equivalents (`->`, `<->`, `|`, `ohm`, `OK`) without changing the underlying port/signal data or relying on remote font fallback. Original font binaries are unchanged.
+- `GameCanvas` shows Thai loading/error text and a retry button if the local font cannot load. New tests verify glyph coverage, a shared load request and retry after failure.
+- Desktop visual/walking review completed in levels 1 and 5; owner art approval and mobile/performance validation remain separate. Decorative feeds are static training graphics, while the existing mission monitor continues to show signal state.

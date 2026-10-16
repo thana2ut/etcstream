@@ -1,25 +1,27 @@
 "use client";
 
+import { SCENE_FONT, sceneText } from "@/game/rendering/scene-font";
 import { Billboard, Line, Text } from "@react-three/drei";
 import { DoubleSide } from "three";
 import { VenueEnvironment } from "./environment/venue-environment";
 import { Studio as MissionStudio } from "./environment/venue/studio";
-import { tex } from "./environment/venue/textures";
 import { layoutOf } from "@/game/training/hdmi-training";
 import { StaticScenery } from "./render-performance";
 import type { VenueId } from "@/game/content/mission-catalog";
 import { STUDIO } from "@/game/training/studio-room-layout";
-import { getPort, heldPlugFits, isItemPlaced, itemPoint, portAvailable, portPosition, requirementDone, scenarioOf, socketPorts } from "@/game/training/hdmi-training";
+import { getPort, heldPlugFits, isItemPlaced, itemPoint, portAvailable, portPosition, scenarioOf, socketPorts } from "@/game/training/hdmi-training";
 import type { ActionDef, DeviceDef } from "@/game/training/scenarios";
 import { useTrainingStore } from "@/game/stores/training-store";
 import { PlaceableEquipment } from "./placeable-equipment";
 import { HdmiCables } from "./hdmi-cables";
 import { DeviceVisual } from "./equipment/device-visual";
+import { PortSocket } from "./equipment/port-socket";
 import { SamsungTv } from "./equipment/samsung-tv";
-import { monitorFeed } from "@/game/training/monitor-feed";
+import { monitorFeed, venueScreenFeed } from "@/game/training/monitor-feed";
 import { CuboidCollider, CylinderCollider, RigidBody } from "@react-three/rapier";
+import * as studioAnchors from "@/game/training/studio-mission-ports.json";
 
-const ROOM_FONT = "/fonts/geist-regular.ttf";
+const ROOM_FONT = SCENE_FONT;
 const CONNECTOR_COLOR: Record<string, string> = {
   HDMI: "#e9bd6a", "USB-A": "#8fb4ff", "USB-C": "#8fb4ff", "3.5mm": "#6fd68a", "6.35mm": "#6fd68a", XLR: "#b9b9c4", SDI: "#e07a5f",
 };
@@ -40,7 +42,7 @@ const CONNECTOR_NAME: Record<string, string> = {
 
 /**
  * Port marker: an elliptical ring in the device colour at the jack, plus a faint "x-ray" ring so it is never lost
- * behind the device body. The name tag ("อุปกรณ์ · พอร์ต · IN/OUT") is drawn on top of everything:
+ * behind the device body. The name tag ("device · port · IN/OUT") is drawn on top of everything:
  * on the port being aimed at, and — while a cable end is held — on every port that plug physically fits (green ✓).
  * Ports the held plug cannot enter fade out, so the right jack stands out without revealing the route.
  */
@@ -55,6 +57,21 @@ function markerPoint(state: Parameters<typeof portPosition>[0], id: string): str
   const scenario = scenarioOf(state);
   const item = state.items[port.device] ?? (port.requiresItem ? state.items[port.requiresItem] : undefined);
   const device = scenario.devices.find((d) => d.id === port.device);
+  const native = scenario.layout === "studioMission" ? (studioAnchors as Record<string, { normal: number[] }>)[id] : null;
+  if (port.normal) {
+    const yaw = item?.turn ?? 0, [x, y, z] = port.normal;
+    const nx = x * Math.cos(yaw) + z * Math.sin(yaw), nz = -x * Math.sin(yaw) + z * Math.cos(yaw);
+    return [p[0] + nx * 0.025, p[1] + y * 0.025, p[2] + nz * 0.025, Math.atan2(nx, nz), y > 0.5 ? 1 : 0].join(",");
+  }
+  if (native && device) {
+    const yaw = (device.yaw ?? 0) + (item?.turn ?? 0), [x, y, z] = native.normal;
+    const nx = x * Math.cos(yaw) + z * Math.sin(yaw), nz = -x * Math.sin(yaw) + z * Math.cos(yaw);
+    return [p[0] + nx * 0.025, p[1] + y * 0.025, p[2] + nz * 0.025, Math.atan2(nx, nz), y > 0.5 ? 1 : 0].join(",");
+  }
+  if (scenario.layout === "classroom" && device?.generic) {
+    const yaw = (device.yaw ?? 0) + (item?.turn ?? 0) + (device.id === "monitor" ? Math.PI : 0);
+    return [p[0] + Math.sin(yaw) * 0.025, p[1], p[2] + Math.cos(yaw) * 0.025, yaw, 0].join(",");
+  }
   // Studio gear baked into the room GLB (not scenario devices) uses its layout position.
   const baked = port.device === "speaker" ? STUDIO.speaker : port.device === "monitor" && !device ? STUDIO.equipment.monitor : null;
   const center = item ? [item.position[0], p[1], item.position[2]] : device ? [device.position[0], p[1], device.position[2]] : baked ? [baked[0], p[1], baked[2]] : null;
@@ -66,6 +83,10 @@ function markerPoint(state: Parameters<typeof portPosition>[0], id: string): str
 }
 
 function Port({ id }: { id: string }) {
+  const physicalSocket = useTrainingStore((state) => {
+    const p = getPort(state, id);
+    return scenarioOf(state).layout !== "studio" && scenarioOf(state).devices.some((d) => d.id === p?.device && d.generic);
+  });
   const port = useTrainingStore((state) => getPort(state, id));
   const live = useTrainingStore((state) => portAvailable(state, id));
   const at = useTrainingStore((state) => markerPoint(state, id));
@@ -78,13 +99,14 @@ function Port({ id }: { id: string }) {
   const ring = Math.min(Math.max(r * 0.75, 0.016), 0.04);
   const plug = CONNECTOR_NAME[port.connector] ?? port.connector;
   const dir = port.direction === "INPUT" ? "IN" : "OUT";
-  const showTag = focused || fits === true;
-  const tag = `${fits === true ? "✓ เสียบได้ · " : ""}${port.label.replace(/\s*\([^)]*\)\s*$/, "")} · ${plug} · ${dir}`;
+  const showTag = focused;
+  const tag = `${fits === true ? "✓ fits · " : ""}${port.label.replace(/\s*\([^)]*\)\s*$/, "")} · ${plug} · ${dir}`;
   const tagSize = focused ? 0.026 : 0.019;
   const tagWidth = Math.min(0.9, tag.length * tagSize * 0.58 + 0.05);
   const [mx, my, mz, yaw, flat] = at.split(",").map(Number);
   return <group position={[mx, my, mz]}>
     <group rotation={flat ? [-Math.PI / 2, 0, 0] : [0, yaw, 0]}>
+      {physicalSocket && <group position={[0, 0, -0.025]}><PortSocket connector={port.connector} /></group>}
       {/* balanced ellipse flush on the device face: thin bright rim, soft glass fill, faint x-ray copy through the body */}
       <mesh scale={[1.3, 1, 1]}><torusGeometry args={[ring, ring * (focused ? 0.17 : 0.11), 10, 48]} /><meshStandardMaterial color={color} emissive={color} emissiveIntensity={fits === false ? 0.2 : focused ? 1.6 : 1.0} transparent opacity={fits === false ? 0.45 : 1} /></mesh>
       <mesh scale={[1.3, 1, 1]}><circleGeometry args={[ring * 0.9, 40]} /><meshBasicMaterial color={color} transparent opacity={fits === false ? 0.04 : focused ? 0.22 : 0.1} depthWrite={false} side={DoubleSide} /></mesh>
@@ -95,7 +117,7 @@ function Port({ id }: { id: string }) {
         <mesh renderOrder={10}><planeGeometry args={[tagWidth, tagSize * 1.9]} /><meshBasicMaterial color={fits === true ? "#0d3a22" : "#0b1220"} transparent opacity={0.82} depthTest={false} depthWrite={false} /></mesh>
         <mesh position={[0, -tagSize * 0.95 - 0.012, 0]} renderOrder={10}><planeGeometry args={[0.003, 0.024]} /><meshBasicMaterial color={color} transparent opacity={0.7} depthTest={false} depthWrite={false} /></mesh>
         <Text font={ROOM_FONT} position={[0, 0, 0.001]} fontSize={tagSize} color={fits === true ? "#c8ffd8" : "#f7f1e3"} anchorX="center" anchorY="middle" renderOrder={11} material-depthTest={false} material-depthWrite={false} maxWidth={0.88}>
-          {tag}
+          {sceneText(tag)}
         </Text>
       </group>}
     </Billboard>
@@ -108,6 +130,7 @@ function Port({ id }: { id: string }) {
 
 /** Interactive spot for a procedural step (set mixer level, open OBS). */
 function ActionSpot({ action }: { action: ActionDef }) {
+  const focused = useTrainingStore((state) => state.focusedTarget?.kind === "action" && state.focusedTarget.actionId === action.id);
   const done = useTrainingStore((state) => state.actionsDone[action.id]);
   const at = useTrainingStore((state) => (action.onItem ? itemPoint(state, action.onItem, action.position) : action.position).join(","));
   const live = useTrainingStore((state) => !action.onItem || (state.heldItem !== action.onItem && isItemPlaced(state, action.onItem)));
@@ -116,7 +139,7 @@ function ActionSpot({ action }: { action: ActionDef }) {
   return <group position={at.split(",").map(Number) as [number, number, number]}>
     <mesh><torusGeometry args={[0.05, 0.008, 8, 24]} /><meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.8} /></mesh>
     <mesh userData={{ trainingTarget: { kind: "action", actionId: action.id } }}><sphereGeometry args={[0.1, 12, 10]} /><meshBasicMaterial transparent opacity={0} depthWrite={false} /></mesh>
-    <Text font={ROOM_FONT} position={[0, 0.09, 0]} fontSize={0.028} color={color} anchorX="center" outlineWidth={0.002} outlineColor="#000">{done ? action.doneLabel : action.label}</Text>
+    {focused && <Billboard position={[0, 0.09, 0]}><Text font={ROOM_FONT} fontSize={0.04} color={color} anchorX="center" outlineWidth={0.002} outlineColor="#000" maxWidth={0.7} textAlign="center">{sceneText(done ? action.doneLabel : action.label)}</Text></Billboard>}
   </group>;
 }
 
@@ -152,9 +175,10 @@ function BasicCamera() {
 
 function FixedDevice({ device }: { device: DeviceDef }) {
   const [w, h, d] = device.size;
+  const mission = useTrainingStore((state) => Boolean(scenarioOf(state).venueScale));
   const focused = useTrainingStore((state) => state.focusedTarget?.kind === "device" && state.focusedTarget.deviceId === device.id);
   return <group position={device.position} rotation={[0, device.yaw ?? 0, 0]}>
-    {device.id !== "speaker" && <DeviceVisual device={device} bare={!focused} />}
+    {(device.id !== "speaker" || mission) && <DeviceVisual device={device} bare={!focused} />}
     <mesh position={[0, device.kind === "camera" ? 1.3 : h / 2, 0]} userData={{ trainingTarget: { kind: "device", deviceId: device.id } }}>
       <boxGeometry args={[Math.max(w, 0.3), device.kind === "camera" ? 0.4 : h, Math.max(d, 0.3)]} />
       <meshBasicMaterial transparent opacity={0} depthWrite={false} />
@@ -162,33 +186,14 @@ function FixedDevice({ device }: { device: DeviceDef }) {
   </group>;
 }
 
-/** What a venue screen really shows, from the lead plugged into it (never just "a cable exists"). */
-function screenFeed(state: Parameters<typeof scenarioOf>[0] & { cables: Record<string, { a: { portId: string | null }; b: { portId: string | null } }>; programSource?: string }, deviceId: string): string {
-  const scenario = scenarioOf(state);
-  for (const cable of Object.values(state.cables)) {
-    const ends = [cable.a.portId, cable.b.portId];
-    const mine = ends.find((p) => p && scenario.ports[p]?.device === deviceId && scenario.ports[p].direction === "INPUT");
-    if (!mine) continue;
-    const other = ends.find((p) => p !== mine);
-    if (!other) return "NO SIGNAL";
-    const req = scenario.requirements.find((r) => r.to.includes(mine));
-    const correct = Boolean(req && req.from.includes(other));
-    const upstream = scenario.requirements.filter((r) => r.group === "video").some((r) => requirementDone(state as never, r));
-    if (other.includes("multiview")) return !upstream ? "NO SIGNAL" : correct ? "MULTIVIEW" : "MULTIVIEW\n(WRONG FEED)";
-    if (!correct) return "WRONG FEED\nCHECK SOURCE";
-    return state.programSource ? `PROGRAM ACTIVE\n${state.programSource.toUpperCase()}` : "NO PROGRAM\nSELECTED";
-  }
-  return "NO SIGNAL";
-}
-
 function ScenarioScreen({ deviceId }: { deviceId: string }) {
   const device = useTrainingStore((state) => scenarioOf(state).devices.find((d) => d.id === deviceId));
-  const feed = useTrainingStore((state) => screenFeed(state, deviceId));
+  const feed = useTrainingStore((state) => venueScreenFeed(state, deviceId));
   if (!device) return null;
   const ok = feed.startsWith("PROGRAM") || feed === "MULTIVIEW";
   return <Billboard position={[device.position[0], device.position[1] + Math.max(device.size[1], 0.3) + 0.35, device.position[2]]}>
     <mesh><planeGeometry args={[0.6, 0.26]} /><meshBasicMaterial color={ok ? "#084f40" : feed.startsWith("NO") ? "#161c27" : "#5a1a14"} /></mesh>
-    <Text font={ROOM_FONT} position={[0, 0, 0.01]} fontSize={0.035} maxWidth={0.58} textAlign="center" color="#ffffff">{feed}</Text>
+    <Text font={ROOM_FONT} position={[0, 0, 0.01]} fontSize={0.035} maxWidth={0.58} textAlign="center" color="#ffffff">{sceneText(feed)}</Text>
   </Billboard>;
 }
 
@@ -201,27 +206,28 @@ function ScenarioMonitor() {
 export const VENUE_SCENE_ONLY = false;
 
 /** Thai zone signs over the main work areas of a mission venue (storage, control desk, cameras, stage side, stream, racks). */
-const ZONE_SIGNS: [string, string][] = [["cam1", "จุดกล้อง"], ["stagebox", "ข้างเวที / Stagebox"], ["encoder", "จุดสตรีม"], ["router", "ตู้ Rack"], ["mic0", "จุดเสียง / ผู้บรรยาย"], ["fiber-tx", "จุดส่งสัญญาณ Fiber"]];
-function ZoneSign({ text, at }: { text: string; at: [number, number, number] }) {
-  const map = tex.sign(`zone-${text}`, 512, 128, (c, w, h) => {
-    c.fillStyle = "rgba(10,18,34,0.88)"; c.fillRect(0, 0, w, h);
-    c.strokeStyle = "#e7c98f"; c.lineWidth = 6; c.strokeRect(3, 3, w - 6, h - 6);
-    c.fillStyle = "#ffe9b8"; c.font = "bold 54px 'Sarabun','Leelawadee UI','Tahoma',sans-serif"; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(text, w / 2, h / 2 + 2);
-  });
-  return <Billboard position={at}><mesh><planeGeometry args={[1.4, 0.35]} /><meshBasicMaterial map={map} transparent depthWrite={false} /></mesh></Billboard>;
+const ZONE_SIGNS: [string, string][] = [["cam1", "Camera position"], ["enc", "Encoder rack"], ["vh", "Dry rack / router"], ["mic1", "Commentary booth"], ["paL", "Stage front PA"], ["host", "Stream workstation"]];
+function ZoneSign({ text, at, compact = false }: { text: string; at: [number, number, number]; compact?: boolean }) {
+  return <Billboard position={at} scale={compact ? 0.6 : 1}>
+    <mesh><planeGeometry args={[1.4, 0.35]} /><meshBasicMaterial color="#e7c98f" /></mesh>
+    <mesh position={[0, 0, 0.001]}><planeGeometry args={[1.37, 0.32]} /><meshBasicMaterial color="#0a1222" /></mesh>
+    <Text font={ROOM_FONT} position={[0, 0, 0.003]} fontSize={0.095} maxWidth={1.3} color="#ffe9b8" textAlign="center">{sceneText(text)}</Text>
+  </Billboard>;
 }
+
 function ZoneSigns() {
+  const compact = useTrainingStore((state) => scenarioOf(state).layout === "studioMission");
   const signs = useTrainingStore((state) => {
     const layout = layoutOf(state);
     const list: { text: string; at: [number, number, number] }[] = [
-      { text: "คลังอุปกรณ์", at: [layout.equipment.center[0], layout.equipment.center[1] + 1.25, layout.equipment.center[2]] },
-      { text: "คลังสาย", at: [layout.cables.center[0], layout.cables.center[1] + 1.25, layout.cables.center[2]] },
-      { text: "โต๊ะควบคุม", at: [layout.work.center[0], layout.work.center[1] + 1.55, layout.work.center[2]] },
+      { text: "Equipment cases", at: [layout.equipment.center[0], layout.equipment.center[1] + 1.25, layout.equipment.center[2]] },
+      { text: "Cable store", at: [layout.cables.center[0], layout.cables.center[1] + 1.25, layout.cables.center[2]] },
+      { text: "Control desk", at: [layout.work.center[0], layout.work.center[1] + 1.55, layout.work.center[2]] },
     ];
     for (const [id, text] of ZONE_SIGNS) { const p = layout.places[id]?.p; if (p) list.push({ text, at: [p[0], Math.max(p[1], 0) + 2.3, p[2]] }); }
     return JSON.stringify(list);
   });
-  return <>{(JSON.parse(signs) as { text: string; at: [number, number, number] }[]).map((s) => <ZoneSign key={s.text} text={s.text} at={s.at} />)}</>;
+  return <>{(JSON.parse(signs) as { text: string; at: [number, number, number] }[]).map((s) => <ZoneSign key={s.text} text={s.text} at={s.at} compact={compact} />)}</>;
 }
 
 /** Wireless TX → RX radio link: shown once both bodypacks sit at their operating spots. */
@@ -236,14 +242,14 @@ function WirelessLink({ tx }: { tx: string }) {
   const mid: [number, number, number] = [(ax + bx) / 2, Math.max(ay, by) + 0.25, (az + bz) / 2];
   return <group>
     <Line points={[[ax, ay, az], mid, [bx, by, bz]]} color="#62dce9" lineWidth={2} dashed dashSize={0.05} gapSize={0.04} transparent opacity={0.85} />
-    <Billboard position={mid}><Text font={ROOM_FONT} fontSize={0.035} color="#94edfa" anchorX="center">{`${tx.toUpperCase()} ⟶ RX · ไร้สาย`}</Text></Billboard>
+    <Billboard position={mid}><Text font={ROOM_FONT} fontSize={0.035} color="#94edfa" anchorX="center">{sceneText(`${tx.toUpperCase()} ⟶ RX · wireless`)}</Text></Billboard>
   </group>;
 }
 
 export function TrainingRoom({ venue = "studio" }: { venue?: VenueId }) {
   const scenario = useTrainingStore((state) => scenarioOf(state));
   const sockets = useTrainingStore((state) => socketPorts(state).join("|")).split("|").filter(Boolean);
-  // Mission-hall venues currently show the scene only (no cables / equipment). Flip VENUE_SCENE_ONLY to restore gameplay.
+  // A scenery-only preview must be explicitly enabled; normal mission rendering retains gameplay.
   if (VENUE_SCENE_ONLY && scenario.venueScale) return <StaticScenery><VenueEnvironment venue={venue} /></StaticScenery>;
   return <>
     {/* Mission S has its own enlarged studio shell; free practice keeps Studio Room 01. */}

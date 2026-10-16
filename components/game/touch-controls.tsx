@@ -43,18 +43,18 @@ export function TouchControls() {
   };
   const endInteract = () => emitTrainingInput({ type: "interact", pressed: false });
 
-  return <div className="touch-controls" aria-label="ปุ่มควบคุมแบบสัมผัส">
+  return <div className="touch-controls" aria-label="Touch controls">
     <div
       className="touch-look-pad"
       role="application"
-      aria-label="ลากที่ใดก็ได้บนจอเพื่อมองรอบตัว"
+      aria-label="Drag anywhere to look around"
       onPointerDown={startLook}
       onPointerMove={moveLook}
       onPointerUp={stopLook}
       onPointerCancel={stopLook}
       onLostPointerCapture={stopLook}
     />
-    <div className="touch-move-pad" aria-label="ปุ่มเคลื่อนที่">
+    <div className="touch-move-pad" aria-label="Movement pad">
       <MoveButton code="KeyW" label="▲" className="touch-up" />
       <MoveButton code="KeyA" label="◀" className="touch-left" />
       <MoveButton code="KeyS" label="▼" className="touch-down" />
@@ -62,16 +62,16 @@ export function TouchControls() {
     </div>
 
 
-    <div className="touch-pick-buttons" aria-label="เลือกหยิบหัวหรือปลายสาย">
-      <button type="button" className={`touch-control-button${pickMode === "a" ? " is-active" : ""}`} aria-pressed={pickMode === "a"} aria-label="โหมด 1 หยิบเฉพาะหัวสาย" onClick={() => setPickMode("a")}>1</button>
-      <button type="button" className={`touch-control-button${pickMode === "b" ? " is-active" : ""}`} aria-pressed={pickMode === "b"} aria-label="โหมด 2 หยิบเฉพาะปลายสาย" onClick={() => setPickMode("b")}>2</button>
+    <div className="touch-pick-buttons" aria-label="Take head or tail of a lead">
+      <button type="button" className={`touch-control-button${pickMode === "a" ? " is-active" : ""}`} aria-pressed={pickMode === "a"} aria-label="Mode 1: take the head only" onClick={() => setPickMode("a")}>1</button>
+      <button type="button" className={`touch-control-button${pickMode === "b" ? " is-active" : ""}`} aria-pressed={pickMode === "b"} aria-label="Mode 2: take the tail only" onClick={() => setPickMode("b")}>2</button>
     </div>
 
     <div className="touch-action-buttons">
       <button
         type="button"
         className="touch-control-button touch-interact"
-        aria-label="หยิบ ต่อ หรือใช้งาน กดค้างเพื่อดูรายละเอียด"
+        aria-label="Pick up, plug or use; hold to inspect"
         onPointerDown={(event) => {
           event.preventDefault();
           event.currentTarget.setPointerCapture(event.pointerId);
@@ -80,9 +80,9 @@ export function TouchControls() {
         onPointerUp={endInteract}
         onPointerCancel={endInteract}
         onLostPointerCapture={endInteract}
-      >ใช้งาน</button>
-      <button type="button" className="touch-control-button" onClick={() => emitTrainingInput({ type: "drop" })}>วาง</button>
-      <button type="button" className="touch-control-button" onClick={() => emitTrainingInput({ type: "turn" })}>หมุน</button>
+      >Use</button>
+      <button type="button" className="touch-control-button" onClick={() => emitTrainingInput({ type: "drop" })}>Drop</button>
+      <button type="button" className="touch-control-button" onClick={() => emitTrainingInput({ type: "turn" })}>Turn</button>
     </div>
   </div>;
 }

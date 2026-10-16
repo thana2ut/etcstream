@@ -17,11 +17,23 @@ export const ROOM_MODEL_URLS = [
 ] as const;
 
 let started = false;
-/** Idempotent: starts the downloads once per page session, during idle time. */
+/** Idempotent: staggers downloads during idle time instead of parsing every GLB in one burst. */
 export function preloadRoomModels() {
   if (started || typeof window === "undefined") return;
   started = true;
-  const run = () => ROOM_MODEL_URLS.forEach((url) => useGLTF.preload(url));
-  const idle = (window as Window & { requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number }).requestIdleCallback;
-  if (idle) idle(run, { timeout: 1500 }); else window.setTimeout(run, 300);
+  const idle = (window as Window & {
+    requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+  }).requestIdleCallback;
+  let index = 0;
+  const loadNext = () => {
+    const url = ROOM_MODEL_URLS[index++];
+    if (!url) return;
+    useGLTF.preload(url);
+    if (index < ROOM_MODEL_URLS.length) window.setTimeout(scheduleNext, 240);
+  };
+  const scheduleNext = () => {
+    if (idle) idle(loadNext, { timeout: 1200 });
+    else window.setTimeout(loadNext, 120);
+  };
+  scheduleNext();
 }

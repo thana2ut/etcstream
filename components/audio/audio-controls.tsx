@@ -43,10 +43,10 @@ export function AudioControls() {
       <button
         type="button"
         className="action-icon-btn audio-trigger"
-        aria-label={open ? "ปิดการควบคุมเสียง" : "เปิดการควบคุมเสียง"}
+        aria-label={open ? "Close sound controls" : "Open sound controls"}
         aria-expanded={open}
         aria-controls="global-audio-popover"
-        title="เสียงประกอบ"
+        title="Sound"
         onClick={() => setOpen((current) => !current)}
       >
         {silent ? (
@@ -64,15 +64,15 @@ export function AudioControls() {
         )}
       </button>
       {open && (
-        <div id="global-audio-popover" className="audio-popover glass-card" role="group" aria-label="เสียงประกอบ">
-          <strong className="audio-popover-title">เสียงประกอบ</strong>
+        <div id="global-audio-popover" className="audio-popover glass-card" role="group" aria-label="Sound">
+          <strong className="audio-popover-title">Sound</strong>
           <div className="audio-popover-row">
-            <button type="button" className="audio-mute-btn" aria-label={silent ? "เปิดเสียง" : "ปิดเสียง"} onClick={toggleMute}>
-              {silent ? "🔇 เปิดเสียง" : "🔊 ปิดเสียง"}
+            <button type="button" className="audio-mute-btn" aria-label={silent ? "Unmute" : "Mute"} onClick={toggleMute}>
+              {silent ? "🔇 Unmute" : "🔊 Mute"}
             </button>
-            <span className="audio-percentage" aria-live="polite">{silent ? "ปิดเสียง" : `${percentage}%`}</span>
+            <span className="audio-percentage" aria-live="polite">{silent ? "Muted" : `${percentage}%`}</span>
           </div>
-          <label htmlFor="global-audio-volume" className="audio-slider-label">ระดับเสียง</label>
+          <label htmlFor="global-audio-volume" className="audio-slider-label">Volume</label>
           <input
             id="global-audio-volume"
             className="audio-volume-slider"
@@ -81,7 +81,7 @@ export function AudioControls() {
             max="100"
             step="1"
             value={percentage}
-            aria-label="ระดับเสียงประกอบ"
+            aria-label="Sound volume"
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={percentage}

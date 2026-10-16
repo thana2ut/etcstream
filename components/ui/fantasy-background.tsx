@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import { memo } from "react";
 import { CloudSky } from "./cloud-sky";
 
 export type BackdropVariant = "palace" | "academy" | "archive" | "chamber" | "lab";
@@ -13,7 +13,7 @@ interface FantasyBackgroundProps {
   clouds?: boolean;
 }
 
-export function FantasyBackground({ variant = "palace", image, clouds = false }: FantasyBackgroundProps) {
+export const FantasyBackground = memo(function FantasyBackground({ variant = "palace", image, clouds = false }: FantasyBackgroundProps) {
   if (image) {
     return (
       <div className="xianxia-backdrop" aria-hidden="true">
@@ -165,4 +165,4 @@ export function FantasyBackground({ variant = "palace", image, clouds = false }:
       </div>
     </div>
   );
-}
+});

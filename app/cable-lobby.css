@@ -396,9 +396,10 @@
 
 /* header */
 .cl-screen.cl-v3 .cl-header { grid-template-columns: auto 1fr auto; align-items: start; gap: 24px; padding-top: 6px; }
-.cl-v3 .cl-back { display: inline-flex; align-items: center; gap: 12px; margin-top: 18px; padding: 12px 26px; border-radius: 9999px; border: 1px solid var(--v3-rim); background: rgba(8, 13, 34, .82); color: var(--v3-text); font-weight: 600; transition: border-color .15s, background .15s; }
+.cl-v3 .cl-back { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 166px; min-height: 48px; gap: 0; margin-top: 18px; padding: 0 18px; border-radius: 9999px; border: 1px solid var(--v3-rim); background: rgba(8, 13, 34, .82); color: var(--v3-text); font-weight: 600; line-height: 1; text-align: center; transition: border-color .15s, background .15s; }
 .cl-v3 .cl-back:hover { border-color: var(--v3-gold); background: rgba(20, 30, 64, .9); }
-.cl-v3 .cl-back-arrow { font-size: 1.15rem; color: var(--v3-gold); }
+.cl-v3 .cl-back-arrow { position: absolute; left: 16px; top: 50%; display: grid; place-items: center; width: 18px; height: 18px; color: var(--v3-gold); transform: translateY(-50%); }
+.cl-v3 .cl-back-arrow svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 .cl-v3 .cl-title { padding-left: 22px; border-left: 1px solid rgba(201, 162, 92, .35); min-width: 0; }
 .cl-v3 .cl-eyebrow { color: var(--v3-cyan); font-size: .86rem; letter-spacing: .01em; }
 .cl-screen.cl-v3 .cl-title h1 { margin: 2px 0 0; font-size: clamp(1.7rem, 2.5vw, 2.4rem); line-height: 1.25; color: var(--v3-gold-hi); text-shadow: 0 2px 0 rgba(60, 34, 10, .8); }

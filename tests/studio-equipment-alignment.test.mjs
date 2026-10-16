@@ -70,3 +70,12 @@ test("all interactive mixer ports match their exported anchors", () => {
     aligned(id, add(device("mixer").position, anchor("pmx402d", `PORT_${key}`)));
   }
 });
+
+test("mission studio follows the room-02 specification; GLB-anchored HDS7105 profile stays with free practice only", () => {
+  const profiles = require("../game/training/studio-mission-ports.json");
+  assert.equal(Object.keys(profiles).length, 22, "anchor profile kept for the free-practice studio models");
+  const mission = SCENARIOS["s-5"];
+  assert.equal(mission.simDevices.sw.model, "bmd-atem-tvs-hd8-iso");
+  assert.ok(!mission.devices.some((d) => /HDS7105|PMX-402D/.test(d.model)), "mission studio must not reuse the free-practice switcher/mixer");
+  for (const port of Object.values(mission.ports)) assert.ok(port.position.every(Number.isFinite), `${port.label} has no socket position`);
+});
