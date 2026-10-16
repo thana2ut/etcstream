@@ -1,7 +1,8 @@
 "use client";
 
+import { SceneText as Text, EquipmentNameplate } from "@/components/game/scene-text";
+
 import { SCENE_FONT, sceneText } from "@/game/rendering/scene-font";
-import { Billboard, Text } from "@react-three/drei";
 import type { DeviceDef } from "@/game/training/scenarios";
 import { GlbModel, Hcx2000Model } from "./hc-x2000";
 import { GenericDevice } from "./generic-device";
@@ -16,7 +17,7 @@ const ROOM_FONT = SCENE_FONT;
 function MissionStudioMonitor() {
   const feed = useTrainingStore((state) => venueScreenFeed(state, "monitor") === "MULTIVIEW" ? studioSignalFeed(state, "inputs") : venueScreenFeed(state, "monitor"));
   return <group position={[0, 0.294, 0]}><SamsungTv />
-    <Text font={ROOM_FONT} position={[0, 0.003, 0.022]} fontSize={0.035} maxWidth={0.9} color="#cbd8e6" textAlign="center">{sceneText(feed)}</Text>
+    <Text font={ROOM_FONT} position={[0, 0.003, 0.022]} fontSize={0.043} lineHeight={1.55} maxWidth={0.88} color="#edf4ff" textAlign="center">{sceneText(feed)}</Text>
   </group>;
 }
 
@@ -26,15 +27,8 @@ function Box({ position, scale, color }: { position: [number, number, number]; s
 
 /** Placeholder body + name/model label for a studio device (model marked when unverified). Drawn at its own origin. */
 /** Floating name plate: always faces the player, centred over the device (model on top, role below). */
-export function DeviceLabel({ device, y }: { device: Pick<DeviceDef, "label" | "model">; y: number }) {
-  return <Billboard position={[0, y, 0]}>
-    <Text font={ROOM_FONT} fontSize={0.055} color="#f6ddaa" anchorX="center" anchorY="bottom" textAlign="center" outlineWidth={0.004} outlineColor="#000">
-      {sceneText(device.model || device.label)}
-    </Text>
-    {device.model && <Text font={ROOM_FONT} position={[0, -0.012, 0]} fontSize={0.034} color="#8be4f4" anchorX="center" anchorY="top" textAlign="center" outlineWidth={0.003} outlineColor="#000">
-      {sceneText(device.label)}
-    </Text>}
-  </Billboard>;
+export function DeviceLabel({ device, y }: { device: Pick<DeviceDef, "label" | "model"> & { id?: string }; y: number }) {
+  return <EquipmentNameplate title={device.label} subtitle={device.model} y={y} deviceId={device.id} />;
 }
 
 /** `bare` hides the floating name label (used in the inspector). */

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import { CanvasTexture, SRGBColorSpace } from "three";
+import { SCENE_CANVAS_FONT } from "@/game/rendering/scene-font";
 import { GlbModel } from "./hc-x2000";
 
 function drawCamera(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, active: boolean) {
@@ -38,10 +39,10 @@ function screenTexture(feed: string): CanvasTexture | null {
   if (!ctx) return null;
   ctx.fillStyle = "#060a10";
   ctx.fillRect(0, 0, 1280, 720);
-  ctx.font = "bold 29px Arial, sans-serif";
+  ctx.font = `bold 29px ${SCENE_CANVAS_FONT}`;
   ctx.fillStyle = "#e6edf3";
-  ctx.fillText(mode === "multiview" ? "MULTIVIEW" : "PROGRAM", 30, 43);
-  ctx.font = "22px Arial, sans-serif";
+  ctx.fillText(mode === "multiview" ? "ภาพรวมหลายช่อง" : "ภาพออกอากาศ", 30, 43);
+  ctx.font = `22px ${SCENE_CANVAS_FONT}`;
   ctx.fillStyle = "#b8c7d5";
   ctx.fillText(`HDS7105  •  HDMI ${input}`, 970, 42);
   const active = camera === "camera";
@@ -52,11 +53,11 @@ function screenTexture(feed: string): CanvasTexture | null {
       ctx.fillStyle = "#070b12";
       ctx.fillRect(x + 8, y + 8, 185, 36);
       ctx.fillStyle = index === 0 && active ? "#d9f4ff" : "#9eaeba";
-      ctx.font = "bold 23px Arial, sans-serif";
-      ctx.fillText(`CAM ${index + 1}`, x + 20, y + 34);
+      ctx.font = `bold 23px ${SCENE_CANVAS_FONT}`;
+      ctx.fillText(`กล้อง ${index + 1}`, x + 20, y + 34);
       if (index !== 0 || !active) {
-        ctx.font = "22px Arial, sans-serif";
-        ctx.fillText("NO INPUT", x + 236, y + 150);
+        ctx.font = `22px ${SCENE_CANVAS_FONT}`;
+        ctx.fillText("ไม่มีสัญญาณเข้า", x + 236, y + 150);
       }
     });
     ctx.strokeStyle = "#e55b60";
@@ -70,14 +71,14 @@ function screenTexture(feed: string): CanvasTexture | null {
     ctx.fillStyle = "#0b111a";
     ctx.fillRect(44, 575, 520, 64);
     ctx.fillStyle = "#f4f7fa";
-    ctx.font = "bold 34px Arial, sans-serif";
-    ctx.fillText(active ? "CAM 1  •  PROGRAM" : "NO CAMERA INPUT", 65, 619);
+    ctx.font = `bold 34px ${SCENE_CANVAS_FONT}`;
+    ctx.fillText(active ? "กล้อง 1 • ภาพออกอากาศ" : "ไม่มีสัญญาณจากกล้อง", 65, 619);
   }
   ctx.fillStyle = "#e35c61";
   ctx.fillRect(30, 683, 56, 12);
   ctx.fillStyle = "#d6e1e9";
-  ctx.font = "18px Arial, sans-serif";
-  ctx.fillText("PRODUCTION MONITOR", 101, 696);
+  ctx.font = `18px ${SCENE_CANVAS_FONT}`;
+  ctx.fillText("จอตรวจสัญญาณรายการ", 101, 696);
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
   return texture;

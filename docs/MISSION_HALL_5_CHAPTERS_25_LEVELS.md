@@ -1,81 +1,41 @@
-# หอจารึกแห่งภารกิจ — 5 ห้อง × 5 ระดับ (25 ด่านฝึกต่อสาย 3D)
+# หอจารึกแห่งภารกิจ — 5 สถานที่ × 5 ระดับ
 
-**สถานะ:** โค้ดติดตั้งแล้ว · **NOT TESTED / NOT PLAYTESTED**
-**แหล่งข้อมูลโค้ด (ยึดโค้ดเป็นหลักถ้าต่างจากเอกสาร):** กราฟ `game/training/venue-scenarios.ts` · ผังสถานที่ `game/training/venue-layouts.ts` · เป้าหมายระดับ `game/content/mission-catalog.ts` · การ์ดความรู้ `game/content/mission-equipment-info.ts`
-**ห้องฝึกอิสระ / Studio Room 01:** ไม่ได้แก้
+ข้อมูลปัจจุบันสร้างจากกราฟที่เกมใช้จริง เทียบ Appendix A และเอกสารส่งมอบวันที่ 20 ตุลาคม 2026 แล้วในระดับแบบระบบฝึก ไม่ใช่การยืนยันอุปกรณ์จริงของสถานที่
 
-## หลักการ
-- การ์ดบท 5 ใบ (`ผ่านแล้ว X/5 ระดับ` แยกแต่ละบท) → การ์ดระดับ 1–5 ปลดล็อกตามลำดับ → ฉาก first-person ของห้องนั้น (WASD · เมาส์ · E หยิบ/ต่อ/ถอด/ตั้งค่า · F วาง · E ค้าง = การ์ดความรู้เล็ก · ESC)
-- แต่ละห้องมี **กราฟเดียว** (ระดับ 5 = ระบบครบของห้อง) ทุกเส้น/ทุกขั้นตั้งค่าติดแท็กระดับที่ใช้ ระดับ 4 = กราฟเต็มที่ต่อไว้บางส่วน + ขาดทุก 3 เส้น + **สายผิดจุด 1 เส้น** + สายหลอก 6 เส้น (HDMI, USB-A, XLR, 3.5, 6.35, SDI)
-- ผ่านด่าน = ทุกเส้นทางบังคับต่อตรงพอร์ต + ทุกขั้นตั้งค่าทำแล้ว (ขั้นตั้งค่ากดได้เฉพาะเมื่อเส้นทางต้นน้ำครบ และถูกยกเลิกเมื่อถอดสายต้นน้ำ) — ไม่ใช้การนับจำนวนสาย
-- ปฏิเสธ: ทิศทางผิด, หัวต่อผิด, ชนิดสัญญาณต่าง (HDMI≠SDI, Multicore/Control/Intercom แยกชนิด), เส้นทางที่ไม่อยู่ในผัง — สายในมือไม่หลุด
-- จอในฉาก: `NO SIGNAL` / `MULTIVIEW` / `PROGRAM ACTIVE <แหล่ง>` / `NO PROGRAM SELECTED` / `WRONG FEED`
-- ความคืบหน้า: key เดิม `etcstream-mission-progress-v1:*` (slug × ระดับ) ไม่แปลง ไม่ลบ
+**ไฟล์นี้เป็นข้อมูลนิยาม ไม่ใช่ผลทดลองเล่น ดูผลตรวจล่าสุดใน MISSION_25_ADMIN_AND_CODE_AUDIT_TH.md** นิยามเก่าคงอยู่ใน `ORIGINAL_STAGES` และ `ROOMS`; ชุดที่ใช้ใน Mission Hall อ่าน `STAGES` และ `MISSION_ROOMS` ห้องฝึกอิสระไม่ได้ใช้ชั้นปรับนี้
 
-**จำนวนสายในตารางคำนวณจากเส้นทางของระดับนั้น (1 เส้นทาง = 1 สาย)** ระดับ 4 ใช้สายชุดเดียวกับระดับ 5 + สายหลอก 6 เส้น
+| ด่าน | ภารกิจ | อุปกรณ์ | พอร์ต | สายบังคับ | สถานะอ้างอิง |
+| --- | --- | --- | --- | --- | --- |
+| XS-01 | นำภาพจากกล้องห้องเรียนขึ้นจอหน้าห้องผ่านเครื่องสลับภาพ | 3 | 8 | 2 | DESIGN_REFERENCE |
+| XS-02 | ให้เสียงผู้สอนจากไมค์หนีบปกดังออกลำโพงหน้าห้องอย่างชัดเจน ไม่หอน | 5 | 10 | 3 | DESIGN_REFERENCE |
+| XS-03 | สลับกล้องกับสไลด์ขึ้นจอห้องเรียน และตรวจภาพรายการเดียวกันใน OBS ผ่าน USB Webcam | 5 | 12 | 4 | DESIGN_REFERENCE |
+| XS-04 | คาบเรียนออนไลน์กำลังจะเริ่ม แต่ OBS ไม่มีภาพและเสียง และจอหน้าห้องผิด — หาจุดเสียแล้วซ่อมทางกายภาพ | 8 | 20 | 6 | DESIGN_REFERENCE |
+| XS-05 | จัดห้องเรียนไฮบริดครบระบบ: กล้องและสไลด์ขึ้นจอหน้าห้องและ OBS, เสียงผู้สอนออกลำโพงในห้อง และส่งเข้าสตรีมแยกบัส โดยเสียงใน OBS ไม่ซ้อน | 10 | 22 | 8 | DESIGN_REFERENCE |
+| ST-01 | ให้ภาพ CAM1 ขึ้นเป็นช่องหนึ่งในจอรวมภาพ (Multiview) ของห้องควบคุม | 3 | 9 | 2 | PROVISIONAL |
+| ST-02 | พิธีกรและแขกรับเชิญต้องปรับเสียงได้แยกกัน ส่งเข้า Broadcast และฟังตรวจที่ลำโพงมอนิเตอร์ | 9 | 21 | 6 | PROVISIONAL |
+| ST-03 | ถ่ายสามมุม: โต๊ะผู้นำเสนอ มุมสัมภาษณ์ และฉากเขียว — สลับด้วยเครื่องสลับภาพ ไม่ใช่การย้ายสาย | 5 | 11 | 4 | PROVISIONAL |
+| ST-04 | ผู้ชมออนไลน์เห็นภาพตารางรวมภาพแทนรายการ และไม่ได้ยินเสียง — หาสาเหตุและซ่อมทางกายภาพ | 9 | 23 | 7 | PROVISIONAL |
+| ST-05 | ประกอบสตูดิโอครบระบบ: สามกล้องสลับได้, ไมค์ไร้สาย 2 ตัวและไมค์สาย 1 ตัวแยกช่อง, Broadcast ฝังเข้า PGM, ฟังตรวจที่ HS5, จับภาพ PGM เข้า OBS | 16 | 31 | 13 | PROVISIONAL |
+| AU-01 | นำภาพกล้องกลางหลังห้องขึ้นจอเวที | 4 | 18 | 3 | DESIGN_REFERENCE |
+| AU-02 | AU-02 · ให้เสียงโพเดียมดังในห้องและเข้าระบบถ่ายทอดแยกกัน | 9 | 41 | 9 | DESIGN_REFERENCE |
+| AU-03 | ห้าแหล่งภาพต้องเลือกได้ทั้งหมด จอเวทีต้องแสดงภาพ PGM ที่สะอาด ไม่ใช่ Multiview | 10 | 26 | 9 | DESIGN_REFERENCE |
+| AU-04 | ก่อนเริ่มงาน 15 นาที: จอเวทีดำ กล้อง 2 หาย และเสียงโพเดียมไม่เข้าระบบถ่ายทอด — คืนบทบาทพอร์ตและสัญญาณให้ถูก | 14 | 51 | 14 | DESIGN_REFERENCE |
+| AU-05 | AU-05 · จัดงานเต็มระบบ: ห้าแหล่งภาพ, จอเวทีจาก AUX, Multiview ที่ FOH, PGM สะอาดไป Capture/OBS และเครื่องบันทึกแยกขาออก, เสียงสามแหล่งผ่าน Stagebox แยก PA และ Broadcast | 29 | 68 | 29 | DESIGN_REFERENCE |
+| OUT-01 | OUT-01 · ต่อกล้องใกล้ผ่านเครื่องสลับภาพและตรวจจอรวมภาพ | 3 | 17 | 2 | DESIGN_REFERENCE |
+| OUT-02 | OUT-02 · จับคู่ไมค์พิธีกร รับเสียงเวทีและบรรยากาศ แล้วส่ง PA โดยแยกบัสรายการ | 7 | 16 | 5 | DESIGN_REFERENCE |
+| OUT-03 | OUT-03 · ติดตั้งคู่ Optical ของกล้อง C และสลับภาพ A/B/C ด้วย Preview ก่อน Program | 7 | 23 | 6 | DESIGN_REFERENCE |
+| OUT-04 | OUT-04 · ติดตั้งกล้องสามจุด เสียง PA/รายการ อุปกรณ์ฝังเสียง ตัวเข้ารหัส และตรวจผู้ชมจำลอง | 18 | 49 | 17 | DESIGN_REFERENCE |
+| OUT-05 | OUT-05 · ติดตั้งกล้องสามจุด เสียง PA/รายการ อุปกรณ์ฝังเสียง ตัวเข้ารหัส และตรวจผู้ชมจำลอง | 18 | 49 | 17 | DESIGN_REFERENCE |
+| SP-01 | SP-01 · ต่อกล้อง 1 ผ่านชุด Optical เข้าฐาน CCU แล้ว Patch ผ่านเราเตอร์ไปเครื่องสลับภาพ | 5 | 35 | 4 | DESIGN_REFERENCE |
+| SP-02 | SP-02 · ติดตั้งไมค์หกแหล่งผ่านมัลติคอร์ และแยกเสียง PA กับเสียงรายการ | 13 | 48 | 17 | DESIGN_REFERENCE |
+| SP-03 | SP-03 · Patch แหล่งภาพแปดแหล่งผ่านเราเตอร์ แล้วควบคุม Preview / Program / Multiview | 19 | 57 | 25 | DESIGN_REFERENCE |
+| SP-04 | SP-04 · ประกอบหกกล้อง ภาพซ้ำ กราฟิก เสียง PA/รายการ บันทึก และชุดส่งหลัก/สำรองผ่านเครือข่ายแยก | 39 | 104 | 50 | DESIGN_REFERENCE |
+| SP-05 | SP-05 · ประกอบหกกล้อง ภาพซ้ำ กราฟิก เสียง PA/รายการ บันทึก และชุดส่งหลัก/สำรองผ่านเครือข่ายแยก | 39 | 104 | 50 | DESIGN_REFERENCE |
 
----
+รายละเอียดรายอุปกรณ์ พอร์ต สายทั้งสองปลาย จำนวน ชั้นจัดเก็บ ตำแหน่งติดตั้ง และเงื่อนไขผ่านทุกด่าน: [ตารางครบ 25 ด่าน](MISSION_25_EQUIPMENT_PORT_CABLE_MATRIX.md), [ข้อมูลสำหรับเครื่อง](MISSION_25_BILL_OF_MATERIALS.json), [โซนและพอร์ต](SCENE_WORK_ZONES_AND_INTERACTION_ANCHORS.md)
 
-## บท 01 ห้องประตูแรกแห่งภาพ · ห้องเรียน (`xs`) — DESIGN_REFERENCE [R01,R04,R10,R11]
-Mini HDMI Switcher (อ้างอิงความสามารถ ATEM Mini Pro: HDMI IN, HDMI OUT แยก, USB Webcam) · **ไม่มี Capture Card แยก**
+อุปกรณ์พกพาต้องนำจากคลังไปวางที่จุดใช้งาน ส่วนกล้อง ฐานรับ เราเตอร์ คอนโซล จอ PA และตู้ส่งที่ติดตั้งประจำต้องต่อและตั้งค่าเอง ไม่ให้ถือทั้งตู้ งานอนาล็อกเลือก Stagebox/Multicore อย่างชัดเจน ไม่อ้างว่า Ethernet เป็น Dante
 
-| ระดับ | งาน | เส้นทางบังคับ | สาย | ขั้นตั้งค่า |
-|---|---|---|---|---|
-| 1 | ภาพกล้อง → TV | Camera HDMI OUT → SW HDMI IN 1 · SW HDMI OUT → TV HDMI IN | HDMI ×2 | HDMI OUT = Program · เลือก Program: Camera |
-| 2 | เสียงไมค์ → ลำโพงห้อง | Lav → TX MIC IN · RX AUDIO OUT (Line) → Mixer CH1 · Mixer MAIN (PA) → Active Speaker LINE IN | สายไมค์ ×1, XLR ×1, TRS 6.35 ×1 | Pair TX↔RX · Gain + บัส PA |
-| 3 | สลับกล้อง/สไลด์ | ระดับ 1 + Laptop HDMI OUT → SW HDMI IN 2 | HDMI ×3 | HDMI OUT = Program · เลือก Camera · เลือก Presentation |
-| 4 | ซ่อมระบบ | กราฟเต็ม (ดูระดับ 5) | ชุดระดับ 5 + หลอก 6 | ทำใหม่ทั้งหมด · **ฟอลต์:** TV ต่อจาก Laptop โดยตรง |
-| 5 | Hybrid ครบ | ทั้งหมดข้างบน + Mixer AUX (STREAM) → SW MIC IN 1 · SW USB-C WEBCAM → Notebook USB HOST | HDMI ×3, สายไมค์ ×1, XLR ×1, TRS 6.35 ×1, TRS 6.35→3.5 ×1, USB-C→A ×1 (8) | + บัส STREAM · MIC 1 = Line เข้า Program · OBS (Video Capture Device + เสียงทางเดียว) |
+S ยังรอรุ่นกล้อง/พอร์ต HDS7105/การแยกช่อง RX และหัว USB ฝั่ง Capture จริง ส่วน Optical และ Replay ใช้จุดต่อแบบฝึกที่ระบุความไม่แน่นอน ไม่อ้างชนิดขั้วต่อ ความยาวคลื่น หรือโปรโตคอลผู้ผลิต ข้อมูล Tally/Intercom/PTZ-control จริงยังรอยืนยันจึงไม่เพิ่มพอร์ตสมมติ
 
-อุปกรณ์: requiredInteractive = กล้อง, Laptop, Mini Switcher, TV, Lav, TX, RX, Small Mixer, Active Speaker, Notebook · environmentOnly = ขาตั้งกล้อง, ตู้ AV, ชั้นสาย, หูฟัง
-
-## บท 02 สะพานจันทราแห่งเสียง · สตูดิโอภารกิจ (`s`) — PROVISIONAL [R04,R05,R08]
-ฉากและผังแยก (`studioMission` + `venue/studio.tsx`) ไม่ใช้ Studio Room 01 · เส้นเสียงรายการ **Mixer → HDS7105 → Magewell** (ตามคำอธิบายอาจารย์)
-
-| ระดับ | งาน | เส้นทางบังคับ | สาย | ขั้นตั้งค่า |
-|---|---|---|---|---|
-| 1 | กล้อง 1 + Multiview | Cam1 HDMI OUT → HDS7105 VIDEO IN 1 · MULTIVIEW OUT → Samsung TV | HDMI ×2 | เลือก Program: Camera 1 |
-| 2 | เสียงสตูดิโอ | Lav1→TX1 · Lav2→TX2 · RX OUT → Mixer CH3/4 LINE · XS 1 XLR → CH1 MIC · Mixer MAIN → HDS7105 LINE IN · Mixer MONITOR → HS5 | สายไมค์ ×2, 3.5→6.35 ×1, XLR ×1, 6.35→3.5 ×1, TRS ×1 | Pair TX1+TX2 · Gain + MAIN · บัส MONITOR · LINE IN เข้า Program |
-| 3 | 3 กล้อง | Cam1–3 → VIDEO IN 1–3 · MULTIVIEW → TV | HDMI ×4 | เลือก Program กล้อง 1/2/3 |
-| 4 | ซ่อมระบบ | กราฟเต็ม | ชุดระดับ 5 + หลอก 6 | **ฟอลต์:** TV ต่อจาก PGM แทน MULTIVIEW |
-| 5 | สตูดิโอครบ | ระดับ 2 + 3 + PGM → Magewell HDMI IN · Magewell USB → HP USB HOST | HDMI ×5, สายไมค์ ×2, 3.5→6.35, XLR, 6.35→3.5, TRS, USB 3.0 (12) | + OBS เลือก Magewell + เสียง HDMI ทางเดียว |
-
-หมายเหตุ: HDS7105 พอร์ตเป็นโปรไฟล์ฝึก (revision รอตรวจ) · กล้องใช้โปรไฟล์ HDMI (รอตรวจ ไม่เดา SDI) · RX 2TX/1RX ผสมเป็นเอาต์พุตเดียว (รอยืนยัน) · Magewell 32060 / Samsung U8000F / Yamaha HS5 = SELECTED TRAINING REFERENCE · XS 1 เป็นแหล่งเสียงที่เลือกใส่ในบทนี้
-
-## บท 03 หอคอยกระจกสลับภาพ · หอประชุม (`m`) — DESIGN_REFERENCE [R02,R08,R10,R12,R14]
-3G-SDI switcher (อ้างอิงความสามารถ ATEM TVS HD8) · **Analog stagebox + multicore** (ไม่ใช่ Dante) · ไมค์ตามงานวิจัย: Podium + Handheld ไร้สาย ×2 + Lav ×2 (RX แยกเครื่องละช่อง)
-
-| ระดับ | งาน | เส้นทางบังคับ | สาย | ขั้นตั้งค่า |
-|---|---|---|---|---|
-| 1 | กล้อง C → จอเวที | Cam C SDI → SW SDI IN 1 · SW AUX SDI → SDI→HDMI · Converter HDMI → จอเวที | SDI ×2, HDMI ×1 | AUX = Program · เลือก Camera C |
-| 2 | เสียงเวที 2 ปลายทาง | Podium XLR → Stagebox MIC IN 1 · Handheld RX 1 → MIC IN 2 · Stagebox Multicore → Mixer · Mixer PA BUS → Active PA · Mixer BROADCAST → SW AUDIO IN | XLR ×4, Multicore ×1 | Pair Handheld 1 · Gain + PA BUS · BROADCAST BUS · AUDIO IN เข้า Program |
-| 3 | 5 แหล่งภาพ + MV | Cam C/L/R + PTZ → SDI IN 1–4 · Laptop HDMI → HDMI→SDI → SDI IN 5 · AUX → SDI→HDMI → จอเวที · MULTIVIEW HDMI → FOH Monitor | SDI ×6, HDMI ×3 | AUX = Program · เลือก Program 5 แหล่ง |
-| 4 | ซ่อมระบบ | กราฟเต็ม | ชุดระดับ 5 + หลอก 6 | **ฟอลต์:** จอเวทีต่อจาก PROGRAM OUT แทน AUX |
-| 5 | งานเวทีครบ | ระดับ 2 + 3 + Handheld RX 2 → MIC IN 3 · Lav RX 1/2 → MIC IN 4/5 · Lav→TX ×2 · PGM SDI → Recorder · USB Webcam → PC | SDI ×7, HDMI ×3, USB ×1, XLR ×7, สายไมค์ ×2, Multicore ×1 (21) | + Pair ทั้ง 4 · Gain ทุกช่อง · บันทึก · OBS |
-
-ยังไม่ทำ (ไม่มีหลักฐานพอร์ต/บังคับ): สายควบคุม PTZ, Program confidence monitor, DSP ก่อน PA (ใช้ Active PA ตรง)
-
-## บท 04 คลังผนึกพอร์ตโบราณ · ภายนอกอาคาร (`l`) — DESIGN_REFERENCE [R06,R07,R09,R13,R15]
-
-| ระดับ | งาน | เส้นทางบังคับ | สาย | ขั้นตั้งค่า |
-|---|---|---|---|---|
-| 1 | กล้องไกล (Fiber) + ใกล้ | Far Cam SDI → Fiber TX · TX OPTICAL → RX OPTICAL · RX SDI → SW SDI IN 1 · Cam B SDI → SDI IN 2 · MV SDI → Monitor | SDI ×4, Fiber ×1 | ไฟเลี้ยง Fiber TX/RX · เลือก Program กล้อง A / B |
-| 2 | เสียงภาคสนาม | Lav → TX · RX → CH1 · Shotgun → CH2 · Ambient → CH3 · PA BUS → Active PA | สายไมค์ ×1, XLR ×4 | Pair · +48V เฉพาะ Shotgun · Gain + PA · BROADCAST |
-| 3 | 3 กล้อง | ระดับ 1 + Cam C SDI → SDI IN 3 | SDI ×5, Fiber ×1 | เลือก Program 3 กล้อง |
-| 4 | ซ่อมระบบ | กราฟเต็ม | ชุดระดับ 5 + หลอก 6 | **ฟอลต์:** Embedder ได้ Multiview แทน Program |
-| 5 | สตรีมภาคสนามครบ | ระดับ 2 + 3 + Mixer BROADCAST → Embedder AUDIO IN · PGM SDI → Embedder SDI IN · Embedder SDI OUT → Encoder · Encoder ETH → Router LAN · Router WAN → Ingest | SDI ×7, Fiber ×1, สายไมค์ ×1, XLR ×5, Ethernet ×2 (16) | + Embed · เครือข่าย · Encoder · Cable ramp |
-
-Wireless video = ทางเลือก ไม่บังคับ (ไม่ใส่ในกราฟ)
-
-## บท 05 บัลลังก์จอมถ่ายทอด · สนามกีฬา (`xl`) — DESIGN_REFERENCE [R03,R09,R15,R16,R17]
-กล้อง n ↔ CCU n (ระบบคู่) → Router → Switcher (Constellation ไม่มี XLR audio → ใช้ Embedder) → DA 1×4 → Main / Backup / Recorder
-
-| ระดับ | งาน | เส้นทางบังคับ | สาย | ขั้นตั้งค่า |
-|---|---|---|---|---|
-| 1 | กล้อง 1–2 ผ่าน CCU/Router | Cam n Fiber → CCU FIBER IN n · CCU SDI OUT n → Router IN n · Router OUT n → SW IN n (n=1,2) · MV → Wall | Camera Fiber ×2, SDI ×5 | Crosspoint 1, 2 · เลือก Program กล้อง 1/2 |
-| 2 | เสียงถ่ายทอด | ผู้บรรยาย 1–2, Crowd L/R, Field → Stagebox MIC IN 1–5 · Multicore → Console · VENUE PA → Stadium PA | XLR ×6, Multicore ×1 | Broadcast mix · VENUE PA (ไม่ส่งผู้บรรยาย) |
-| 3 | ห้องควบคุม | กล้อง 1–6 ครบ · Replay SDI → Router IN 7 → OUT 7 → SW IN 7 · Replay Controller → Replay CONTROL · Graphics HDMI → HDMI→SDI → Router IN 8 → OUT 8 → SW IN 8 · MV → Wall | Camera Fiber ×6, SDI ×17, RS-422 ×1, HDMI ×1 | Crosspoint 1–8 · เลือก Program ทุกแหล่ง |
-| 4 | ซ่อมระบบ | กราฟเต็ม | ชุดระดับ 5 + หลอก 6 | **ฟอลต์:** Embedder ได้ Multiview แทน Program |
-| 5 | ถ่ายทอดเต็มระบบ | ระดับ 2 + 3 + Presenter Lav→TX, RX → MIC IN 6 · AUX → Venue Processor → Stadium Display · BROADCAST → Embedder · PGM → Embedder → DA · DA OUT1 → Main Enc → Primary Net → Main Ingest · DA OUT2 → Backup Enc → Backup Net → Backup Ingest · DA OUT3 → Recorder · Intercom PL1 → Commentary Unit · SW TALLY → CCU Rack | Camera Fiber ×6, SDI ×23, HDMI ×2, XLR ×8, สายไมค์ ×1, Multicore ×1, Ethernet ×4, RS-422 ×1, Intercom XLR-4 ×1, GPI ×1 (48) | + Pair · เสียงพิธีกร · Embed · AUX = Venue feed · บันทึก · Main · Backup · Intercom · Tally map |
-
-ระบบนี้เป็น **Encoder/Uplink failover** — Switcher, Embedder, DA ยังเป็นจุดเสี่ยงร่วม (Partial redundancy) · Tally ใช้บัสร่วมของ Rack (โปรไฟล์ฝึก)
+XL แยกสายภาพและเกตเวย์สองเส้นทาง แต่แหล่งผลิตและไฟเลี้ยงยังร่วมกัน จึงเป็นการสำรองบางส่วน ห้ามอ้างว่าสำรองสมบูรณ์

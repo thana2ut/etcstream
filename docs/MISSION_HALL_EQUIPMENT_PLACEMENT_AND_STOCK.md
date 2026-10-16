@@ -1,106 +1,209 @@
-# หอจารึกแห่งภารกิจ — การวางอุปกรณ์และสต็อกสาย (5 ห้อง × 5 ระดับ)
+# หอจารึกแห่งภารกิจ — 5 สถานที่ × 5 ระดับ
 
-**แหล่งข้อมูลจริงมีที่เดียว:** `game/training/venue-scenarios.ts` (อุปกรณ์ พอร์ต สาย 1 เส้นต่อ 1 เส้นทาง ขั้นตั้งค่า ระดับที่ใช้) + `game/training/venue-layouts.ts` (จุดติดตั้ง/คลัง)
-**สถานะ:** NOT TESTED / NOT PLAYTESTED · ทุกอุปกรณ์เป็นตัวแทน low-poly ชั่วคราว
+ข้อมูลปัจจุบันสร้างจากกราฟที่เกมใช้จริง เทียบ Appendix A และเอกสารส่งมอบวันที่ 20 ตุลาคม 2026 แล้วในระดับแบบระบบฝึก ไม่ใช่การยืนยันอุปกรณ์จริงของสถานที่
 
-## กติกาที่โค้ดบังคับ
-- สายถูกสร้างจากเส้นทางบังคับเท่านั้น (`route()` 1 เส้นทาง = 1 สายที่มีชนิดหัวต่อตรงทั้งสองปลาย) ⇒ **สต็อกสาย = จำนวนเส้นทางของระดับนั้น** + สายหลอก 6 เส้นในระดับ 4
-- อุปกรณ์ในด่าน = อุปกรณ์ที่มีพอร์ตในเส้นทางของระดับนั้น หรือเป็นเจ้าของขั้นตั้งค่า — ไม่มีอุปกรณ์ "ผี"
-- อุปกรณ์พกพา (Movable) เริ่มในคลังอุปกรณ์ ต้องหยิบไปวางที่จุดติดตั้ง (ระยะ ≤ 0.5 m) จึงใช้พอร์ตได้; ระดับ 4 เริ่มติดตั้งแล้ว
-- อุปกรณ์ติดตั้งประจำ (Fixed) อยู่ที่จุดใช้งาน แต่ยังต้องต่อสาย/ตั้งค่าเอง
-- environmentOnly (ไม่นับผ่านด่าน): ขาตั้ง/แท่นกล้อง, ตู้/ชั้น/เคส, หูฟังห้องเรียน, ป้าย, ราง/ทางสาย, UPS
-- ระดับ = แท็กในเส้นทาง: `1`, `2`, `3`, `5`; ระดับ 4 ใช้ชุดของระดับ 5
+**ไฟล์นี้เป็นข้อมูลนิยาม ไม่ใช่ผลทดลองเล่น ดูผลตรวจล่าสุดใน MISSION_25_ADMIN_AND_CODE_AUDIT_TH.md** นิยามเก่าคงอยู่ใน `ORIGINAL_STAGES` และ `ROOMS`; ชุดที่ใช้ใน Mission Hall อ่าน `STAGES` และ `MISSION_ROOMS` ห้องฝึกอิสระไม่ได้ใช้ชั้นปรับนี้
 
----
+| ด่าน | ภารกิจ | อุปกรณ์ | พอร์ต | สายบังคับ | สถานะอ้างอิง |
+| --- | --- | --- | --- | --- | --- |
+| XS-01 | นำภาพจากกล้องห้องเรียนขึ้นจอหน้าห้องผ่านเครื่องสลับภาพ | 3 | 8 | 2 | DESIGN_REFERENCE |
+| XS-02 | ให้เสียงผู้สอนจากไมค์หนีบปกดังออกลำโพงหน้าห้องอย่างชัดเจน ไม่หอน | 5 | 10 | 3 | DESIGN_REFERENCE |
+| XS-03 | สลับกล้องกับสไลด์ขึ้นจอห้องเรียน และตรวจภาพรายการเดียวกันใน OBS ผ่าน USB Webcam | 5 | 12 | 4 | DESIGN_REFERENCE |
+| XS-04 | คาบเรียนออนไลน์กำลังจะเริ่ม แต่ OBS ไม่มีภาพและเสียง และจอหน้าห้องผิด — หาจุดเสียแล้วซ่อมทางกายภาพ | 8 | 20 | 6 | DESIGN_REFERENCE |
+| XS-05 | จัดห้องเรียนไฮบริดครบระบบ: กล้องและสไลด์ขึ้นจอหน้าห้องและ OBS, เสียงผู้สอนออกลำโพงในห้อง และส่งเข้าสตรีมแยกบัส โดยเสียงใน OBS ไม่ซ้อน | 10 | 22 | 8 | DESIGN_REFERENCE |
+| ST-01 | ให้ภาพ CAM1 ขึ้นเป็นช่องหนึ่งในจอรวมภาพ (Multiview) ของห้องควบคุม | 3 | 9 | 2 | PROVISIONAL |
+| ST-02 | พิธีกรและแขกรับเชิญต้องปรับเสียงได้แยกกัน ส่งเข้า Broadcast และฟังตรวจที่ลำโพงมอนิเตอร์ | 9 | 21 | 6 | PROVISIONAL |
+| ST-03 | ถ่ายสามมุม: โต๊ะผู้นำเสนอ มุมสัมภาษณ์ และฉากเขียว — สลับด้วยเครื่องสลับภาพ ไม่ใช่การย้ายสาย | 5 | 11 | 4 | PROVISIONAL |
+| ST-04 | ผู้ชมออนไลน์เห็นภาพตารางรวมภาพแทนรายการ และไม่ได้ยินเสียง — หาสาเหตุและซ่อมทางกายภาพ | 9 | 23 | 7 | PROVISIONAL |
+| ST-05 | ประกอบสตูดิโอครบระบบ: สามกล้องสลับได้, ไมค์ไร้สาย 2 ตัวและไมค์สาย 1 ตัวแยกช่อง, Broadcast ฝังเข้า PGM, ฟังตรวจที่ HS5, จับภาพ PGM เข้า OBS | 16 | 31 | 13 | PROVISIONAL |
+| AU-01 | นำภาพกล้องกลางหลังห้องขึ้นจอเวที | 4 | 18 | 3 | DESIGN_REFERENCE |
+| AU-02 | AU-02 · ให้เสียงโพเดียมดังในห้องและเข้าระบบถ่ายทอดแยกกัน | 9 | 41 | 9 | DESIGN_REFERENCE |
+| AU-03 | ห้าแหล่งภาพต้องเลือกได้ทั้งหมด จอเวทีต้องแสดงภาพ PGM ที่สะอาด ไม่ใช่ Multiview | 10 | 26 | 9 | DESIGN_REFERENCE |
+| AU-04 | ก่อนเริ่มงาน 15 นาที: จอเวทีดำ กล้อง 2 หาย และเสียงโพเดียมไม่เข้าระบบถ่ายทอด — คืนบทบาทพอร์ตและสัญญาณให้ถูก | 14 | 51 | 14 | DESIGN_REFERENCE |
+| AU-05 | AU-05 · จัดงานเต็มระบบ: ห้าแหล่งภาพ, จอเวทีจาก AUX, Multiview ที่ FOH, PGM สะอาดไป Capture/OBS และเครื่องบันทึกแยกขาออก, เสียงสามแหล่งผ่าน Stagebox แยก PA และ Broadcast | 29 | 68 | 29 | DESIGN_REFERENCE |
+| OUT-01 | OUT-01 · ต่อกล้องใกล้ผ่านเครื่องสลับภาพและตรวจจอรวมภาพ | 3 | 17 | 2 | DESIGN_REFERENCE |
+| OUT-02 | OUT-02 · จับคู่ไมค์พิธีกร รับเสียงเวทีและบรรยากาศ แล้วส่ง PA โดยแยกบัสรายการ | 7 | 16 | 5 | DESIGN_REFERENCE |
+| OUT-03 | OUT-03 · ติดตั้งคู่ Optical ของกล้อง C และสลับภาพ A/B/C ด้วย Preview ก่อน Program | 7 | 23 | 6 | DESIGN_REFERENCE |
+| OUT-04 | OUT-04 · ติดตั้งกล้องสามจุด เสียง PA/รายการ อุปกรณ์ฝังเสียง ตัวเข้ารหัส และตรวจผู้ชมจำลอง | 18 | 49 | 17 | DESIGN_REFERENCE |
+| OUT-05 | OUT-05 · ติดตั้งกล้องสามจุด เสียง PA/รายการ อุปกรณ์ฝังเสียง ตัวเข้ารหัส และตรวจผู้ชมจำลอง | 18 | 49 | 17 | DESIGN_REFERENCE |
+| SP-01 | SP-01 · ต่อกล้อง 1 ผ่านชุด Optical เข้าฐาน CCU แล้ว Patch ผ่านเราเตอร์ไปเครื่องสลับภาพ | 5 | 35 | 4 | DESIGN_REFERENCE |
+| SP-02 | SP-02 · ติดตั้งไมค์หกแหล่งผ่านมัลติคอร์ และแยกเสียง PA กับเสียงรายการ | 13 | 48 | 17 | DESIGN_REFERENCE |
+| SP-03 | SP-03 · Patch แหล่งภาพแปดแหล่งผ่านเราเตอร์ แล้วควบคุม Preview / Program / Multiview | 19 | 57 | 25 | DESIGN_REFERENCE |
+| SP-04 | SP-04 · ประกอบหกกล้อง ภาพซ้ำ กราฟิก เสียง PA/รายการ บันทึก และชุดส่งหลัก/สำรองผ่านเครือข่ายแยก | 39 | 104 | 50 | DESIGN_REFERENCE |
+| SP-05 | SP-05 · ประกอบหกกล้อง ภาพซ้ำ กราฟิก เสียง PA/รายการ บันทึก และชุดส่งหลัก/สำรองผ่านเครือข่ายแยก | 39 | 104 | 50 | DESIGN_REFERENCE |
 
-## XS ห้องเรียน — คลังอุปกรณ์: ตู้ AV ผนังขวา · คลังสาย: ชั้นวางสายหลังห้อง (2 ชั้น)
-| id | อุปกรณ์ | ประเภท | จุดเริ่ม → จุดติดตั้ง | ระดับ |
-|---|---|---|---|---|
-| cam1 | Classroom HDMI Camera | Fixed (บนขาตั้ง) | หลังห้องกลาง | 1,3,4,5 |
-| slides | Teacher Presentation Laptop | Fixed | โต๊ะผู้สอน | 3,4,5 |
-| sw | Mini HDMI Switcher (USB Webcam) | Movable | ตู้ AV → โต๊ะควบคุม AV กลาง | 1,3,4,5 |
-| monitor | Classroom TV / Projector | Fixed | ผนังหน้า | 1,3,4,5 |
-| lav1 / tx1 | Lavalier / Wireless TX | Fixed / Movable | โต๊ะผู้สอน | 2,4,5 |
-| rx | Wireless Receiver | Movable | ตู้ AV → ข้าง Mixer | 2,4,5 |
-| mix | Small Audio Mixer (PA + AUX) | Movable | ตู้ AV → โต๊ะควบคุม AV | 2,4,5 |
-| speaker | Active Classroom Speaker | Fixed | หน้าห้องซ้าย | 2,4,5 |
-| pc | Streaming Notebook / OBS | Movable | ตู้ AV → โต๊ะควบคุม AV ขวา | 4,5 |
+รายละเอียดรายอุปกรณ์ พอร์ต สายทั้งสองปลาย จำนวน ชั้นจัดเก็บ ตำแหน่งติดตั้ง และเงื่อนไขผ่านทุกด่าน: [ตารางครบ 25 ด่าน](MISSION_25_EQUIPMENT_PORT_CABLE_MATRIX.md), [ข้อมูลสำหรับเครื่อง](MISSION_25_BILL_OF_MATERIALS.json), [โซนและพอร์ต](SCENE_WORK_ZONES_AND_INTERACTION_ANCHORS.md)
 
-สต็อกสาย: ระดับ 1 HDMI 2 · ระดับ 2 สายไมค์ 1, XLR 1, TRS 1 · ระดับ 3 HDMI 3 · ระดับ 5 = 8 เส้น (HDMI 3, สายไมค์ 1, XLR 1, TRS 1, TRS→3.5 1, USB-C→A 1)
+อุปกรณ์พกพาต้องนำจากคลังไปวางที่จุดใช้งาน ส่วนกล้อง ฐานรับ เราเตอร์ คอนโซล จอ PA และตู้ส่งที่ติดตั้งประจำต้องต่อและตั้งค่าเอง ไม่ให้ถือทั้งตู้ งานอนาล็อกเลือก Stagebox/Multicore อย่างชัดเจน ไม่อ้างว่า Ethernet เป็น Dante
 
-## S สตูดิโอภารกิจ — คลังอุปกรณ์: โต๊ะยาวขวา · คลังสาย: โต๊ะยาวซ้าย (2 ชั้น)
-| id | อุปกรณ์ | ประเภท | จุดเริ่ม → จุดติดตั้ง | ระดับ |
-|---|---|---|---|---|
-| cam1–3 | Studio Camera 1–3 | Fixed (ขาตั้ง 3 จุด) | ซ้าย / กลาง / ขวา | cam1: 1,3,4,5 · cam2–3: 3,4,5 |
-| sw | DeviceWell HDS7105 | Fixed | กลางโต๊ะผลิต | 1–5 |
-| mix | Audio Mixer (PMX chassis) | Fixed | โต๊ะผลิตซ้าย | 2,4,5 |
-| rx | Wireless RX (2TX/1RX) | Movable | โต๊ะอุปกรณ์ → ข้าง Mixer | 2,4,5 |
-| tx1, tx2 / lav1, lav2 | Wireless TX / Lavalier | Movable / Fixed | โต๊ะอุปกรณ์ → โต๊ะพิธีกร | 2,4,5 |
-| mic | Sennheiser XS 1 | Movable | โต๊ะอุปกรณ์ → โต๊ะพิธีกร | 2,4,5 |
-| speaker | Yamaha HS5 | Fixed | ข้างโต๊ะผลิต | 2,4,5 |
-| monitor | Samsung TV (Multiview) | Fixed | ขาตั้ง TV หลังซ้าย | 1,3,4,5 |
-| capture | Magewell USB Capture HDMI | Movable | โต๊ะอุปกรณ์ → ระหว่าง HDS7105 กับ Notebook | 4,5 |
-| pc | HP Notebook / OBS | Fixed | โต๊ะผลิตขวา | 4,5 |
+S ยังรอรุ่นกล้อง/พอร์ต HDS7105/การแยกช่อง RX และหัว USB ฝั่ง Capture จริง ส่วน Optical และ Replay ใช้จุดต่อแบบฝึกที่ระบุความไม่แน่นอน ไม่อ้างชนิดขั้วต่อ ความยาวคลื่น หรือโปรโตคอลผู้ผลิต ข้อมูล Tally/Intercom/PTZ-control จริงยังรอยืนยันจึงไม่เพิ่มพอร์ตสมมติ
 
-สต็อกสาย: ระดับ 1 HDMI 2 · ระดับ 2 = 6 (สายไมค์ 2, 3.5→6.35, XLR, 6.35→3.5, TRS) · ระดับ 3 HDMI 4 · ระดับ 5 = 12
+XL แยกสายภาพและเกตเวย์สองเส้นทาง แต่แหล่งผลิตและไฟเลี้ยงยังร่วมกัน จึงเป็นการสำรองบางส่วน ห้ามอ้างว่าสำรองสมบูรณ์
 
-## M หอประชุม — คลังอุปกรณ์: กล่องไมค์ข้างเวทีซ้าย · คลังสาย: Cable rack หลัง FOH (2 ชั้น)
-| id | อุปกรณ์ | ประเภท | จุดติดตั้ง | ระดับ |
-|---|---|---|---|---|
-| cam1 / cam2 / cam3 | Camera C / L / R (SDI) | Fixed | หลังกลาง (riser) / ทางเดินซ้าย / ขวา | cam1: 1,3,4,5 · อื่น: 3,4,5 |
-| cam4 | PTZ Camera (SDI) | Fixed | ใกล้เวทีซ้าย | 3,4,5 |
-| slides + conv-slides | Laptop + HDMI→SDI | Fixed + Movable | โต๊ะ Presentation | 3,4,5 |
-| sw | Production 3G-SDI Switcher | Fixed | FOH Production | 1–5 |
-| conv-display + display | SDI→HDMI + จอเวที | Movable + Fixed | ข้างเวทีขวา / หน้าเวที | 1,3,4,5 |
-| monitor | FOH Multiview Monitor | Fixed | FOH | 3,4,5 |
-| recorder / pc | Program Recorder / Production PC | Fixed | FOH | 4,5 |
-| mic1 | Podium Microphone | Fixed | Podium | 2,4,5 |
-| hh1, hh2 / hhrx1, hhrx2 | Wireless Handheld / RX | Fixed / Movable | หน้าเวทีขวา / ตู้ RX ข้างเวทีขวา | hh1: 2,4,5 · hh2: 4,5 |
-| lav1, lav2 / tx1, tx2 / lavrx1, lavrx2 | Lav / TX / RX | Fixed / Movable / Movable | จุดวิทยากร / ตู้ RX | 4,5 |
-| stagebox | Analog Stagebox | Fixed | ข้างเวทีขวา | 2,4,5 |
-| mix | Digital FOH Mixer | Fixed | FOH Audio | 2,4,5 |
-| pa | Active PA Speaker | Fixed | ซ้ายเวที | 2,4,5 |
 
-สต็อกสาย: ระดับ 1 SDI 2, HDMI 1 · ระดับ 2 XLR 4, Multicore 1 · ระดับ 3 SDI 6, HDMI 3 · ระดับ 5 = 21 (SDI 7, HDMI 3, USB 1, XLR 7, สายไมค์ 2, Multicore 1)
+## การวางอุปกรณ์และสต็อกตามกราฟ
 
-## L ภายนอกอาคาร — คลังอุปกรณ์: Field cases ทางเข้าบริการ · คลังสาย: Field cable box
-| id | อุปกรณ์ | ประเภท | จุดติดตั้ง | ระดับ |
-|---|---|---|---|---|
-| cam1 + fiber-tx | Far Camera A + Fiber TX | Fixed + Movable | หน้าซ้ายไกล | 1,3,4,5 |
-| fiber-rx | Fiber RX | Movable | ข้างเต็นท์ควบคุม | 1,3,4,5 |
-| cam2 / cam3 | Near Camera B / C | Fixed | หน้าขวา / หลังกลาง | cam2: 1,3,4,5 · cam3: 3,4,5 |
-| sw | Field SDI Switcher | Fixed | เต็นท์ | 1–5 |
-| monitor | Portable Multiview Monitor | Movable | เต็นท์ | 1,3,4,5 |
-| lav1/tx1 + rx | Lav/TX + RX | Fixed/Movable + Movable | พิธีกร / เต็นท์ | 2,4,5 |
-| mic0 / mic1 | Shotgun / Ambient | Fixed | หน้าเวที / ฝั่งผู้ชม | 2,4,5 |
-| mix / pa | Field Mixer / Active PA | Fixed | เต็นท์ / ข้างเวที | 2,4,5 |
-| embedder / encoder | Audio Embedder / SDI Encoder | Movable | โต๊ะ encode ในเต็นท์ | 4,5 |
-| network / live | Router / Ingest (จำลอง) | Fixed | เต็นท์ / ข้างเต็นท์ | 4,5 |
+# Scene work zones and interaction anchors
 
-สต็อกสาย: ระดับ 1 SDI 4, Fiber 1 · ระดับ 2 สายไมค์ 1, XLR 4 · ระดับ 3 SDI 5, Fiber 1 · ระดับ 5 = 16 (SDI 7, Fiber 1, สายไมค์ 1, XLR 5, Ethernet 2)
+Generated from the mission scenario/layout data; Manifest export only — results in MISSION_25_ADMIN_AND_CODE_AUDIT_TH.md. Coordinates and proportional shells are training design, not measured hardware or campuses. Free-practice studio data is not modified.
 
-## XL สนามกีฬา — คลังอุปกรณ์: Accessory rack ในห้องควบคุม · คลังสาย: Technical cable rack 2 ชั้น (ขยายเพื่อรองรับ ~54 เส้น)
-| id | อุปกรณ์ | ประเภท | จุดติดตั้ง | ระดับ |
-|---|---|---|---|---|
-| cam1–6 | Broadcast Camera 1–6 | Fixed | 6 จุดข้างสนาม (กล้อง 1 บนแท่น) | 1–2: 1,3,4,5 · 3–6: 3,4,5 |
-| ccu1–6 | CCU / Base Station 1–6 (แยกเครื่อง คู่ระบบกล้อง) | Fixed | ตู้ Rack CCU (เรียงซ้อน) | ตามกล้อง |
-| router | SDI Video Router | Fixed | ตู้ Rack Router | 1–5 |
-| sw | Broadcast Production Switcher | Fixed | แถว 1 | 1–5 |
-| replay / replay-ctl | Replay Server / Controller | Fixed | แถว 2 | 3,4,5 |
-| graphics + conv-gfx | Graphics Workstation + HDMI→SDI | Fixed + Movable | แถว 3 | 3,4,5 |
-| monitor | Multiview Wall | Fixed | ผนังหน้าห้องควบคุม | 1,3,4,5 |
-| display-conv + display | Venue Processor + Stadium Display | Fixed | ข้างสนาม | 4,5 |
-| mic0–4 | ผู้บรรยาย 1–2, Crowd L/R, Field | Fixed | โต๊ะผู้บรรยาย / ข้างสนาม | 2,4,5 |
-| lav1/tx1 + rx | Presenter Lav/TX + RX | Fixed/Movable + Movable | ข้างสนาม / Audio area | 4,5 |
-| stagebox / mix / pa | Stagebox / Broadcast Console / Stadium PA | Fixed | โต๊ะผู้บรรยาย / Audio desk / ข้างสนาม | 2,4,5 |
-| embedder, da | Audio Embedder, SDI DA 1×4 | Fixed | ตู้ Rack | 4,5 |
-| encoder, network, live | Main Encoder / Primary Network / Main Ingest | Fixed | ตู้ Rack | 4,5 |
-| backup, backup-net, live-backup | Backup Encoder / Backup Network / Backup Ingest | Fixed | ตู้ Rack (แยก) | 4,5 |
-| recorder | Program Recorder | Fixed | ตู้ Rack | 4,5 |
-| intercom, commentary | Intercom Station, Commentary Unit | Fixed | แถว 1 / โต๊ะผู้บรรยาย | 4,5 |
+## XS / classroom
 
-สต็อกสาย: ระดับ 1 Camera Fiber 2, SDI 5 · ระดับ 2 XLR 6, Multicore 1 · ระดับ 3 Camera Fiber 6, SDI 17, RS-422 1, HDMI 1 · ระดับ 5 = 48 (Camera Fiber 6, SDI 23, HDMI 2, XLR 8, สายไมค์ 1, Multicore 1, Ethernet 4, RS-422 1, Intercom XLR-4 1, GPI 1)
+Spawn: 7.395, 0.84, 2.827; yaw 0.8645972343668998. Bounds: {"minX":-8.3375,"maxX":8.3375,"minZ":-6.38,"maxZ":6.38}.
 
-## UNRESOLVED / ไม่ได้ใส่
-- XS: หูฟังผู้ควบคุม (environmentOnly ไม่มีพอร์ตในกราฟ) · M: สายควบคุม PTZ, Confidence monitor, DSP · L: Wireless video (ทางเลือก) · XL: Talkback ผ่าน Camera Fiber (อธิบายในการ์ด ไม่ทำเป็นเส้นแยก)
-- การวาง "สายในคลัง" เป็นเส้นสายจริงบนชั้น (ระบบสายเดิม) ยังไม่มีโมเดลม้วนสาย/ถาดแยกชนิด
+Zones: หน้าห้อง: จอโปรเจกเตอร์กลาง โต๊ะผู้สอน ไวท์บอร์ด (ซ้าย) TV (ขวา); กลางห้อง: โต๊ะนักเรียนคู่ 2 ฝั่ง ทางเดินกลาง; ริมหน้าต่าง: กล้องบนขาตั้ง + ไฟ Softbox; หน้าห้อง: โต๊ะผู้สอนและจุดควบคุมหลัก; ผนังขวา: ชั้นเหล็กเก็บอุปกรณ์พกพา; หลังห้อง: ชั้นสายและโต๊ะพักอุปกรณ์. Equipment storage: 7.757, 0.95, 0.145; cable storage: 2.175, 0.9, 5.728.
+
+| Device | Zone | Transform | Port count | Approach candidates / all ports |
+| --- | --- | --- | --- | --- |
+| cam1 | กล้องผู้สอนริมหน้าต่าง | -5.51, 0, -3.19; yaw -1.199162831290218 | 1 | 1/1 |
+| slides | โต๊ะผู้สอน — โน้ตบุ๊กหันหน้าจอเข้าผู้สอน | 0.072, 0.76, -4.64; yaw 3.141592653589793 | 1 | 1/1 |
+| lav | โต๊ะครู — ไมค์หนีบปก | 1.232, 0.76, -3.915; yaw 0 | 1 | 1/1 |
+| tx | โต๊ะครู — ตัวส่งไร้สาย TX | 0.725, 0.76, -3.915; yaw 0 | 1 | 1/1 |
+| rx | โต๊ะผู้ควบคุมด้านหลัง — ตัวรับไร้สาย | 4.567, 0.76, 4.422; yaw 0 | 1 | 1/1 |
+| mix | โต๊ะผู้ควบคุมด้านหลัง — มิกเซอร์ | 4.205, 0.76, 4.277; yaw 0 | 6 | 6/6 |
+| sw | โต๊ะผู้ควบคุมด้านหลัง — เครื่องสลับภาพ | 5.075, 0.76, 4.133; yaw 0 | 5 | 5/5 |
+| monitor | TV ห้องเรียน — เว้นทางบริการหลังจอ | 6.09, 0.98, -4.567; yaw 0 | 2 | 2/2 |
+| pa | หน้าห้องด้านซ้าย — ลำโพงแอ็กทีฟพร้อมทางบริการ | -7.105, 0, -4.35; yaw 0.35 | 1 | 1/1 |
+| host | โต๊ะผู้ควบคุมด้านหลัง — โน้ตบุ๊กสตรีม OBS | 5.872, 0.76, 4.133; yaw -0.2 | 3 | 3/3 |
+## S / studioMission
+
+Spawn: 7.4, 0.84, 8; yaw 0.8500561098214295. Bounds: {"minX":-8.2,"maxX":8.2,"minZ":-4.2,"maxZ":9.1}.
+
+Zones: หน้าซ้าย: ฉากเขียว / กล้อง 1; หน้าขวา: ฉากข่าว / กล้อง 2; กลางขวา: สัมภาษณ์ / กล้อง 3; หลังซ้าย: โต๊ะผลิตและชั้นสาย; หลังขวา: ทางเข้าและจุดคืนอุปกรณ์; ทางเดินข้ามสตูดิโอ: z 1.5 ถึง 2.5. Equipment storage: 6.2, 0.76, 6.4; cable storage: -6.7, 0.9, 6.8.
+
+| Device | Zone | Transform | Port count | Approach candidates / all ports |
+| --- | --- | --- | --- | --- |
+| cam1 | กล้อง A: ภาพกว้างสองคน | 3.1, 0, 2.9; yaw -1.2882413743253092 | 1 | 1/1 |
+| cam2 | กล้อง B: ภาพใกล้แขกรับเชิญ | 3.5, 0, 0.3; yaw -2.10866914326718 | 1 | 1/1 |
+| cam3 | กล้อง C: ภาพใกล้พิธีกร | 3.6, 0, 4.4; yaw -0.5838255184014529 | 1 | 1/1 |
+| sw | โต๊ะผลิต: HDS7105 / แผงต่อสายหาผู้ควบคุม | -2.7, 0.76, 4.7; yaw 3.141592653589793 | 7 | 7/7 |
+| monitor | TV Multiview บนขาตั้ง | -6.5, 0.95, 3.9; yaw 1.1284221038181514 | 1 | 1/1 |
+| lav1 | โต๊ะผู้นำเสนอ — ไมค์หนีบปก 1 | -4.7, 0.76, -2.3; yaw 0 | 1 | 1/1 |
+| lav2 | โต๊ะผู้นำเสนอ — ไมค์หนีบปก 2 | -3, 0.76, -2.3; yaw 0 | 1 | 1/1 |
+| tx1 | โต๊ะฉากเขียว: TX 1 | -4.4, 0.76, -2.3; yaw 0 | 1 | 1/1 |
+| tx2 | โต๊ะฉากเขียว: TX 2 | -3.3, 0.76, -2.3; yaw 0 | 1 | 1/1 |
+| rx1 | ข้าง Mixer: Wireless RX | -3.7, 0.76, 4.95; yaw 0 | 1 | 1/1 |
+| rx2 | โต๊ะเสียง — ตัวรับ RX ช่อง 2 | -3.3, 0.76, 5.05; yaw 0 | 1 | 1/1 |
+| mic | ขาตั้งไมค์พิธีกร | 5.12, 1.05, 2.18; yaw 0 | 1 | 1/1 |
+| mix | โต๊ะผลิต ซ้าย: Audio Mixer | -4.45, 0.76, 4.7; yaw 0 | 6 | 6/6 |
+| speaker | Yamaha HS5 ข้างโต๊ะผลิต | -5.95, 0, 4.9; yaw 0.4 | 2 | 2/2 |
+| capture | ระหว่าง HDS7105 กับ Notebook: Magewell | -1.65, 0.76, 4.8; yaw 0 | 2 | 2/2 |
+| host | โต๊ะผลิตขวา — หันพอร์ต Notebook เข้าทางบริการ | -0.65, 0.76, 4.7; yaw 1.5707963267948966 | 3 | 3/3 |
+## M / auditorium
+
+Spawn: -10.665, 0.84, 11.07; yaw -0.7667667791521836. Bounds: {"minX":-12.15,"maxX":12.15,"minZ":-8.91,"maxZ":12.15}.
+
+Zones: เวที: Podium, จุดพิธีกร, จอ LED ด้านหลัง; ข้างเวทีขวา: Stagebox + LED processor; หลังห้องซ้าย: เตรียมและคืนไมค์ / อุปกรณ์; ผู้ชม 126 ที่: สามบล็อก / สองทางเดิน / ทางเดินรอบนอก; FOH หลังกลาง: Production + Audio desk; หลัง FOH: Cable rack + road case. Equipment storage: -7.155, 0.85, 10.463; cable storage: 5.4, 1, 10.463.
+
+| Device | Zone | Transform | Port count | Approach candidates / all ports |
+| --- | --- | --- | --- | --- |
+| cam1 | กลางหลังห้อง — กล้อง 1 | 0, 0.25, 5.333; yaw 0 | 1 | 1/1 |
+| cam2 | กล้อง 2 ทางเดินซ้าย | -10.55, 0, 1.215; yaw -0.9184654254060052 | 1 | 1/1 |
+| cam3 | กล้อง 3 ทางเดินขวา | 10.55, 0, 1.215; yaw 0.9184654254060052 | 1 | 1/1 |
+| ptz | PTZ ใกล้เวทีซ้าย | -10.55, 0, -3.915; yaw -1.348349061368955 | 1 | 1/1 |
+| slides | โต๊ะนำเสนอ — หน้าจอหันเข้าผู้นำเสนอ | -5.94, 0.76, -4.523; yaw 3.141592653589793 | 1 | 1/1 |
+| convHS | โต๊ะนำเสนอ — HDMI→SDI ข้างโน้ตบุ๊ก | -5.265, 0.76, -4.455; yaw 0 | 3 | 3/3 |
+| sw | FOH: Production SDI Switcher | 0.135, 0.76, 7.29; yaw 0 | 13 | 13/13 |
+| monitor | FOH: Multiview Monitor | -1.35, 0.76, 7.155; yaw 0 | 1 | 1/1 |
+| convSH | ข้างเวทีขวา — SDI→HDMI ไปจอเวที | 11.205, 0.55, -4.995; yaw 1.5707963267948966 | 3 | 3/3 |
+| display | ข้างเวทีขวา — แผงขาเข้าจอเวที | 11.205, 0.55, -4.185; yaw 1.5707963267948966 | 1 | 1/1 |
+| podium | Podium บนเวที | -2.97, 1.9, -6.21; yaw 0 | 1 | 1/1 |
+| stagebox | Stagebox ข้างเวทีขวา | 11.205, 0, -5.94; yaw 1.5707963267948966 | 7 | 7/7 |
+| tail | FOH — หางสายมัลติคอร์ | -3.51, 0.76, 7.155; yaw 0 | 7 | 7/7 |
+| mix | FOH Audio: Digital Mixer | -4.388, 0.76, 7.695; yaw 0 | 10 | 10/10 |
+| paL | หน้าเวทีซ้าย — ลำโพง PA | -8.64, 0.8, -6.75; yaw 0.3 | 1 | 1/1 |
+| paR | หน้าเวทีขวา — ลำโพง PA | 8.64, 0.8, -6.75; yaw -0.3 | 1 | 1/1 |
+| capture | FOH: Capture / Recorder | 1.62, 0.76, 7.425; yaw 0 | 2 | 2/2 |
+| host | FOH: Production Computer | 2.295, 0.76, 7.358; yaw -0.2 | 3 | 3/3 |
+| rec | FOH — เครื่องบันทึก | 2.7, 0.76, 7.425; yaw 0 | 2 | 2/2 |
+| hand1 | จุดไมค์มือถือข้างเวที | 6.345, 0.85, -5.4; yaw 0 | 0 | 0/0 |
+| hrx1 | กล่องตัวรับข้างเวที | 9.585, 0.85, -4.928; yaw 0 | 1 | 1/1 |
+| hand2 | จุดไมค์มือถือข้างเวที | 7.29, 0.85, -5.4; yaw 0 | 0 | 0/0 |
+| hrx2 | กล่องตัวรับข้างเวที | 9.585, 0.85, -4.185; yaw 0 | 1 | 1/1 |
+| lav1 | จุดวิทยากร | -0.945, 0.8, -6.075; yaw 0 | 1 | 1/1 |
+| lav2 | จุดวิทยากร | 0, 0.8, -6.075; yaw 0 | 1 | 1/1 |
+| tx1 | ตัวส่งไมค์วิทยากร — พอร์ตหันหาทางบริการ | -0.945, 0.8, -5.603; yaw 3.141592653589793 | 1 | 1/1 |
+| tx2 | ตัวส่งไมค์วิทยากร — พอร์ตหันหาทางบริการ | 0, 0.8, -5.603; yaw 3.141592653589793 | 1 | 1/1 |
+| rx1 | กล่องตัวรับข้างเวที | 9.585, 0.85, -3.375; yaw 0 | 1 | 1/1 |
+| rx2 | กล่องตัวรับข้างเวที | 9.585, 0.85, -2.7; yaw 0 | 1 | 1/1 |
+## L / outdoor
+
+Spawn: -14.58, 0.84, 14.31; yaw -1.3321870042866957. Bounds: {"minX":-16.200000000000003,"maxX":16.200000000000003,"minZ":-13.5,"maxZ":15.525}.
+
+Zones: เวทีและจุดพิธีกร (ไกลด้านหน้า); พื้นที่ผู้ชม + Ambient mic; จุดกล้อง A / B / C กระจายห่างกัน; เต็นท์ควบคุม: Switcher → Encoder → Router; ทางเข้าบริการ: road case + ม้วนสาย. Equipment storage: -10.665, 0.85, 11.745; cable storage: -12.42, 0.85, 9.045.
+
+| Device | Zone | Transform | Port count | Approach candidates / all ports |
+| --- | --- | --- | --- | --- |
+| cam1 | กล้อง A ฝั่งตะวันออก | 9.18, 0, -7.02; yaw 1.1801892830972098 | 1 | 1/1 |
+| cam2 | กล้อง B ฝั่งตะวันตก | -10.26, 0, -6.75; yaw -1.194835372923591 | 1 | 1/1 |
+| cam3 | กล้อง C หลังกลาง (ภาพรวม) | 0, 0.3, 5.805; yaw 0 | 1 | 1/1 |
+| fiberTx | เคสส่ง Optical ข้างกล้อง C | 1.215, 0.85, 5.805; yaw 0 | 2 | 2/2 |
+| fiberRx | กล่อง Fiber RX ข้างโต๊ะควบคุม | 2.093, 0.85, 11.003; yaw 0 | 2 | 2/2 |
+| sw | เต็นท์ควบคุม: เครื่องสลับภาพ | 4.928, 0.76, 10.53; yaw 0 | 15 | 15/15 |
+| monitor | เต็นท์ควบคุม: จอรวมภาพ | 6.21, 0.76, 10.463; yaw 0 | 1 | 1/1 |
+| lav | เวทีและจุดพิธีกร (ไกลด้านหน้า) | 1.62, 1, -10.125; yaw 0 | 1 | 1/1 |
+| tx | ตัวส่งพิธีกร — พอร์ตหันหาทางบริการหน้าเวที | 1.08, 1, -10.125; yaw 3.141592653589793 | 1 | 1/1 |
+| rx | เต็นท์ควบคุม: Wireless receiver | 3.24, 0.76, 11.205; yaw 0 | 1 | 1/1 |
+| shotgun | Shotgun บนบูมหน้าเวที | -3.51, 0, -8.168; yaw 0 | 1 | 1/1 |
+| amb | Ambient mic ฝั่งผู้ชม | -9.72, 0, 0.54; yaw 1.5707963267948966 | 1 | 1/1 |
+| mix | โต๊ะควบคุมเสียงในเต็นท์ | 3.713, 0.76, 10.665; yaw 0 | 10 | 10/10 |
+| pa | PA หน้าเวที | -7.83, 0, -7.56; yaw 0 | 1 | 1/1 |
+| embed | โต๊ะฝังเสียงและส่งสัญญาณ | 6.48, 0.76, 9.315; yaw 0 | 4 | 4/4 |
+| enc | โต๊ะฝังเสียงและส่งสัญญาณ | 7.695, 0.76, 9.315; yaw 0 | 2 | 2/2 |
+| net | โต๊ะเครือข่าย | 8.775, 0.76, 9.315; yaw 0 | 3 | 3/3 |
+| wan | จุดรับสตรีมทดสอบ | 9.113, 0, 11.61; yaw -1.5707963267948966 | 1 | 1/1 |
+## XL / stadium
+
+Spawn: 1.56, 0.84, 1.56; yaw 0.9420000403794637. Bounds: {"minX":-16.900000000000002,"maxX":18.2,"minZ":-9.75,"maxZ":18.2}.
+
+Zones: ZONE C ห้องควบคุม: Multiview Wall, แถวโต๊ะ Switcher / Replay / Graphics, Audio console, ตู้ Rack; ZONE B: โต๊ะผู้บรรยาย; ZONE A ข้างสนาม: กล้อง 6 ตำแหน่ง, Crowd / Field mic, จุดพิธีกร; ทางเดินกลาง: Technical road cases (อุปกรณ์), Cable rack ในห้องควบคุม. Equipment storage: -2.99, 1, 1.04; cable storage: 3.38, 0.9, 4.42.
+
+| Device | Zone | Transform | Port count | Approach candidates / all ports |
+| --- | --- | --- | --- | --- |
+| cam1 | กล้อง 1 หลักภาพกว้าง (แท่นสูง) | 0, 0.3, 10.66; yaw 3.141592653589793 | 1 | 1/1 |
+| ccu1 | ตู้ฐานกล้อง — แยก 6 ยูนิต | -15.47, 0.18, -8.32; yaw -1.5707963267948966 | 2 | 2/2 |
+| cam2 | กล้อง 2 ข้างสนามซ้าย | -12.35, 0, 16.38; yaw -2.807847036565737 | 1 | 1/1 |
+| ccu2 | ตู้ฐานกล้อง — แยก 6 ยูนิต | -15.47, 0.43, -8.32; yaw -1.5707963267948966 | 2 | 2/2 |
+| cam3 | กล้อง 3 ข้างสนามขวา | 12.35, 0, 16.38; yaw 2.807847036565737 | 1 | 1/1 |
+| ccu3 | ตู้ฐานกล้อง — แยก 6 ยูนิต | -15.47, 0.6799999999999999, -8.32; yaw -1.5707963267948966 | 2 | 2/2 |
+| cam4 | กล้อง 4 ท้ายสนาม | 16.599999999999998, 0, 7.02; yaw 2.727765280599181 | 1 | 1/1 |
+| ccu4 | ตู้ฐานกล้อง — แยก 6 ยูนิต | -15.47, 0.9299999999999999, -8.32; yaw -1.5707963267948966 | 2 | 2/2 |
+| cam5 | กล้อง 5 เลนส์ระยะไกล | -6.5, 0, 15.34; yaw -2.8008169108201733 | 1 | 1/1 |
+| ccu5 | ตู้ฐานกล้อง — แยก 6 ยูนิต | -15.47, 1.18, -8.32; yaw -1.5707963267948966 | 2 | 2/2 |
+| cam6 | กล้อง 6 เคลื่อนที่ในสนาม | 6.5, 0, 16.51; yaw 2.7200446968636376 | 1 | 1/1 |
+| ccu6 | ตู้ฐานกล้อง — แยก 6 ยูนิต | -15.47, 1.43, -8.32; yaw -1.5707963267948966 | 2 | 2/2 |
+| router | ตู้เราเตอร์ภาพ | -15.47, 0.8, -7.28; yaw -1.5707963267948966 | 16 | 16/16 |
+| sw | แถว 1: Production Switcher | -9.1, 0.76, -6.695; yaw 0 | 15 | 15/15 |
+| monitor | จอรวมภาพ — เว้นทางบริการจากผนังหน้า | -9.1, 1, -7.735; yaw 0 | 1 | 1/1 |
+| mic1 | Commentary desk: Mic 1 | 7.15, 0.76, -2.275; yaw 0 | 1 | 1/1 |
+| mic2 | Commentary desk: Mic 2 | 8.97, 0.76, -2.275; yaw 0 | 1 | 1/1 |
+| crowdL | ไมค์บรรยากาศผู้ชมซ้าย | -15.34, 0, 15.08; yaw 1.5707963267948966 | 1 | 1/1 |
+| crowdR | ไมค์บรรยากาศผู้ชมขวา | 16.9, 0, 11.7; yaw -1.5707963267948966 | 1 | 1/1 |
+| field | Field mic ข้างสนาม | 3.9, 0, 16.9; yaw 3.141592653589793 | 1 | 1/1 |
+| lav | ZONE C ห้องควบคุม: Multiview Wall, แถวโต๊ะ Switcher / Replay / Graphics, Audio console, ตู้ Rack | -2.6, 0, 16.77; yaw 3.141592653589793 | 1 | 1/1 |
+| tx | จุดพิธีกรข้างสนาม | -3.12, 0, 16.77; yaw 3.141592653589793 | 1 | 1/1 |
+| rx | ตัวรับเสียงข้างกล่องรับเวที | 10.66, 0.85, -0.65; yaw 0 | 1 | 1/1 |
+| stagebox | จุดรับเสียงผู้บรรยายและสนาม | 10.66, 0, 0.13; yaw 0 | 7 | 7/7 |
+| tail | ข้างคอนโซลเสียง | -4.16, 0.76, -5.2; yaw 0 | 7 | 7/7 |
+| mix | จุดเสียง: เครื่องผสมเสียงดิจิทัล | -3.38, 0.76, -5.395; yaw 0 | 10 | 10/10 |
+| pa | ระบบ PA ฝั่งผู้ชม | 10.4, 0, 6.89; yaw 0 | 1 | 1/1 |
+| play | แถว 2: Replay | -9.88, 0.76, -3.965; yaw 0 | 2 | 2/2 |
+| controller | โต๊ะควบคุมภาพซ้ำ | -8.45, 0.76, -3.9; yaw 0 | 1 | 1/1 |
+| gfx | แถว 3: Graphics Workstation | -8.32, 0.76, -1.235; yaw 0 | 1 | 1/1 |
+| convHS | โต๊ะกราฟิก — ตัวแปลง HDMI→SDI | -7.28, 0.76, -1.235; yaw 0 | 3 | 3/3 |
+| enc | ตู้ตัวเข้ารหัส | -15.47, 0, -4.94; yaw 4.71238898038469 | 2 | 2/2 |
+| enc2 | ตู้ส่งสำรอง | -15.47, 0, 0.65; yaw -1.5707963267948966 | 2 | 2/2 |
+| net | ตู้บริการ WAN — เกตเวย์ | -15.47, 0, -3.9; yaw 4.71238898038469 | 3 | 3/3 |
+| net2 | ตู้เครือข่ายสำรอง | -15.47, 0, 1.56; yaw -1.5707963267948966 | 3 | 3/3 |
+| wan | ตู้บริการ WAN — ทางออกจำลอง | -15.47, 0, -2.86; yaw 4.71238898038469 | 1 | 1/1 |
+| wan2 | จุดรับสำรองจำลอง | -15.47, 0, 2.405; yaw -1.5707963267948966 | 1 | 1/1 |
+| rec | ตู้บันทึก — HyperDeck ภาพออกอากาศ | -15.47, 0, -0.26; yaw 4.71238898038469 | 1 | 1/1 |
+| display | Stadium display processor | 17.16, 0, 14.3; yaw 1.5707963267948966 | 1 | 1/1 |
+
+## Contract and limitations
+
+- Keep device ID, port ID, transform and outward normal stable when replacing procedural shells with GLBs. Port sockets/interaction/cable tips read the same anchors. Portable anchors transform with placed/rotated gear.
+- Panel groups use per-panel indices, avoiding overlaps between front input and rear output rows. Generic shells reserve room for independent targets. Camera/laptop/display anchors use existing visual adapters.
+- Service candidates are 0.8–1.55 m outward from anchors, within room bounds, with 0.28 m collider clearance. This checks a point, NOT the complete path, line of sight, body sweep, step height or reach. Missing candidates remain explicit above.
+- Existing furniture, lighting, fantasy art and collision geometry are retained. No global camera teleport, room resizing or collision bypass was added.
+- Walk every mandatory port and storage shelf in later human QA. A candidate must never be treated as proof of physical accessibility.

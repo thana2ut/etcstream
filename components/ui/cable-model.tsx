@@ -27,7 +27,7 @@ const ENDS: Record<string, [End, End, number?]> = {
   "AUD-LAV-TX": ["lav", "trs35"], "AUD-XLR-MIC": ["xlr-f", "xlr-m"], "AUD-RX-MIXER-XLR": ["xlr-f", "xlr-m"], "AUD-RX-MIXER-3.5": ["trs35", "trs635"],
   "AUD-XLR-LINE-BAL": ["xlr-f", "xlr-m"], "AUD-PA-ACTIVE": ["xlr-f", "xlr-m"], "AUD-TRS-6.35-BAL": ["trs635", "trs635"], "AUD-TRS-635-35": ["trs635", "trs35"],
   "AUD-TRS-3.5": ["trs35", "trs35"], "AUD-TRRS-3.5": ["trrs35", "trrs35"], "AUD-TS-6.35": ["ts635", "ts635"], "AUD-RCA-LR": ["rca", "rca"], "AUD-RCA-3.5": ["rca", "trs35"],
-  "AUD-XLR-TRS-BAL": ["xlr-f", "trs635"], "AUD-PA-PASSIVE": ["speaker635", "speaker635"], "AUD-HEADPHONE": ["trs635", "trs635"],
+  "AUD-XLR-TRS-BAL": ["xlr-f", "trs635"], "AUD-XLR-35": ["xlr-f", "trs35"], "AUD-PA-PASSIVE": ["speaker635", "speaker635"], "AUD-HEADPHONE": ["trs635", "trs635"],
   "STG-MULTICORE": ["multicore", "multicore"], "STG-DANTE-CAT": ["ethernet", "ethernet"],
   "DATA-USB-WEBCAM": ["usbc", "usba3"], "DATA-USB-MAGEWELL": ["usba3", "usba3"], "DATA-USB-C-C": ["usbc", "usbc"], "DATA-USB-A-A": ["usba", "usba"], "DATA-USB-B": ["box", "usba"],
   "NET-CAT5E6-ENCODER": ["ethernet", "ethernet"], "NET-ROUTER-UPLINK": ["ethernet", "ethernet"], "NET-POE-PTZ": ["ethernet", "ethernet"],
@@ -137,7 +137,7 @@ export function CardCableScene({ cable }: { cable: CatalogCable }) {
     <directionalLight position={[1.5, 2, 2]} intensity={2.8} />
     <directionalLight position={[-1.5, 0.6, -1]} intensity={1.2} color="#9fd8ff" />
     <pointLight position={[0, 0.1, 0.7]} intensity={1.4} distance={3} color={cable.color} />
-    <CardTurn cable={cable} />
+    <Bounds fit clip observe margin={1.15}><CardTurn cable={cable} /></Bounds>
   </>;
 }
 
@@ -150,6 +150,11 @@ export function CatalogCanvas() {
   return <Canvas className="cl-catalog-gl" dpr={1} gl={{ alpha: true, antialias: true }} style={{ position: "fixed", inset: 0, width: "100vw", height: "100vh", pointerEvents: "none" }}>
     <View.Port />
   </Canvas>;
+}
+
+/** Same model, connector mapping, camera and lighting for cards and packed items. */
+export function CableThumbnail({ cable, className = "" }: { cable: CatalogCable; className?: string }) {
+  return <View className={className} aria-hidden="true"><CardCableScene cable={cable} /></View>;
 }
 
 export { View as CableView };

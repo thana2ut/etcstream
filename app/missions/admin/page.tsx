@@ -1,5 +1,6 @@
 "use client";
 
+import { markAdminSession } from "@/game/content/admin-loadout";
 import { useState, type FormEvent } from "react";
 import { MissionHall } from "@/components/ui/mission-hall";
 import { ActionButton } from "@/components/ui/action-buttons";
@@ -66,6 +67,7 @@ export default function MissionHallAdminPage() {
     setBusy(false);
     setValue("");
     if (!ok) { setError("รหัสผ่านไม่ถูกต้อง"); return; }
+    markAdminSession(); // tab-scoped marker only (never the password); enables the admin test launch
     setUnlocked(true);
   };
 

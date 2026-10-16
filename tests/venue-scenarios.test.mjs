@@ -132,7 +132,7 @@ test("studio cameras cover the interview set from three distinct angles and stor
     yaws.push(d.yaw);
   }
   assert.equal(new Set(yaws.map((y) => y.toFixed(2))).size, 3, "non-identical camera angles");
-  const items = scenario.placeables;
+  const items = scenario.placeables.filter((p) => !p.installed);
   for (const item of items) assert.ok(onSurface(layout.equipment, item.start[0], item.start[2]));
   for (let i = 0; i < items.length; i++) for (let j = i + 1; j < items.length; j++) {
     const a = items[i], b = items[j];
@@ -223,7 +223,7 @@ test("wrong direction, connector, signal class, occupied and loop never mutate t
     assert.deepEqual(state.held, before.held);
     assert.equal(state.notice.tone, "error");
   }
-  rejected("cam1:hdmi-out", "sw:hdmi-pgm-out", lead("sw:hdmi-in-1")); // output -> output
+  rejected("cam1:hdmi-out", "sw:hdmi-out", lead("sw:hdmi-in-1")); // output -> output
   rejected("sw:hdmi-in-1", "monitor:hdmi-in-1", lead("sw:hdmi-in-1")); // input -> input
   rejected(null, "mix:in-1", lead("sw:hdmi-in-1")); // HDMI plug into an XLR socket
   rejected("cam1:hdmi-out", "cam1:hdmi-out", lead("sw:hdmi-in-1")); // same endpoint
@@ -255,7 +255,7 @@ test("venue placement: every port, control and cable start sits inside its venue
     // Portable equipment starts in storage (L4 starts set up) and has a named operating position.
     for (const item of s.placeables) {
       assert.ok(item.zoneLabel, `${s.id}: ${item.id} has no operating position label`);
-      if (s.level !== 4) assert.ok(onSurface(L.equipment, item.start[0], item.start[2], 0.05), `${s.id}: ${item.id} must start in equipment storage`);
+      if (s.level !== 4 && !item.installed) assert.ok(onSurface(L.equipment, item.start[0], item.start[2], 0.05), `${s.id}: ${item.id} must start in equipment storage`);
     }
   }
 });

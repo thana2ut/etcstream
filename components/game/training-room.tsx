@@ -1,15 +1,19 @@
 "use client";
 
+import { SceneText as Text } from "@/components/game/scene-text";
+
 import { SCENE_FONT, sceneText } from "@/game/rendering/scene-font";
-import { Billboard, Line, Text } from "@react-three/drei";
-import { DoubleSide } from "three";
+import { useRef } from "react";
+import { useFrame } from "@react-three/fiber";
+import { Billboard, Line } from "@react-three/drei";
+import { DoubleSide, type Mesh, type MeshBasicMaterial } from "three";
 import { VenueEnvironment } from "./environment/venue-environment";
 import { Studio as MissionStudio } from "./environment/venue/studio";
 import { layoutOf } from "@/game/training/hdmi-training";
 import { StaticScenery } from "./render-performance";
 import type { VenueId } from "@/game/content/mission-catalog";
 import { STUDIO } from "@/game/training/studio-room-layout";
-import { getPort, heldPlugFits, isItemPlaced, itemPoint, portAvailable, portPosition, scenarioOf, socketPorts } from "@/game/training/hdmi-training";
+import { getPort, heldPlugFits, isItemPlaced, itemPoint, portAvailable, portPosition, scenarioOf, simContext, socketPorts } from "@/game/training/hdmi-training";
 import type { ActionDef, DeviceDef } from "@/game/training/scenarios";
 import { useTrainingStore } from "@/game/stores/training-store";
 import { PlaceableEquipment } from "./placeable-equipment";
@@ -82,7 +86,50 @@ function markerPoint(state: Parameters<typeof portPosition>[0], id: string): str
   return [+(p[0] + dx * 0.025).toFixed(4), p[1], +(p[2] + dz * 0.025).toFixed(4), +Math.atan2(dx, dz).toFixed(4), 0].join(",");
 }
 
+/** Local visual animation only: never changes cable connections or simulation time. */
+function PortFeedback({ connection, radius }: { connection: string; radius: number }) {
+  const mesh = useRef<Mesh>(null);
+  const material = useRef<MeshBasicMaterial>(null);
+  const previous = useRef(connection);
+  const remaining = useRef(0);
+  useFrame((_, delta) => {
+    if (previous.current !== connection) {
+      previous.current = connection;
+      remaining.current = 0.65;
+      material.current?.color.set(connection ? "#6fe6ff" : "#ffcb70");
+    }
+    remaining.current = Math.max(0, remaining.current - delta);
+    const progress = 1 - remaining.current / 0.65;
+    if (mesh.current) { mesh.current.visible = remaining.current > 0; mesh.current.scale.setScalar(1 + progress * 1.5); }
+    if (material.current) material.current.opacity = (1 - progress) * 0.85;
+  });
+  return <mesh ref={mesh} visible={false}>
+    <ringGeometry args={[radius * 1.1, radius * 1.3, 24]} />
+    <meshBasicMaterial ref={material} transparent opacity={0} depthWrite={false} side={DoubleSide} />
+  </mesh>;
+}
+
 function Port({ id }: { id: string }) {
+  const mission = useTrainingStore((state) => Boolean(scenarioOf(state).stage));
+  const connection = useTrainingStore((state) => {
+    if (!scenarioOf(state).stage) return "";
+    for (const [cableId, cable] of Object.entries(state.cables)) {
+      if (cable.a.portId === id) return `${cableId}:a`;
+      if (cable.b.portId === id) return `${cableId}:b`;
+    }
+    return "";
+  });
+  const signal = useTrainingStore((state) => {
+    if (!scenarioOf(state).stage) return false;
+    const ctx = simContext(state);
+    const value = ctx?.inp[id] ?? ctx?.out[id];
+    if (!value) return false;
+    if (value.kind === "control") return value.active;
+    if (value.kind === "video") return value.content !== "BLACK";
+    if (value.kind === "audio") return value.sources.length > 0;
+    if (value.kind === "net" && value.role === "stream") return value.keyOk && Boolean(value.content || value.audio.length);
+    return true;
+  });
   const physicalSocket = useTrainingStore((state) => {
     const p = getPort(state, id);
     return scenarioOf(state).layout !== "studio" && scenarioOf(state).devices.some((d) => d.id === p?.device && d.generic);
@@ -94,26 +141,29 @@ function Port({ id }: { id: string }) {
   const focused = useTrainingStore((state) => state.focusedTarget?.kind === "port" && state.focusedTarget.portId === id);
   if (!port || !live) return null;
   const base = DEVICE_COLOR[port.device] ?? CONNECTOR_COLOR[port.connector] ?? "#ffffff";
-  const color = fits === true ? "#5ef08a" : fits === false ? "#5d6470" : base;
+  const color = fits === true ? "#5ef08a" : fits === false ? "#5d6470" : mission && connection ? signal ? "#5ef08a" : "#ffcb70" : base;
   const r = port.radius ?? 0.06;
   const ring = Math.min(Math.max(r * 0.75, 0.016), 0.04);
   const plug = CONNECTOR_NAME[port.connector] ?? port.connector;
-  const dir = port.direction === "INPUT" ? "IN" : "OUT";
+  const dir = port.linkRole === "NETWORK_PEER" ? "เครือข่ายสองทาง" : port.linkRole === "USB_HOST" ? "HOST" : port.linkRole === "USB_DEVICE" ? "DEVICE" : port.linkRole === "POWER_ONLY" ? "ไฟเลี้ยงเท่านั้น" : port.direction === "INPUT" ? "IN" : "OUT";
   const showTag = focused;
-  const tag = `${fits === true ? "✓ เสียบได้ · " : ""}${port.label.replace(/\s*\([^)]*\)\s*$/, "")} · ${plug} · ${dir}`;
+  const status = mission && connection ? signal ? "เสียบแล้ว · พอร์ตมีสัญญาณจำลอง" : "เสียบแล้ว · พอร์ตยังไม่มีสัญญาณจำลอง" : "";
+  const tag = `${fits === true ? "✓ เสียบได้ · " : ""}${port.label.replace(/\s*\([^)]*\)\s*$/, "")} · ${plug} · ${dir}${status ? ` · ${status}` : ""}`;
   const tagSize = focused ? 0.026 : 0.019;
   const tagWidth = Math.min(0.9, tag.length * tagSize * 0.58 + 0.05);
   const [mx, my, mz, yaw, flat] = at.split(",").map(Number);
   return <group position={[mx, my, mz]}>
     <group rotation={flat ? [-Math.PI / 2, 0, 0] : [0, yaw, 0]}>
+      {mission && <PortFeedback connection={connection} radius={ring} />}
       {physicalSocket && <group position={[0, 0, -0.025]}><PortSocket connector={port.connector} /></group>}
       {/* balanced ellipse flush on the device face: thin bright rim, soft glass fill, faint x-ray copy through the body */}
       <mesh scale={[1.3, 1, 1]}><torusGeometry args={[ring, ring * (focused ? 0.17 : 0.11), 10, 48]} /><meshStandardMaterial color={color} emissive={color} emissiveIntensity={fits === false ? 0.2 : focused ? 1.6 : 1.0} transparent opacity={fits === false ? 0.45 : 1} /></mesh>
       <mesh scale={[1.3, 1, 1]}><circleGeometry args={[ring * 0.9, 40]} /><meshBasicMaterial color={color} transparent opacity={fits === false ? 0.04 : focused ? 0.22 : 0.1} depthWrite={false} side={DoubleSide} /></mesh>
-      <mesh scale={[1.3, 1, 1]} renderOrder={8}><torusGeometry args={[ring, ring * 0.08, 6, 40]} /><meshBasicMaterial color={color} transparent opacity={fits === false ? 0.06 : 0.25} depthTest={false} depthWrite={false} /></mesh>
+      {!mission && <mesh scale={[1.3, 1, 1]} renderOrder={8}><torusGeometry args={[ring, ring * 0.08, 6, 40]} /><meshBasicMaterial color={color} transparent opacity={fits === false ? 0.06 : 0.25} depthTest={false} depthWrite={false} /></mesh>}
     </group>
     <Billboard>
-      {showTag && <group position={[0, ring + 0.045, 0]}>
+      {/* Port tag floats above the socket and a little toward the player so it never lies on the device face. */}
+      {showTag && <group position={[0, ring + 0.075, 0.05]}>
         <mesh renderOrder={10}><planeGeometry args={[tagWidth, tagSize * 1.9]} /><meshBasicMaterial color={fits === true ? "#0d3a22" : "#0b1220"} transparent opacity={0.82} depthTest={false} depthWrite={false} /></mesh>
         <mesh position={[0, -tagSize * 0.95 - 0.012, 0]} renderOrder={10}><planeGeometry args={[0.003, 0.024]} /><meshBasicMaterial color={color} transparent opacity={0.7} depthTest={false} depthWrite={false} /></mesh>
         <Text font={ROOM_FONT} position={[0, 0, 0.001]} fontSize={tagSize} color={fits === true ? "#c8ffd8" : "#f7f1e3"} anchorX="center" anchorY="middle" renderOrder={11} material-depthTest={false} material-depthWrite={false} maxWidth={0.88}>
@@ -121,8 +171,8 @@ function Port({ id }: { id: string }) {
         </Text>
       </group>}
     </Billboard>
-    <mesh userData={{ trainingTarget: { kind: "port", portId: id } }}>
-      <sphereGeometry args={[r, 12, 10]} />
+    <mesh userData={{ trainingTarget: { kind: "port", portId: id }, serviceNormal: mission ? flat ? [0, 1, 0] : [Math.sin(yaw), 0, Math.cos(yaw)] : undefined }}>
+      <sphereGeometry args={[mission ? r + 0.006 : r, 12, 10]} />
       <meshBasicMaterial transparent opacity={0} depthWrite={false} />
     </mesh>
   </group>;
@@ -178,7 +228,7 @@ function FixedDevice({ device }: { device: DeviceDef }) {
   const mission = useTrainingStore((state) => Boolean(scenarioOf(state).venueScale));
   const focused = useTrainingStore((state) => state.focusedTarget?.kind === "device" && state.focusedTarget.deviceId === device.id);
   return <group position={device.position} rotation={[0, device.yaw ?? 0, 0]}>
-    {(device.id !== "speaker" || mission) && <DeviceVisual device={device} bare={!focused} />}
+    {(device.id !== "speaker" || mission) && <DeviceVisual device={device} bare={!focused && !(mission && device.kind === "camera")} />}
     <mesh position={[0, device.kind === "camera" ? 1.3 : h / 2, 0]} userData={{ trainingTarget: { kind: "device", deviceId: device.id } }}>
       <boxGeometry args={[Math.max(w, 0.3), device.kind === "camera" ? 0.4 : h, Math.max(d, 0.3)]} />
       <meshBasicMaterial transparent opacity={0} depthWrite={false} />
@@ -192,8 +242,8 @@ function ScenarioScreen({ deviceId }: { deviceId: string }) {
   if (!device) return null;
   const ok = feed.startsWith("PROGRAM") || feed === "MULTIVIEW";
   return <Billboard position={[device.position[0], device.position[1] + Math.max(device.size[1], 0.3) + 0.35, device.position[2]]}>
-    <mesh><planeGeometry args={[0.6, 0.26]} /><meshBasicMaterial color={ok ? "#084f40" : feed.startsWith("NO") ? "#161c27" : "#5a1a14"} /></mesh>
-    <Text font={ROOM_FONT} position={[0, 0, 0.01]} fontSize={0.035} maxWidth={0.58} textAlign="center" color="#ffffff">{sceneText(feed)}</Text>
+    <mesh><planeGeometry args={[0.8, 0.36]} /><meshBasicMaterial color={ok ? "#084f40" : feed.startsWith("NO") ? "#161c27" : "#5a1a14"} /></mesh>
+    <Text font={ROOM_FONT} position={[0, 0, 0.01]} fontSize={0.045} lineHeight={1.5} maxWidth={0.76} textAlign="center" color="#ffffff">{sceneText(feed)}</Text>
   </Billboard>;
 }
 

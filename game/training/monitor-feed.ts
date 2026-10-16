@@ -1,23 +1,22 @@
 import { portAvailable, requirementDone, scenarioOf, simContext, type TrainingState } from "./hdmi-training";
+import { simThai } from "@/game/content/sim-thai";
 
 const inputs = ["monitor:hdmi-in", "monitor:hdmi-in2", "monitor:hdmi-in3"] as const;
 
 /** Mission studio control-room repeaters: simulated switcher status read from the real signal graph. */
 export function studioSignalFeed(state: TrainingState, channel: "program" | "inputs" | "recording" | "audio"): string {
   const ctx = simContext(state);
-  if (!ctx || scenarioOf(state).layout !== "studioMission") return "STUDIO SIM\nOFFLINE";
+  if (!ctx || scenarioOf(state).layout !== "studioMission") return "สตูดิโอจำลอง\nยังไม่พร้อม";
   const sw = ctx.view.sw;
   if (channel === "inputs") {
-    const names = ["CAM1", "CAM2", "CAM3"];
-    const present = (sw as { inputs?: string[] } | undefined)?.inputs ?? [];
-    return `INPUTS | SIM\n${names.map((n) => `${n}: ${present.some((x) => x.startsWith(n)) ? "READY" : "NO INPUT"}`).join("\n")}`;
+    return `ขาเข้าภาพจำลอง\n${[1, 2, 3].map((n) => `CAM ${n}: ${ctx.inp[`sw:hdmi-in-${n}`]?.kind === "video" && sw?.powered ? "ตรวจพบภาพ" : "ไม่มีสัญญาณ"}`).join("\n")}`;
   }
-  if (channel === "audio") return `AUDIO | SIM\n${sw?.audio?.length ? sw.audio.join(" + ") : "NO PROGRAM AUDIO"}`;
+  if (channel === "audio") return `เสียงรายการจำลอง\n${sw?.audio?.length ? simThai(sw.audio.join(" + ")) : "ยังไม่มีเสียงในรายการ"}`;
   if (channel === "recording") {
     const obs = ctx.view.host;
-    return `CAPTURE / OBS | SIM\n${obs?.picture ? `OBS ● ${obs.picture}${obs.audio?.length ? " · AUDIO" : " · NO AUDIO"}` : "NOT READY"}`;
+    return `การรับภาพ OBS จำลอง\n${obs?.picture ? `OBS ● ${simThai(obs.picture)}${obs.audio?.length ? " · มีเสียง" : " · ไม่มีเสียง"}` : "ยังไม่พร้อม"}`;
   }
-  return `PGM | SIM\n${sw?.powered && sw.picture && sw.picture !== "BLACK" ? sw.picture : "NO PROGRAM"}`;
+  return `PGM จำลอง\n${sw?.powered && sw.picture && sw.picture !== "BLACK" ? simThai(sw.picture) : "ยังไม่มีภาพออกอากาศ"}`;
 }
 
 /** Is this destination showing a real picture right now? */
@@ -33,9 +32,9 @@ export function venueScreenFeed(state: TrainingState, deviceId: string): string 
   if (!ctx) return legacyFeed(state, deviceId);
   const v = ctx.view[deviceId];
   if (!v) return "ไม่ใช้ในงานนี้";
-  if (!v.powered) return "POWER OFF";
-  if (v.picture && v.picture !== "BLACK") return v.picture.startsWith("MULTIVIEW") ? v.picture.replace(" [", "\n").replace("]", "").replace(/ \| /g, " · ") : `PROGRAM\n${v.picture}`;
-  return v.picture === "BLACK" ? "BLACK" : (v.status.startsWith("NO SIGNAL") || v.status.startsWith("ไม่มีสัญญาณ")) ? v.status.replace(" (", "\n(") : "NO SIGNAL";
+  if (!v.powered) return "ปิดเครื่องอยู่";
+  if (v.picture && v.picture !== "BLACK") return v.picture.startsWith("MULTIVIEW") ? simThai(v.picture.replace(" [", "\n").replace("]", "").replace(/ \| /g, " · ")) : `ภาพที่ปลายทาง\n${simThai(v.picture)}`;
+  return v.picture === "BLACK" ? "ภาพดำ" : (v.status.startsWith("NO SIGNAL") || v.status.startsWith("ไม่มีสัญญาณ")) ? simThai(v.status.replace(" (", "\n(")) : "ไม่มีสัญญาณ";
 }
 
 /** Pre-simulation behaviour (free-practice rooms only). */

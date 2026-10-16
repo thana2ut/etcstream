@@ -89,13 +89,27 @@ export default function Home() {
     proceedToNameOrWelcome();
   };
 
-  // REF 04 -> REF 03: Back from Welcome returns to Name Entry
+  // REF 04 -> REF 02: Back from Welcome reopens the explanation (instructions) screen that precedes it.
+  // Continuing from there returns here (saved trainee, changeName off); nothing is reset.
   const handleBackFromWelcome = () => {
-    if (!nickname && player?.nickname) {
-      setNickname(player.nickname);
-    }
-    setChangeName(true);
-    setPhase("name");
+    setChangeName(false);
+    setPhase("landing");
+    setShowInstructions(true);
+  };
+
+  // Rename from the welcome screen: same validator and player store as the name step, so every display updates.
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [renameValue, setRenameValue] = useState("");
+  const [renameError, setRenameError] = useState("");
+  const openRename = () => { setRenameValue(player?.nickname ?? ""); setRenameError(""); setRenameOpen(true); };
+  const saveRename = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!player) return;
+    const trimmed = validateNickname(renameValue);
+    if (!trimmed) { setRenameError(copy.name.invalid); return; }
+    if (!setPlayer({ ...player, nickname: trimmed, lastPlayedAt: new Date().toISOString() })) { setRenameError(copy.name.saveError); return; }
+    setNickname(trimmed);
+    setRenameOpen(false);
   };
 
   // Submit name (REF 03 -> REF 04)
@@ -322,6 +336,14 @@ export default function Home() {
               ก้าวเข้าสู่สำนัก
             </ActionButton>
 
+            {/* Rename: full framed button in the same outlined style as ย้อนกลับ, directly under ก้าวเข้าสู่สำนัก. */}
+            {player && <button type="button" className="cultivation-back-btn welcome-back-btn welcome-rename-action" onClick={openRename}>
+              <span className="back-btn-arrow" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z" /></svg>
+              </span>
+              <span className="back-btn-text">เปลี่ยนชื่อ</span>
+            </button>}
+
             <BackButton
               onClick={handleBackFromWelcome}
               label="ย้อนกลับ"
@@ -335,11 +357,28 @@ export default function Home() {
         </section>
       )}
 
+      {renameOpen && player && (
+        <div className="welcome-rename-backdrop" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) setRenameOpen(false); }} onKeyDown={(e) => { if (e.key === "Escape") setRenameOpen(false); }}>
+          <form className="welcome-rename-dialog glass-card gold-border-frame" role="dialog" aria-modal="true" aria-labelledby="rename-title" onSubmit={saveRename}>
+            <h2 id="rename-title">เปลี่ยนชื่อผู้ฝึก</h2>
+            <label htmlFor="rename-input" className="welcome-rename-hint">2-20 ตัวอักษร (ไทย อังกฤษ ตัวเลข และเว้นวรรค)</label>
+            <input id="rename-input" className="cultivation-input" value={renameValue} maxLength={20} autoComplete="nickname" autoFocus
+              onChange={(e) => { setRenameValue(e.target.value); setRenameError(""); }} aria-invalid={Boolean(renameError)} aria-describedby={renameError ? "rename-error" : undefined} />
+            {renameError && <p id="rename-error" className="form-error" role="alert">{renameError}</p>}
+            <div className="welcome-rename-actions">
+              <button type="button" className="cultivation-btn btn-glass btn-md" onClick={() => setRenameOpen(false)}>ยกเลิก</button>
+              <ActionButton variant="gold" size="md" type="submit" arrow={false}>บันทึก</ActionButton>
+            </div>
+          </form>
+        </div>
+      )}
+
       {/* REF 02: INSTRUCTIONS MODAL OVERLAY */}
       <InstructionsModal
         isOpen={showInstructions}
         onClose={handleCloseInstructions}
         onBack={handleBackFromInstructions}
+        playerName={player?.nickname}
       />
     </main>
   );

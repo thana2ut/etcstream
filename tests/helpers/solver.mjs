@@ -133,12 +133,24 @@ export function solve(id, { stopAt, seed } = {}) {
   if (stopAt === "signal") return state;
   state = runCues(state);
   state = runTest(state, "rehearsal");
+  // Surprise faults deliberately invalidate current test badges. Recover through the
+  // public transitions, then explicitly retest; never assert the obsolete pre-fault badge.
+  if (state.sim.activeFaults.length) {
+    state = markTrace(state, "program"); state = recover(state);
+    for (const testStage of ["physical", "signal", "rehearsal"]) {
+      state = runTest(state, testStage);
+      assert.ok(state.sim.testsPassed[testStage], `${id} recovery ${testStage}: ${state.notice?.detail}`);
+    }
+  }
   assert.ok(state.sim.testsPassed.rehearsal, `${id} rehearsal: ${state.notice?.detail}`);
-  if (state.sim.activeFaults.length) { state = markTrace(state, "program"); state = recover(state); }
   state = configure(state, (c) => LATE.has(c.key));
   state = streamTest(state, 60); state = streamTest(state, 90);
   // Stop recordings cleanly (evidence), keep the stream live.
-  for (const [device, cfg] of Object.entries(state.sim.config)) if (cfg.record === true) state = setControl(state, device, "record", false);
+  for (const [device, cfg] of Object.entries(state.sim.config)) {
+    // XL's selected internal-media recorder is required to remain recording at handoff.
+    // Existing OBS/ISO file-close lessons retain their explicit stop-and-close behavior.
+    if (cfg.record === true && SCENARIOS[id].simDevices[device]?.model !== "reference-recorder") state = setControl(state, device, "record", false);
+  }
   if (stage.quiz) state = answerQuiz(state, stage.quiz.answer);
   state = runTest(state, "delivery");
   assert.ok(state.sim.testsPassed.delivery, `${id} delivery: ${state.notice?.detail}`);

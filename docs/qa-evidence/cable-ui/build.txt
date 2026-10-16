@@ -1,0 +1,33 @@
+
+> etcstream@0.1.0 build
+> next build
+
+▲ Next.js 16.3.6 (Turbopack)
+✓ Running next.config.ts took 24ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 3.3s
+  Running TypeScript ...
+  Finished TypeScript in 4.0s ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/10) ...
+  Generating static pages using 11 workers (2/10) 
+  Generating static pages using 11 workers (4/10) 
+  Generating static pages using 11 workers (7/10) 
+✓ Generating static pages using 11 workers (10/10) in 1313ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /academy
+├ ○ /apple-icon.png
+├ ○ /icon.png
+├ ○ /manifest.webmanifest
+├ ○ /missions
+├ ○ /missions/admin
+├ ○ /_not-found
+└ ○ /play
+
+
+○  (Static)  prerendered as static content
+

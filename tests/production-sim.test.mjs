@@ -12,9 +12,14 @@ test("25 separately playable stages: 5 rooms × L1–L5, unique ids, tickets and
 });
 test("every named model carries source_url, verified_ports and asset_license; generics are labelled", () => {
   for (const m of Object.values(MODELS)) {
-    assert.ok(m.verifiedPorts.length > 0 && m.assetLicense, m.modelId);
-    if (m.generic) assert.equal(m.manufacturer, "Generic Training Device", m.modelId);
-    else assert.match(m.sourceUrl, /^https:\/\/(www\.)?(blackmagicdesign|proav\.roland|usa\.yamaha|shure|magewell)\./, m.modelId);
+    assert.ok(m.assetLicense, m.modelId);
+    if (m.ports.length) assert.ok(m.verifiedPorts.length > 0, m.modelId);
+    else {
+      assert.equal(m.modelId, "reference-handheld-tx", m.modelId);
+      assert.ok(m.generic && m.notes.some((note) => note.includes("ไม่มีสายสมมติ")), m.modelId);
+    }
+    if (m.generic) assert.ok(["Generic Training Device", "โมเดลจำลองเพื่อฝึก"].includes(m.manufacturer), m.modelId);
+    else assert.match(m.sourceUrl, /^https:\/\/(www\.)?(blackmagicdesign|proav\.roland|usa\.yamaha|shure|magewell|aja)\./, m.modelId);
   }
 });
 test("all 25 stages present Thai instructions while retaining simulator identifiers", () => {
@@ -70,7 +75,7 @@ test("L5 certifications reveal no route checklist and never pre-wire", () => {
 const XS = SCENARIOS["xs-5"].simDevices;
 test("XS: source OUTPUT → switcher INPUT accepted; PROGRAM OUT → camera OUT rejected (output-to-output)", () => {
   assert.ok(canConnect(XS, "cam1:hdmi-out", "sw:hdmi-in-1").ok);
-  assert.equal(canConnect(XS, "sw:hdmi-pgm-out", "cam1:hdmi-out").code, "OUTPUT_TO_OUTPUT");
+  assert.equal(canConnect(XS, "sw:hdmi-out", "cam1:hdmi-out").code, "OUTPUT_TO_OUTPUT");
   assert.ok(canConnect(XS, "sw:usb", "host:usb-1").ok, "USB WEBCAM DEVICE → notebook USB HOST");
 });
 test("XS: HDMI PROGRAM OUT and USB WEBCAM are independent — front display and OBS both follow source changes", () => {
@@ -173,7 +178,7 @@ test("AU: stage display follows AUX — MULTIVIEW stays on the FOH monitor", () 
   const v = simContext(s).view;
   assert.equal(v.display.picture, "SLIDES");
   assert.match(v.monitor.picture, /^MULTIVIEW/);
-  s = setControl(s, "sw", "aux", "SDI 3");
+  s = setControl(s, "sw", "aux-1", "SDI 3");
   assert.equal(simContext(s).view.display.picture, "CAM3 RIGHT");
 });
 test("AU: HyperDeck recording and OBS capture are independent outputs", () => {

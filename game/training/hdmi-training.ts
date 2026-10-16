@@ -3,7 +3,7 @@ import { nearestTablePlacement, STUDIO } from "./studio-room-layout";
 import { clampToSurface, LAYOUTS, nearStaging, onSurface, type VenueLayout } from "./venue-layouts";
 import { feedbackCopy } from "@/game/content/feedback-copy";
 import { SCENARIOS, type Connector, type PlaceableItemId, type PortDef, type Point3, type Requirement, type Scenario, type ScenarioId } from "./scenarios";
-import { canConnect, evaluate, portOf, scoreOf, testRoute, validateLevel } from "./sim/engine";
+import { canConnect, evaluate, modelOf, portOf, scoreOf, testRoute, validateLevel } from "./sim/engine";
 import type { ConceptId, ControlValue, EvalContext, FaultScenario, SimRuntime, TestStage } from "./sim/types";
 import { CONCEPTS } from "./sim/library";
 
@@ -303,7 +303,7 @@ function runAction(state: TrainingState, actionId: string): TrainingState {
 }
 
 export function interactWithTarget(state: TrainingState, target: TrainingTarget | null, pick: PickMode = "whole"): TrainingState {
-  if (!target) return { ...state, notice: notice(feedbackCopy.training.invalidTarget.title, feedbackCopy.training.invalidTarget.detail, "error") };
+  if (!target) return { ...state, notice: notice(feedbackCopy.training.invalidTarget.title, scenarioOf(state).stage ? "เข้าใกล้แล้วเล็งหัวสายหรือพอร์ตที่ต้องการให้ตรงกลางจอ โดยไม่มีสิ่งกีดขวาง" : feedbackCopy.training.invalidTarget.detail, "error") };
   const scenario = scenarioOf(state);
   const cables = cloneCables(state.cables);
 
@@ -377,7 +377,7 @@ export function interactWithTarget(state: TrainingState, target: TrainingTarget 
   const port = getPort(state, target.portId);
   if (!port) return state;
   if (state.heldItem) return { ...state, notice: notice("กำลังถืออุปกรณ์", "วางอุปกรณ์บนโต๊ะทำงานก่อนต่อสาย", "error") };
-  if (!portAvailable(state, target.portId)) return { ...state, notice: notice("อุปกรณ์ยังไม่พร้อม", "วาง Video Switcher บนโต๊ะทำงานก่อน แล้วจึงต่อสาย", "error") };
+  if (!portAvailable(state, target.portId)) return { ...state, notice: notice("อุปกรณ์ยังไม่พร้อม", "นำอุปกรณ์ไปวางที่จุดติดตั้งก่อน แล้วจึงต่อสาย", "error") };
   const occupied = occupiedEnd(state, target.portId);
   if (!state.held) {
     if (!occupied) return { ...state, notice: notice(feedbackCopy.training.pickUpFirst.title, feedbackCopy.training.pickUpFirst.detail, "error") };
@@ -388,14 +388,15 @@ export function interactWithTarget(state: TrainingState, target: TrainingTarget 
   }
   if (occupied) return { ...state, notice: notice(feedbackCopy.connection.portOccupied.title, feedbackCopy.connection.portOccupied.detail, "error") };
   if (state.sim?.paused) return { ...state, notice: notice("พักภารกิจอยู่", "ตอบคำถามทบทวนให้ผ่านเพื่อกลับไปฝึกต่อ", "error") };
-  if (state.sim && state.sim.weatherNow === "lightning") return { ...state, notice: notice("Weather hold — lightning", "Unsafe state: setup is paused. Record NO-GO and wait for the all-clear.", "error") };
+  if (state.sim && state.sim.weatherNow === "lightning") return { ...state, notice: notice("หยุดงานเนื่องจากฟ้าผ่า", "บันทึกการหยุดงานและรอยืนยันว่าปลอดภัยก่อนติดตั้งต่อ", "error") };
   const connector = endConnector(state, state.held);
   const lead = cableDef(state, state.held.cableId);
   if (port.signalType && lead.signalType && port.signalType !== lead.signalType) return { ...state, notice: notice("ชนิดสัญญาณไม่ตรงกัน", "หัวต่อที่เสียบได้อาจส่งสัญญาณคนละชนิด โปรดตรวจเส้นทางอีกครั้ง", "error") };
   if (target.portId === SOCKET + state.held.cableId) return { ...state, notice: notice("เสียบเข้าตัวเองไม่ได้", "เสียบหัวแปลงเข้าพอร์ตของอุปกรณ์", "error") };
   if (!plugFits(connector, port)) {
     const need = port.connector === "XLR" ? (port.direction === "INPUT" ? "XLR ตัวผู้ (M)" : "XLR ตัวเมีย (F)") : port.connector;
-    return { ...state, notice: notice("หัวสายไม่ตรงกับพอร์ต", `ปลายสายนี้เป็น ${connector} แต่พอร์ต ${port.label} ต้องใช้ ${need}`, "error") };
+    const detail = `ปลายสายนี้เป็น ${connector} แต่พอร์ต ${port.label} ต้องใช้ ${need}`;
+    return state.sim ? registerError(state, "connector", detail, "WRONG_CONNECTOR") : { ...state, notice: notice("หัวสายไม่ตรงกับพอร์ต", detail, "error") };
   }
   const otherEnd: CableEnd = state.held.end === "a" ? "b" : "a";
   const otherPort = cables[state.held.cableId][otherEnd].portId;
@@ -426,7 +427,7 @@ export function interactWithTarget(state: TrainingState, target: TrainingTarget 
     const [o, i] = getPort(state, otherReal)!.direction === "OUTPUT" ? [otherReal, targetReal] : [targetReal, otherReal];
     const sig = ctx?.inp[i];
     next.sim = { ...next.sim, log: [...next.sim.log, { t: next.sim.tick, kind: "connect", text: `${o} → [${leadDef.label}] → ${i}` }] };
-    return { ...next, notice: notice("Connected", `${leadDef.label} · ${getPort(state, o)!.label} → ${getPort(state, i)!.label}${sig ? "" : " · no signal yet (check power, format, configuration)"}`, "success") };
+    return { ...next, notice: notice("ต่อสายแล้ว ต้องทดสอบระบบ", `${leadDef.label} · ${getPort(state, o)!.label} → ${getPort(state, i)!.label}${sig ? " · ตรวจพบสัญญาณจำลอง" : " · ยังไม่มีสัญญาณ ตรวจไฟเลี้ยง รูปแบบภาพ และการตั้งค่า"}`, "success") };
   }
   return {
     ...next,
@@ -558,11 +559,34 @@ export function heldPlugFits(state: TrainingState, portId: PortId): boolean | nu
   return true;
 }
 
+/**
+ * Short on-screen name for the bottom E prompt only: drops trailing model / asset-tag brackets such as
+ * "(YAMAHA PMX-402D-USB)" or "(XS-OBS-01)" but keeps short role tags like "(OBS)". The full name stays
+ * on the equipment and in the 2-second detail view.
+ */
+export function promptName(label: string): string {
+  let name = label.trim();
+  const groups: string[] = [];
+  // Peel balanced bracket groups off the end, innermost-safe.
+  while (name.endsWith(")")) {
+    let depth = 0, i = name.length - 1;
+    for (; i >= 0; i--) { if (name[i] === ")") depth++; else if (name[i] === "(" && --depth === 0) break; }
+    if (i <= 0) break;
+    groups.unshift(name.slice(i));
+    name = name.slice(0, i).trimEnd();
+  }
+  const kept = groups.filter((g) => g.length <= 7 && !/\d/.test(g));
+  return [name, ...kept].join(" ");
+}
+
 export function targetInstruction(state: TrainingState, target: TrainingTarget | null): string {
   const scenario = scenarioOf(state);
-  if (!target) return state.held || state.heldItem ? "F · วางบนโต๊ะทำงาน หรือวางคืนโต๊ะอุปกรณ์" : feedbackCopy.training.aimHint;
-  if (target.kind === "item") return state.held || state.heldItem ? "F · วางสิ่งที่ถือบนโต๊ะทำงาน" : `E · หยิบ${state.items[target.itemId].label} · ค้าง 2 วิ = ดูรายละเอียด`;
-  if (target.kind === "device") return "E ค้าง 2 วิ · ดูรายละเอียดอุปกรณ์";
+  // One prompt grammar everywhere: "E · หยิบ…" / "F · วาง…" / "E ค้าง 2 วิ · ดูรายละเอียด…".
+  const heldZone = state.heldItem && usesVenueLayout(state) ? scenario.placeables.find((p) => p.id === state.heldItem)?.zoneLabel : undefined;
+  if (state.heldItem && usesVenueLayout(state) && (!target || target.kind === "item")) return `F · วางอุปกรณ์ที่${heldZone ? ` ${heldZone}` : "ตำแหน่งใช้งาน"}`;
+  if (!target) return state.held || state.heldItem ? "F · วางบนโต๊ะทำงาน หรือวางคืนโต๊ะอุปกรณ์" : scenario.stage ? "เข้าใกล้แล้วเล็งหัวสายหรือพอร์ตที่ต้องการ จากนั้นกด E" : feedbackCopy.training.aimHint;
+  if (target.kind === "item") return state.held || state.heldItem ? "F · วางสิ่งที่ถือบนโต๊ะทำงาน" : `E · หยิบ ${promptName(state.items[target.itemId].label)} · ค้าง 2 วิ ดูรายละเอียด`;
+  if (target.kind === "device") return scenario.stage && (state.held || state.heldItem) ? "F · วางสิ่งที่ถือก่อนตรวจรายละเอียดอุปกรณ์" : "E ค้าง 2 วิ · ดูรายละเอียดอุปกรณ์ (ติดตั้งประจำที่)";
   if (target.kind === "action") {
     const action = scenario.actions.find((a) => a.id === target.actionId);
     return action ? (state.actionsDone[action.id] ? action.doneLabel : `E · ${action.label}`) : "";
@@ -609,15 +633,30 @@ export function initSim(scenario: Scenario, seed: number): SimRuntime {
 }
 
 const ctxCache = new WeakMap<object, EvalContext>();
+/**
+ * The signal graph depends only on these fields. Store updates that change something else (aim/focus,
+ * the E-hold timer, notices, console open) produce a new state object but must not re-run evaluate().
+ * Every input below is replaced immutably on change, so reference equality is an exact invalidation test.
+ */
+type CtxInputs = [TrainingState["scenarioId"], TrainingState["cables"], TrainingState["items"], TrainingState["heldItem"], TrainingState["bagged"], TrainingState["hiddenCables"], TrainingState["sim"]];
+let lastInputs: CtxInputs | null = null;
+let lastCtx: EvalContext | null = null;
 /** Evaluated signal graph for the current state (cached per state snapshot). */
 export function simContext(state: TrainingState): EvalContext | null {
   const scenario = scenarioOf(state);
   if (!scenario.stage || !state.sim || !scenario.simDevices) return null;
   const hit = ctxCache.get(state);
   if (hit) return hit;
+  const inputs: CtxInputs = [state.scenarioId, state.cables, state.items, state.heldItem, state.bagged, state.hiddenCables, state.sim];
+  if (lastInputs && lastCtx && inputs.every((v, i) => v === lastInputs![i])) { ctxCache.set(state, lastCtx); return lastCtx; }
   const devs = scenario.simDevices;
   const edges: EvalContext["edges"] = [];
   for (const [cableId, c] of Object.entries(state.cables)) {
+    const definition = scenario.cables.find((lead) => lead.id === cableId);
+    if (!definition || state.bagged?.includes(cableId) || state.hiddenCables?.includes(cableId)) continue;
+    const aPort = c.a.portId ? getPort(state, c.a.portId) : undefined;
+    const bPort = c.b.portId ? getPort(state, c.b.portId) : undefined;
+    if (!aPort || !bPort || !plugFits(definition.ends[0], aPort) || !plugFits(definition.ends[1], bPort)) continue;
     const a = resolvePort(state, c.a.portId), b = resolvePort(state, c.b.portId);
     if (!a || !b) continue;
     const pa = portOf(devs, a), pb = portOf(devs, b);
@@ -627,6 +666,7 @@ export function simContext(state: TrainingState): EvalContext | null {
   const placeable = new Set(scenario.placeables.map((p) => p.id));
   const ctx = evaluate({ stage: scenario.stage, devices: devs, edges, cables: scenario.cableMeta ?? {}, placed: (d) => !placeable.has(d) || isItemPlaced(state, d), sim: state.sim });
   ctxCache.set(state, ctx);
+  lastInputs = inputs; lastCtx = ctx;
   return ctx;
 }
 
@@ -634,7 +674,7 @@ const allFaults = (scenario: Scenario): FaultScenario[] => [...(scenario.stage?.
 
 /** Clear recovered faults (root cause fixed) and unlock what they held. */
 function settleSim(state: TrainingState): TrainingState {
-  if (!state.sim || state.sim.activeFaults.length === 0) return state;
+  if (!state.sim) return state;
   const ctx = simContext(state);
   if (!ctx) return state;
   const scenario = scenarioOf(state);
@@ -646,7 +686,17 @@ function settleSim(state: TrainingState): TrainingState {
       locked: sim.locked.filter((k) => !(f.config ?? []).some((c) => `${c.device}.${c.key}` === k)),
       log: [...sim.log, { t: sim.tick, kind: "recover", text: `แก้ปัญหาแล้ว: ${f.label}` }] };
   }
-  return sim === state.sim ? state : { ...state, sim };
+  // Test badges are evidence about the current graph, not permanent achievements.
+  // A repaired setup must be deliberately tested again; no automatic green badges.
+  const results = validateLevel(ctx).filter((r) => r.id !== "signoff");
+  const order: TestStage[] = ["physical", "signal", "rehearsal", "delivery"];
+  const invalid = order.findIndex((t) => results.some((r) => r.stage === t && !r.result.ok));
+  if (invalid >= 0) {
+    const testsPassed = { ...sim.testsPassed };
+    for (const t of order.slice(invalid)) delete testsPassed[t];
+    sim = { ...sim, testsPassed, signedOff: false };
+  }
+  return { ...state, sim, completed: sim.signedOff };
 }
 
 /** A meaningful error: counted deterministically; three → Mission Paused → targeted review. */
@@ -667,6 +717,13 @@ export function setControl(state: TrainingState, device: string, key: string, va
   if (state.sim.paused) return { ...state, notice: notice("พักภารกิจอยู่", "ตอบคำถามทบทวนให้ผ่านเพื่อกลับไปฝึกต่อ", "error") };
   if (state.sim.locked.includes(`${device}.${key}`)) return { ...state, notice: notice("ปรับค่านี้โดยตรงไม่ได้", "เป็นปัญหาภายนอก เช่น ผู้ให้บริการอินเทอร์เน็ตขัดข้อง ให้ใช้แผนสำรองจากอุปกรณ์ที่มีจริง", "error") };
   const stage = stageCtl(state);
+  const definition = scenarioOf(state).simDevices && modelOf(scenarioOf(state).simDevices!, device);
+  const control = definition ? definition.controls.find((c) => c.key === key) : undefined;
+  const siteControl = device === "site" && (stage.preflight.includes(key) || key === "decision");
+  const valid = control
+    ? control.kind === "select" ? typeof value === "string" && Boolean(control.options?.includes(value)) : typeof value === "boolean"
+    : siteControl && (key === "decision" ? ["GO", "NO-GO (hold)"].includes(String(value)) : typeof value === "boolean");
+  if (!valid) return { ...state, notice: notice("ตั้งค่านี้ไม่ได้", "อุปกรณ์ไม่มีรายการควบคุมหรือไม่รองรับค่าที่เลือก", "error") };
   const before = simContext(state);
   const prev = before?.cfg(device, key) ?? state.sim.config[device]?.[key];
   const sim: SimRuntime = { ...state.sim, tick: state.sim.tick + 1, config: { ...state.sim.config, [device]: { ...(state.sim.config[device] ?? {}), [key]: value } } };
@@ -675,7 +732,7 @@ export function setControl(state: TrainingState, device: string, key: string, va
   // Safety: GO during lightning is a critical safety bypass.
   if (device === "site" && key === "decision" && value === "GO" && sim.weatherNow === "lightning") {
     next = { ...next, sim: { ...next.sim!, log: [...next.sim!.log, { t: sim.tick, kind: "reject", text: "สั่งเริ่มงานขณะมีคำเตือนฟ้าผ่า", code: "SAFETY_BYPASS" }] } };
-    return registerError(next, "safety", "GO with lightning nearby is a critical safety bypass. Record NO-GO and hold for the all-clear.", "SAFETY_BYPASS");
+    return registerError(next, "safety", "ห้ามเริ่มงานขณะมีฟ้าผ่า บันทึกการหยุดงานและรอยืนยันว่าปลอดภัย", "SAFETY_BYPASS");
   }
   // Recording stopped cleanly → the file closes and becomes evidence.
   if (key === "record" && value === false && prev === true && before) {
@@ -687,10 +744,9 @@ export function setControl(state: TrainingState, device: string, key: string, va
   if (key === "stream" && value === true && stage.guidance === "certification" && !state.sim.testsPassed.rehearsal) {
     next.sim = { ...next.sim!, log: [...next.sim!.log, { t: sim.tick, kind: "config", text: "เริ่มสตรีมก่อนผ่านการซ้อมงาน", code: "EARLY_STREAM" }] };
   }
-  next = settleSim(next);
   // Program takes drive the run-of-show.
   if (device === "sw" && key === "pgm") next = afterTake(next, String(state.sim.config.sw?.pvw ?? ""), String(value));
-  return { ...next, completed: Boolean(next.sim?.signedOff) };
+  return settleSim(next);
 }
 
 function afterTake(state: TrainingState, pvwBefore: string, opt: string): TrainingState {
@@ -716,6 +772,9 @@ function afterTake(state: TrainingState, pvwBefore: string, opt: string): Traini
 export const STAGE_ORDER: TestStage[] = ["physical", "signal", "rehearsal", "delivery"];
 /** Physical-layer, signal, operator-rehearsal and stream/record tests, in order. */
 export function runTest(state: TrainingState, test: TestStage): TrainingState {
+  if (!state.sim) return state;
+  if (state.sim.paused) return { ...state, notice: notice("พักภารกิจอยู่", "ผ่านคำถามทบทวนก่อนทดสอบระบบ", "error") };
+  state = settleSim(state);
   if (!state.sim) return state;
   const ctx = simContext(state)!;
   const idx = STAGE_ORDER.indexOf(test);
@@ -749,7 +808,7 @@ export function runTest(state: TrainingState, test: TestStage): TrainingState {
   const cert = scenario.stage?.guidance === "certification";
   const firstFail = results.find((r) => !r.result.ok);
   const detail = pass ? `ผ่านครบ ${results.length} รายการ${extra}` : `${firstFail!.label}: ${firstFail!.result.reason ?? ""}${cert ? "" : ` → ${firstFail!.result.fix ?? ""}`}`;
-  return { ...state, cables, sim, notice: notice(`ทดสอบ${simThai(test)}: ${pass ? "ผ่าน" : "ไม่ผ่าน"}`, detail, pass ? "success" : "error") };
+  return settleSim({ ...state, cables, sim, notice: notice(`ทดสอบ${simThai(test)}: ${pass ? "ผ่าน" : "ไม่ผ่าน"}`, detail, pass ? "success" : "error") });
 }
 
 /** Signal trace requested by the learner: logs the diagnosis of any live fault. */
@@ -793,6 +852,10 @@ export function answerReview(state: TrainingState, choice: number): TrainingStat
 
 /** Sign-off: every objective (except sign-off itself) must pass on the CURRENT graph. */
 export function signOff(state: TrainingState): TrainingState {
+  if (!state.sim) return state;
+  if (scenarioOf(state).designIssues?.length) return { ...state, notice: notice("ใบงานยังไม่พร้อมตรวจรับ", "พบข้อมูลอุปกรณ์หรือสายไม่สอดคล้องกัน กรุณาแจ้งผู้ดูแลพร้อมรหัสด่าน", "error") };
+  if (state.sim.paused) return { ...state, notice: notice("พักภารกิจอยู่", "ผ่านคำถามทบทวนก่อนตรวจรับงาน", "error") };
+  state = settleSim(state);
   if (!state.sim) return state;
   const ctx = simContext(state)!;
   const missing = STAGE_ORDER.find((s) => !state.sim!.testsPassed[s]);

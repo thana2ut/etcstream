@@ -1,0 +1,14 @@
+warning: in the working copy of 'app/cable-lobby.css', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/game/cable-plugs.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/ui/use-cable-bag.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/EQUIPMENT_INVENTORY.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/ETCSTREAM_PROJECT_STATE.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/MISSION_EQUIPMENT_MODELING_BACKLOG.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/MISSION_HALL_5_CHAPTERS_25_LEVELS.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/MISSION_HALL_EQUIPMENT_PLACEMENT_AND_STOCK.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/MISSION_HALL_PERFORMANCE_AND_ACCESSIBILITY.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/MISSION_HALL_VENUE_LAYOUTS.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/MISSION_SIGNAL_FLOW_SOURCE_MATRIX.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'game/content/mission-catalog.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'game/training/sim/rooms.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/generate-mission-catalog.mjs', LF will be replaced by CRLF the next time Git touches it

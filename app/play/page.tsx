@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { GameCanvas } from "@/components/game/game-canvas";
@@ -24,6 +24,11 @@ import { clearedCount, meritFor, rankFor } from "@/game/content/mission-ranks";
 import { soundEngine } from "@/game/audio/sound-engine";
 import { getSafePlayParams } from "@/game/security/route-validation";
 import { CableLobby } from "@/components/ui/cable-lobby";
+import { checkMissionBag } from "@/game/content/mission-bag";
+import { deleteRun, loadRun, type LoadResult, type RunKey } from "@/game/persistence/run-save";
+import { ResumeRunDialog, SaveStatusPill, useRunAutosave } from "@/components/game/run-persistence";
+import { missionBriefing } from "@/game/content/mission-briefing";
+import { buildAdminLoadout, hasAdminSession } from "@/game/content/admin-loadout";
 import { BagPanel } from "@/components/game/bag-panel";
 import { OperatorConsole, ReviewOverlay } from "@/components/game/operator-console";
 import { hiddenCablesFor, MAX_WRONG_STREAK, packableCatalogIds, packedLeadsFor } from "@/game/content/cable-catalog";
@@ -35,6 +40,21 @@ export default function Play() {
     </Suspense>
   );
 }
+
+/** Free Practice briefing cards (static): what the room is, the aim, what you do, what to know. */
+const FREE_PRACTICE_CARDS: { icon: string; title: string; lines: string[] }[] = [
+  { icon: "☯", title: "ห้องฝึกอิสระคืออะไร", lines: ["ห้องสตูดิโอที่มีกล้อง ไมโครโฟน Mixer, Video Switcher, Capture Card, Computer/OBS และ Monitor ให้สำรวจ หยิบ วาง ต่อ และตั้งค่าได้อย่างอิสระ"] },
+  { icon: "◎", title: "เป้าหมายการฝึก", lines: ["เข้าใจหน้าที่ของอุปกรณ์แต่ละชิ้น เลือกเส้นทางการต่อที่เหมาะสม และสังเกตผลที่เกิดขึ้นบนจอและเสียง ไม่มีด่านหรือเงื่อนไขผ่านบังคับ"] },
+  { icon: "✦", title: "สิ่งที่ผู้เล่นจะทำ", lines: [
+    "เลือกสายจากโต๊ะสายของห้องฝึกใส่กระเป๋า",
+    "เข้าห้อง กด E ค้าง 2 วินาทีเพื่อดูรายละเอียดอุปกรณ์ แล้วหยิบ วาง และเสียบสาย",
+    "สังเกตผลบนจอ ถ้ายังไม่ขึ้น ไล่ย้อนเส้นทางแล้วแก้จากความผิดพลาด",
+  ] },
+  { icon: "👁", title: "ข้อควรรู้ก่อนเริ่ม", lines: [
+    "สัญญาณเดินจาก OUTPUT ไป INPUT และหัวสายต้องตรงชนิดพอร์ต",
+    "ห้องที่ยังทำค้างจะถูกบันทึกในเบราว์เซอร์นี้ และเลือกเล่นต่อได้เมื่อกลับมา",
+  ] },
+];
 
 function PlayExperience() {
   const { setPlayPhase } = useGameAudio();
@@ -95,18 +115,18 @@ function PlayExperience() {
       const t = e.target as HTMLElement | null;
       if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable)) return;
       const st = useTrainingStore.getState();
-      if (st.inspecting || !SCENARIOS[st.scenarioId]?.stage) return;
+      if (introOpen || bag === null || st.inspecting || !SCENARIOS[st.scenarioId]?.stage) return;
       e.preventDefault();
       if (!st.consoleOpen && document.pointerLockElement) document.exitPointerLock();
       st.setConsoleOpen(!st.consoleOpen);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [introOpen, bag]);
 
   useEffect(() => {
-    setPlayPhase(showResultModal ? "result" : introOpen ? "intro" : "gameplay");
-  }, [introOpen, showResultModal, setPlayPhase]);
+    setPlayPhase(showResultModal ? "result" : introOpen || bag === null ? "intro" : "gameplay");
+  }, [introOpen, bag, showResultModal, setPlayPhase]);
 
   useEffect(() => () => setPlayPhase("intro"), [setPlayPhase]);
 
@@ -137,8 +157,54 @@ function PlayExperience() {
     if (useTrainingStore.getState().scenarioId !== scenarioId) resetTraining(scenarioId);
   }, [resetTraining, scenarioId]);
 
+  // ---- Unfinished-run persistence (one save per player × mode × level; separate from academy progress) ----
+  const runPlayerId = player?.playerId;
+  const runMode: RunKey["mode"] = routeMode === "mission" ? (progress?.selected?.admin ? "mission-admin" : "mission") : "free-practice";
+  const runKey = useMemo<RunKey | null>(() => (runPlayerId ? { playerId: runPlayerId, mode: runMode, scenarioId } : null), [runPlayerId, runMode, scenarioId]);
+  // undefined = not checked yet for this key; null = nothing to offer (or the player already chose).
+  const [resumeOffer, setResumeOffer] = useState<LoadResult | null | undefined>(undefined);
+  const resumeKeyRef = useRef("");
   useEffect(() => {
-    if (introOpen || loadedScenarioId !== scenarioId) return;
+    if (!runKey) return;
+    const id = `${runKey.playerId}:${runKey.mode}:${runKey.scenarioId}`;
+    if (resumeKeyRef.current === id) return;
+    resumeKeyRef.current = id;
+    // Only check before the run starts; never touch the stored snapshot here. Deferred one task so the
+    // state update does not cascade inside this effect (react-hooks/set-state-in-effect).
+    const key = runKey, entered = bag !== null;
+    const timer = window.setTimeout(() => {
+      if (entered) { setResumeOffer(null); return; }
+      const found = loadRun(key);
+      setResumeOffer(found.status === "none" ? null : found);
+    }, 0);
+    return () => { window.clearTimeout(timer); resumeKeyRef.current = ""; };
+  }, [runKey, bag]);
+  const inRoom = bag !== null && !introOpen && loadedScenarioId === scenarioId;
+
+  // ---- Admin test launch: skip briefing + cable lobby, pack exactly the level's required leads (not wired) ----
+  // Read once on the client (the page renders only a loading state until the academy store hydrates).
+  const [adminSession] = useState(() => typeof window !== "undefined" && hasAdminSession());
+  const adminLaunch = routeMode === "mission" && Boolean(progress?.selected?.admin) && adminSession
+    && progress?.selected?.slug === mission?.slug && progress?.selected?.difficulty === difficultyLevel && Boolean(activeScenario.stage);
+  const [adminIssues, setAdminIssues] = useState<string[] | null>(null);
+  useEffect(() => {
+    // Only for a genuinely new admin run: after the save check found nothing (or the admin chose to start over).
+    if (!adminLaunch || resumeOffer !== null || bag !== null || !introOpen || adminIssues) return;
+    const timer = window.setTimeout(() => {
+      const loadout = buildAdminLoadout(activeScenario);
+      if (!loadout.ok) { setAdminIssues(loadout.issues); return; }
+      resetTraining(scenarioId, [], loadout.leads);
+      useTrainingStore.setState({ notice: { title: "จัดเตรียมสายสำหรับทดสอบเรียบร้อยแล้ว", detail: `สายในกระเป๋า ${loadout.leads.length} เส้น · กด R เพื่อเปิดกระเป๋าแล้วต่อด้วยตนเอง`, tone: "info" } });
+      setBag(loadout.bag);
+      setIntroOpen(false);
+      startMission();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [adminLaunch, resumeOffer, bag, introOpen, adminIssues, activeScenario, scenarioId, resetTraining, startMission]);
+  const { status: saveStatus, flush: flushRun, discard: discardRun } = useRunAutosave(runKey, inRoom, bag);
+
+  useEffect(() => {
+    if (introOpen || bag === null || loadedScenarioId !== scenarioId) return;
     if (trainingCompleted) {
       // Rank / merit are derived from cleared levels: compare before and after this completion.
       const before = useAcademyStore.getState().progress;
@@ -157,7 +223,7 @@ function PlayExperience() {
     } else {
       startMission();
     }
-  }, [introOpen, trainingCompleted, loadedScenarioId, scenarioId, completeMission, startMission]);
+  }, [introOpen, bag, trainingCompleted, loadedScenarioId, scenarioId, completeMission, startMission]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -231,7 +297,6 @@ function PlayExperience() {
 
   const currentTitle = validMission && mission ? mission.title : "ระบบสตูดิโอครบเส้นทาง";
   const difficultyLabel = validMission && mission ? getMissionDifficultyLabel(mission, difficultyLevel) : null;
-  const introSteps = activeScenario.requirements.map(r => [r.label, "ต่อ OUTPUT → INPUT ด้วยสายที่ตรงชนิดสัญญาณ", r.id]);
   const schematicNodes = [["ต้นทาง", "กล้อง / ไมค์"], ["ประมวลผล", "เครื่องสลับภาพ / ผสมเสียง"], ["ปลายทาง", "จอ / รับภาพ / ถ่ายทอด"]];
 
   async function lockPointer() {
@@ -265,6 +330,8 @@ function PlayExperience() {
   };
 
   const handleConfirmExit = () => {
+    // Commit the live run before leaving; a failed write keeps the player here with a visible warning.
+    if (!flushRun()) { setShowExitConfirm(false); return; }
     setShowExitConfirm(false);
     if (routeMode === "mission") {
       router.push("/missions");
@@ -277,29 +344,78 @@ function PlayExperience() {
     setShowExitConfirm(false);
   };
 
-  const handleStartPlay = () => {
+  // Briefing advances to cable preparation; only confirming a valid bag starts play.
+  const handlePrepareCables = () => {
     setIntroOpen(false);
-    startMission();
   };
 
 
   const handleRetry = () => {
+    // A new attempt replaces only this level's unfinished snapshot.
+    discardRun();
+    if (runKey) deleteRun(runKey);
     resetTraining(scenarioId);
-    // Mission levels and the classroom return to the cable-prep lobby for every new attempt.
+    // Every new attempt returns to briefing, followed by cable preparation.
     if (routeMode === "mission" || validClassroom) { setBag(null); setIntroOpen(true); }
     setShowResultModal(false);
   };
 
-  // Cable-prep lobby before every attempt. The classroom offers exactly the leads laid out on its table.
-  if (((routeMode === "mission" && validMission) || validClassroom) && bag === null) {
+  const continueSavedRun = () => {
+    if (resumeOffer?.status !== "ok") return;
+    const snap = resumeOffer.snapshot;
+    // Rebuild the level from its definition, then apply the saved world state before the room is shown.
+    resetTraining(scenarioId);
+    const t = snap.training;
+    useTrainingStore.setState({ ...t, notice: null, wrongStreak: snap.wrongStreak, failed: snap.failed, heldTurn: snap.heldTurn,
+      focusedTarget: null, inspecting: null, consoleOpen: false, inspectHoldStart: null, pickMode: "whole" });
+    setResumeOffer(null);
+    setBag(snap.lobbyBag);
+    setIntroOpen(false);
+    startMission();
+  };
+  const startRunOver = () => {
+    discardRun();
+    if (runKey) deleteRun(runKey);
+    resetTraining(scenarioId);
+    setResumeOffer(null);
+  };
+  const resumeContext = validMission && mission && activeScenario.stage ? `${mission.venue} · ${activeScenario.stage.id} · ${difficultyLabel ?? ""}` : "ห้องฝึกอิสระ";
+
+  // Admin test launch: never flash the briefing or the cable lobby while the loadout is prepared.
+  if (adminLaunch && adminIssues) {
+    return <main className="fantasy-viewport play-page" style={{ justifyContent: "center", alignItems: "center", padding: 24 }}>
+      <section className="glass-card gold-border-frame" style={{ maxWidth: 640, padding: 28 }} role="alert">
+        <h1 style={{ fontSize: "1.4rem", lineHeight: 1.5, margin: "0 0 10px" }}>ไม่สามารถเตรียมสายทดสอบของด่านนี้ได้</h1>
+        <ul style={{ margin: "0 0 18px", paddingLeft: 20, lineHeight: 1.7 }}>{adminIssues.map((issue) => <li key={issue}>{issue}</li>)}</ul>
+        <button type="button" className="cultivation-btn btn-glass btn-md" onClick={() => router.push("/missions/admin")}>กลับหน้าผู้ดูแลภารกิจ</button>
+      </section>
+    </main>;
+  }
+  if (adminLaunch && bag === null && !(resumeOffer && resumeOffer.status !== "none")) {
+    return <main className="fantasy-viewport play-page" style={{ justifyContent: "center", alignItems: "center" }}>
+      <p style={{ color: "var(--gold-soft)" }}>กำลังเตรียมสายสำหรับทดสอบ…</p>
+    </main>;
+  }
+
+  // Entry order: briefing first, cable preparation next, then immediate gameplay. The classroom offers exactly the leads laid out on its table.
+  if (((routeMode === "mission" && validMission) || validClassroom) && !introOpen && bag === null) {
     return <CableLobby
+      key={scenarioId}
       scenario={activeScenario} title={currentTitle}
       levelLabel={validClassroom ? "ห้องฝึกปราณสัญญาณ · ฝึกต่อระบบสตูดิโอ" : difficultyLabel ?? ""}
       objective={validClassroom ? "เลือกสายจากโต๊ะสายในห้องฝึก ให้พอต่อกล้อง สวิตเชอร์ จอ เสียง และการบันทึก ครบทั้งระบบ" : difficulty?.objective}
       playerName={player.nickname}
       only={validClassroom ? packableCatalogIds(activeScenario) : undefined}
-      onBack={() => router.push(validClassroom ? "/academy" : "/missions")}
-      onConfirm={(packed) => { setBag(packed); resetTraining(scenarioId, hiddenCablesFor(activeScenario, packed), packedLeadsFor(activeScenario, packed)); setIntroOpen(true); }}
+      backLabel="กลับหน้าใบงาน"
+      onBack={() => setIntroOpen(true)}
+      onConfirm={(packed) => {
+        // Missions: re-validate against the level being entered (never a stale or other level's bag).
+        if (activeScenario.stage ? !checkMissionBag(activeScenario, packed).ok : !Object.values(packed).some((n) => Number.isFinite(n) && n >= 1)) return;
+        setBag(packed);
+        resetTraining(scenarioId, hiddenCablesFor(activeScenario, packed), packedLeadsFor(activeScenario, packed));
+        setIntroOpen(false);
+        startMission();
+      }}
     />;
   }
 
@@ -400,51 +516,59 @@ function PlayExperience() {
       )}
 
       {/* REF 08: PLAY INTRO STATE (ก่อนเข้าสู่ห้องฝึก) */}
-      {introOpen && (
-        <div className="instructions-modal-backdrop" style={{ background: "rgba(2, 6, 18, 0.9)" }}>
-          <section className="play-intro-wrapper glass-card technical-panel gold-border-frame with-corner-runes" aria-labelledby="play-intro-title">
-            <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: "16px" }}>
-              <BackButton onClick={handleBackFromIntro} label="ย้อนกลับ" />
-            </div>
+      {introOpen && resumeOffer && resumeOffer.status !== "none" && (
+        <ResumeRunDialog
+          context={resumeContext}
+          savedAt={resumeOffer.status === "ok" ? resumeOffer.snapshot.savedAt : resumeOffer.savedAt}
+          incompatibleReason={resumeOffer.status === "incompatible" ? resumeOffer.reason : undefined}
+          onContinue={continueSavedRun}
+          onStartOver={startRunOver}
+          onLeave={() => router.push(routeMode === "mission" ? (adminLaunch ? "/missions/admin" : "/missions") : "/academy")}
+        />
+      )}
 
-            <div className="play-intro-grid">
-              {/* Left Info Panel */}
-              <div className="intro-info-card">
+      {inRoom && <SaveStatusPill status={saveStatus} onRetry={() => flushRun(true)} />}
+
+      {introOpen && (
+        <div className="instructions-modal-backdrop briefing-backdrop">
+          <section className="play-intro-wrapper briefing-frame glass-card technical-panel gold-border-frame with-corner-runes" aria-labelledby="play-intro-title">
+            <header className="briefing-header">
+              <BackButton onClick={handleBackFromIntro} label="ย้อนกลับ" />
+              <div className="briefing-heading">
                 <div className="intro-room-badge">
                   <Image src="/images/xianxia/emblem.webp" alt="โลโก้ etcstream" width={35} height={30} className="brand-sigil intro-sigil" />
-                  <strong>ห้องฝึกปราณสัญญาณ</strong>
+                  <strong>{validMission && mission ? mission.venue : "ห้องฝึกปราณสัญญาณ"}</strong>
                 </div>
-
-                <h1 id="play-intro-title" className="intro-mode-title">{currentTitle}</h1>
-
-                {difficultyLabel && <strong className="mission-level-label">{difficultyLabel}</strong>}
-
-                <p className="intro-narrative">
-                  {mission && validMission
-                    ? `${mission.description} ${difficulty?.flavor ?? ""}`
-                    : "ฝึกประกอบระบบสตูดิโอครบเส้นทาง ตั้งแต่กล้องและไมโครโฟน ผ่าน Mixer และ Video Switcher ไปยัง Capture Card, Computer, OBS และ Monitor จนครบทุกเงื่อนไข"}
-                </p>
-                {difficulty && validMission && <p className="intro-narrative"><strong>เป้าหมายระดับนี้:</strong> {difficulty.objective}</p>}
-
-                <div className="intro-target-steps">
-                  {introSteps.map(([title, detail, id], index) => <div className="target-step-item" key={id ?? `${index}-${title}`}>
-                    <span className="step-badge">{index + 1}</span>
-                    <div>
-                      <span className="step-text-title">{title}</span>
-                      <span className="step-text-sub"> ({detail})</span>
-                    </div>
-                  </div>)}
+                <h1 id="play-intro-title" className="intro-mode-title">{validMission && activeScenario.stage ? activeScenario.stage.title : currentTitle}</h1>
+                <div className="briefing-meta">
+                  {validMission && activeScenario.stage && <span>รหัสภารกิจ {activeScenario.stage.id} · {currentTitle}</span>}
+                  {difficultyLabel && <strong className="mission-level-label">{difficultyLabel}</strong>}
                 </div>
-
-                <ActionButton variant="gold" size="lg" onClick={handleStartPlay}>
-                  {validMission ? "เริ่มภารกิจ" : "เริ่มการฝึก"}
-                </ActionButton>
               </div>
+            </header>
+            <div className="play-intro-grid briefing-body" tabIndex={0} role="region" aria-label="เนื้อหาใบงานและภาพรวมสัญญาณ">
+              {validMission && activeScenario.stage && mission ? <div className="intro-info-card briefing-cards">
+                {/* Mission mode: purpose, goal and approach only; never cables, counts or port pairs. */}
+                <p className="intro-narrative briefing-scroll-quote">“{mission.description}”</p>
+                {missionBriefing(activeScenario, mission.venue, difficulty?.objective).map((card) => <article key={card.id} className={`briefing-card is-${card.id}`}>
+                  <h2><span className="briefing-card-icon" aria-hidden="true">{card.icon}</span>{card.title}</h2>
+                  {card.lines.length === 1 || card.id === "identity"
+                    ? card.lines.map((line, i) => <p key={i} className={i === 0 && card.id === "identity" ? "briefing-card-lead" : undefined}>{line}</p>)
+                    : <ul>{card.lines.map((line) => <li key={line}>{line}</li>)}</ul>}
+                </article>)}
+              </div> : <div className="intro-info-card briefing-cards">
+                {/* Free Practice: open-ended, no pass condition and no stage code. */}
+                <p className="intro-narrative briefing-scroll-quote">“ห้องสตูดิโอครบเส้นทาง พื้นที่ให้ลองผิดลองถูกได้อย่างปลอดภัย”</p>
+                {FREE_PRACTICE_CARDS.map((card) => <article key={card.title} className="briefing-card">
+                  <h2><span className="briefing-card-icon" aria-hidden="true">{card.icon}</span>{card.title}</h2>
+                  {card.lines.length === 1 ? <p>{card.lines[0]}</p> : <ul>{card.lines.map((line) => <li key={line}>{line}</li>)}</ul>}
+                </article>)}
+              </div>}
 
               {/* Right Stylized Graphic (Pedestals in Celestial Arch) */}
               <div className="intro-preview-card glass-panel scholar-framed-preview">
                 <div className="preview-artwork-wrap">
-                  <div className="lesson-schematic" aria-label={validMission ? "เส้นทางสัญญาณ กล้องไปเครื่องสลับภาพไปจอ" : "เส้นทางระบบสตูดิโอครบวงจร"}>
+                  <div className="lesson-schematic" aria-label="ภาพรวมเส้นทางสัญญาณ ต้นทาง ผ่านการประมวลผล ไปยังปลายทาง">
                     {schematicNodes.map(([title, detail], index) => <div key={title} style={{ display: "contents" }}>
                       {index > 0 && <div className="schematic-link" aria-hidden="true">⟶</div>}
                       <div className="schematic-node"><span>{String(index + 1).padStart(2, "0")}</span><strong>{title}</strong><small>{detail}</small></div>
@@ -459,6 +583,10 @@ function PlayExperience() {
                 </div>
               </div>
             </div>
+            <footer className="briefing-actions">
+              <p>{validMission ? "เมื่อเข้าใจภารกิจแล้ว จงไปเตรียมสายด้วยวิจารณญาณของเจ้าเอง" : "พร้อมแล้ว เลือกสายจากโต๊ะสายของห้องฝึกในขั้นตอนถัดไป"}</p>
+              <ActionButton variant="gold" size="lg" onClick={handlePrepareCables}>เตรียมสาย</ActionButton>
+            </footer>
           </section>
         </div>
       )}

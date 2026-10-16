@@ -33,6 +33,8 @@ export const CloudSky = memo(function CloudSky() {
     if (!node || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     let frame = 0;
     const onMove = (event: PointerEvent) => {
+      // No parallax while an overlay (e.g. the academy guide) covers the sky: nothing visible to update.
+      if (document.documentElement.dataset.overlay) return;
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
         node.style.setProperty("--sky-px", ((event.clientX / window.innerWidth) - 0.5).toFixed(3));

@@ -114,10 +114,10 @@ const classroom: VenueLayout = {
     pc: at(0.85, 0.76, -3.1, -0.25, "โต๊ะผู้สอน — เครื่องสตรีม"),
     slides: at(0.05, 0.76, -3.2, Math.PI, "โต๊ะผู้สอน — โน้ตบุ๊กหันหน้าจอเข้าผู้สอน"),
     tx1: at(0.5, 0.76, -2.7, 0, "โต๊ะผู้สอน — ไมค์ผู้สอน"), lav1: at(0.85, 0.76, -2.7, 0),
-    monitor: at(4.2, 0.98, -3.85, 0, "TV ห้องเรียน (ผนังหน้า ขวา)"),
+    monitor: at(4.2, 0.98, -3.15, 0, "TV ห้องเรียน — เว้นทางบริการหลังจอ"),
     cam1: cam(-3.8, -2.2, [0.1, -3.72], "กล้องผู้สอนริมหน้าต่าง"),
   },
-  furniture: [xsDesk, xsCabinet, xsCableShelf, xsTeacher, furn("xs-tv", "tvStand", 4.2, -3.9, 1.2, 0.95, 0.45), ...XS_STUDENT],
+  furniture: [xsDesk, xsCabinet, xsCableShelf, xsTeacher, furn("xs-tv", "tvStand", 4.2, -3.2, 1.2, 0.95, 0.45), ...XS_STUDENT],
   obstacles: [],
   zones: ["หน้าห้อง: จอโปรเจกเตอร์กลาง โต๊ะผู้สอน ไวท์บอร์ด (ซ้าย) TV (ขวา)", "กลางห้อง: โต๊ะนักเรียนคู่ 2 ฝั่ง ทางเดินกลาง", "ริมหน้าต่าง: กล้องบนขาตั้ง + ไฟ Softbox", "หน้าห้อง: โต๊ะผู้สอนและจุดควบคุมหลัก", "ผนังขวา: ชั้นเหล็กเก็บอุปกรณ์พกพา", "หลังห้อง: ชั้นสายและโต๊ะพักอุปกรณ์"],
 };
@@ -263,7 +263,7 @@ const stadium: VenueLayout = {
     graphics: at(-6.4, 0.76, -0.95, 0, "แถว 3: Graphics Workstation"),
     mix: at(-2.6, 0.76, -4.15, 0, "จุดเสียง: เครื่องผสมเสียงดิจิทัล"),
     rx: at(-2.05, 0.76, -3.75, 0, "จุดเสียง: ตัวรับไมค์ไร้สาย"),
-    monitor: at(-7.0, 1.0, -6.75, 0, "Multiview Wall (ผนังหน้า)"),
+    monitor: at(-7.0, 1.0, -5.95, 0, "จอรวมภาพ — เว้นทางบริการจากผนังหน้า"),
     ...Object.fromEntries(RACKS.map(([id, z, label]) => [id, at(-11.9, 0, z, Math.PI / 2, `ตู้: ${label}`)])),
     display: at(13.2, 0, 11.0, -Math.PI / 2, "Stadium display processor"),
     mic0: at(5.5, 0.76, -1.75, 0, "Commentary desk: Mic 1"), mic1: at(6.9, 0.76, -1.75, 0, "Commentary desk: Mic 2"),
@@ -279,7 +279,7 @@ const stadium: VenueLayout = {
   },
   furniture: [
     xlSwitch, xlReplay, xlGraphics, xlAudio, xlCases, xlCableRack, xlCommentary,
-    furn("xl-monitor-console", "operatorDesk", -7, -6.75, 1.2, 1, 0.45, "แผงรับสัญญาณจอรวมภาพ"),
+    furn("xl-monitor-console", "operatorDesk", -7, -5.95, 1.2, 1, 0.45, "แผงรับสัญญาณจอรวมภาพ"),
     ...RACKS.map(([id, z]) => furn(`xl-rack-${id}`, "rackCabinet", -11.9, z, 0.6, 2.0, 0.6)),
     furn("xl-wall", "controlWall", -7.0, -7.15, 7.0, 0.1, 0.3),
     furn("xl-cam1-platform", "cameraPlatform", 0, 8.2, 1.6, 0.3, 1.6),
@@ -372,6 +372,13 @@ export const LAYOUTS: Record<LayoutId, VenueLayout> = {
   outdoor: expand(outdoor, VENUE_SCALE.outdoor),
   stadium: expand(stadium, VENUE_SCALE.stadium),
 };
+
+// Mission-only supports for the newly explicit transport and delivery equipment.
+for (const [id, kind, x, z, width, height, depth, label] of [
+  ["l-fiber-service", "fieldCase", 0.9, 4.3, 0.8, 0.85, 0.6, "เคสตัวส่ง Optical กล้องไกล"],
+  ["l-delivery-desk", "tentDesk", 5.6, 6.9, 3.3, 0.76, 0.75, "โต๊ะฝังเสียงและส่งสัญญาณ"],
+] as const) LAYOUTS.outdoor.furniture.push(furn(id, kind, x * VENUE_SCALE.outdoor, z * VENUE_SCALE.outdoor, width, height, depth, label));
+LAYOUTS.stadium.furniture.push(furn("xl-rx-case", "fieldCase", 8.2 * VENUE_SCALE.stadium, -0.5 * VENUE_SCALE.stadium, 0.7, 0.85, 0.5, "เคสตัวรับไมค์สนาม"));
 
 /* ════════ helpers shared by gameplay and environments ════════ */
 export function onSurface(s: Surface, x: number, z: number, margin = 0): boolean {

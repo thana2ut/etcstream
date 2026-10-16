@@ -1,5 +1,6 @@
 import type { ControlDefinition, EquipmentDefinition, PortDefinition, SignalClass, VideoFormat } from "./types";
 import type { Connector } from "../scenarios";
+import { referenceModels } from "./reference-equipment";
 
 /**
  * Equipment manifest. Named models list `sourceUrl` (manufacturer tech-spec page given in the room
@@ -94,7 +95,7 @@ const ATEM_MINI_PRO_ISO: EquipmentDefinition = {
   ],
   controls: [power,
     sel("pgm", "เลือกภาพออกอากาศ", ["Black", "HDMI 1", "HDMI 2", "HDMI 3", "HDMI 4"], "สลับแหล่งภาพนี้ออกอากาศ"),
-    sel("hdmi-out", "แหล่งภาพขาออก HDMI", ["PROGRAM", "MULTIVIEW"], "เลือกหน้าที่ให้ HDMI ขาออกเพียงพอร์ตเดียว", "MULTIVIEW"),
+    sel("hdmi-out", "ปุ่ม VIDEO OUT · ภาพที่ส่งออก HDMI OUT", ["PROGRAM", "MULTIVIEW"], "HDMI OUT มีช่องเดียว ค่าเริ่มต้นคือ MULTIVIEW กด VIDEO OUT เลือกภาพออกอากาศเมื่อต้องส่งขึ้นจอ", "MULTIVIEW"),
     sel("mic1-mode", "ระดับขาเข้า MIC 1", ["MIC", "LINE"], "รับไลน์ระดับอุปกรณ์ทั่วไปต้องตั้ง LINE หากตั้ง MIC จะดังจนแตก", "MIC"),
     tog("mic1-on", "ส่ง MIC 1 ไปเสียงออกอากาศ", "Fairlight: รวม MIC 1 เข้าเสียงออกอากาศ"),
     sel("emb-audio", "เสียงจากแหล่งภาพ HDMI", ["ON", "AFV", "OFF"], "เสียงฝังจากกล้องหรือโน้ตบุ๊ก เปิดพร้อมไมค์อื่นอาจทำให้เสียงผู้สอนซ้อน", "ON"),
@@ -133,6 +134,46 @@ const HD8_ISO: EquipmentDefinition = {
     tog("stream", "เริ่มถ่ายทอดผ่าน RTMP", "เริ่มสตรีม RTMP ในตัว"),
   ],
   notes: ["ระบบ 3G-SDI รองรับ HD เท่านั้น ส่ง UHD จะขึ้นว่าไม่รองรับ", "จำลองพอร์ตจริง SDI IN 1–4 และ SDI OUT 1–3"],
+};
+
+/**
+ * AU mission switcher, LOCKED 2026-10-20 for ports and routes (MASTER V2 Gate 1). Exact variant: ATEM Television Studio
+ * HD8 ISO (W-APS-21, not the 2TB version). Official techspecs: 8 × 3G-SDI in, SDI Program out 1, SDI Aux out 2,
+ * multiview 1 × 3G-SDI + 1 × HDMI, 2 × XLR balanced analog + 2 × RCA, ref BNC in, 2 × USB-C (webcam / recording),
+ * 4 × RJ45 switch. Manual (ATEM Television Studio HD8/4K8): aux outputs route any input, program, preview or clean feed;
+ * the multiview output toggles to preview. The printed rear-panel wording and the XLR input level are not stated in the
+ * sources read, so labels below are descriptive and the XLR level stays "balanced line" (PENDING exact level).
+ * The legacy `bmd-atem-tvs-hd8-iso` profile (inactive original OUT room) is kept unchanged for traceability.
+ */
+const TVS_HD8_ISO: EquipmentDefinition = {
+  modelId: "bmd-atem-television-studio-hd8-iso", manufacturer: "Blackmagic Design", name: "Blackmagic ATEM Television Studio HD8 ISO", generic: false, kind: "box", size: [0.48, 0.09, 0.34],
+  sourceUrl: "https://www.blackmagicdesign.com/products/atemtelevisionstudio/techspecs/W-APS-21",
+  verifiedPorts: ["3G-SDI IN 1–8", "SDI PROGRAM OUT", "SDI AUX OUT 1–2", "SDI + HDMI MULTIVIEW OUT", "REF IN (BNC)", "2 × XLR balanced analog IN", "2 × USB-C (webcam / recording)", "Ethernet (4-port switch)"],
+  assetLicense: LICENSE_ORIGINAL, needsPower: true, role: "switcher",
+  ports: [
+    ...[1, 2, 3, 4, 5, 6, 7, 8].map((n) => p(`sdi-in-${n}`, `SDI IN ${n}`, "INPUT", "SDI", "SDI", `3G-SDI ขาเข้า ${n} รับ HD 1080p50`, { formats: ["1080p50"] })),
+    p("ref-in", "REF IN (BNC)", "INPUT", "SDI", "REF", "ขาเข้าสัญญาณอ้างอิง Tri-Sync / Black Burst ไม่ใช่ขาเข้าภาพ"),
+    p("pgm-out", "SDI OUT · PROGRAM", "OUTPUT", "SDI", "SDI", "ขาออกภาพออกอากาศเฉพาะ ส่งภาพ PROGRAM เสมอ"),
+    p("aux-1", "SDI OUT · AUX 1", "OUTPUT", "SDI", "SDI", "ขาออก AUX เลือกแหล่งได้: PROGRAM, ภาพสะอาด, PREVIEW หรือขาเข้าใดก็ได้"),
+    p("aux-2", "SDI OUT · AUX 2", "OUTPUT", "SDI", "SDI", "ขาออก AUX ช่อง 2 เลือกแหล่งได้เช่นเดียวกับ AUX 1"),
+    p("mv-out", "SDI OUT · MULTIVIEW", "OUTPUT", "SDI", "SDI", "ขาออกรวมภาพสำหรับจอผู้ควบคุม สลับเป็น PREVIEW ได้"),
+    p("hdmi-mv", "HDMI OUT · MULTIVIEW", "OUTPUT", "HDMI", "HDMI", "HDMI ขาออกรวมภาพ ภาพเดียวกับ SDI MULTIVIEW"),
+    p("xlr-l", "XLR AUDIO IN 1 (balanced)", "INPUT", "XLR", "LINE_BAL", "ขาเข้าแอนะล็อกสมดุลช่อง 1 รับบัส Broadcast ระดับไลน์จากคอนโซล", { channels: 1 }),
+    p("xlr-r", "XLR AUDIO IN 2 (balanced)", "INPUT", "XLR", "LINE_BAL", "ขาเข้าแอนะล็อกสมดุลช่อง 2", { channels: 1 }),
+    p("usb-1", "USB-C 1", "OUTPUT", "USB-C", "USB_UVC", "USB-C ส่งภาพ PROGRAM เป็นเว็บแคม หรือบันทึกลงดิสก์"),
+    p("usb-2", "USB-C 2", "OUTPUT", "USB-C", "USB_UVC", "USB-C ช่อง 2 (เว็บแคม / บันทึก)"),
+    p("eth", "ETHERNET", "OUTPUT", "ETHERNET", "ETHERNET", "Ethernet สำหรับสตรีมและควบคุม"),
+  ],
+  controls: [power,
+    sel("pgm", "เลือกภาพออกอากาศ", ["Black", ...[1, 2, 3, 4, 5, 6, 7, 8].map((n) => `SDI ${n}`)], "สลับแหล่งภาพนี้ออกอากาศ"),
+    sel("pvw", "ภาพเตรียม (PREVIEW)", ["Black", ...[1, 2, 3, 4, 5, 6, 7, 8].map((n) => `SDI ${n}`)], "ดูภาพเตรียมก่อนสลับออกอากาศ"),
+    ...[1, 2].map((n) => sel(`aux-${n}`, `แหล่งภาพ AUX ${n}`, ["SDI 1", "SDI 2", "SDI 3", "SDI 4", "SDI 5", "SDI 6", "SDI 7", "SDI 8", "PROGRAM", "CLEAN FEED", "PREVIEW"], "เลือกแหล่งภาพให้ขาออก AUX ที่ปุ่ม AUX ของแผงหรือ ATEM Software Control", "SDI 1")),
+    sel("mv-mode", "ปุ่ม MULTIVIEW / PREVIEW", ["MULTIVIEW", "PREVIEW"], "ขาออก Multiview สลับเป็นภาพ PREVIEW ได้", "MULTIVIEW"),
+    tog("xlr-on", "ส่ง XLR IN 1/2 ออกอากาศ", "Fairlight: เปิดรับไลน์ภายนอกคู่ซ้าย/ขวาเข้ารายการ"),
+    // Default kept OFF as in the profile it replaces; the unit's factory default is not stated in the sources read.
+    sel("emb-audio", "เสียงฝังจากกล้อง", ["ON", "AFV", "OFF"], "ไมค์กล้องที่เข้ารายการทำให้เสียงผู้บรรยายซ้อน โดยทั่วไปควรปิด", "OFF"),
+  ],
+  notes: ["รุ่น HD8 ISO บันทึกแยกทุกขาเข้าได้ (ISO) แต่ในด่านใช้บันทึกผ่านเครื่องบันทึกแยกตามใบงาน", "พอร์ตจริงอื่นที่ยังไม่ใช้ในด่าน: SDI OUT อื่นจากทั้งหมด 12, RCA ขาเข้า 2, MADI, ขาออกแอนะล็อก 1/4 นิ้ว 4, Talkback 5-pin, REF OUT, Timecode", "ป้ายพิมพ์จริงบนแผงหลังยังไม่ได้เทียบกับภาพถ่าย"],
 };
 
 const CONSTELLATION: EquipmentDefinition = {
@@ -236,18 +277,47 @@ const HYPERDECK: EquipmentDefinition = {
   notes: ["เป็นเครื่องบันทึก ไม่ใช่ตัวเข้ารหัสหรือระบบเล่นซ้ำทันทีหลายช่อง"],
 };
 
+/**
+ * OUT encoder, LOCKED 2026-10-20 for ports and routes. Blackmagic Streaming Encoder HD (Web Presenter HD is no longer on
+ * the current Blackmagic tech-spec page; this is its listed HD streaming processor). Official techspecs: SDI input 1,
+ * SDI loop output 1, SDI monitor output 1 (1.5G–12G, 16 ch embedded audio), HDMI monitor output 1, Ethernet for live
+ * streaming, USB-C webcam out, internal 100–240V AC + 4-pin XLR 12V. No analog audio connections.
+ */
 const STREAM_ENC: EquipmentDefinition = {
-  modelId: "bmd-streaming-encoder-hd", manufacturer: "Blackmagic Design", name: "Blackmagic Streaming Encoder HD", generic: false, kind: "box", size: [0.2, 0.045, 0.15],
-  sourceUrl: "https://www.blackmagicdesign.com/sg/developer/products/streaming/techspecs",
-  verifiedPorts: ["SDI IN", "Ethernet (H.264 streaming)", "HDMI monitor out"], assetLicense: LICENSE_ORIGINAL, needsPower: true, role: "encoder",
+  modelId: "bmd-streaming-encoder-hd", manufacturer: "Blackmagic Design", name: "Blackmagic Streaming Encoder HD", generic: false, kind: "box", size: [0.22, 0.045, 0.16],
+  sourceUrl: "https://www.blackmagicdesign.com/products/blackmagicstreamingprocessors/techspecs",
+  verifiedPorts: ["SDI IN", "SDI LOOP OUT", "SDI MONITOR OUT", "HDMI MONITOR OUT", "Ethernet (live streaming)", "USB-C (webcam out)"], assetLicense: LICENSE_ORIGINAL, needsPower: true, role: "encoder",
   ports: [
-    p("sdi-in", "SDI IN", "INPUT", "SDI", "SDI", "SDI ขาเข้ารับภาพออกอากาศเพื่อเข้ารหัส", { formats: HD }),
-    p("eth", "ETHERNET (stream)", "OUTPUT", "ETHERNET", "ETHERNET", "ส่งสตรีม H.264 ผ่าน RTMP(S) ไปเกตเวย์"),
+    p("sdi-in", "SDI IN", "INPUT", "SDI", "SDI", "SDI ขาเข้ารับภาพออกอากาศพร้อมเสียงฝัง 16 ช่อง เพื่อเข้ารหัส", { formats: HD }),
+    p("sdi-loop", "SDI LOOP OUT", "OUTPUT", "SDI", "SDI", "SDI ส่งต่อภาพขาเข้าเดิมไปอุปกรณ์อื่น"),
+    p("sdi-mon", "SDI MONITOR OUT", "OUTPUT", "SDI", "SDI", "SDI ขาออกจอตรวจภาพ"),
     p("hdmi-mon", "HDMI MONITOR OUT", "OUTPUT", "HDMI", "HDMI", "ขาออกจอตรวจภาพ ไม่ใช่แหล่งภาพกล้อง"),
+    p("eth", "ETHERNET (stream)", "OUTPUT", "ETHERNET", "ETHERNET", "ส่งสตรีมผ่าน Ethernet ไปเกตเวย์"),
+    p("usb", "USB-C (webcam)", "OUTPUT", "USB-C", "USB_UVC", "USB-C ส่งภาพเป็นเว็บแคม (ไม่ใช้ในด่าน)"),
   ],
   controls: [power, sel("format", "รูปแบบเข้ารหัส", ["1080p50", "1080p60"], "ตั้งให้ตรงระบบ 1080p50"),
-    sel("stream-key", "รหัสสตรีมทดสอบส่วนตัว", ["(none)", "•••••••• (private test key)"], "ข้อมูลรับรองจำลองเท่านั้น แสดงแบบปกปิด"), tog("stream", "เริ่มถ่ายทอด", "เริ่มเข้ารหัสส่งจุดรับสตรีมทดสอบส่วนตัว")],
-  notes: ["รับ SDI เท่านั้น พร้อมเสียงที่เครื่องสลับภาพฝังใน SDI ขาออก"],
+    sel("stream-key", "ข้อมูลปลายทางจำลอง", ["ยังไม่กำหนด", "•••• (private test)"], "ข้อมูลรับรองจำลองเท่านั้น แสดงแบบปกปิด"), tog("stream", "เริ่มส่งสตรีม", "เริ่มเข้ารหัสส่งจุดรับสตรีมทดสอบส่วนตัว")],
+  notes: ["รับภาพทาง SDI เท่านั้น ไม่มีขาเข้า HDMI และไม่มีขาเข้าเสียงแอนะล็อก เสียงต้องฝังมาใน SDI แล้ว", "Web Presenter HD ไม่อยู่ในหน้าสเปกปัจจุบันของผู้ผลิต จึงใช้ Streaming Encoder HD"],
+};
+
+/**
+ * OUT audio embedder, LOCKED 2026-10-20 for ports and routes. AJA 3G-AMA (https://www.aja.com/products/3g-ama):
+ * 1 × 3G-SDI BNC in / 1 × out, analog audio on ONE 25-pin D-sub (female) on the chassis, with the supplied breakout cable
+ * (4 × XLR female in, 4 × XLR male out), +5–20 VDC with supplied 5 W supply, USB for Mini-Config, DIP switches.
+ * The XLR inputs therefore belong to the breakout cable, not the small chassis (shown as such in labels and the asset).
+ */
+const AJA_3G_AMA: EquipmentDefinition = {
+  modelId: "aja-3g-ama", manufacturer: "AJA Video Systems", name: "AJA 3G-AMA", generic: false, kind: "box", size: [0.11, 0.03, 0.14],
+  sourceUrl: "https://www.aja.com/products/3g-ama",
+  verifiedPorts: ["3G-SDI IN (BNC)", "3G-SDI OUT (BNC)", "DB-25 analog audio (breakout: 4 × XLR F in, 4 × XLR M out)", "USB (Mini-Config)", "+5–20 VDC power"], assetLicense: LICENSE_ORIGINAL, needsPower: true, role: "embedder",
+  ports: [
+    p("sdi-in", "3G-SDI IN (BNC)", "INPUT", "SDI", "SDI", "SDI ขาเข้ารับภาพออกอากาศจากเครื่องสลับภาพ"),
+    p("sdi-out", "3G-SDI OUT (BNC) · ฝังเสียงแล้ว", "OUTPUT", "SDI", "SDI", "SDI ขาออกพร้อมเสียงแอนะล็อกที่ฝังลงคู่ช่องรายการ"),
+    p("audio-l", "BREAKOUT XLR IN 1 (DB-25)", "INPUT", "XLR", "LINE_BAL", "XLR ตัวเมียบนสาย breakout ที่ต่อจากขั้ว DB-25 ของตัวเครื่อง ช่องที่ 1", { channels: 1 }),
+    p("audio-r", "BREAKOUT XLR IN 2 (DB-25)", "INPUT", "XLR", "LINE_BAL", "XLR ตัวเมียบนสาย breakout ช่องที่ 2", { channels: 1 }),
+  ],
+  controls: [power, tog("embed", "ฝังเสียงแอนะล็อก CH1/CH2 ลง SDI", "ตั้งค่าการฝังเสียงผ่าน Mini-Config หรือ DIP switch")],
+  notes: ["ขั้วเสียงบนตัวเครื่องคือ DB-25 ตัวเดียว XLR อยู่บนสาย breakout ที่แถมมา", "พอร์ตจริงอื่นที่ยังไม่ใช้ในด่าน: breakout XLR IN 3–4, XLR OUT 1–4, USB สำหรับตั้งค่า"],
 };
 
 /* ---------------- generic training devices (ports defined by the room specifications) ---------------- */
@@ -416,11 +486,25 @@ const SDI_CAPTURE = generic("generic-sdi-usb-capture", "อุปกรณ์จ
     p("usb", "USB 3.0 (DEVICE → HOST)", "OUTPUT", "USB-A", "USB_UVC", "ส่งภาพและเสียงเข้า USB HOST ของคอมพิวเตอร์")],
   [], ["อุปกรณ์จับภาพทั่วไป SDI IN + USB DEVICE"], false);
 
+/**
+ * XS classroom switcher, LOCKED 2026-10-20 for ports and routes (MASTER V2 Gate 1):
+ * official tech specs (4× HDMI type A in, 1 HDMI out, 2× 3.5 mm stereo in, USB-C webcam out, Ethernet, 12V) and the
+ * ATEM Mini manual (MIC inputs switchable microphone/line in ATEM Software Control › Audio; the single HDMI output
+ * defaults to MULTIVIEW and is switched with the VIDEO OUT buttons). Same panel as the Pro ISO without ISO recording.
+ */
+const ATEM_MINI_PRO: EquipmentDefinition = {
+  ...ATEM_MINI_PRO_ISO, modelId: "bmd-atem-mini-pro", name: "Blackmagic ATEM Mini Pro", size: [0.24, 0.04, 0.12],
+  controls: ATEM_MINI_PRO_ISO.controls.map((c) => c.key === "record" ? { ...c, label: "บันทึกภาพออกอากาศลงดิสก์ USB", tip: "ATEM Mini Pro บันทึกเฉพาะภาพออกอากาศ (ไม่มีไฟล์แยกกล้องแบบรุ่น ISO)" } : c),
+  notes: [...ATEM_MINI_PRO_ISO.notes, "ค่าเริ่มต้นของ HDMI OUT คือ MULTIVIEW ต้องกด VIDEO OUT เลือกภาพออกอากาศเพื่อส่งขึ้นจอห้องเรียน (คู่มือ ATEM Mini)", "MIC 1/2 ตั้งเป็น Microphone หรือ Line ได้ในแท็บ Audio ของ ATEM Software Control"],
+};
+
 export const MODELS: Record<string, EquipmentDefinition> = Object.fromEntries([
-  SM58, AMBIENCE_MIC, MG12XU, STUDIO_CAM, ATEM_MINI_PRO_ISO, HD8_ISO, CONSTELLATION, V160HD, CONV_HS, CONV_SH, VIDEOHUB, HYPERDECK, STREAM_ENC,
+  SM58, AMBIENCE_MIC, MG12XU, STUDIO_CAM, ATEM_MINI_PRO_ISO, ATEM_MINI_PRO, HD8_ISO, TVS_HD8_ISO, CONSTELLATION, V160HD, CONV_HS, CONV_SH, VIDEOHUB, HYPERDECK, STREAM_ENC, AJA_3G_AMA,
   HDMI_CAM, LAPTOP, DOCCAM, MINI_SWITCHER, STUDIO_SWITCHER, SDI_CAM, SDI_PTZ, SDI_SWITCHER, SDI_MON, STAGEBOX, SNAKE_TAIL, FOH_MIXER, SDI_CAPTURE, MAGEWELL, HS5, DYN_MIC, LAV_MIC, WIRELESS_TX, WIRELESS_RX, MIXER_4CH, GFX_PC, PROJECTOR, MONITOR, PA, HEADPHONES, SSD, ROUTER, INGEST, OBS_HOST, AUDIO_IF, POWER_AMP,
 ].map((m) => [m.modelId, m]));
 
 export function portDef(modelId: string, key: string): PortDefinition | undefined {
   return MODELS[modelId]?.ports.find((x) => x.key === key);
 }
+
+for (const model of referenceModels(MODELS)) MODELS[model.modelId] = model;
