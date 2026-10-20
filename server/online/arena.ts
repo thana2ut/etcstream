@@ -53,6 +53,8 @@ export async function cloudArena(request: Request, path: string[]) {
       // incorrectly shown a database outage before they can register.
       const result = await trustedClient().from("etc_profiles").select("id", { head: true }).limit(0);
       // Keep key rejection distinct from schema problems so the owner knows what to fix.
+      // Keep the 25-stage catalog in sync so seasons and runs can reference current stage versions.
+      if (!result.error) await ensureCloudCatalog();
       const state = !result.error ? "READY" : result.status === 401 || result.status === 403 ? "SERVER_KEY_REJECTED" : "MIGRATION_OR_CONNECTION_REQUIRED";
       return response({ state, available: !result.error,
         message: state === "READY" ? "เชื่อมต่อ Supabase แล้ว" : state === "SERVER_KEY_REJECTED" ? "คีย์ฝั่งเซิร์ฟเวอร์ถูกปฏิเสธ · ผู้ดูแลต้องตั้ง SUPABASE_SECRET_KEY ของโครงการนี้ใหม่ (ดูอันดับได้ แต่บันทึกรอบแข่งขันยังไม่ได้)" : "ยังเชื่อมต่อโครงสร้างข้อมูลออนไลน์ไม่ได้ กรุณาติดต่อผู้ดูแล", serverNow: Date.now() });
