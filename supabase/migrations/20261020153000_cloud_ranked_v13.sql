@@ -1,8 +1,12 @@
--- V13 corrective/additive migration. Target: kppjvrhpnunuurwvjanj.
+-- V13 corrective/additive migration. Target: unohixcxthiilnkmjunc.
 -- OWNER REVIEW REQUIRED. No accounts, example scores, or seasons are seeded.
 -- Snapshot refresh replaces derived aggregates only; source runs are retained.
 begin;
-revoke execute on function public.rls_auto_enable() from public,anon,authenticated;
+do $$ begin
+  if to_regprocedure('public.rls_auto_enable()') is not null then
+    revoke execute on function public.rls_auto_enable() from public,anon,authenticated;
+  end if;
+end $$;
 
 create table public.etc_stage_catalog (
   scenario text not null check(scenario ~ '^(xs|s|m|l|xl)-[1-5]$'),

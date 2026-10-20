@@ -1,22 +1,10 @@
 # เป้าหมาย cloud ล่าสุดที่เจ้าของยืนยัน
 
-20 ตุลาคม 2026: เจ้าของยืนยันเปลี่ยนมาใช้ Supabase project **etcstream / kppjvrhpnunuurwvjanj**
-การตัดสินใจนี้แทนข้อกำหนดก่อนหน้าที่ระบุ etcstream-online / abtzrovcsomghbuwdmrr ในเอกสารประวัติ
-ไม่สร้าง project ใหม่ ไม่ย้ายหรือลบข้อมูลจากอีก project
-
-- เว็บ Production build ผ่านแล้ว: https://etcstream.vercel.app
-- Source ที่ build ผ่าน: 5f50d39 (แก้ .vercelignore ที่เคยตัด game/assets และ public/assets)
-- ปรับ guard ของ Supabase และ CSP ใน working tree ให้ตรง project ใหม่แล้ว รอค่าตั้งส่วนตัวครบก่อน deploy รุ่นนี้
-- ก่อนรันตรวจ public schema ว่างและ Auth 0 ราย; หลังเจ้าของอนุมัติ apply real_online_v12 สำเร็จ รุ่น remote 20261020143741 เปิด RLS ทั้ง 7 ตาราง
-- เจ้าของอนุมัติ Migration V13 และ apply cloud_ranked_v13 สำเร็จ remote version 20261020150344 ไม่สร้างตารางตอนเริ่มแอป
-- Secret ที่เคยส่งในแชตต้องยกเลิก เจ้าของสร้างใหม่และกรอกใน Vercel โดยตรง ไม่ส่งผ่านแชต/ไฟล์ source/Git
-- เปิดฟอร์ม SUPABASE_SECRET_KEY ชนิด Secret เฉพาะ Production ให้เจ้าของกรอกและบันทึกเองแล้ว
-- ตรวจพบ SUPABASE_SECRET_KEY และ ADMIN_PASSWORD_HASH แบบ Secret Production โดยไม่เปิดค่า ตั้ง ADMIN_CREDENTIAL_ROTATED=1 แล้ว รอ Publishable Key ชื่อเต็มที่ถูกต้อง
-- ตั้ง ARENA_BACKEND/Project URL/ARENA_PUBLIC_ORIGIN/NEXT_PUBLIC_SITE_URL แบบ Config Production แล้ว
-- เปิด anonymous sign-ins และตั้ง Supabase Auth Site URL/redirects เป็น Production จริงและ localhost แล้ว
+20 ตุลาคม 2026 (V15): เจ้าของสั่งสร้าง Supabase project ใหม่ในองค์กร **etcstream** (`rtlpdlkmyryhfubfmynk`)
+- Project: **etcstream / `unohixcxthiilnkmjunc`**, region `ap-northeast-1` (Tokyo), Free plan ($0)
+- project เดิม `kppjvrhpnunuurwvjanj` และ `abtzrovcsomghbuwdmrr` ไม่ได้อยู่ในบัญชีที่เชื่อมต่อแล้ว ไม่ได้ลบหรือย้ายข้อมูลใด
+- Migration ที่ apply แล้ว: `20261020152900_real_online_v12`, `20261020153000_cloud_ranked_v13`
+- RLS เปิดทุกตาราง ไม่มี grant ให้ anon/authenticated ใช้ตารางตรง ผู้เล่นเข้าถึงผ่าน RPC แคบ ๆ เท่านั้น
 
 ชื่อ env ที่แอปใช้จริง: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, SUPABASE_SECRET_KEY
-ไม่ใช้ SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY หรือ SUPABASE_JWKS_URL เป็นชื่อทดแทนในแอปนี้
-JWKS ไม่ต้องตั้งเอง: Supabase client จัดการกลไก Auth ตาม project URL
-
-ไม่มี password/hash/key ใดถูกคัดลอกลงเอกสารนี้ ไม่ใช้คีย์ที่เปิดเผยเพื่อทดลองเรียกบริการ
+ไม่มี password/hash/secret key ใดถูกคัดลอกลงเอกสารนี้
