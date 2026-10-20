@@ -8,7 +8,7 @@ import {SeasonManager,ReviewManager} from "./admin-seasons";
 import type {ComponentProps} from "react";
 
 export const adminSections = ["overview", "database", "demo", "players", "competitions", "leaderboards", "matches", "friends", "settings", "audit", "seasons", "reviews"];
-export const adminLabels: Record<string, string> = { database: "ฐานข้อมูลและการตั้งค่า", demo: "ตัวอย่างข้อมูล DEMO", overview: "ภาพรวม", players: "จัดการผู้ฝึก", competitions: "รอบแข่งขัน", leaderboards: "ดูแลผลและอันดับ", matches: "ห้องประลอง", friends: "คำขอและการปิดกั้น", missions: "จัดการภารกิจ (25 ด่าน)", settings: "ตั้งค่ากติกา", audit: "ประวัติการดูแล",seasons:"ฤดูกาลและแรงก์",reviews:"คิวตรวจผล V6" };
+export const adminLabels: Record<string, string> = { database: "ฐานข้อมูลและการตั้งค่า", demo: "ตัวอย่างข้อมูล DEMO", overview: "ภาพรวม", players: "จัดการผู้ฝึก", competitions: "รอบแข่งขัน", leaderboards: "ดูแลผลและอันดับ", matches: "ห้องประลอง", friends: "คำขอและการปิดกั้น", missions: "จัดการภารกิจ (25 ด่าน)", settings: "ตั้งค่ากติกา", audit: "ประวัติการดูแล",seasons:"ฤดูกาลและการจัดอันดับ",reviews:"คิวตรวจผล V6" };
 type Data = { players?: Record<string, string | number>[]; attempts?: (AttemptView & { playerId: string })[]; events?: Record<string, string>[]; settings?: Record<string, number>; [key: string]: unknown };
 export function AdminPanel({ section }: { section: string }) {
   const [data, setData] = useState<Data>({}), [error, setError] = useState(""), [loading, setLoading] = useState(true), [target, setTarget] = useState<{ id: string; action: string; label: string } | null>(null);

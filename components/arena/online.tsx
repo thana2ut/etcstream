@@ -29,7 +29,7 @@ function PageButtons({offset,hasMore,onChange}:{offset:number;hasMore:boolean;on
 
 export function MySeasonCapsule({resource}:{resource:ReturnType<typeof useArenaResource<RankedResponse>>}) {
   const {data,error,stale,loading,retry}=resource;
-  return <section className="arena-panel arena-my-season" aria-label="ตำแหน่งของข้า"><ArenaIcon name="profile" /><div><span className="arena-eyebrow">ตำแหน่งของข้า · แรงก์ฤดูกาล</span>{loading?<p role="status">กำลังเชื่อมต่ออันดับ…</p>:data?.season?<><h2>{data.mine?.tier || "ยังไม่จัดอันดับ"}</h2><p>{data.season.name} · {data.mine?`${data.mine.score} คะแนน · อันดับทั้งหมด ${data.mine.globalRank} · ${data.mine.stages} ด่านยืนยัน`:"ยังไม่มีผลยืนยันที่เปิดเผยในฤดูกาลนี้"}</p>{data.mine?.provisional&&<span className="arena-status is-muted">อันดับชั่วคราว · กลุ่มผู้แข่งขันยังน้อยหรือด่านยังไม่ครบ</span>}</>:<h2>{error?"ยังโหลดอันดับไม่ได้":"ยังไม่มีฤดูกาลที่เปิดอยู่"}</h2>}</div><Link className="arena-text-link" href="/arena/ranked">ดูวิถีกระบี่ →</Link><ConnectionNotice error={error} stale={stale} retry={retry}/></section>;
+  return <section className="arena-panel arena-my-season" aria-label="ตำแหน่งของข้า"><ArenaIcon name="profile" /><div><span className="arena-eyebrow">ตำแหน่งของข้า · จัดอันดับฤดูกาล</span>{loading?<p role="status">กำลังเชื่อมต่ออันดับ…</p>:data?.season?<><h2>{data.mine?.tier || "ยังไม่จัดอันดับ"}</h2><p>{data.season.name} · {data.mine?`${data.mine.score} คะแนน · อันดับทั้งหมด ${data.mine.globalRank} · ${data.mine.stages} ด่านยืนยัน`:"ยังไม่มีผลยืนยันที่เปิดเผยในฤดูกาลนี้"}</p>{data.mine?.provisional&&<span className="arena-status is-muted">อันดับชั่วคราว · กลุ่มผู้แข่งขันยังน้อยหรือด่านยังไม่ครบ</span>}</>:<h2>{error?"ยังโหลดอันดับไม่ได้":"ยังไม่มีฤดูกาลที่เปิดอยู่"}</h2>}</div><Link className="arena-text-link" href="/arena/ranked">ดูวิถีกระบี่ →</Link><ConnectionNotice error={error} stale={stale} retry={retry}/></section>;
 }
 export function OnlineFriendsSignal(){const source=useArenaResource<{onlineFriends:number}>("online-summary",30000);return <p className="arena-note" role="status">{source.error?"ยังเชื่อมต่อสถานะสหายไม่ได้":source.loading?"กำลังเชื่อมต่อสถานะสหาย…":`สหายที่ยินยอมแสดงออนไลน์ ${source.data?.onlineFriends ?? "—"} คน`}</p>;}
 export function OnlineLeaderboard({initialScope="all",initialSeason}:{initialScope?:string;initialSeason?:string}) {
@@ -38,7 +38,7 @@ export function OnlineLeaderboard({initialScope="all",initialSeason}:{initialSco
   const board=useArenaResource<Board>(`leaderboard?scenario=${stage}&scope=${scope}&offset=${offset}${period==="weekly"?"&period=weekly":period!=="all"?`&season=${encodeURIComponent(period)}`:""}`);
   const changeStage=(value:string)=>{setStage(value);setOffset(0);};
   const [scale,level]=stage.split("-");
-  return <section className="arena-panel arena-ranking-hall"><div className="arena-section-heading"><h2>ทำเนียบผลยืนยันรายด่าน</h2><Link className="arena-text-link" href="/arena/ranked">แรงก์ฤดูกาล →</Link></div>
+  return <section className="arena-panel arena-ranking-hall"><div className="arena-section-heading"><h2>ทำเนียบผลยืนยันรายด่าน</h2><Link className="arena-text-link" href="/arena/ranked">จัดอันดับฤดูกาล →</Link></div>
     <ScopeButtons scope={scope} onChange={(v)=>{setScope(v);setOffset(0);}}/>
     <div className="arena-filter-toolbar"><div className="arena-form-row"><label>สถานที่ประลอง<select value={scale} onChange={(e)=>changeStage(`${e.target.value}-${level}`)}>{missionChapters.map((c,i)=><option key={c.id} value={scales[i]}>{c.venue}</option>)}</select></label><label>ระดับ<select value={level} onChange={(e)=>changeStage(`${scale}-${e.target.value}`)}>{[1,2,3,4,5].map((n)=><option key={n} value={n}>ระดับ {n}</option>)}</select></label></div><label>ช่วงเวลา / กติกา<select value={period} onChange={(e)=>{setPeriod(e.target.value);setOffset(0);}}><option value="all">กติกาปัจจุบัน · ทุกเวลา</option><option value="weekly">กติกาปัจจุบัน · 7 วันล่าสุด</option>{seasons.data?.seasons.map((s)=><option key={s.id} value={s.id}>{s.name}</option>)}</select></label></div>
     <ConnectionNotice error={board.error} stale={board.stale} retry={board.retry}/>
@@ -62,7 +62,7 @@ export function RankedPage({initialScope="all",initialSeason}:{initialScope?:str
       {resource.loading?<p className="arena-skeleton" role="status">กำลังเชื่อมต่อฤดูกาล…</p>:resource.error&&!data?<p className="arena-note">ยังโหลดรายชื่อฤดูกาลไม่ได้ กรุณาลองเชื่อมต่อใหม่</p>:data?.enabled===false?<ArenaEmptyState title="พักการแสดงอันดับฤดูกาลชั่วคราว">ผู้ดูแลปิดการแสดงทำเนียบ ข้อมูลส่วนตัวยังคงอยู่</ArenaEmptyState>:data?.rows.length?<div className="arena-season-rows">{data.rows.map((p)=><article key={p.friendCode} className={`arena-season-row${p.isMe?" is-me":""}`}><strong>#{p.rank}</strong><div><b>{p.name}{p.isMe?" · ฉัน":""}</b><span>{p.tier} · {p.stages} ด่าน{scope==="friends"?` · อันดับทั้งหมด #${p.globalRank}`:""}</span>{p.provisional&&<small>อันดับชั่วคราว</small>}</div><strong>{p.score}<small>คะแนน</small></strong></article>)}</div>:<ArenaEmptyState title="ยังไม่มีผลการแข่งขันที่ยืนยันแล้ว" href="/arena/time-attack" action="ไปฝึกวิชา">ไม่ให้คะแนนจากการเปิดหน้า การส่งผลที่รอตรวจ หรือการเล่นซ้ำที่ไม่ใช่ผลดีที่สุด</ArenaEmptyState>}
       <PageButtons offset={offset} hasMore={Boolean(data?.hasMore)} onChange={setOffset}/>
     </section><aside className="arena-panel"><h2>เส้นทางวิถีกระบี่</h2><ol className="arena-tier-track">{SEASON_RULES_V1.tiers.map((tier)=><li key={tier.min} aria-current={data?.mine?.tier===tier.name?"step":undefined}><ArenaIcon name="duel"/><div><strong>{tier.name}</strong><span>{tier.min.toLocaleString("th-TH")} คะแนนขึ้นไป</span></div></li>)}</ol>{data?.mine?.nextTier&&<p className="arena-note">เป้าหมายถัดไป {data.mine.nextTier} ที่ {data.mine.nextThreshold} คะแนน</p>}</aside></div>
-    <details className="arena-details"><summary>กติกาจัดแรงก์ V1</summary><p>แต่ละด่านมีผู้เล่นผลยืนยัน N คน อันดับ r ได้ round(1000 × (N − r + 1) ÷ N) คะแนน รวมเฉพาะ 5 ด่านที่มีคะแนนสูงที่สุดและเป็นคนละด่าน สูงสุด 5000 คะแนน ผลซ้ำไม่นับเพิ่ม คะแนนเท่ากันใช้จำนวนด่านยืนยันมากกว่า แล้วเวลาที่ได้ผลครบก่อน และรหัสผู้เล่นถาวร</p><p>เมื่อมีผู้ร่วมแข่งขันน้อยกว่า 3 คน ด่านที่มีผู้ยืนยันน้อย หรือผู้เล่นยืนยันยังไม่ครบ 3 ด่าน จะแสดงอันดับชั่วคราว ค่าชั้นแรงก์เป็นกติกาเกม ไม่ใช่การรับรองทักษะวิชาชีพ</p></details>
+    <details className="arena-details"><summary>กติกาจัดอันดับ V1</summary><p>แต่ละด่านมีผู้เล่นผลยืนยัน N คน อันดับ r ได้ round(1000 × (N − r + 1) ÷ N) คะแนน รวมเฉพาะ 5 ด่านที่มีคะแนนสูงที่สุดและเป็นคนละด่าน สูงสุด 5000 คะแนน ผลซ้ำไม่นับเพิ่ม คะแนนเท่ากันใช้จำนวนด่านยืนยันมากกว่า แล้วเวลาที่ได้ผลครบก่อน และรหัสผู้เล่นถาวร</p><p>เมื่อมีผู้ร่วมแข่งขันน้อยกว่า 3 คน ด่านที่มีผู้ยืนยันน้อย หรือผู้เล่นยืนยันยังไม่ครบ 3 ด่าน จะแสดงอันดับชั่วคราว ค่าชั้นอันดับเป็นกติกาเกม ไม่ใช่การรับรองทักษะวิชาชีพ</p></details>
   </>;
 }
 export function ProfileRecords() {
@@ -109,4 +109,26 @@ export function HallOfImmortals({signedIn,mine}:{signedIn:boolean;mine:ReturnTyp
   return <section className="arena-panel arena-hall" aria-label="ทำเนียบเซียน"><header><ArenaIcon name="leaderboard"/><div><span className="arena-eyebrow">{hall.data?.season?.name || "ฤดูกาลปัจจุบัน"}</span><h2>ทำเนียบเซียน</h2></div><p role="status" className="arena-hall-online">{hall.error?"สถานะออนไลน์: —":hall.loading?"กำลังนับผู้ฝึกออนไลน์…":`ผู้ฝึกที่ยินยอมแสดงออนไลน์ขณะนี้ ${hall.data?.onlineNow} คน`}</p></header>
     <div className="arena-scope-tabs" role="tablist">{tabs.map(([v,l])=><button key={v} type="button" role="tab" aria-selected={tab===v} onClick={()=>setTab(v)}>{l}</button>)}</div>
     {body}<ConnectionNotice error={err} stale={false} retry={retry}/></section>;
+}
+
+type DuelFriend={name:string;friendCode:string;status:string;online:boolean};
+type DuelResult={name:string;mine:Mine;friend:{rank:number|null;best:AttemptView|null};differenceMs:number|null};
+// ศึกกระบี่สองเซียน: asynchronous head-to-head on one stage using each side's best server-verified time.
+export function DuelArena() {
+  const friends=useArenaResource<{friends:DuelFriend[]}>("friends",30000);
+  const accepted=(friends.data?.friends||[]).filter((f)=>f.status==="accepted");
+  const [code,setCode]=useState(""),[stage,setStage]=useState("xs-1");
+  const rival=code||accepted[0]?.friendCode||"";
+  const duel=useArenaResource<DuelResult>(rival?`compare?friend=${encodeURIComponent(rival)}&scenario=${stage}`:null,30000);
+  const mine=duel.data?.mine.best?.totalMs??null, theirs=duel.data?.friend.best?.totalMs??null;
+  const verdict=mine===null&&theirs===null?"ยังไม่มีใครมีผลยืนยันในด่านนี้":mine===null?"สหายรอเจ้าอยู่ · ยังไม่มีผลของเจ้าในด่านนี้":theirs===null?"เจ้านำอยู่ · สหายยังไม่มีผลในด่านนี้":mine<theirs?"ชนะ":mine>theirs?"แพ้":"เสมอ";
+  return <section className="arena-panel arena-duel"><div className="arena-section-heading"><h2>ลานประลองสองเซียน</h2><span className="arena-status">ดวลเวลารายด่าน</span></div>
+    <p className="arena-note">เลือกสหายและด่าน แล้วเทียบเวลาที่ดีที่สุดซึ่งผ่านการยืนยันจากเซิร์ฟเวอร์ ผู้ที่เวลาน้อยกว่าชนะ เล่นด่านใหม่เพื่อแก้มือได้ตลอดฤดูกาล</p>
+    {friends.loading?<p role="status">กำลังโหลดสหาย…</p>:!accepted.length?<ArenaEmptyState icon="friends" title="ยังไม่มีสหายให้ท้าดวล" href="/arena/friends" action="ไปเพิ่มสหาย">เพิ่มสหายด้วยรหัสสหายก่อน</ArenaEmptyState>:<>
+      <div className="arena-duel-controls"><label>คู่ประลอง<select value={rival} onChange={(e)=>setCode(e.target.value)}>{accepted.map((f)=><option key={f.friendCode} value={f.friendCode}>{f.name}{f.online?" · ออนไลน์":""}</option>)}</select></label>
+      <label>ด่าน<select value={stage} onChange={(e)=>setStage(e.target.value)}>{missionChapters.flatMap((c,i)=>c.difficulties.map((d)=><option key={`${scales[i]}-${d.level}`} value={`${scales[i]}-${d.level}`}>{c.venue} · {d.title}</option>))}</select></label></div>
+      {duel.loading?<p role="status">กำลังเปิดลานประลอง…</p>:duel.data&&<div className="arena-duel-board"><div className={mine!==null&&(theirs===null||mine<theirs)?"is-winner":undefined}><span>เจ้า</span><strong>{timeText(mine)}</strong><small>อันดับด่าน {duel.data.mine.globalRank??"—"}</small></div><b>VS</b><div className={theirs!==null&&(mine===null||theirs<mine)?"is-winner":undefined}><span>{duel.data.name}</span><strong>{timeText(theirs)}</strong><small>อันดับด่าน {duel.data.friend.rank??"—"}</small></div><p className="arena-duel-verdict">{verdict}{duel.data.differenceMs?` · ห่างกัน ${timeText(Math.abs(duel.data.differenceMs))}`:""}</p></div>}
+      <div className="arena-actions"><Link className="arena-action" href="/arena/time-attack">ลงสนามด่านนี้เพื่อทำเวลา</Link></div>
+      <ConnectionNotice error={duel.error||friends.error} stale={duel.stale} retry={()=>{duel.retry();friends.retry();}}/></>}
+  </section>;
 }

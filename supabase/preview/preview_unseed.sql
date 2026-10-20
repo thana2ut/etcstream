@@ -1,4 +1,5 @@
 -- Removes every preview row created by preview_seed.sql and nothing else.
+delete from public.etc_runs where validation_version = 'preview-seed';
 with seeded as (select id from auth.users where raw_app_meta_data->>'etc_preview_seed'='true')
 , c as (delete from public.etc_commands where run_id in (select id from public.etc_runs where player in (select id from seeded)) returning 1)
 , r as (delete from public.etc_runs where player in (select id from seeded) returning 1)
