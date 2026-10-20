@@ -18,4 +18,6 @@
 
 ## V19 (21 ตุลาคม 2026)
 - apply migration `celestial_economy_v19` บน `unohixcxthiilnkmjunc` แล้ว (เพิ่มอย่างเดียว) รายละเอียดใน `docs/ECONOMY_V19_TH.md`
-- Vercel ยังไม่ได้ deploy โค้ด V19
+- apply migration `proven_runs_only_v19b` แล้ว: ทำเนียบ/อันดับฤดูกาล/เวลาดีที่สุด/เทียบสหาย นับเฉพาะรอบที่ `validation_version='cloud-independent-replay-v1'` และมี evidence · แถว preview-seed 221 แถวยังเก็บไว้ครบ ไม่ถูกแก้หรือลบ
+- Vercel env (ตรวจชื่อด้วย CLI 21 ต.ค.): ทุกตัวตั้งไว้เฉพาะ Production รวม `ARENA_VERIFIED_SLICE_ENABLED` (มีอยู่แล้ว ไม่ได้อ่านค่า) · Preview ไม่มี env ออนไลน์
+- Vercel ยังไม่ได้ deploy production ด้วยโค้ด V19

@@ -10,7 +10,9 @@ import { load } from "./helpers/solver.mjs";
 const folder = fs.mkdtempSync(path.join(os.tmpdir(), "etcstream-arena-test-"));
 process.env.ARENA_DB_PATH = path.join(folder, "isolated.sqlite");
 const database = new DatabaseSync(process.env.ARENA_DB_PATH);
-database.exec(fs.readFileSync(new URL("../server/arena/schema.sql", import.meta.url), "utf8")); database.close();
+database.exec(fs.readFileSync(new URL("../server/arena/schema.sql", import.meta.url), "utf8"));
+for (const m of ["002-online-ranked.sql", "003-authoritative-commands.sql"]) database.exec(fs.readFileSync(new URL(`../server/arena/migrations/${m}`, import.meta.url), "utf8"));
+database.close();
 const jar = new Map();
 const originalLoad = Module._load;
 Module._load = function(request, parent, ...args) {
@@ -18,11 +20,14 @@ Module._load = function(request, parent, ...args) {
   if (request === "next/headers") return { cookies: async () => ({ get: (key) => jar.has(key) ? { value: jar.get(key) } : undefined, set: (key, value) => jar.set(key, value), delete: (key) => jar.delete(key) }) };
   return originalLoad.call(this, request, parent, ...args);
 };
+const { requiredBag } = load("../game/content/mission-bag.ts"), { SCENARIOS } = load("../game/training/scenarios.ts");
 const arena = load("../server/arena/service.ts"), storage = load("../server/arena/db.ts"), auth = load("../server/arena/auth.ts");
 after(() => { storage.db().close(); fs.rmSync(folder, { recursive: true, force: true }); });
 
 test("distinct server identities do not merge duplicate nicknames; clear keeps IDs, friend codes and attempts", () => {
-  const a = arena.createPlayer("FixtureSame"), b = arena.createPlayer("FixtureSame");
+  // Duplicate nicknames are now rejected outright (stricter than "never merged").
+  const a = arena.createPlayer("FixtureClear"), b = arena.createPlayer("FixtureSame");
+  assert.throws(() => arena.createPlayer("FixtureSame"));
   assert.notEqual(a.id, b.id); assert.notEqual(a.friend_code, b.friend_code);
   const attempt = arena.createAttempt(a.id, "xs-1");
   arena.moderate("fixture-owner", { id: a.id, action: "clear", confirm: a.id, reason: "isolated clear-name test" });
@@ -45,14 +50,16 @@ test("blocked peers cannot invite, self invitations fail and recipient alone can
 test("forged finish stays unranked, duplicate finish is idempotent and wrong owner cannot access", () => {
   const p = arena.createPlayer("FixtureAttempt");
   const a = arena.createAttempt(p.id, "s-1");
-  arena.attemptAction(p.id, a.id, { action: "ready" });
+  assert.throws(() => arena.attemptAction(p.id, a.id, { action: "ready" }), "ready without a cable bag is refused");
+  arena.attemptAction(p.id, a.id, { action: "ready", bag: requiredBag(SCENARIOS["s-1"]) });
   // Fixture clock setup only: no real gameplay record or owner progress is modified.
   storage.run("UPDATE attempts SET start=? WHERE id=?", Date.now() - 10000, a.id);
-  const result = arena.attemptAction(p.id, a.id, { action: "finish", state: { completed: true }, elapsedMs: 1, success: true });
-  assert.equal(result.status, "UNDER_REVIEW"); assert.equal(result.graphValid, false); assert.ok(result.elapsedMs >= 10000);
+  // A client-claimed "completed" state with no server command evidence is refused outright (stricter than UNDER_REVIEW).
+  const forged = () => arena.attemptAction(p.id, a.id, { action: "finish", state: { completed: true }, elapsedMs: 1, success: true });
+  assert.throws(forged, /หลักฐาน/); assert.throws(forged, /หลักฐาน/);
+  assert.notEqual(arena.ownedAttempt(p.id, a.id).status, "VERIFIED");
   assert.deepEqual(arena.leaderboard("s-1", "all"), []);
-  const again = arena.attemptAction(p.id, a.id, { action: "finish", state: { completed: true } });
-  assert.equal(result.totalMs, again.totalMs); assert.throws(() => arena.ownedAttempt("wrong-owner", a.id));
+  assert.throws(() => arena.ownedAttempt("wrong-owner", a.id));
 });
 test("admin sessions cannot be forged by nickname or player cookie; bootstrap rotation is mandatory", async () => {
   jar.clear(); await assert.rejects(auth.requireSession("admin"), (e) => e.status === 401);
