@@ -137,3 +137,26 @@
 .profile-showcase-grid strong { color: #f6e2a8; }
 @media (max-width: 560px) { .profile-showcase-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (prefers-reduced-motion: reduce) { .profile-showcase-art img { transition: none; } }
+
+/* V20.2: tidy profile chip and friend cards. */
+.arena-public .arena-player-chip { display: inline-flex; align-items: center; gap: 10px; max-width: 240px; padding: 5px 14px 5px 6px; border: 1px solid #cda86c66; border-radius: 999px; background: linear-gradient(135deg, #1b2e46ee, #101c2eee); text-decoration: none; transition: border-color .18s ease, box-shadow .18s ease; }
+.arena-public .arena-player-chip:hover, .arena-public .arena-player-chip:focus-visible { border-color: #f4d69c; box-shadow: 0 0 16px #cda86c33; }
+.arena-player-chip .chip-avatar { position: relative; flex: none; display: inline-flex; }
+.arena-player-chip .chip-rank { position: absolute; right: -4px; bottom: -3px; display: inline-flex; filter: drop-shadow(0 1px 2px #000c); }
+.arena-player-chip .chip-text { display: grid; min-width: 0; line-height: 1.25; white-space: normal; overflow: visible; }
+.arena-player-chip .chip-label { font-size: 11px !important; letter-spacing: .04em; color: #cda86c !important; }
+.arena-player-chip .chip-text strong { font-size: 15px; color: #f6e2a8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.arena-player-chip .chip-status { display: flex !important; align-items: center; gap: 5px; font-size: 11px !important; color: var(--arena-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap !important; }
+.chip-dot { display: inline-block; flex: none; width: 7px; height: 7px; border-radius: 50%; background: #e0b45a; }
+.chip-dot.is-connected { background: #5fd89a; box-shadow: 0 0 6px #5fd89a; }
+.chip-dot.is-disconnected { background: #e0715f; }
+.chip-dot.is-offline { background: #6c7a8a; }
+.friend-card { display: flex; align-items: center; gap: 14px; min-width: 0; flex: 1 1 260px; text-decoration: none; color: inherit; border-radius: 12px; padding: 4px; }
+.friend-card:hover strong, .friend-card:focus-visible strong { color: #fff3cf; text-decoration: underline; text-underline-offset: 3px; }
+.friend-card .econ-friend-portrait { flex: none; }
+.friend-card-text { display: grid; gap: 2px; min-width: 0; }
+.friend-card-text strong { font-size: 17px; color: #f6e2a8; }
+.friend-card-text code { font-size: 12px !important; color: #9fe3d2 !important; letter-spacing: .03em; }
+.friend-card-meta, .friend-card-online { display: flex !important; align-items: center; gap: 6px; font-size: 13px; color: var(--arena-muted); }
+.friend-card-online.is-online { color: #9fe3c4; }
+@media (max-width: 760px) { .arena-public .arena-player-chip { max-width: 200px; padding-right: 10px; } }
