@@ -8,3 +8,10 @@
 
 ชื่อ env ที่แอปใช้จริง: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, SUPABASE_SECRET_KEY
 ไม่มี password/hash/secret key ใดถูกคัดลอกลงเอกสารนี้
+
+## Production (V15)
+- Vercel project `thanawut/etcstream` เชื่อม GitHub `thana2ut/etcstream` branch `main` commit `992ff60`
+- URL: https://etcstream.vercel.app
+- `/api/arena/status` = READY, anon อ่าน/เขียนตารางตรงถูกปฏิเสธ (42501), `/api/admin/*` ไม่มี session = 401
+- env (ชื่อเท่านั้น): ARENA_BACKEND, NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, SUPABASE_SECRET_KEY, ADMIN_PASSWORD_HASH, ADMIN_CREDENTIAL_ROTATED, ARENA_PUBLIC_ORIGIN, NEXT_PUBLIC_SITE_URL
+- ARENA_VERIFIED_SLICE_ENABLED ยังไม่ตั้ง (= ปิด) รอเจ้าของตรวจรับ xs-1
