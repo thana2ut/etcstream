@@ -16,7 +16,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 type Context = { params: Promise<{ path: string[] }> };
 async function respond(request: Request, context: Context) {
-  if (cloudEnabled()) return cloudAdmin(request, (await context.params).path);
+  // Vercel must never fall back to the legacy SQLite owner credential.
+  if (cloudEnabled() || process.env.VERCEL === "1") return cloudAdmin(request, (await context.params).path);
   try {
     const { path } = await context.params, route = path.join("/"), post = request.method === "POST";
     const body = post ? await input(request) : {};

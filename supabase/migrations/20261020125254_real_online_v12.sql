@@ -37,6 +37,8 @@ create table public.etc_runs (
   request_id uuid not null,
   scenario text not null check(scenario ~ '^(xs|s|m|l|xl)-[1-5]$'),
   scenario_version text not null,
+  rules_version integer not null default 1,
+  rules jsonb not null default '{"connector_ms":5000,"route_ms":10000,"hint_ms":15000,"failed_ms":10000,"version":1}'::jsonb,
   seed bigint not null,
   status text not null default 'PENDING' check(status in ('PENDING','RUNNING','UNDER_REVIEW','REJECTED','DNF','VERIFIED')),
   created timestamptz not null default now(),
@@ -188,12 +190,12 @@ begin
     end if;
     return '{"ok":true}';
   elsif action='directory' then
-    select coalesce(jsonb_agg(jsonb_build_object('name',q.name,'friendCode',q.friend_code,'online',true)),'[]') into result
+    select coalesce(jsonb_agg(jsonb_build_object('name',coalesce(nullif(q.name,''),'ผู้ฝึกนิรนาม'),'friendCode',q.friend_code,'online',true)),'[]') into result
     from (select * from public.etc_profiles x where x.public and x.presence and not x.hidden and not x.suspended and x.seen>now()-interval '90 seconds'
       and not exists(select 1 from public.etc_blocks where (a=uid and b=x.id) or (b=uid and a=x.id)) order by x.seen desc limit 100) q;
     return jsonb_build_object('players',result);
   elsif action='friend-list' then
-    select coalesce(jsonb_agg(jsonb_build_object('name',q.name,'friendCode',q.friend_code,'status',f.status,'incoming',f.b=uid,
+    select coalesce(jsonb_agg(jsonb_build_object('name',coalesce(nullif(q.name,''),'ผู้ฝึกนิรนาม'),'friendCode',q.friend_code,'status',f.status,'incoming',f.b=uid,
       'online',q.presence and q.seen>now()-interval '90 seconds')),'[]') into result
     from public.etc_friends f join public.etc_profiles q on q.id=case when f.a=uid then f.b else f.a end
     where (f.a=uid or f.b=uid) and not q.hidden and not q.suspended
@@ -213,7 +215,7 @@ language sql stable set search_path='' as $$
     'start',floor(extract(epoch from r.start)*1000),'created',floor(extract(epoch from r.created)*1000),
     'elapsedMs',r.elapsed,'penaltyMs',r.penalty,'totalMs',r.total,'mistakes',r.mistakes,
     'graphValid',r.graph_valid,'invalid',r.invalid,'verifiedAt',floor(extract(epoch from r.verified_at)*1000),
-    'validationVersion',r.validation_version,'scenarioVersion',r.scenario_version,'rulesVersion',1)
+    'validationVersion',r.validation_version,'scenarioVersion',r.scenario_version,'rulesVersion',r.rules_version)
 $$;
 revoke all on function etc_private.run_view(public.etc_runs) from public,anon,authenticated;
 create function public.etc_stage_board(stage text, stage_version text, scope text default 'all', page_offset integer default 0, weekly boolean default false) returns jsonb
@@ -226,7 +228,7 @@ begin
   perform etc_private.budget('board:'||uid::text,120,60);
   with eligible as (
     select r.*,row_number() over(partition by player order by total,penalty,elapsed,verified_at,id) personal
-    from public.etc_runs r where scenario=stage and scenario_version=stage_version and status='VERIFIED' and not invalid
+    from public.etc_runs r where scenario=stage and scenario_version=stage_version and rules_version=1 and status='VERIFIED' and not invalid
       and verified_at is not null and validation_version is not null and graph_valid and total=elapsed+penalty
       and (not weekly or verified_at>now()-interval '7 days')
   ), public_bests as (
@@ -243,7 +245,7 @@ begin
       and (scope<>'around_me' or abs(global_rank-(select global_rank from global_board where player=uid))<=3)
       and not exists(select 1 from public.etc_blocks where (a=uid and b=g.player) or (a=g.player and b=uid))
   ), page as (select * from scoped order by global_rank limit 25 offset page_offset)
-  select jsonb_build_object('rows',(select coalesce(jsonb_agg(etc_private.run_view(r)||jsonb_build_object('name',p.name,'friendCode',p.friend_code,
+  select jsonb_build_object('rows',(select coalesce(jsonb_agg(etc_private.run_view(r)||jsonb_build_object('name',coalesce(nullif(p.name,''),'ผู้ฝึกนิรนาม'),'friendCode',p.friend_code,
     'rank',case when scope='friends' then p.scope_rank else p.global_rank end,'globalRank',p.global_rank,'isMe',p.player=uid) order by p.global_rank),'[]') from page p join public.etc_runs r on r.id=p.id),
     'mine',jsonb_build_object('rank',(select case when scope='friends' then scope_rank else global_rank end from scoped where player=uid),
       'globalRank',(select global_rank from global_board where player=uid),
@@ -257,6 +259,29 @@ begin
 end $$;
 revoke all on function public.etc_stage_board(text,text,text,integer,boolean) from public,anon,authenticated;
 grant execute on function public.etc_stage_board(text,text,text,integer,boolean) to authenticated;
+
+create function public.etc_my_records(stage_versions jsonb) returns jsonb
+language plpgsql security definer set search_path='' as $$
+declare uid uuid:=auth.uid(); result jsonb;
+begin
+  if uid is null then raise exception 'AUTH_REQUIRED'; end if;
+  if not exists(select 1 from public.etc_profiles where id=uid and not suspended) then raise exception 'PROFILE_REQUIRED'; end if;
+  perform etc_private.budget('records:'||uid::text,30,60);
+  with mine as (select * from public.etc_runs where player=uid),
+  valid as (select * from mine where status='VERIFIED' and rules_version=1 and not invalid and graph_valid and total=elapsed+penalty
+    and verified_at is not null and validation_version is not null and scenario_version=stage_versions->>scenario)
+  select jsonb_build_object(
+    'stats',jsonb_build_object('starts',(select count(*) from mine),'finishes',(select count(*) from mine where status not in('PENDING','RUNNING')),
+      'verified',(select count(*) from valid),'bestMs',(select min(total) from valid)),
+    'history',(select coalesce(jsonb_agg(etc_private.run_view(r::public.etc_runs) order by r.created desc),'[]') from (select * from mine order by created desc limit 50) r),
+    'stages',(select coalesce(jsonb_agg(jsonb_build_object('scenario',s.key,'rank',null,'globalRank',null,
+      'best',(select etc_private.run_view(v::public.etc_runs) from valid v where scenario=s.key order by total,penalty,elapsed,verified_at,id limit 1),
+      'latest',(select etc_private.run_view(m::public.etc_runs) from mine m where scenario=s.key order by created desc limit 1)) order by s.key),'[]') from jsonb_each_text(stage_versions) s)
+  ) into result;
+  return result;
+end $$;
+revoke all on function public.etc_my_records(jsonb) from public,anon,authenticated;
+grant execute on function public.etc_my_records(jsonb) to authenticated;
 
 -- Trusted Node evaluator calls only. Database serializes each run and rejects stale state.
 create function public.etc_save_run(run_id uuid, expected_revision integer, patch jsonb, command jsonb default null) returns jsonb

@@ -18,6 +18,7 @@ const rules = { connector_ms: 5000, route_ms: 10000, hint_ms: 15000, failed_ms: 
 const protocol = "server-command-v1";
 type Run = {
   id: string; player: string; scenario: ScenarioId; scenario_version: string; seed: number; status: string;
+  rules_version: number; rules: Record<string, number>;
   created: string; start: string | null; elapsed: number | null; penalty: number; total: number | null;
   mistakes: number; graph_valid: boolean; invalid: boolean; seq: number; revision: number;
   state: TrainingState | null; bag: Record<string, number> | null; verified_at: string | null; validation_version: string | null;
@@ -26,7 +27,7 @@ const ms = (s: string | null) => s ? Date.parse(s) : null;
 const stages = Object.keys(SCENARIOS).filter((s) => /^(xs|s|m|l|xl)-[1-5]$/.test(s)) as ScenarioId[];
 const version = (id: ScenarioId) => createHash("sha256").update(JSON.stringify(SCENARIOS[id])).digest("hex").slice(0, 24);
 function view(r: Run, replay = false) {
-  return { id: r.id, scenario: r.scenario, scenarioVersion: r.scenario_version, rulesVersion: 1, status: r.status,
+  return { id: r.id, scenario: r.scenario, scenarioVersion: r.scenario_version, rulesVersion: r.rules_version, status: r.status,
     start: ms(r.start), elapsedMs: r.elapsed, penaltyMs: r.penalty, totalMs: r.total, mistakes: r.mistakes,
     graphValid: r.graph_valid, invalid: r.invalid, created: ms(r.created), serverNow: Date.now(), seed: r.seed,
     protocol, commandSeq: r.seq, verificationEnabled: false, verifiedAt: ms(r.verified_at), validationVersion: r.validation_version,
@@ -76,11 +77,9 @@ export async function cloudArena(request: Request, path: string[]) {
       return response({ onlineFriends: list.friends.filter((f) => f.online && f.status === "accepted").length, serverNow: Date.now() });
     }
     if (route.startsWith("recovery/")) throw new ArenaError(409, "บัญชีออนไลน์ใช้การผูกอีเมลเพื่อกู้คืน กรุณาใช้หัวข้อผูกอีเมลในหน้าข้อมูลส่วนตัว");
-    const db = trustedClient();
     if (route === "profile" && !post) {
-      const runs = checked(await db.from("etc_runs").select("*").eq("player", user.id).order("created", { ascending: false }).limit(50)) as Run[];
-      return response({ player, stats: { starts: runs.length, finishes: runs.filter((r) => !["PENDING", "RUNNING"].includes(r.status)).length,
-        verified: runs.filter((r) => r.status === "VERIFIED" && !r.invalid).length, bestMs: null }, history: runs.map((r) => view(r)), rules, duelEnabled: false });
+      const records = checked(await client.rpc("etc_my_records", { stage_versions: Object.fromEntries(stages.map((id) => [id,version(id)])) })) as { stats: unknown; history: unknown };
+      return response({ player, stats: records.stats, history: records.history, rules, duelEnabled: false });
     }
     if (route === "seasons" && !post) return response({ seasons: [], unavailableReason: "ยังไม่เปิดฤดูกาลจนกว่าระบบรับรองผลครบและเจ้าของตรวจรับ" });
     if (route === "ranked" && !post) return response({ season: null, rows: [], mine: null, total: 0, hasMore: false, nextOffset: null, enabled: false, serverNow: Date.now() });
@@ -88,9 +87,7 @@ export async function cloudArena(request: Request, path: string[]) {
     if (["leaderboard", "my-standing", "stage-summary", "compare"].includes(route) && !post) {
       // Remain explicit about eligibility. No unverified times are exposed as rankings.
       if (route === "compare") throw new ArenaError(409, "ยังไม่มีผลที่รับรองสำหรับเปรียบเทียบอันดับออนไลน์");
-      const history = checked(await db.from("etc_runs").select("*").eq("player", user.id).order("created", { ascending: false }).limit(250)) as Run[];
-      const mineFor = (id: string) => ({ rank: null, globalRank: null, best: null, latest: history.find((r) => r.scenario === id) ? view(history.find((r) => r.scenario === id)!) : null, gapMs: null, visibility: player.rankPublic ? "public" : "private", validAttempts: 0 });
-      if (route === "stage-summary") return response({ stages: stages.map((id) => ({ scenario: id, ...mineFor(id) })) });
+      if (route === "stage-summary") return response(checked(await client.rpc("etc_my_records", { stage_versions: Object.fromEntries(stages.map((id) => [id,version(id)])) })));
       if (!stages.includes(scenario)) throw new ArenaError(400, "ไม่พบภารกิจที่เลือก");
       if (url.searchParams.get("season")) throw new ArenaError(409, "ยังไม่เปิดฤดูกาลออนไลน์");
       const board = checked(await client.rpc("etc_stage_board", { stage: scenario, stage_version: version(scenario),
@@ -99,6 +96,7 @@ export async function cloudArena(request: Request, path: string[]) {
       return response(route === "my-standing" ? board.mine : board);
     }
     if (path[0] === "attempts") {
+      const db = trustedClient();
       if (post && await cloudAdminSession()) throw new ArenaError(403, "กรุณาออกจากโหมดผู้ดูแลก่อนเริ่มหรือส่งคำสั่งการแข่งขันจริง");
       if (post && path.length === 1) {
         if (!stages.includes(body.scenario as ScenarioId) || !uuid(body.requestId)) throw new ArenaError(400, "ข้อมูลรอบหรือภารกิจไม่ถูกต้อง");
@@ -107,7 +105,7 @@ export async function cloudArena(request: Request, path: string[]) {
         checked(await db.rpc("etc_trusted_budget", { k: "run:" + user.id, maximum: 8, seconds: 3600 }));
         const id = body.scenario as ScenarioId;
         const result = await db.from("etc_runs").insert({ id: randomUUID(), player: user.id, request_id: body.requestId,
-          scenario: id, scenario_version: version(id), seed: randomBytes(4).readUInt32BE() }).select("*").single();
+          scenario: id, scenario_version: version(id), rules_version: rules.version, rules, seed: randomBytes(4).readUInt32BE() }).select("*").single();
         if (result.error?.code === "23505") {
           const retry = checked(await db.from("etc_runs").select("*").eq("player", user.id).eq("request_id", body.requestId).single()) as Run;
           if (retry.scenario !== id) throw new ArenaError(409, "รหัสรอบนี้ใช้กับด่านอื่นแล้ว");
@@ -142,7 +140,7 @@ export async function cloudArena(request: Request, path: string[]) {
           return response(view(r));
         }
         if (Number(body.seq) !== r.seq + 1 || !r.state) throw new ArenaError(409, "ลำดับคำสั่งไม่ต่อเนื่อง กรุณาส่งคำสั่งที่ค้างก่อน");
-        const after = apply(r.state, command.method, command.args), cost = commandCost(r.state, after, command.method, rules);
+        const after = apply(r.state, command.method, command.args), cost = commandCost(r.state, after, command.method, r.rules);
         Object.assign(patch, { state: after, penalty: cost.penalty, mistakes: cost.mistakes });
       } else if (body.action === "finish") {
         const ctx = r.state && simContext(r.state);

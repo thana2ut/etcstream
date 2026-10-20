@@ -43,9 +43,18 @@ export async function logout(role: "player" | "admin") {
   jar.delete(cookieName(role));
 }
 export function checkOrigin(request: Request) {
-  if(process.env.NODE_ENV==="production" && !process.env.ARENA_PUBLIC_ORIGIN) throw new ArenaError(503,"เจ้าของระบบยังไม่ได้กำหนดที่อยู่เว็บไซต์สำหรับคำขอที่ปลอดภัย");
-  const expected = process.env.ARENA_PUBLIC_ORIGIN || new URL(request.url).origin;
-  if(process.env.NODE_ENV==="production" && !expected.startsWith("https://")) throw new ArenaError(503,"ระบบออนไลน์จริงต้องตั้งค่า HTTPS ก่อน");
+  // First Vercel deployment: use only platform-owned URL metadata, never forwarded Host headers.
+  const platformHost = process.env.VERCEL === "1"
+    ? process.env.VERCEL_ENV === "production" ? process.env.VERCEL_PROJECT_PRODUCTION_URL : process.env.VERCEL_URL
+    : undefined;
+  const configured = process.env.ARENA_PUBLIC_ORIGIN || (platformHost ? `https://${platformHost}` : undefined);
+  if(process.env.NODE_ENV==="production" && !configured) throw new ArenaError(503,"เจ้าของระบบยังไม่ได้กำหนดที่อยู่เว็บไซต์สำหรับคำขอที่ปลอดภัย");
+  let expected: string;
+  try {
+    const origin = new URL(configured || new URL(request.url).origin);
+    if (origin.username || origin.password || origin.pathname !== "/" || origin.search || origin.hash || (process.env.NODE_ENV === "production" && origin.protocol !== "https:")) throw Error();
+    expected = origin.origin;
+  } catch { throw new ArenaError(503,"ที่อยู่เว็บไซต์ยังตั้งค่าไม่ถูกต้อง กรุณาให้ผู้ดูแลตรวจ HTTPS และชื่อโดเมน"); }
   if (request.headers.get("origin") !== expected || request.headers.get("sec-fetch-site") === "cross-site") throw new ArenaError(403, "ไม่อนุญาตคำขอจากเว็บไซต์อื่น");
 }
 export async function input(request: Request) {

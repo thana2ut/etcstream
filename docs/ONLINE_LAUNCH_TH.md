@@ -16,8 +16,8 @@
 จึงยังตรวจ schema, migration history, Auth และ Realtime ของโครงการนี้ไม่ได้ และยังไม่มีการเปลี่ยนข้อมูลในฐานข้อมูลใด
 บัญชี Dashboard ที่เปิดตรวจยังเข้าถึงโครงการเป้าหมายไม่ได้ ต้องเชื่อมบัญชี/Organization ที่เป็นเจ้าของโครงการให้ถูกต้อง
 
-ปลั๊กอิน Vercel แสดงรายการ project ว่าง และปฏิเสธการ import ด้วยเหตุผลว่ายังไม่มี GitHub integration
-Dashboard ที่เปิดด้วย GitHub เป็นบัญชี thana2ut / workspace Thanawut Hobby และยังไม่มี project ณ เวลาตรวจ
+หน้า Vercel New Project เชื่อม GitHub thana2ut/etcstream แล้ว ตั้ง Next.js, root ./, Thanawut Hobby ถูกต้อง แต่ยังไม่ได้ deploy
+ปลั๊กอิน Vercel ไม่มีสิทธิ์ scope thanawut (403) ขณะที่ Dashboard เจ้าของเข้าถึงหน้า Import ได้
 ยังไม่มี deployment ID, build หรือ URL เกมจริง ห้ามใช้ชื่อโดเมนที่คาดเดาเป็นผลส่งมอบ
 
 ## โค้ดที่เพิ่มและขอบเขตจริง
@@ -70,9 +70,10 @@ Dashboard ที่เปิดด้วย GitHub เป็นบัญชี t
 node scripts/create-cloud-admin-hash.mjs
 ```
 
-สคริปต์รับรหัสแบบซ่อนและสร้าง `.arena/cloud-admin.env` ครั้งเดียว ไม่พิมพ์ค่า ไม่แก้ `.env.local`
+สคริปต์รับรหัสแบบซ่อนและสร้าง `.arena/cloud-admin-<ค่าที่ไม่ซ้ำ>.env` ใหม่ทุกครั้ง ไม่พิมพ์ค่า ไม่แก้ `.env.local`
 เปิดอ่านไฟล์นี้เป็นการส่วนตัว คัดลอก hash ไป Vercel แล้วเก็บไฟล์ด้วยสิทธิ์เฉพาะเจ้าของ ห้าม commit/อัปโหลด/ส่งในแชต
 รหัสใหม่อย่างน้อย 14 ตัวอักษร ผสมตัวอักษรกับตัวเลขหรือสัญลักษณ์ การเปลี่ยน hash ยกเลิกสิทธิ์ session เก่า
+ตั้ง `ADMIN_CREDENTIAL_ROTATED=1` หลังบันทึก hash ใหม่บน Vercel สำเร็จเท่านั้น ดู `ADMIN_CREDENTIAL_ROTATION_TH.md`
 
 8. เมื่อมี URL จริง ตั้ง Supabase Auth Site URL และ redirect allowlist ให้ตรง เก็บ localhost เฉพาะที่ใช้ และอย่า allow wildcard preview โดยไม่จำเป็น
 9. บัญชีไม่ใช้อีเมลจะกู้คืนไม่ได้เมื่อออก/ล้าง browser data/เปลี่ยนเครื่อง ต้องผูกอีเมลและยืนยันก่อนพึ่งพาประวัติถาวร
@@ -112,3 +113,10 @@ Vercel Hobby เหมาะกับงานส่วนตัวที่ไ�
 - ยังมี advisory ใน dependency ฝั่ง development ต้องพิจารณาแยก ห้ามใช้ audit fix --force
 - ไม่ commit ฟอนต์ไบนารีใหม่ ใช้ `/fonts/scene-thai-latin.ttf` ที่มีใน Git อยู่แล้ว; ฟอนต์ใหม่ในเครื่องยังเก็บไว้
 - เอกสารและภาพ QA ส่วนตัว/ไฟล์ดาวน์โหลด/ฐานข้อมูล/secret ไม่รวมในชุดอัปโหลด
+
+## ข้อค้นพบเพิ่มเติมก่อน push
+
+พบ browser admin hash เดิมในประวัติ remote branches เจ้าของยืนยันแล้วว่าสร้างรหัสใหม่และเลิกใช้รหัสเก่า
+ตรวจเฉพาะรูปแบบ hash ใหม่และการถูกละเว้นจาก Git โดยไม่แสดงค่า การตั้งบน Vercel ยังต้องบันทึกส่วนตัวก่อนเปิด production
+ดู `GITHUB_RECONCILIATION_TH.md` สำหรับ commits และ 23 จุดขัดแย้งจากการจำลอง merge แบบไม่แก้ working tree
+ตัวตรวจ secret รุ่นแรกไม่ครอบคลุม hash ประเภทนี้; เพิ่ม guard แล้ว ไม่ถือว่ารายงาน no-match เดิมรับรองว่าประวัติปลอดภัย
