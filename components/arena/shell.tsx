@@ -26,7 +26,7 @@ export function ArenaShell({ children, admin = false, adminHeader, player,rank,c
         <Link className="arena-brand" href="/academy"><ArenaIcon name="arena" /><span>หอประลองเซียน<small>กลับสำนัก ↗</small></span></Link>
         <button ref={menuButton} type="button" className="arena-menu-toggle" aria-expanded={menuOpen} aria-controls="arena-navigation" onClick={() => setMenuOpen(!menuOpen)}>เมนู {menuOpen ? "−" : "+"}</button>
         <nav id="arena-navigation" className={`arena-navigation${menuOpen ? " is-open" : ""}`} aria-label="เมนูหอประลอง">{arenaDestinations.map(([key, href, label]) => <Link key={key} href={href} aria-current={current === key ? "page" : undefined} onClick={() => setMenuOpen(false)}>{label}</Link>)}</nav>
-        {player && <Link href="/arena/profile" className="arena-player-chip" title={player.name}><ArenaIcon name="profile" /><span>{player.name}<small>{connection==="connected"?"เชื่อมต่อแล้ว":connection==="disconnected"?"ขาดการเชื่อมต่อ":"กำลังเชื่อมต่อ"} · {rankState==="stale"?"อันดับยังโหลดไม่ได้":rankState==="loading"?"กำลังโหลดอันดับ":rank?`${rank.tier} ${rank.score} คะแนน`:"ยังไม่จัดอันดับ"}</small></span></Link>}
+        {player && <Link href="/arena/profile" className="arena-player-chip" title={player.name}><ArenaIcon name="profile" /><span>{player.name}<small>{connection==="connected"?"เชื่อมต่อแล้ว":connection==="disconnected"?"ขาดการเชื่อมต่อ":"กำลังเชื่อมต่อ"}<br />{rankState==="stale"?"อันดับยังโหลดไม่ได้":rankState==="loading"?"กำลังโหลดอันดับ":rank?`${rank.tier} ${rank.score} คะแนน`:"ยังไม่จัดอันดับ"}</small></span></Link>}
       </header>}
       {children}
       {!admin && <footer className="arena-footer"><span>etcstream · ฝึกวิชา ประลองด้วยความเข้าใจ</span><Link href="/">กลับหน้าต้อนรับ</Link></footer>}
