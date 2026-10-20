@@ -3,7 +3,7 @@
 .econ-stones img { filter: drop-shadow(0 0 6px #4fd1b955); }
 .econ-stones strong { color: #f3dfa6; }
 .econ-wallet { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border: 1px solid #cda86c66; border-radius: 12px; background: radial-gradient(circle at 20% 50%, #1f4a4a 0%, #0f1b2c 70%); }
-.econ-wallet img { border-radius: 50%; }
+.econ-wallet-stone { object-fit: contain; filter: drop-shadow(0 0 10px #4fd1b980); }
 .econ-wallet strong { display: block; font-size: 26px; color: #f6e2a8; line-height: 1.2; }
 .econ-wallet small { font-size: 14px; color: var(--arena-muted); }
 .econ-muted { font-size: 16px !important; color: var(--arena-muted) !important; }

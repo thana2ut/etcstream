@@ -36,7 +36,7 @@ export function SpiritStones({ amount, size = 22 }: { amount: number; size?: num
 /** Wallet line for the hub. Reads the server wallet; never increments locally. */
 export function WalletBadge({ summary, state }: { summary?: EconomySummary; state: "loading" | "error" | "ready" }) {
   return <div className="econ-wallet" aria-live="polite">
-    {state === "ready" && summary ? <Accent className="econ-wallet-glow" gif={ECONOMY_ASSETS.spiritStoneGlow} still={ECONOMY_ASSETS.spiritStoneGlowStatic} size={52} /> : <Image src={ECONOMY_ASSETS.spiritStone} alt="" width={40} height={40} />}
+    <Image className="econ-wallet-stone" src={ECONOMY_ASSETS.spiritStone} alt="" width={56} height={56} />
     <div><span className="arena-eyebrow">หินวิญญาณในคลัง</span>
       {state === "ready" && summary ? <strong>{stones(summary.balance)} <small>ก้อน</small></strong> : <strong className="econ-muted">{state === "loading" ? "กำลังเปิดคลัง…" : "ยังโหลดยอดไม่ได้"}</strong>}
     </div>
