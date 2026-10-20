@@ -160,3 +160,23 @@
 .friend-card-meta, .friend-card-online { display: flex !important; align-items: center; gap: 6px; font-size: 13px; color: var(--arena-muted); }
 .friend-card-online.is-online { color: #9fe3c4; }
 @media (max-width: 760px) { .arena-public .arena-player-chip { max-width: 200px; padding-right: 10px; } }
+
+/* V21 checkout: confirm + success modals, owned cards. */
+.econ-modal-backdrop { display: grid; place-items: center; padding: 16px; background: #050a14cc; }
+.econ-modal { width: min(440px, 100%); max-height: calc(100dvh - 32px); overflow-y: auto; text-align: center; display: grid; justify-items: center; gap: 6px; border-color: #d6b77c99 !important; background: radial-gradient(120% 100% at 50% 0%, #20405a, #101c2e 70%) !important; }
+.econ-modal h2 { margin: 2px 0 6px; color: #f6e2a8; font-size: 26px; }
+.econ-modal-art { position: relative; width: 168px; aspect-ratio: 1; border-radius: 16px; overflow: hidden; background: radial-gradient(circle at 50% 45%, #1d3550, #0a1322); }
+.econ-modal-art img { object-fit: contain; }
+.econ-modal-art.is-glow { box-shadow: 0 0 0 1px #f4d69c66, 0 0 40px #6fe0c855; animation: econ-reveal .55s cubic-bezier(.2,.9,.3,1.2) both; }
+.econ-modal-sums { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; width: 100%; margin: 8px 0; }
+.econ-modal-sums dt { font-size: 12px; color: var(--arena-muted); }
+.econ-modal-sums dd { margin: 2px 0 0; display: flex; justify-content: center; }
+.econ-modal .arena-actions { justify-content: center; flex-wrap: wrap; margin-top: 8px; }
+.econ-modal-debit { margin: 0; font-size: 22px; font-weight: 700; color: #f0a58f; }
+.econ-modal.is-success { animation: econ-pop .35s ease-out both; }
+.arena-public .econ-item.is-owned { border-color: #6fe0c855; }
+.econ-owned-state { margin: 8px 0; }
+@keyframes econ-reveal { from { transform: scale(.7) rotate(-4deg); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes econ-pop { from { transform: translateY(12px) scale(.96); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (max-width: 420px) { .econ-modal-sums { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .econ-modal.is-success, .econ-modal-art.is-glow { animation: none; } }

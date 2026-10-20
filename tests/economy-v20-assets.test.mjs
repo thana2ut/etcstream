@@ -34,3 +34,12 @@ test("V20 migration keeps V19 purchases: no deletes, legacy items only closed to
   assert.match(code, /set legacy = true, enabled = false/);
   assert.doesNotMatch(code, /grant (select|insert|update|delete)[^;]*to (anon|authenticated)/i);
 });
+test("V21 regression: purchase/equip API accepts every V20 SKU and the legacy V19 ones", () => {
+  const src = readFileSync(new URL("../game/content/economy-catalog.ts", import.meta.url), "utf8");
+  const pattern = new RegExp(src.match(/export const SKU_PATTERN = \/(.+)\/;/)[1]);
+  for (const i of registry.items) assert.ok(pattern.test(i.sku), i.sku);
+  for (const sku of ["sword_cloud", "frame_moon", "home_pedestal"]) assert.ok(pattern.test(sku), sku);
+  const server = readFileSync(new URL("../server/online/arena.ts", import.meta.url), "utf8");
+  assert.equal((server.match(/SKU_PATTERN\.test\(body\.sku\)/g) || []).length, 2, "purchase and equip both use the shared pattern");
+  assert.doesNotMatch(server, /\/\^\[a-z\]\[a-z0-9_\]\{2,40\}\$\//);
+});

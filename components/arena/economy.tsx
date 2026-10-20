@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { api, type AttemptView } from "./client-api";
-import { ArenaConfirmDialog, ArenaEmptyState } from "./shell";
+import { ArenaEmptyState } from "./shell";
 import { useArenaResource } from "./use-arena-resource";
 import { COSMETIC_SLOTS, ECONOMY_ASSETS, MARKET_SLOTS, MEDAL_LABELS, SLOT_CONTEXT, SLOT_LABELS, stones, type CosmeticSlot, type Medal } from "@/game/content/economy-catalog";
 import { ProfileAvatar } from "./profile-avatar";
@@ -73,38 +73,53 @@ export function EconomyHubPanel({ name }: { name: string }) {
 }
 
 const categories: (CosmeticSlot | "all")[] = ["all", ...MARKET_SLOTS];
+type PurchaseReceipt = { sku: string; name: string; asset: string; price: number; balance: number; ledgerId: string };
+type PurchaseResult = { status: string; retry: boolean; sku: string; price: number; balance: number; ledgerId: string };
 export function CelestialMarket() {
   const [data, setData] = useState<{ items: EconomyItem[]; balance: number } | null>(null), [error, setError] = useState(""), [loading, setLoading] = useState(true);
   const [category, setCategory] = useState<CosmeticSlot | "all" | "legacy">("all"), [selected, setSelected] = useState<string | null>(null);
-  const [confirming, setConfirming] = useState(false), [busy, setBusy] = useState(false), [message, setMessage] = useState("");
-  const [bought, setBought] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(false), [busy, setBusy] = useState(false), [message, setMessage] = useState(""), [receipt, setReceipt] = useState<PurchaseReceipt | null>(null);
   const pending = useRef(false), purchaseKey = useRef<{ sku: string; key: string } | null>(null);
   const load = useCallback(async () => {
-    try { const value = await api<{ items: EconomyItem[]; balance: number }>("market"); setData(value); setError(""); }
-    catch (e) { setError((e as Error).message); } finally { setLoading(false); }
+    try { const value = await api<{ items: EconomyItem[]; balance: number }>("market"); setData(value); setError(""); return value; }
+    catch (e) { setError((e as Error).message); return null; } finally { setLoading(false); }
   }, []);
   useEffect(() => { const t = window.setTimeout(() => void load(), 0); return () => clearTimeout(t); }, [load]);
+  useEconomyChanged(load);
   // Legacy (closed) V19 items appear only for their owners, under their own category.
   const hasLegacy = Boolean(data?.items.some((i) => i.legacy && i.owned));
   const items = useMemo(() => (data?.items || []).filter((i) => category === "all" ? !i.legacy : category === "legacy" ? i.legacy : i.slot === category && !i.legacy), [data, category]);
   const item = items.find((i) => i.sku === selected) || items[0];
+  const balance = data?.balance ?? 0;
   const buy = async () => {
     if (!item || pending.current) return; pending.current = true; setBusy(true); setMessage("");
-    // One key per intended purchase: a retry after a network failure is recognised by the server, never charged twice.
+    // One request id per intended purchase: a retry after a lost response is recognised by the server, never charged twice.
     if (purchaseKey.current?.sku !== item.sku) purchaseKey.current = { sku: item.sku, key: crypto.randomUUID() };
+    const target = item;
     try {
-      const result = await api<{ balance: number; price: number; retry: boolean }>("market/purchase", { sku: item.sku, idempotencyKey: purchaseKey.current.key });
-      purchaseKey.current = null; setConfirming(false); setBought(item.sku);
-      setMessage(`ได้รับ ${item.name} แล้ว · หักหินวิญญาณ ${stones(result.price)} ก้อน · คงเหลือ ${stones(result.balance)} ก้อน · เก็บเข้าถุงเฉียนคุนแล้ว`);
-      await load();
-    } catch (e) { setMessage((e as Error).message); setConfirming(false); if (/หินวิญญาณไม่พอ|มีของสะสม|ยังไม่เปิดขาย/.test((e as Error).message)) purchaseKey.current = null; }
-    finally { pending.current = false; setBusy(false); }
+      const r = await api<PurchaseResult>("market/purchase", { sku: target.sku, idempotencyKey: purchaseKey.current.key });
+      purchaseKey.current = null; setConfirming(false);
+      setReceipt({ sku: target.sku, name: target.name, asset: target.asset, price: r.price, balance: r.balance, ledgerId: r.ledgerId });
+      notifyEconomyChanged(); await load();
+    } catch (e) {
+      const msg = (e as Error).message; setConfirming(false);
+      if (/การเชื่อมต่อขัดข้อง|ตอบกลับไม่ครบ|ยังเชื่อมต่อระบบออนไลน์ไม่ได้/.test(msg)) {
+        // Outcome unknown: reconcile from the server; keep the same request id so a manual retry cannot double-charge.
+        setMessage("ยังไม่ทราบผลการแลก กำลังตรวจสอบกับเซิร์ฟเวอร์…");
+        const fresh = await load(), now = fresh?.items.find((i) => i.sku === target.sku);
+        setMessage(now?.owned ? `ตรวจแล้ว: ได้รับ ${target.name} เรียบร้อย ยอดหินวิญญาณเป็นตามเซิร์ฟเวอร์` : "ยังไม่ได้แลก ไม่มีการหักหินวิญญาณ กดแลกอีกครั้งได้อย่างปลอดภัย");
+        if (now?.owned) { purchaseKey.current = null; notifyEconomyChanged(); }
+      } else {
+        purchaseKey.current = null;
+        const fresh = await load();
+        setMessage(/หินวิญญาณไม่พอ/.test(msg) && fresh ? `หินวิญญาณไม่เพียงพอ · ขาดอีก ${stones(Math.max(0, target.price - fresh.balance))} ก้อน · ไม่มีการหักหินหรือเพิ่มของ` : msg);
+      }
+    } finally { pending.current = false; setBusy(false); }
   };
   const equip = async (sku: string) => {
     if (pending.current) return; pending.current = true; setBusy(true);
-    try { await api("economy/equip", { sku }); setMessage("สวมใส่แล้ว · เปิดโปรไฟล์เพื่อดูภาพลักษณ์ใหม่ได้เลย"); await load(); } catch (e) { setMessage((e as Error).message); } finally { pending.current = false; setBusy(false); }
+    try { await api("economy/equip", { sku }); setMessage("สวมใส่แล้ว · เปิดโปรไฟล์เพื่อดูภาพลักษณ์ใหม่ได้เลย"); setReceipt(null); notifyEconomyChanged(); await load(); } catch (e) { setMessage((e as Error).message); } finally { pending.current = false; setBusy(false); }
   };
-  const balance = data?.balance ?? 0;
   return <div className="econ-market">
     <div className="econ-market-header" style={{ backgroundImage: `linear-gradient(90deg,#0b1424f2 0%,#0b1424b8 55%,#0b142466 100%),url(${ECONOMY_ASSETS.marketBackdrop})` }}>
       <div><span className="arena-eyebrow">ลานการค้าเหนือเมฆ</span><h2>ตลาดสวรรค์</h2><p>แลกหินวิญญาณที่ได้จากการประลองจริงเป็นเครื่องตกแต่งตัวตน ทุกรายการไม่มีผลต่อเวลา สาย หรือคะแนนอันดับ</p></div>
@@ -113,27 +128,75 @@ export function CelestialMarket() {
     {error && <div className="arena-error" role="alert"><span>{error}</span><button className="arena-button-secondary" onClick={() => void load()}>ลองอีกครั้ง</button></div>}
     <div className="econ-tabs" role="group" aria-label="หมวดสินค้า">{categories.map((c) => <button type="button" key={c} aria-pressed={category === c} onClick={() => { setCategory(c); setSelected(null); }}>{c === "all" ? "ทั้งหมด" : SLOT_LABELS[c]}</button>)}{hasLegacy && <button type="button" aria-pressed={category === "legacy"} onClick={() => { setCategory("legacy"); setSelected(null); }}>ของสะสมรุ่นก่อน</button>}</div>
     <p role="status" aria-live="polite" className="econ-message">{message}</p>
-    {bought && data?.items.find((i) => i.sku === bought && i.owned && !i.equipped) && <div className="econ-after-buy"><button disabled={busy} onClick={() => { void equip(bought); setBought(null); }}>สวมใส่เลย</button><Link className="arena-action econ-secondary" href="/arena/bag">ดูในถุงเฉียนคุน</Link><Link className="arena-action econ-secondary" href="/arena/profile">ดูโปรไฟล์</Link></div>}
     {loading ? <p className="arena-panel arena-skeleton" role="status">กำลังเปิดแผงสินค้า…</p> : !data || data.items.length === 0 ? <ArenaEmptyState icon="trophy" title="ตลาดยังไม่มีสินค้าเปิดขาย">เมื่อผู้ดูแลเปิดรายการ สินค้าจริงจะแสดงที่นี่</ArenaEmptyState> :
     <div className="econ-market-body">
-      <ul className="econ-grid" aria-label="รายการสินค้า">{items.map((i) => <li key={i.sku}><button type="button" className="econ-item" aria-pressed={item?.sku === i.sku} onClick={() => setSelected(i.sku)}>
-        <Image src={i.asset} alt="" width={120} height={120} sizes="120px" loading="lazy" />
-        <strong>{i.name}</strong><small>{SLOT_LABELS[i.slot]}</small>
-        {i.owned ? <span className="econ-tag">{i.equipped ? "สวมใส่อยู่" : "อยู่ในถุงแล้ว"}</span> : <SpiritStones amount={i.price} size={18} />}
+      <ul className="econ-grid" aria-label="รายการสินค้า">{items.map((i) => <li key={i.sku}><button type="button" className={`econ-item${i.owned ? " is-owned" : ""}`} aria-pressed={item?.sku === i.sku} onClick={() => setSelected(i.sku)}>
+        <Image src={i.asset} alt="" width={120} height={120} sizes="160px" loading="lazy" />
+        <strong>{i.name}</strong><small>{SLOT_LABELS[i.slot]} · {i.sku}</small>
+        {i.owned ? <span className="econ-tag">{i.equipped ? "สวมใส่อยู่" : "มีแล้ว"}</span> : <SpiritStones amount={i.price} size={18} />}
       </button></li>)}</ul>
       {item && <aside className="arena-panel econ-detail" aria-label={`รายละเอียด ${item.name}`}>
         <div className="econ-detail-art"><Image src={item.asset} alt={item.name} fill sizes="(max-width:900px) 70vw, 320px" /></div>
         <span className="arena-eyebrow">{SLOT_LABELS[item.slot]} · {item.sku}</span><h3>{item.name}</h3>
         <p className="arena-note">ใช้งานจริงที่: {SLOT_CONTEXT[item.slot]}</p>
-        <dl className="econ-price"><div><dt>ราคา</dt><dd><SpiritStones amount={item.price} /></dd></div><div><dt>ในคลัง</dt><dd><SpiritStones amount={balance} /></dd></div></dl>
-        {item.owned ? item.equipped ? <p className="econ-tag">สวมใส่อยู่</p> : <button disabled={busy} onClick={() => void equip(item.sku)}>สวมใส่จากถุงเฉียนคุน</button>
-          : <button disabled={busy || !item.enabled || balance < item.price} onClick={() => setConfirming(true)}>{balance < item.price ? `หินวิญญาณยังไม่พอ (ขาด ${stones(item.price - balance)})` : "แลกด้วยหินวิญญาณ"}</button>}
+        <dl className="econ-price"><div><dt>ราคา</dt><dd><SpiritStones amount={item.price} /></dd></div><div><dt>หินวิญญาณของเจ้า</dt><dd><SpiritStones amount={balance} /></dd></div><div><dt>สต็อก</dt><dd>ไม่จำกัด</dd></div></dl>
+        {item.owned ? item.equipped ? <p className="econ-tag econ-owned-state">สวมใส่อยู่</p> : <><p className="econ-tag econ-owned-state">มีแล้ว · อยู่ในถุงเฉียนคุน</p><button disabled={busy} onClick={() => void equip(item.sku)}>สวมใส่</button></>
+          : <button disabled={busy || !item.enabled || balance < item.price} onClick={() => setConfirming(true)}>{busy ? "กำลังแลก…" : balance < item.price ? `หินวิญญาณไม่เพียงพอ (ขาด ${stones(item.price - balance)})` : "แลกด้วยหินวิญญาณ"}</button>}
+        {item.owned && <Link className="arena-text-link" href="/arena/bag">ไปที่ถุงเฉียนคุน →</Link>}
       </aside>}
     </div>}
-    <ArenaConfirmDialog open={confirming && Boolean(item)} title={`แลก ${item?.name ?? ""}?`} busy={busy} onCancel={() => setConfirming(false)} onConfirm={() => void buy()}>
-      หักหินวิญญาณ {stones(item?.price || 0)} ก้อน จากคงเหลือ {stones(balance)} ก้อน · ราคายืนยันจากเซิร์ฟเวอร์ตอนทำรายการ · ของสะสมไม่สามารถขายคืนหรือโอนได้
-    </ArenaConfirmDialog>
+    {confirming && item && <PurchaseConfirm item={item} balance={balance} busy={busy} onCancel={() => setConfirming(false)} onConfirm={() => void buy()} />}
+    {receipt && <PurchaseSuccess receipt={receipt} owned={data?.items.find((i) => i.sku === receipt.sku)} busy={busy} onEquip={() => void equip(receipt.sku)} onClose={() => setReceipt(null)} />}
   </div>;
+}
+
+/** Shared modal shell: focus first action, Escape closes (unless busy), focus returns afterwards. */
+function EconModal({ label, busy, onClose, children, className }: { label: string; busy?: boolean; onClose: () => void; children: React.ReactNode; className?: string }) {
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => { const previous = document.activeElement as HTMLElement | null; box.current?.querySelector<HTMLElement>("button")?.focus(); return () => previous?.focus(); }, []);
+  return <div className="arena-modal econ-modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget && !busy) onClose(); }}>
+    <div ref={box} className={`arena-panel econ-modal ${className ?? ""}`} role="dialog" aria-modal="true" aria-label={label} onKeyDown={(e) => {
+      if (e.key === "Escape" && !busy) { e.preventDefault(); onClose(); }
+      if (e.key !== "Tab") return;
+      const f = box.current?.querySelectorAll<HTMLElement>("button:not(:disabled), a[href]"); if (!f?.length) return;
+      if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus(); } else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
+    }}>{children}</div>
+  </div>;
+}
+function PurchaseConfirm({ item, balance, busy, onCancel, onConfirm }: { item: EconomyItem; balance: number; busy: boolean; onCancel: () => void; onConfirm: () => void }) {
+  return <EconModal label={`ยืนยันการแลก ${item.name}`} busy={busy} onClose={onCancel}>
+    <div className="econ-modal-art"><Image src={item.asset} alt={item.name} fill sizes="200px" /></div>
+    <span className="arena-eyebrow">ยืนยันการแลก · {item.sku}</span><h2>{item.name}</h2>
+    <dl className="econ-modal-sums"><div><dt>ราคา</dt><dd><SpiritStones amount={item.price} /></dd></div><div><dt>หินวิญญาณของเจ้า</dt><dd><SpiritStones amount={balance} /></dd></div><div><dt>คงเหลือโดยประมาณ</dt><dd><SpiritStones amount={Math.max(0, balance - item.price)} /></dd></div></dl>
+    <p className="arena-note">เซิร์ฟเวอร์ตรวจราคาและยอดอีกครั้งตอนทำรายการ · ของสะสมขายคืนหรือโอนไม่ได้</p>
+    <div className="arena-actions"><button type="button" className="arena-button-secondary" disabled={busy} onClick={onCancel}>ยกเลิก</button><button type="button" disabled={busy} onClick={onConfirm}>{busy ? "กำลังแลก…" : "ยืนยันการแลก"}</button></div>
+  </EconModal>;
+}
+function PurchaseSuccess({ receipt, owned, busy, onEquip, onClose }: { receipt: PurchaseReceipt; owned?: EconomyItem; busy: boolean; onEquip: () => void; onClose: () => void }) {
+  return <EconModal label={`แลกสำเร็จ ${receipt.name}`} busy={busy} onClose={onClose} className="is-success">
+    <div className="econ-modal-art is-glow"><Image src={receipt.asset} alt={receipt.name} fill sizes="200px" /></div>
+    <span className="arena-eyebrow">แลกสำเร็จ · บันทึกในสมุดบัญชีแล้ว</span><h2>{receipt.name}</h2>
+    <p className="econ-modal-debit">หินวิญญาณ −{stones(receipt.price)}</p>
+    <p>คงเหลือ <SpiritStones amount={receipt.balance} /> · เก็บเข้าถุงเฉียนคุนแล้ว</p>
+    <p className="arena-note">เลขที่รายการ {receipt.ledgerId.slice(0, 8).toUpperCase()}</p>
+    <div className="arena-actions">{owned && !owned.equipped && <button type="button" disabled={busy} onClick={onEquip}>สวมใส่เลย</button>}<Link className="arena-action econ-secondary" href="/arena/bag">ดูในถุงเฉียนคุน</Link><button type="button" className="arena-button-secondary" onClick={onClose}>ปิด</button></div>
+  </EconModal>;
+}
+
+/** Cross-surface/tab refresh after a confirmed economy change (data always re-read from the server). */
+const ECONOMY_EVENT = "etc-economy-changed";
+export function notifyEconomyChanged() {
+  window.dispatchEvent(new Event(ECONOMY_EVENT));
+  try { const c = new BroadcastChannel(ECONOMY_EVENT); c.postMessage(Date.now()); c.close(); } catch {}
+}
+export function useEconomyChanged(reload: () => unknown) {
+  useEffect(() => {
+    const run = () => { void reload(); };
+    window.addEventListener(ECONOMY_EVENT, run);
+    let channel: BroadcastChannel | null = null;
+    try { channel = new BroadcastChannel(ECONOMY_EVENT); channel.onmessage = run; } catch {}
+    return () => { window.removeEventListener(ECONOMY_EVENT, run); channel?.close(); };
+  }, [reload]);
 }
 
 export function QiankunBag({ name }: { name: string }) {
@@ -143,11 +206,12 @@ export function QiankunBag({ name }: { name: string }) {
     try { setData(await api<{ items: EconomyItem[]; balance: number }>("market")); setError(""); } catch (e) { setError((e as Error).message); } finally { setLoading(false); }
   }, []);
   useEffect(() => { const t = window.setTimeout(() => void load(), 0); return () => clearTimeout(t); }, [load]);
+  useEconomyChanged(load);
   const owned = (data?.items || []).filter((i) => i.owned);
   const equipped = Object.fromEntries(owned.filter((i) => i.equipped).map((i) => [i.slot, i])) as Partial<Record<CosmeticSlot, EconomyItem>>;
   const act = async (path: string, body: Record<string, string>, done: string) => {
     if (pending.current) return; pending.current = true; setBusy(true);
-    try { await api(path, body); setMessage(done); await load(); } catch (e) { setMessage((e as Error).message); } finally { pending.current = false; setBusy(false); }
+    try { await api(path, body); setMessage(done); notifyEconomyChanged(); await load(); } catch (e) { setMessage((e as Error).message); } finally { pending.current = false; setBusy(false); }
   };
   return <div className="econ-bag">
     <div className="arena-split">
@@ -174,7 +238,7 @@ function LedgerHistory() {
   const ledger = useArenaResource<{ entries: { id: string; amount: number; kind: string; balanceAfter: number; meta: Record<string, string>; created: number }[] }>("economy/ledger", 60000);
   return <details className="arena-panel econ-ledger"><summary>บันทึกหินวิญญาณ (จากสมุดบัญชีเซิร์ฟเวอร์)</summary>
     {ledger.loading ? <p role="status">กำลังโหลด…</p> : ledger.error && !ledger.data ? <p className="arena-error">{ledger.error}</p> : !ledger.data?.entries.length ? <p>ยังไม่มีรายการ หินวิญญาณจะเข้าเมื่อผลรอบได้รับการยืนยันจากเซิร์ฟเวอร์</p> :
-      <div className="arena-table-wrap"><table><thead><tr><th>เวลา</th><th>รายการ</th><th>จำนวน</th><th>คงเหลือ</th></tr></thead><tbody>{ledger.data.entries.map((e) => <tr key={e.id}><td>{new Date(e.created).toLocaleString("th-TH")}</td><td>{kindLabel[e.kind] || e.kind}{e.meta.stage ? ` · ${e.meta.stage}` : ""}{e.meta.name ? ` · ${e.meta.name}` : ""}</td><td className={e.amount > 0 ? "econ-plus" : "econ-minus"}>{e.amount > 0 ? "+" : ""}{stones(e.amount)}</td><td>{stones(e.balanceAfter)}</td></tr>)}</tbody></table></div>}
+      <div className="arena-table-wrap"><table><thead><tr><th>เวลา</th><th>รายการ</th><th>จำนวน</th><th>คงเหลือ</th><th>เลขที่</th></tr></thead><tbody>{ledger.data.entries.map((e) => <tr key={e.id}><td>{new Date(e.created).toLocaleString("th-TH")}</td><td>{kindLabel[e.kind] || e.kind}{e.meta.stage ? ` · ${e.meta.stage}` : ""}{e.meta.name ? ` · ${e.meta.name}` : ""}</td><td className={e.amount > 0 ? "econ-plus" : "econ-minus"}>{e.amount > 0 ? "+" : ""}{stones(e.amount)}</td><td>{stones(e.balanceAfter)}</td><td><code>{e.id.slice(0, 8).toUpperCase()}</code></td></tr>)}</tbody></table></div>}
   </details>;
 }
 

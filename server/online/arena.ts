@@ -11,6 +11,7 @@ import { initialTrainingState, initSim, type TrainingState } from "@/game/traini
 import { checkMissionBag } from "@/game/content/mission-bag";
 import { hiddenCablesFor, packedLeadsFor } from "@/game/content/cable-catalog";
 import type { Json } from "./types";
+import { SKU_PATTERN } from "@/game/content/economy-catalog";
 import { cloudAdminSession } from "./admin";
 import { replayCloudRun } from "./replay";
 import { cloudStages as stages, stageVersion as version, ensureCloudCatalog, verificationEnabled, seasonDTO, standingDTO, type CloudSeason } from "./ranked";
@@ -87,11 +88,11 @@ export async function cloudArena(request: Request, path: string[]) {
     if (route === "economy/friends" && !post) return response(await economy("friend-appearance"));
     if (route === "market" && !post) return response(await economy("catalog"));
     if (route === "market/purchase" && post) {
-      if (typeof body.sku !== "string" || !/^[a-z][a-z0-9_]{2,40}$/.test(body.sku) || !uuid(body.idempotencyKey)) throw new ArenaError(400, "ข้อมูลการซื้อไม่ถูกต้อง");
+      if (typeof body.sku !== "string" || !SKU_PATTERN.test(body.sku) || !uuid(body.idempotencyKey)) throw new ArenaError(400, "ข้อมูลการซื้อไม่ถูกต้อง");
       return response(await economy("purchase", { sku: body.sku, idempotencyKey: body.idempotencyKey }));
     }
     if (route === "economy/equip" && post) {
-      if (typeof body.sku !== "string" || !/^[a-z][a-z0-9_]{2,40}$/.test(body.sku)) throw new ArenaError(400, "ไม่พบของสะสมนี้");
+      if (typeof body.sku !== "string" || !SKU_PATTERN.test(body.sku)) throw new ArenaError(400, "ไม่พบของสะสมนี้");
       return response(await economy("equip", { sku: body.sku }));
     }
     if (route === "economy/unequip" && post) return response(await economy("unequip", { slot: String(body.slot || "") }));
@@ -232,6 +233,7 @@ export async function cloudArena(request: Request, path: string[]) {
     if (/SELF_REQUEST/.test(code)) return response({ error: "ส่งคำขอถึงตนเองไม่ได้" }, 400);
     if (/REQUESTS_CLOSED/.test(code)) return response({ error: "ผู้ฝึกท่านนี้ปิดรับคำขอเป็นสหายไว้" }, 403);
     if (/FRIENDS_ONLY/.test(code)) return response({ error: "ส่งคำท้าทำเวลาได้เฉพาะสหายที่ตอบรับแล้ว" }, 403);
+    if (/PURCHASE_CONFLICT/.test(code)) return response({ error: "รหัสคำขอซื้อนี้ถูกใช้กับสินค้าอื่นแล้ว กรุณาลองใหม่", code: "CONFLICT" }, 409);
     if (/INSUFFICIENT_STONES/.test(code)) return response({ error: "หินวิญญาณไม่พอสำหรับรายการนี้", code: "INSUFFICIENT_STONES" }, 409);
     if (/ALREADY_OWNED/.test(code)) return response({ error: "เจ้ามีของสะสมชิ้นนี้ในถุงเฉียนคุนแล้ว ไม่มีการหักหินซ้ำ", code: "ALREADY_OWNED" }, 409);
     if (/ITEM_UNAVAILABLE/.test(code)) return response({ error: "สินค้านี้ยังไม่เปิดขายในตลาดสวรรค์", code: "ITEM_UNAVAILABLE" }, 409);

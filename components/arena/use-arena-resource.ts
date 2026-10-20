@@ -17,8 +17,14 @@ export function useArenaResource<T>(path:string|null,interval=20000) {
       if(live)timer=setTimeout(fetchData,Math.min(120000,interval*2**Math.min(failures,3)));
     };
     const visible=()=>{if(!document.hidden)void fetchData();};
+    // Wallet/bag/profile surfaces re-read the server after a confirmed purchase/equip (this tab or another).
+    const economic=/^(economy|market|social)/.test(path);
+    const changed=()=>{if(economic)void fetchData();};
+    window.addEventListener("etc-economy-changed",changed);
+    let channel:BroadcastChannel|null=null;
+    if(economic){try{channel=new BroadcastChannel("etc-economy-changed");channel.onmessage=changed;}catch{}}
     timer=setTimeout(fetchData,0);document.addEventListener("visibilitychange",visible);
-    return()=>{live=false;clearTimeout(timer);controller?.abort();document.removeEventListener("visibilitychange",visible);};
+    return()=>{live=false;clearTimeout(timer);controller?.abort();document.removeEventListener("visibilitychange",visible);window.removeEventListener("etc-economy-changed",changed);channel?.close();};
   },[path,interval,revision]);
   const current=state.path===path?state:{path,data:undefined,error:"",loading:Boolean(path),updated:0};
   return {...current,stale:Boolean(current.error && current.data),retry:()=>setRevision((n)=>n+1)};

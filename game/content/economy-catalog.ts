@@ -41,6 +41,8 @@ export const COSMETIC_SLOTS = [...MARKET_SLOTS, "portraitOutfit"] as CosmeticSlo
 
 // V20 catalog generated from the owner's checked registry (SHA-256 verified on intake; see tests/economy-v20-assets.test.mjs).
 const categorySlot: Record<string, CosmeticSlot> = { avatar: "profileAvatar", frame: "profileFrame", sword: "swordSkin", pet: "profileCompanion", decor: "residenceDecor" };
+/** Accepts V19 legacy (sword_cloud) and V20 (AV-001, PET-005) SKUs; must match the etc_catalog sku check. */
+export const SKU_PATTERN = /^[A-Za-z][A-Za-z0-9_-]{2,40}$/;
 export type CatalogSeed = { sku: string; name: string; slot: CosmeticSlot; price: number; asset: string; sha256: string };
 export const CATALOG_SEED: CatalogSeed[] = registry.items.map((i) => ({
   sku: i.sku, name: i.thai_name, slot: categorySlot[i.category], price: i.price_spirit_stones,
