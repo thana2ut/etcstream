@@ -23,7 +23,7 @@ async function handle(request: Request, context: Context) {
     return { state: status.state, available: status.state === "READY", message: status.state === "READY" ? "เชื่อมต่อข้อมูลส่วนกลางแล้ว" : "ไม่สามารถโหลดข้อมูลออนไลน์ได้", serverNow: Date.now() };
   }
   if (!post && route === "demo") return demoView();
-  if (["economy","market"].includes(route)) throw new ArenaError(503, "ตลาดสวรรค์และหินวิญญาณใช้ได้เฉพาะระบบออนไลน์ (ARENA_BACKEND=supabase)", "ONLINE_NOT_CONFIGURED");
+  if (["economy","market","social"].includes(route)) throw new ArenaError(503, "ตลาดสวรรค์และหินวิญญาณใช้ได้เฉพาะระบบออนไลน์ (ARENA_BACKEND=supabase)", "ONLINE_NOT_CONFIGURED");
   if (!post && route === "public") throw new ArenaError(503, "ทำเนียบเซียนออนไลน์ยังไม่ได้ตั้งค่า (ARENA_BACKEND ไม่ใช่ supabase)", "ONLINE_NOT_CONFIGURED");
   if (post && path.join("/") === "recovery/redeem") return recoverPlayer(body.credential);
   if (post && route === "register") {

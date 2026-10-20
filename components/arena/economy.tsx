@@ -3,11 +3,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { api, type AttemptView } from "./client-api";
-import { ArenaConfirmDialog, ArenaEmptyState, ArenaIcon } from "./shell";
+import { ArenaConfirmDialog, ArenaEmptyState } from "./shell";
 import { useArenaResource } from "./use-arena-resource";
-import { COSMETIC_SLOTS, ECONOMY_ASSETS, MEDAL_LABELS, SLOT_CONTEXT, SLOT_LABELS, stones, type CosmeticSlot, type Medal } from "@/game/content/economy-catalog";
+import { COSMETIC_SLOTS, ECONOMY_ASSETS, MARKET_SLOTS, MEDAL_LABELS, SLOT_CONTEXT, SLOT_LABELS, stones, type CosmeticSlot, type Medal } from "@/game/content/economy-catalog";
+import { ProfileAvatar } from "./profile-avatar";
 
-export type EconomyItem = { sku: string; name: string; slot: CosmeticSlot; price: number; asset: string; enabled: boolean; owned: boolean; equipped: boolean };
+export type EconomyItem = { sku: string; name: string; slot: CosmeticSlot; price: number; asset: string; enabled: boolean; legacy?: boolean; owned: boolean; equipped: boolean };
 export type EconomySummary = { balance: number; earned: number; spent: number; equipped: Partial<Record<CosmeticSlot, EconomyItem>>; ownedCount: number; claims: number };
 type Receipt = { entries: { kind: "first_clear" | "medal" | "daily"; amount: number; meta: { stage?: string; tier?: Medal; level?: number; day?: string } }[]; balance: number };
 
@@ -42,17 +43,14 @@ export function WalletBadge({ summary, state }: { summary?: EconomySummary; stat
   </div>;
 }
 
-/** Portrait card: identity icon, real equipped frame / companion / sword / robe from the DB. */
+/** Portrait card: real equipped avatar (clipped circle) + frame overlay, sword and companion beside it. */
 export function CharacterCard({ name, equipped, compact = false }: { name: string; equipped: Partial<Record<CosmeticSlot, EconomyItem>>; compact?: boolean }) {
-  const frame = equipped.profileFrame, pet = equipped.profileCompanion, sword = equipped.swordSkin, robe = equipped.portraitOutfit;
+  const avatar = equipped.profileAvatar ?? equipped.portraitOutfit, frame = equipped.profileFrame, pet = equipped.profileCompanion, sword = equipped.swordSkin;
   return <figure className={`econ-character${compact ? " is-compact" : ""}`} aria-label={`รูปลักษณ์ของ ${name}`}>
-    <div className="econ-portrait">
-      {robe ? <Image className="econ-robe" src={robe.asset} alt={robe.name} fill sizes="160px" /> : <ArenaIcon name="profile" />}
-      {frame && <Image className="econ-frame" src={frame.asset} alt={frame.name} fill sizes="180px" />}
-    </div>
+    <ProfileAvatar avatar={avatar?.asset} frame={frame?.asset} name={name} size={compact ? 116 : 176} />
     {sword && <Image className="econ-sword" src={sword.asset} alt={sword.name} width={compact ? 56 : 88} height={compact ? 56 : 88} />}
-    {pet && <Image className="econ-pet" src={pet.asset} alt={pet.name} width={compact ? 52 : 84} height={compact ? 52 : 84} />}
-    {!compact && <figcaption>{[robe?.name, sword?.name, frame?.name, pet?.name].filter(Boolean).join(" · ") || "ยังไม่ได้สวมใส่ของสะสม"}</figcaption>}
+    {pet && <Image className="econ-pet" src={pet.asset} alt={pet.name} width={compact ? 56 : 92} height={compact ? 56 : 92} />}
+    {!compact && <figcaption>{[avatar?.name, frame?.name, sword?.name, pet?.name].filter(Boolean).join(" · ") || "ยังไม่ได้สวมใส่ของสะสม"}</figcaption>}
   </figure>;
 }
 
@@ -74,10 +72,10 @@ export function EconomyHubPanel({ name }: { name: string }) {
   </section>;
 }
 
-const categories: (CosmeticSlot | "all")[] = ["all", ...COSMETIC_SLOTS];
+const categories: (CosmeticSlot | "all")[] = ["all", ...MARKET_SLOTS];
 export function CelestialMarket() {
   const [data, setData] = useState<{ items: EconomyItem[]; balance: number } | null>(null), [error, setError] = useState(""), [loading, setLoading] = useState(true);
-  const [category, setCategory] = useState<CosmeticSlot | "all">("all"), [selected, setSelected] = useState<string | null>(null);
+  const [category, setCategory] = useState<CosmeticSlot | "all" | "legacy">("all"), [selected, setSelected] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false), [busy, setBusy] = useState(false), [message, setMessage] = useState("");
   const pending = useRef(false), purchaseKey = useRef<{ sku: string; key: string } | null>(null);
   const load = useCallback(async () => {
@@ -85,8 +83,10 @@ export function CelestialMarket() {
     catch (e) { setError((e as Error).message); } finally { setLoading(false); }
   }, []);
   useEffect(() => { const t = window.setTimeout(() => void load(), 0); return () => clearTimeout(t); }, [load]);
-  const items = useMemo(() => (data?.items || []).filter((i) => category === "all" || i.slot === category), [data, category]);
-  const item = data?.items.find((i) => i.sku === selected) || items[0];
+  // Legacy (closed) V19 items appear only for their owners, under their own category.
+  const hasLegacy = Boolean(data?.items.some((i) => i.legacy && i.owned));
+  const items = useMemo(() => (data?.items || []).filter((i) => category === "all" ? !i.legacy : category === "legacy" ? i.legacy : i.slot === category && !i.legacy), [data, category]);
+  const item = items.find((i) => i.sku === selected) || items[0];
   const buy = async () => {
     if (!item || pending.current) return; pending.current = true; setBusy(true); setMessage("");
     // One key per intended purchase: a retry after a network failure is recognised by the server, never charged twice.
@@ -110,7 +110,7 @@ export function CelestialMarket() {
       <WalletBadge summary={data ? { balance, earned: 0, spent: 0, equipped: {}, ownedCount: 0, claims: 0 } : undefined} state={loading ? "loading" : error && !data ? "error" : "ready"} />
     </div>
     {error && <div className="arena-error" role="alert"><span>{error}</span><button className="arena-button-secondary" onClick={() => void load()}>ลองอีกครั้ง</button></div>}
-    <div className="econ-tabs" role="group" aria-label="หมวดสินค้า">{categories.map((c) => <button type="button" key={c} aria-pressed={category === c} onClick={() => { setCategory(c); setSelected(null); }}>{c === "all" ? "ทั้งหมด" : SLOT_LABELS[c]}</button>)}</div>
+    <div className="econ-tabs" role="group" aria-label="หมวดสินค้า">{categories.map((c) => <button type="button" key={c} aria-pressed={category === c} onClick={() => { setCategory(c); setSelected(null); }}>{c === "all" ? "ทั้งหมด" : SLOT_LABELS[c]}</button>)}{hasLegacy && <button type="button" aria-pressed={category === "legacy"} onClick={() => { setCategory("legacy"); setSelected(null); }}>ของสะสมรุ่นก่อน</button>}</div>
     <p role="status" aria-live="polite" className="econ-message">{message}</p>
     {loading ? <p className="arena-panel arena-skeleton" role="status">กำลังเปิดแผงสินค้า…</p> : !data || data.items.length === 0 ? <ArenaEmptyState icon="trophy" title="ตลาดยังไม่มีสินค้าเปิดขาย">เมื่อผู้ดูแลเปิดรายการ สินค้าจริงจะแสดงที่นี่</ArenaEmptyState> :
     <div className="econ-market-body">
@@ -195,11 +195,10 @@ export function RewardReceipt({ attempt }: { attempt: AttemptView }) {
   </section>;
 }
 
-/** Equipped frame/companion of accepted friends (privacy: no balances). */
+/** Equipped avatar/frame/companion of accepted friends (privacy: no balances). */
 export function useFriendAppearance(enabled: boolean) {
-  return useArenaResource<{ friends: Record<string, Partial<Record<"profileFrame" | "profileCompanion", string>>> }>(enabled ? "economy/friends" : null, 60000);
+  return useArenaResource<{ friends: Record<string, Partial<Record<"profileAvatar" | "profileFrame" | "profileCompanion", string>>> }>(enabled ? "economy/friends" : null, 60000);
 }
-export function FriendPortrait({ items }: { items?: Partial<Record<"profileFrame" | "profileCompanion", string>> }) {
-  if (!items?.profileFrame && !items?.profileCompanion) return null;
-  return <span className="econ-friend-portrait" aria-hidden="true">{items.profileFrame && <Image src={items.profileFrame} alt="" width={44} height={44} />}{items.profileCompanion && <Image src={items.profileCompanion} alt="" width={30} height={30} />}</span>;
+export function FriendPortrait({ items, name }: { items?: Partial<Record<"profileAvatar" | "profileFrame" | "profileCompanion", string>>; name?: string }) {
+  return <span className="econ-friend-portrait"><ProfileAvatar avatar={items?.profileAvatar} frame={items?.profileFrame} name={name} size={52} />{items?.profileCompanion && <Image src={items.profileCompanion} alt="" width={30} height={30} />}</span>;
 }

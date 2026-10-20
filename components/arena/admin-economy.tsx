@@ -1,13 +1,13 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { api } from "./client-api";
-import { SLOT_LABELS, stones, type CosmeticSlot } from "@/game/content/economy-catalog";
+import { CATALOG_SEED, SLOT_LABELS, stones, type CosmeticSlot } from "@/game/content/economy-catalog";
 
 type Overview = { wallets: number; circulating: number; earned: number; spent: number; purchases: number; ledger: number; adjustments: number; medalStages: number; unpaidSeeded: number; suspect: { player: string; total: number; n: number }[] };
 type Wallet = { player: string; name: string; friendCode: string; balance: number; earned: number; spent: number; owned: number; updated: number };
 type Entry = { id: string; player: string; amount: number; kind: string; source: string; balanceAfter: number; meta: Record<string, unknown>; created: number };
-type Config = { catalog: { sku: string; name: string; slot: CosmeticSlot; price: number; enabled: boolean }[]; rules: Record<string, number>; medals: { scenario: string; bronze_ms: number; silver_ms: number; gold_ms: number; approved: string }[] };
-const tabs = [["overview", "ภาพรวมเศรษฐกิจ"], ["wallets", "คลังผู้ฝึก"], ["ledger", "สมุดบัญชี"], ["config", "ราคา รางวัล และเหรียญ"], ["adjust", "ปรับยอดพร้อมเหตุผล"]] as const;
+type Config = { catalog: { sku: string; name: string; slot: CosmeticSlot; price: number; enabled: boolean; legacy?: boolean; asset: string }[]; rules: Record<string, number>; medals: { scenario: string; bronze_ms: number; silver_ms: number; gold_ms: number; approved: string }[] };
+const tabs = [["overview", "ภาพรวมเศรษฐกิจ"], ["integrity", "ตรวจแค็ตตาล็อก V20"], ["wallets", "คลังผู้ฝึก"], ["ledger", "สมุดบัญชี"], ["config", "ราคา รางวัล และเหรียญ"], ["adjust", "ปรับยอดพร้อมเหตุผล"]] as const;
 
 export function EconomyAdmin() {
   const [tab, setTab] = useState<(typeof tabs)[number][0]>("overview");
@@ -16,7 +16,7 @@ export function EconomyAdmin() {
   const load = useCallback(async () => {
     if (tab === "adjust") { setLoading(false); return; }
     setLoading(true);
-    try { setData(await api<Record<string, unknown>>(`economy/${tab}${tab === "ledger" && player ? `?player=${encodeURIComponent(player)}` : ""}`, undefined, true)); setError(""); }
+    try { setData(await api<Record<string, unknown>>(`economy/${tab === "integrity" ? "config" : tab}${tab === "ledger" && player ? `?player=${encodeURIComponent(player)}` : ""}`, undefined, true)); setError(""); }
     catch (e) { setData(null); setError((e as Error).message); } finally { setLoading(false); }
   }, [tab, player]);
   useEffect(() => { const t = window.setTimeout(() => void load(), 0); return () => clearTimeout(t); }, [load]);
@@ -35,6 +35,7 @@ export function EconomyAdmin() {
       {data && <div className="arena-table-wrap"><table><thead><tr><th>เวลา</th><th>ผู้ฝึก</th><th>ประเภท/แหล่ง</th><th>จำนวน</th><th>คงเหลือ</th></tr></thead><tbody>{(data.entries as Entry[]).map((e) => <tr key={e.id}><td>{new Date(e.created).toLocaleString("th-TH")}</td><td><small>{e.player}</small></td><td>{e.kind}<br /><small>{e.source} {JSON.stringify(e.meta)}</small></td><td>{e.amount > 0 ? "+" : ""}{stones(e.amount)}</td><td>{stones(e.balanceAfter)}</td></tr>)}</tbody></table>{!(data.entries as Entry[]).length && <p>ยังไม่มีรายการในสมุดบัญชี</p>}</div>}</>}
     {tab === "config" && data && <ConfigView c={data as unknown as Config} mutate={mutate} />}
     {tab === "adjust" && <AdjustForm mutate={mutate} />}
+    {tab === "integrity" && data && <IntegrityReport c={data as unknown as Config} />}
   </section>;
 }
 function OverviewView({ o }: { o: Overview }) {
@@ -69,4 +70,26 @@ function AdjustForm({ mutate }: { mutate: (op: string, body: Record<string, unkn
     <label>เหตุผล<input required minLength={5} maxLength={500} value={f.reason} onChange={(e) => setF({ ...f, reason: e.target.value })} /></label>
     <button disabled={!f.player || f.player !== f.confirm || !Number(f.amount) || f.reason.trim().length < 5}>ปรับยอดและบันทึกตรวจสอบ</button>
   </form>;
+}
+
+/** V20 catalog integrity: server catalog vs the SHA-256-checked owner registry, plus live image reachability. */
+function IntegrityReport({ c }: { c: Config }) {
+  const [broken, setBroken] = useState<string[] | null>(null);
+  useEffect(() => {
+    let live = true;
+    void Promise.all(c.catalog.map(async (i) => { try { const r = await fetch(i.asset, { method: "HEAD", cache: "no-store" }); return r.ok ? null : i.sku; } catch { return i.sku; } }))
+      .then((r) => { if (live) setBroken(r.filter((x): x is string => Boolean(x))); });
+    return () => { live = false; };
+  }, [c.catalog]);
+  const server = new Map(c.catalog.map((i) => [i.sku, i]));
+  const mismatches = CATALOG_SEED.flatMap((s) => { const i = server.get(s.sku); if (!i) return [`${s.sku}: ไม่มีในฐานข้อมูล`]; const d = [i.name !== s.name && "ชื่อ", i.slot !== s.slot && "หมวด", i.asset !== s.asset && "ไฟล์ภาพ", i.price !== s.price && `ราคา (ทะเบียน ${s.price} · ปัจจุบัน ${i.price})`].filter(Boolean); return d.length ? [`${s.sku}: ${d.join(", ")}`] : []; });
+  const bySlot = CATALOG_SEED.reduce<Record<string, number>>((a, s) => ({ ...a, [s.slot]: (a[s.slot] || 0) + 1 }), {});
+  const legacy = c.catalog.filter((i) => i.legacy);
+  return <div className="admin-integrity">
+    <dl className="admin-kpi-grid">{[["SKU ในทะเบียน V20", String(CATALOG_SEED.length)], ["เปิดขายอยู่", String(c.catalog.filter((i) => i.enabled).length)], ["ของรุ่นก่อน (ปิดขาย เก็บสิทธิ์ผู้ซื้อ)", String(legacy.length)], ["ภาพที่โหลดไม่ได้", broken === null ? "กำลังตรวจ…" : String(broken.length)]].map(([l, v]) => <div key={l}><dt>{l}</dt><dd>{v}</dd></div>)}</dl>
+    <p>แยกหมวด: {Object.entries(bySlot).map(([slot, n]) => `${SLOT_LABELS[slot as CosmeticSlot]} ${n}`).join(" · ")}</p>
+    <p className="arena-note">ภาพทุกไฟล์ผ่านการตรวจ SHA-256 ตอนนำเข้า (ดู tests/economy-v20-assets.test.mjs) · กระบี่ สัตว์วิญญาณ และของประดับ เป็นภาพบนโปรไฟล์ ยังไม่ใช่โมเดล 3 มิติ</p>
+    <h3>ความต่างจากทะเบียน</h3>{mismatches.length ? <ul>{mismatches.map((m) => <li key={m}>{m}</li>)}</ul> : <p>ไม่พบความต่าง ทุก SKU ตรงชื่อ หมวด ภาพ และราคาตามทะเบียน</p>}
+    {broken && broken.length > 0 && <><h3>ภาพที่โหลดไม่ได้</h3><p>{broken.join(", ")}</p></>}
+  </div>;
 }

@@ -61,3 +61,6 @@ next-env.d.ts
 .vercel
 .env*
 !.env.example
+
+# Owner art intake (originals stay local; runtime copies live in public/arena/economy/catalog)
+/artwork_inbox/

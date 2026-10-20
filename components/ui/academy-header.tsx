@@ -8,6 +8,23 @@ import Image from "next/image";
 import { useAcademyStore } from "@/game/stores/academy-store";
 import { AudioControls } from "@/components/audio/audio-controls";
 import { validateNickname } from "@/game/security/nickname-validation";
+import { ProfileAvatar } from "@/components/arena/profile-avatar";
+
+type Equipped = Partial<Record<"profileAvatar" | "profileFrame" | "portraitOutfit", { asset: string }>>;
+/** Account control: opens the real profile hub; shows the server-equipped avatar when signed in online. */
+function HeaderProfileButton({ name }: { name: string }) {
+  const [equipped, setEquipped] = useState<Equipped>({});
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/arena/economy", { credentials: "same-origin", cache: "no-store", signal: controller.signal })
+      .then((r) => (r.ok ? r.json() : null)).then((v) => { if (v?.equipped) setEquipped(v.equipped); }).catch(() => {});
+    return () => controller.abort();
+  }, []);
+  return <Link href="/arena/profile" className="header-trainee-pill header-profile-button" title={`เปิดโปรไฟล์ของ ${name}`} aria-label={`เปิดโปรไฟล์ของ ${name}`}>
+    <ProfileAvatar avatar={(equipped.profileAvatar ?? equipped.portraitOutfit)?.asset} frame={equipped.profileFrame?.asset} size={28} />
+    <span className="trainee-name"><strong>โปรไฟล์</strong></span>
+  </Link>;
+}
 
 interface AcademyHeaderProps {
   traineeName?: string;
@@ -168,16 +185,7 @@ export const AcademyHeader = memo(function AcademyHeader({
 
       <div className="header-right">
 
-        {displayName && (
-          <div className="header-trainee-pill" title={`ผู้ฝึก: ${displayName}`}>
-            <div className="trainee-avatar">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm0 12c-5.33 0-8 2.67-8 5v1h16v-1c0-2.33-2.67-5-8-5z" />
-              </svg>
-            </div>
-            <span className="trainee-name">ผู้ฝึก: <strong>{displayName}</strong></span>
-          </div>
-        )}
+        {displayName && <HeaderProfileButton name={displayName} />}
 
         <div className="header-actions">
           <AudioControls />

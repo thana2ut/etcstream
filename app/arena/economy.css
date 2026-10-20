@@ -83,3 +83,41 @@
   .econ-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .econ-receipt { flex-direction: column; align-items: flex-start; }
 }
+
+/* V20 profile hub, social rows, challenges, nav badge. */
+.arena-nav-badge { display: inline-grid; place-items: center; min-width: 20px; height: 20px; margin-left: 6px; padding: 0 6px; border-radius: 999px; background: #c2452f; color: #fff; font-size: 12px; font-weight: 700; }
+.profile-hub { display: grid; gap: 20px; margin-bottom: 20px; }
+.profile-hub-header { display: grid; grid-template-columns: auto minmax(0,1fr) auto; gap: 28px; align-items: center; }
+.profile-hub-portrait { position: relative; padding: 4px 28px 4px 4px; }
+.profile-hub-pet { position: absolute; right: -10px; bottom: -6px; object-fit: contain; filter: drop-shadow(0 6px 12px #000a); }
+.profile-hub-identity h2 { margin: 2px 0 8px; font-size: clamp(26px,2.4vw,36px); color: #f6e2a8; }
+.profile-hub-rank { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
+.profile-hub-stats { display: flex; flex-wrap: wrap; gap: 12px 28px; margin: 8px 0 0; }
+.profile-hub-stats dt { font-size: 13px; color: var(--arena-muted); }
+.profile-hub-stats dd { margin: 2px 0 0; font-size: 20px; font-weight: 700; color: #f3dfa6; }
+.profile-hub-actions { display: grid; gap: 10px; min-width: 210px; }
+.profile-hub-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px; }
+.profile-hub-equip { list-style: none; padding: 0; margin: 8px 0 12px; display: grid; gap: 10px; }
+.profile-hub-equip li { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 10px; background: #0d1828; }
+.profile-hub-equip img { object-fit: contain; border-radius: 8px; }
+.profile-hub-equip small { display: block; color: var(--arena-muted); }
+.profile-hub-empty { width: 64px; height: 64px; border-radius: 8px; border: 1px dashed #cda86c55; }
+.social-row .arena-person-identity { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; }
+.social-row code, .arena-person-identity code { color: #9fe3d2; }
+.social-relation { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.social-challenge-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.social-challenge-list li { display: grid; grid-template-columns: auto minmax(0,1fr) auto; gap: 12px; align-items: center; padding: 10px; border-radius: 10px; background: #0d1828; }
+.social-challenge-list li span { display: block; color: var(--arena-muted); font-size: 14px; }
+.social-challenge-form { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; }
+.arena-player-chip .profile-avatar { margin-right: 2px; }
+@media (max-width: 900px) {
+  .profile-hub-header { grid-template-columns: auto minmax(0,1fr); }
+  .profile-hub-actions { grid-column: 1 / -1; grid-template-columns: repeat(2,minmax(0,1fr)); min-width: 0; }
+  .profile-hub-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .profile-hub-header { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+  .profile-hub-rank, .profile-hub-stats { justify-content: center; }
+  .social-challenge-list li { grid-template-columns: auto minmax(0,1fr); }
+  .social-challenge-list li .arena-actions { grid-column: 1 / -1; }
+}

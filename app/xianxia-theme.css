@@ -1098,3 +1098,16 @@ html[data-overlay] .cloud-layer { transition: none; }
   .fantasy-viewport.welcome-page { overflow-y: auto; overflow-x: clip; }
   .welcome-page .welcome-hero-card { margin-block: auto; }
 }
+
+/* V20: account pill is a real link to the profile hub. */
+.header-profile-button { text-decoration: none; cursor: pointer; min-height: 40px; gap: 8px; }
+.header-profile-button:focus-visible { outline: 2px solid var(--gold-300); outline-offset: 2px; }
+.header-profile-button:active { transform: translateY(1px); }
+
+/* V20 profile avatar: portrait clipped to a circle, frame art overlaid outside it (no CSS ring). */
+.profile-avatar { position: relative; display: inline-block; flex: none; }
+.profile-avatar-face { position: absolute; inset: 14%; border-radius: 50%; overflow: hidden; background: radial-gradient(circle at 50% 35%, #24405f, #0c1626); }
+.profile-avatar:not(.has-frame) .profile-avatar-face { inset: 0; }
+.profile-avatar-face img { object-fit: cover; }
+.profile-avatar-face img.is-default { object-fit: contain; padding: 18%; }
+.profile-avatar-frame { object-fit: contain; pointer-events: none; }

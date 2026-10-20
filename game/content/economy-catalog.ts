@@ -1,4 +1,6 @@
-// V19 Celestial Spirit Economy — presentation map only.
+import registry from "./asset-registry-v20.json";
+
+// V19/V20 Celestial Spirit Economy — presentation map only.
 // Prices, enabled flags and ownership are authoritative in Supabase (etc_catalog / etc_economy RPC);
 // the numbers here are the INITIAL catalog seed mirrored by the migration and used for tests.
 
@@ -15,53 +17,35 @@ export const ECONOMY_ASSETS = {
   questScroll: economyAsset("shop/misc/quest-scroll.png"),
 } as const;
 
-export type CosmeticSlot = "swordSkin" | "portraitOutfit" | "profileFrame" | "profileCompanion" | "residenceDecor";
+export type CosmeticSlot = "profileAvatar" | "swordSkin" | "profileFrame" | "profileCompanion" | "residenceDecor" | "portraitOutfit";
 export const SLOT_LABELS: Record<CosmeticSlot, string> = {
   swordSkin: "กระบี่",
-  portraitOutfit: "อาภรณ์",
+  profileAvatar: "โปรไฟล์เซียน",
   profileFrame: "กรอบโปรไฟล์",
   profileCompanion: "สัตว์วิญญาณ",
-  residenceDecor: "ของประดับตำหนัก",
+  residenceDecor: "ของประดับและตำหนัก",
+  portraitOutfit: "ของสะสมรุ่นก่อน (อาภรณ์)",
 };
 // Honest description of where each slot is actually rendered today (no 3D claims).
 export const SLOT_CONTEXT: Record<CosmeticSlot, string> = {
-  swordSkin: "แสดงคู่กับการ์ดตัวตนในหอประลอง โปรไฟล์ และถุงเฉียนคุน (ภาพประกอบ ไม่ใช่กระบี่ในฉาก 3 มิติ)",
-  portraitOutfit: "แสดงเป็นภาพอาภรณ์บนการ์ดตัวตน (ภาพประกอบ ไม่ใช่ชุดในฉาก 3 มิติ)",
-  profileFrame: "ครอบรูปตัวตนบนหน้าหลัก โปรไฟล์ และรายชื่อสหาย",
-  profileCompanion: "ปรากฏข้างการ์ดตัวตน ไม่ปรากฏในฉากเล่น",
-  residenceDecor: "จัดแสดงในแผงตำหนักบนหน้าโปรไฟล์ (ยังไม่มีการวางในฉาก)",
+  profileAvatar: "ภาพโปรไฟล์ทรงกลมบนปุ่มโปรไฟล์ หน้าโปรไฟล์ และรายชื่อสหาย (ภาพนิ่ง ไม่ใช่ชุดในฉาก 3 มิติ)",
+  swordSkin: "จัดแสดงบนหน้าโปรไฟล์และถุงเฉียนคุน (ภาพประกอบ ไม่ใช่กระบี่ในฉาก 3 มิติ)",
+  profileFrame: "ครอบภาพโปรไฟล์บนหน้าโปรไฟล์ ปุ่มโปรไฟล์ และรายชื่อสหาย",
+  profileCompanion: "ปรากฏข้างภาพโปรไฟล์ ไม่ปรากฏในฉากเล่น",
+  residenceDecor: "จัดแสดงในแผงตำหนักบนหน้าโปรไฟล์ (ยังไม่มีการวางในฉาก 3 มิติ)",
+  portraitOutfit: "ของรุ่น V19 ที่เคยซื้อไว้ ยังเก็บและสวมได้ แต่ปิดขายแล้ว",
 };
-export const COSMETIC_SLOTS = Object.keys(SLOT_LABELS) as CosmeticSlot[];
+/** Market categories for NEW sales (V20). portraitOutfit is legacy-only and shown just to its owners. */
+export const MARKET_SLOTS: CosmeticSlot[] = ["swordSkin", "profileAvatar", "profileFrame", "profileCompanion", "residenceDecor"];
+export const COSMETIC_SLOTS = [...MARKET_SLOTS, "portraitOutfit"] as CosmeticSlot[];
 
-export type CatalogSeed = { sku: string; name: string; slot: CosmeticSlot; price: number; asset: string };
-const s = (sku: string, name: string, slot: CosmeticSlot, price: number, file: string): CatalogSeed => ({ sku, name, slot, price, asset: economyAsset(`shop/${file}`) });
-export const CATALOG_SEED: CatalogSeed[] = [
-  s("sword_cloud", "กระบี่เมฆา", "swordSkin", 400, "swords/cloud-blade.png"),
-  s("sword_thunder", "กระบี่อัสนี", "swordSkin", 650, "swords/thunder-blade.png"),
-  s("sword_jade_dragon", "กระบี่มังกรหยก", "swordSkin", 1200, "swords/jade-dragon-blade.png"),
-  s("sword_flame", "กระบี่เพลิงสวรรค์", "swordSkin", 980, "swords/flame-blade.png"),
-  s("sword_frost", "กระบี่เหมันต์", "swordSkin", 1500, "swords/frost-blade.png"),
-  s("robe_cloud", "อาภรณ์เมฆา", "portraitOutfit", 600, "robes/cloud-robe.png"),
-  s("robe_vermilion", "อาภรณ์ชาด", "portraitOutfit", 780, "robes/vermilion-robe.png"),
-  s("robe_night", "อาภรณ์รัตติกาล", "portraitOutfit", 900, "robes/night-robe.png"),
-  s("robe_golden", "อาภรณ์สุริยัน", "portraitOutfit", 1200, "robes/golden-robe.png"),
-  s("robe_jade", "อาภรณ์หยก", "portraitOutfit", 1450, "robes/jade-robe.png"),
-  s("frame_moon", "กรอบจันทรา", "profileFrame", 120, "frames/moon-frame.png"),
-  s("frame_gold", "กรอบสุริยัน", "profileFrame", 350, "frames/gold-frame.png"),
-  s("frame_fire", "กรอบเพลิง", "profileFrame", 500, "frames/fire-frame.png"),
-  s("frame_purple", "กรอบม่วงพิภพ", "profileFrame", 600, "frames/purple-frame.png"),
-  s("frame_ice", "กรอบเหมันต์", "profileFrame", 650, "frames/ice-frame.png"),
-  s("pet_crane", "กระเรียนเมฆา", "profileCompanion", 900, "companions/cloud-crane.png"),
-  s("pet_fox", "จิ้งจอกหยก", "profileCompanion", 1100, "companions/jade-fox.png"),
-  s("pet_dragon", "มังกรน้อย", "profileCompanion", 1800, "companions/azure-dragon.png"),
-  s("pet_phoenix", "หงส์เพลิง", "profileCompanion", 2200, "companions/phoenix.png"),
-  s("home_pavilion", "ศาลาเซียน", "residenceDecor", 500, "residence/jade-pavilion.png"),
-  s("home_peach", "ต้นท้อเซียน", "residenceDecor", 300, "residence/peach-tree.png"),
-  s("home_bridge", "สะพานหมอก", "residenceDecor", 450, "residence/cloud-bridge.png"),
-  s("home_lantern", "โคมสวรรค์", "residenceDecor", 100, "residence/heaven-lantern.png"),
-  s("home_banner", "แผ่นป้ายสำนัก", "residenceDecor", 150, "residence/celestial-banner.png"),
-  s("home_pedestal", "แท่นกระบี่", "residenceDecor", 300, "residence/sword-pedestal.png"),
-];
+// V20 catalog generated from the owner's checked registry (SHA-256 verified on intake; see tests/economy-v20-assets.test.mjs).
+const categorySlot: Record<string, CosmeticSlot> = { avatar: "profileAvatar", frame: "profileFrame", sword: "swordSkin", pet: "profileCompanion", decor: "residenceDecor" };
+export type CatalogSeed = { sku: string; name: string; slot: CosmeticSlot; price: number; asset: string; sha256: string };
+export const CATALOG_SEED: CatalogSeed[] = registry.items.map((i) => ({
+  sku: i.sku, name: i.thai_name, slot: categorySlot[i.category], price: i.price_spirit_stones,
+  asset: "/" + i.recommended_destination.replace(/^public\//, ""), sha256: i.sha256,
+}));
 
 // Reward design (mirrors etc_reward_rules seed). Level = stage suffix 1..5 of canonical id xs|s|m|l|xl-N.
 export const FIRST_CLEAR_REWARD = [50, 75, 100, 150, 200] as const;

@@ -6,12 +6,17 @@ import { useEffect, useId, useRef, useState } from "react";
 import type { PlayerView, Profile } from "./client-api";
 import { timeText } from "./client-api";
 import { RankBadge } from "./rank-badge";
+import { ProfileAvatar } from "./profile-avatar";
+import { useArenaResource } from "./use-arena-resource";
+
+type ChipEquipped = { equipped?: Partial<Record<string, { asset: string }>> };
+type Inbox = { pendingIn: number; challengesIn: number };
 
 export const arenaAsset = (file: string) => `/assets/arena/${file}.png`;
 export const arenaDestinations = [
   // Top menu keeps four destinations; other modes stay reachable from the home cards.
   ["home", "/arena", "หน้าหลัก"], ["ranked", "/arena/ranked", "จัดอันดับ"],
-  ["friends", "/arena/friends", "สหาย"], ["profile", "/arena/profile", "ข้อมูลส่วนตัว"],
+  ["friends", "/arena/friends", "สหาย"], ["profile", "/arena/profile", "โปรไฟล์"],
 ] as const;
 export function ArenaIcon({ name }: { name: string }) { return <Image src={arenaAsset(`icon-${name}`)} alt="" width={44} height={44} className="arena-icon" />; }
 export function ArenaShell({ children, admin = false, adminHeader, player,rank,connection,rankState }: { children: React.ReactNode; admin?: boolean; adminHeader?: React.ReactNode; player?: PlayerView;rank?:{tier:string;score:number}|null;connection?:"connecting"|"connected"|"disconnected";rankState?:"loading"|"stale"|"ready" }) {
@@ -19,6 +24,9 @@ export function ArenaShell({ children, admin = false, adminHeader, player,rank,c
   const current = arenaDestinations.find(([, href]) => href !== "/arena" && pathname.startsWith(href))?.[0] ?? "home";
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
+  // Live identity art and inbox count (polled only while visible; no fake presence).
+  const chip = useArenaResource<ChipEquipped>(player && !admin ? "economy" : null, 60000), inbox = useArenaResource<Inbox>(player && !admin ? "social/me" : null, 30000);
+  const unread = (inbox.data?.pendingIn ?? 0) + (inbox.data?.challengesIn ?? 0), eq = chip.data?.equipped ?? {};
   return <main className={`arena-shell${admin ? " is-admin" : " arena-public"}`} data-arena-scene={admin ? undefined : current}>
     <Image src={arenaAsset(admin ? "bg-admin-command-hall" : "bg-arena-hub")} alt="" fill sizes="100vw" className="arena-backdrop" />
     <div className="arena-scrim" />
@@ -26,8 +34,8 @@ export function ArenaShell({ children, admin = false, adminHeader, player,rank,c
       {admin ? adminHeader ?? <header className="arena-top"><Link href="/">กลับหน้าต้อนรับ</Link><Link href="/academy">กลับสำนัก</Link><Link href="/admin">บัญชาการสำนัก</Link></header> : <header className="arena-header" onKeyDown={(e) => { if (e.key === "Escape" && menuOpen) { setMenuOpen(false); menuButton.current?.focus(); } }}>
         <Link className="arena-brand" href="/academy"><ArenaIcon name="arena" /><span>หอประลองเซียน<small>กลับสำนัก ↗</small></span></Link>
         <button ref={menuButton} type="button" className="arena-menu-toggle" aria-expanded={menuOpen} aria-controls="arena-navigation" onClick={() => setMenuOpen(!menuOpen)}>เมนู {menuOpen ? "−" : "+"}</button>
-        <nav id="arena-navigation" className={`arena-navigation${menuOpen ? " is-open" : ""}`} aria-label="เมนูหอประลอง">{arenaDestinations.map(([key, href, label]) => <Link key={key} href={href} aria-current={current === key ? "page" : undefined} onClick={() => setMenuOpen(false)}>{label}</Link>)}</nav>
-        {player && <Link href="/arena/profile" className="arena-player-chip" title={player.name}>{rank && rankState!=="stale" ? <RankBadge tier={rank.tier} size={34} /> : <ArenaIcon name="profile" />}<span>{player.name}<small>{connection==="connected"?"เชื่อมต่อแล้ว":connection==="disconnected"?"ขาดการเชื่อมต่อ":"กำลังเชื่อมต่อ"}<br />{rankState==="stale"?"อันดับยังโหลดไม่ได้":rankState==="loading"?"กำลังโหลดอันดับ":rank?`${rank.tier} ${rank.score} คะแนน`:"ยังไม่จัดอันดับ"}</small></span></Link>}
+        <nav id="arena-navigation" className={`arena-navigation${menuOpen ? " is-open" : ""}`} aria-label="เมนูหอประลอง">{arenaDestinations.map(([key, href, label]) => <Link key={key} href={href} aria-current={current === key ? "page" : undefined} onClick={() => setMenuOpen(false)}>{label}{key === "friends" && unread > 0 && <span className="arena-nav-badge" aria-label={`มีรายการรอตอบ ${unread} รายการ`}>{unread}</span>}</Link>)}</nav>
+        {player && <Link href="/arena/profile" className="arena-player-chip" title={`เปิดโปรไฟล์ของ ${player.name}`} aria-label={`เปิดโปรไฟล์ของ ${player.name}`}><ProfileAvatar avatar={(eq.profileAvatar ?? eq.portraitOutfit)?.asset} frame={eq.profileFrame?.asset} size={40} />{rank && rankState!=="stale" && <RankBadge tier={rank.tier} size={28} decorative />}<span>โปรไฟล์<small>{player.name}<br />{connection==="connected"?"เชื่อมต่อแล้ว":connection==="disconnected"?"ขาดการเชื่อมต่อ":"กำลังเชื่อมต่อ"}<br />{rankState==="stale"?"อันดับยังโหลดไม่ได้":rankState==="loading"?"กำลังโหลดอันดับ":rank?`${rank.tier} ${rank.score} คะแนน`:"ยังไม่จัดอันดับ"}</small></span></Link>}
       </header>}
       {children}
       {!admin && <footer className="arena-footer"><span>etcstream · ฝึกวิชา ประลองด้วยความเข้าใจ</span><Link href="/">กลับหน้าต้อนรับ</Link></footer>}

@@ -95,6 +95,30 @@ export async function cloudArena(request: Request, path: string[]) {
       return response(await economy("equip", { sku: body.sku }));
     }
     if (route === "economy/unequip" && post) return response(await economy("unequip", { slot: String(body.slot || "") }));
+    // V20 social: identity is auth.uid(); targets are addressed by public friend code only.
+    const social = async (action: string, value: unknown = {}) => checked(await client.rpc("etc_social", { action, body: json(value) }));
+    const code = (v: unknown) => { const c = String(v || "").trim().toUpperCase(); if (!/^[A-Z0-9]{6,16}$/.test(c)) throw new ArenaError(400, "รหัสสหายไม่ถูกต้อง"); return c; };
+    if (route === "social/me" && !post) return response(await social("me"));
+    if (route === "social/lists" && !post) return response(await social("lists"));
+    if (route === "social/challenges" && !post) return response(await social("challenges"));
+    if (route === "social/search" && !post) {
+      const q = (url.searchParams.get("q") || "").trim();
+      if (q.length < 2 || q.length > 20) throw new ArenaError(400, "พิมพ์ชื่อหรือรหัสสหาย 2–20 ตัวอักษร");
+      return response(await social("search", { q }));
+    }
+    if (route === "social/card" && !post) return response(await social("card", { code: code(url.searchParams.get("code")) }));
+    if (route === "social/request" && post) return response(await social("request", { code: code(body.code) }));
+    if (route === "social/settings" && post) return response(await social("settings", { searchable: body.searchable === true, acceptRequests: body.acceptRequests !== false }));
+    if (route === "social/challenge" && post) {
+      const stage = String(body.stage || "") as ScenarioId;
+      if (!stages.includes(stage)) throw new ArenaError(400, "ไม่พบด่านที่เลือก");
+      await ensureCloudCatalog();
+      return response(await social("challenge-send", { code: code(body.code), stage, version: version(stage) }));
+    }
+    if (route === "social/challenge-respond" && post) {
+      if (!uuid(body.id) || !["accept", "decline", "cancel"].includes(String(body.decision))) throw new ArenaError(400, "ข้อมูลคำท้าไม่ถูกต้อง");
+      return response(await social("challenge-respond", { id: body.id, decision: body.decision }));
+    }
     if (route === "heartbeat" && post) return response(await rpc("heartbeat"));
     if (route === "logout" && post) { await rpc("offline"); const result = await client.auth.signOut(); if (result.error) throw result.error; return response({ ok: true }); }
     if (route === "friends") return response(await rpc(post ? "friends" : "friend-list", body));
@@ -203,8 +227,11 @@ export async function cloudArena(request: Request, path: string[]) {
     if (/RATE_LIMIT/.test(code)) return response({ error: "ทำรายการบ่อยเกินไป กรุณารอสักครู่" }, 429);
     if (/SUSPENDED/.test(code)) return response({ error: "บัญชีถูกระงับ กรุณาติดต่อผู้ดูแล" }, 403);
     if (/REVISION_CONFLICT/.test(code)) return response({ error: "ข้อมูลรอบเปลี่ยนระหว่างส่งคำสั่ง กรุณาลองส่งคำสั่งเดิมอีกครั้ง" }, 409);
-    if (/FRIEND_NOT_FOUND|REQUEST_NOT_FOUND|duplicate key/.test(code)) return response({ error: "ไม่พบคำขอที่ใช้ได้ หรือมีคำขอถึงสหายนี้แล้ว" }, 409);
+    if (/FRIEND_NOT_FOUND|REQUEST_NOT_FOUND|duplicate key/.test(code)) return response({ error: "ไม่พบผู้ฝึกหรือคำขอที่ใช้ได้ หรือมีคำขอ/คำท้าที่รออยู่แล้ว" }, 409);
     if (/INVALID_NAME/.test(code)) return response({ error: "ใช้ชื่อภาษาไทยหรืออังกฤษ 2–20 ตัวอักษร และไม่ใช้ชื่อสงวน" }, 400);
+    if (/SELF_REQUEST/.test(code)) return response({ error: "ส่งคำขอถึงตนเองไม่ได้" }, 400);
+    if (/REQUESTS_CLOSED/.test(code)) return response({ error: "ผู้ฝึกท่านนี้ปิดรับคำขอเป็นสหายไว้" }, 403);
+    if (/FRIENDS_ONLY/.test(code)) return response({ error: "ส่งคำท้าทำเวลาได้เฉพาะสหายที่ตอบรับแล้ว" }, 403);
     if (/INSUFFICIENT_STONES/.test(code)) return response({ error: "หินวิญญาณไม่พอสำหรับรายการนี้", code: "INSUFFICIENT_STONES" }, 409);
     if (/ALREADY_OWNED/.test(code)) return response({ error: "เจ้ามีของสะสมชิ้นนี้ในถุงเฉียนคุนแล้ว ไม่มีการหักหินซ้ำ", code: "ALREADY_OWNED" }, 409);
     if (/ITEM_UNAVAILABLE/.test(code)) return response({ error: "สินค้านี้ยังไม่เปิดขายในตลาดสวรรค์", code: "ITEM_UNAVAILABLE" }, 409);

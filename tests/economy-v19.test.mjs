@@ -2,16 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 
-const src = readFileSync(new URL("../game/content/economy-catalog.ts", import.meta.url), "utf8");
 const sql = readFileSync(new URL("../supabase/migrations/20261021090000_celestial_economy_v19.sql", import.meta.url), "utf8");
-const seeds = [...src.matchAll(/s\("([a-z_]+)", "[^"]+", "(\w+)", (\d+), "([^"]+)"\)/g)];
-
-test("every catalog asset exists under public/arena/economy", () => {
-  assert.equal(seeds.length, 25);
-  for (const [, , , , file] of seeds) assert.ok(existsSync(new URL(`../public/arena/economy/shop/${file}`, import.meta.url)), file);
-});
-test("client seed and SQL seed agree on sku, slot, price and asset", () => {
-  for (const [, sku, slot, price, file] of seeds) assert.ok(sql.includes(`('${sku}','`) && sql.includes(`','${slot}',${price},'/arena/economy/shop/${file}'`), sku);
+test("V19 legacy art stays installed so earlier buyers keep a working image", () => {
+  for (const [, file] of sql.matchAll(/'(\/arena\/economy\/shop\/[a-z/-]+\.png)'/g)) assert.ok(existsSync(new URL(`../public${file}`, import.meta.url)), file);
 });
 test("reward totals: 25 first clears = 2,875 and medal increments never double pay", () => {
   assert.equal([50, 75, 100, 150, 200].reduce((a, b) => a + b) * 5, 2875);
