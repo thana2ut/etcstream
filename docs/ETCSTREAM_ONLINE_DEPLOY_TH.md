@@ -9,7 +9,9 @@
 - ไม่พบ `.env.local` ใน workspace ไม่สร้างหรือแก้ไฟล์ค่าจริง
 - เจ้าของอนุมัติไฟล์ `supabase/migrations/20261020125254_real_online_v12.sql` แล้ว apply สำเร็จ `real_online_v12`, remote `20261020143741`
 - ตรวจฐานก่อนรัน public ว่าง/Auth 0 ราย; หลังรัน 7 ตาราง etc_ เปิด RLS, anon เรียก etc_player ไม่ได้, authenticated เรียก etc_save_run ไม่ได้
-- `supabase/migrations/20261020144218_cloud_ranked_v13.sql` เพิ่ม schema ฤดูกาล/catalog/RPC: **รออนุมัติและรัน** ห้ามแก้ migration ที่รันแล้ว
+- เจ้าของอนุมัติ `supabase/migrations/20261020144218_cloud_ranked_v13.sql` และ apply `cloud_ranked_v13` สำเร็จ remote version `20261020150344` ห้ามแก้ migration ที่รันแล้ว
+- หลัง V13 ตรวจ etc_ 11 ตารางเปิด RLS ทุกตาราง ผู้เล่นไม่มีสิทธิ์ certify และ anon ไม่มีสิทธิ์ ranked ไม่สร้าง season/run ตัวอย่าง
+- ตรวจพบ ADMIN_PASSWORD_HASH บันทึกแบบ Secret/Production แล้ว ตั้ง ADMIN_CREDENTIAL_ROTATED=1 หลังบันทึกสำเร็จ รอชื่อ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ที่ถูกต้องก่อน deploy
 
 ## Environment Variables
 

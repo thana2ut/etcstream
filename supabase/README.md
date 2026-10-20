@@ -4,7 +4,7 @@
 เจ้าของอนุมัติและ apply `real_online_v12` สำเร็จ remote version `20261020143741`
 ก่อนรัน public ไม่มีตารางแอป ไม่มี migration และ Auth 0 ราย หลังรัน etc_ ทั้ง 7 ตารางเปิด RLS
 Client เขียน/อ่านตารางตรงไม่ได้ ใช้ RPC ที่ตรวจ auth.uid() และสิทธิ์ภายใน ไม่มี seed ผู้เล่นหรือผลตัวอย่าง
-`20261020144218_cloud_ranked_v13.sql` เป็น corrective migration เพิ่ม catalog/ฤดูกาล/หลักฐาน/อันดับ **รอเจ้าของอนุมัติ**
+เจ้าของอนุมัติ `20261020144218_cloud_ranked_v13.sql` แล้ว apply cloud_ranked_v13 สำเร็จ remote version `20261020150344` ทั้ง 11 ตาราง etc_ เปิด RLS
 Advisors แจ้ง INFO ไม่มี policies เพราะตั้งใจ deny direct access และ WARN authenticated SECURITY DEFINER สำหรับ API ที่ตรวจสิทธิ์ภายใน
 Migration V13 เสนอถอน public EXECUTE ของ rls_auto_enable ที่มีอยู่เดิมด้วย
 รายละเอียดและข้อจำกัดล่าสุดดู `../docs/ETCSTREAM_ONLINE_DEPLOY_TH.md`
