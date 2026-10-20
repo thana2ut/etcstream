@@ -54,6 +54,16 @@ export function CharacterCard({ name, equipped, compact = false }: { name: strin
   </figure>;
 }
 
+/** The signed-in player's live look (equipped avatar + frame, companion beside it); refreshes after purchase/equip. */
+export function MyIdentityArt({ name, size = 72 }: { name: string; size?: number }) {
+  const summary = useEconomySummary(true), eq = summary.data?.equipped ?? {};
+  const pet = eq.profileCompanion;
+  return <span className="my-identity-art" style={{ paddingRight: pet ? Math.round(size * 0.42) : 0 }}>
+    <ProfileAvatar avatar={(eq.profileAvatar ?? eq.portraitOutfit)?.asset} frame={eq.profileFrame?.asset} name={name} size={size} />
+    {pet && <Image className="my-identity-pet" src={pet.asset} alt={pet.name} width={Math.round(size * 0.62)} height={Math.round(size * 0.62)} />}
+  </span>;
+}
+
 export function useEconomySummary(enabled: boolean) {
   return useArenaResource<EconomySummary>(enabled ? "economy" : null, 30000);
 }

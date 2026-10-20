@@ -180,3 +180,10 @@
 @keyframes econ-pop { from { transform: translateY(12px) scale(.96); opacity: 0; } to { transform: none; opacity: 1; } }
 @media (max-width: 420px) { .econ-modal-sums { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { .econ-modal.is-success, .econ-modal-art.is-glow { animation: none; } }
+
+/* V21.1: live identity art on Arena home and chip companion. */
+.my-identity-art { position: relative; display: inline-flex; flex: none; }
+.my-identity-pet { position: absolute; right: 0; bottom: -4px; object-fit: contain; filter: drop-shadow(0 4px 8px #000b); }
+.arena-identity-link { text-decoration: none; color: inherit; border-radius: 14px; }
+.arena-identity-link:hover strong, .arena-identity-link:focus-visible strong { color: #fff3cf; }
+.arena-player-chip .chip-pet { position: absolute; left: -10px; bottom: -6px; object-fit: contain; filter: drop-shadow(0 2px 4px #000c); }

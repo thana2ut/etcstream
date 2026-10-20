@@ -12,7 +12,7 @@ import {DuelArena,HallOfImmortals,OnlineLeaderboard,RankedPage,MySeasonCapsule,O
 import {useArenaResource} from "./use-arena-resource";
 import { CloudLobby } from "./cloud-lobby";
 import { RankBadge } from "./rank-badge";
-import { CelestialMarket, FriendPortrait, QiankunBag, useFriendAppearance } from "./economy";
+import { CelestialMarket, FriendPortrait, MyIdentityArt, QiankunBag, useFriendAppearance } from "./economy";
 import { ChallengeSender, ChallengesPanel, FriendSearch, PlayerProfilePage, ProfileHub } from "./social";
 
 const scales = { classroom: "xs", studio: "s", auditorium: "m", outdoor: "l", stadium: "xl" };
@@ -59,7 +59,7 @@ export function ArenaPortal({ section = "home",initialScope="all",initialSeason,
     {register && <form className="arena-panel arena-join" onSubmit={join}><ArenaIcon name="profile" /><h2>เข้าร่วมหอประลอง</h2><p>ตัวตนเฉพาะเบราว์เซอร์นี้ ชื่อซ้ำไม่ใช่บัญชีเดียวกัน และคะแนนฝึกเดิมไม่ถูกนำมาจัดอันดับ</p><label>ชื่อผู้ฝึก<input required minLength={2} maxLength={20} value={name || localName || ""} onChange={(e) => setName(e.target.value)} /></label><p className="arena-note">เริ่มต้นไม่เปิดเผยรายชื่อหรือสถานะออนไลน์ ตั้งค่าเพิ่มเติมได้ภายหลัง</p><button type="submit" disabled={joining}>{joining ? "กำลังสร้างตัวตน…" : "สร้างตัวตนผู้ฝึก"}</button></form>}
     {register && <RecoveryPanel onRecovered={reload}/>}
     {section === "home" && <>
-      {profile && <div className="arena-hub-summary"><div className="arena-identity"><ArenaIcon name="profile" /><div><span className="arena-eyebrow">ผู้ฝึกแห่งหอประลอง</span><strong>{profile.player.name}</strong></div></div><div className="arena-summary-metrics"><span>ยืนยันแล้ว <strong>{profile.stats.verified ?? "—"} รอบ</strong></span><span>เวลายืนยันสั้นสุด <strong>{timeText(profile.stats.bestMs)}</strong></span></div></div>}
+      {profile && <div className="arena-hub-summary"><Link className="arena-identity arena-identity-link" href="/arena/profile" aria-label={`เปิดโปรไฟล์ของ ${profile.player.name}`}><MyIdentityArt name={profile.player.name} size={72} /><div><span className="arena-eyebrow">ผู้ฝึกแห่งหอประลอง</span><strong>{profile.player.name}</strong></div></Link><div className="arena-summary-metrics"><span>ยืนยันแล้ว <strong>{profile.stats.verified ?? "—"} รอบ</strong></span><span>เวลายืนยันสั้นสุด <strong>{timeText(profile.stats.bestMs)}</strong></span></div></div>}
       <div className="arena-grid arena-mode-cards">{modes.map(([key, label, description, art]) => <section className={`arena-card arena-portal-tile`} key={key}><div className="arena-card-art"><Image src={arenaAsset(art)} alt="" fill sizes="(max-width:640px) 100vw, (max-width:1280px) 50vw, 600px" /></div><div className="arena-card-body"><h2><span className="arena-mode-icon" data-arena-icon={key}><ArenaIcon name={key} /></span><span>{label}</span></h2><p>{description}</p><Link className="arena-action" href={`/arena/${key}`}>{key === "time-attack" ? "เลือกสนามประลอง" : key === "leaderboard" ? "เปิดทำเนียบ" : key === "duel" ? "เข้าสู่ลานประลอง" : "พบสหาย"}</Link></div></section>)}</div>
       <details className="arena-details arena-lobby-help"><summary>ว่าด้วยการยืนยันผลประลอง</summary><p>ผลจับเวลาที่บันทึกยังไม่เป็นอันดับ จนกว่าจะผ่านการตรวจยืนยันที่เชื่อถือได้</p></details>
     </>}
