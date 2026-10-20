@@ -1,10 +1,11 @@
-.arena
-.env*
-.git
-docs
-tests
-art
-assets
-dm-qinglian-extract
+/.arena/
+/.env*
+/.git/
+/docs/
+/tests/
+/art/
+# Root design references only. Keep game/assets and public/assets in the build.
+/assets/
+/dm-qinglian-extract/
 *.zip
 *.har
