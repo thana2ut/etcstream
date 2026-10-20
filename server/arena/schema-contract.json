@@ -1,0 +1,198 @@
+{
+  "columns": {
+    "schema_version": [
+      "version"
+    ],
+    "admins": [
+      "id",
+      "hash",
+      "active",
+      "rotate"
+    ],
+    "settings": [
+      "id",
+      "version",
+      "time_attack",
+      "board",
+      "connector_ms",
+      "route_ms",
+      "hint_ms",
+      "failed_ms"
+    ],
+    "friends": [
+      "a",
+      "b",
+      "status"
+    ],
+    "blocks": [
+      "a",
+      "b"
+    ],
+    "audit": [
+      "id",
+      "actor",
+      "action",
+      "target",
+      "reason",
+      "metadata",
+      "created",
+      "request_id"
+    ],
+    "limits": [
+      "key",
+      "count",
+      "until"
+    ],
+    "players": [
+      "id",
+      "friend_code",
+      "name",
+      "name_locked",
+      "public",
+      "presence",
+      "hidden",
+      "suspended",
+      "deleted",
+      "created",
+      "rank_public"
+    ],
+    "sessions": [
+      "token_hash",
+      "principal",
+      "role",
+      "expires",
+      "seen"
+    ],
+    "attempts": [
+      "id",
+      "player",
+      "scenario",
+      "scenario_version",
+      "rules_version",
+      "rules",
+      "seed",
+      "status",
+      "created",
+      "start",
+      "finish",
+      "elapsed",
+      "penalty",
+      "total",
+      "mistakes",
+      "graph_valid",
+      "evidence",
+      "invalid",
+      "reason",
+      "verified_at",
+      "validation_version",
+      "season_id"
+    ],
+    "seasons": [
+      "id",
+      "name",
+      "starts",
+      "ends",
+      "status",
+      "scoring_version",
+      "rules",
+      "created",
+      "closed_at",
+      "revision"
+    ],
+    "season_stages": [
+      "season",
+      "scenario",
+      "scenario_version",
+      "rules_version"
+    ],
+    "season_snapshots": [
+      "season",
+      "player",
+      "rank",
+      "score",
+      "stages",
+      "provisional",
+      "achieved",
+      "contributions"
+    ],
+    "season_stage_snapshots": [
+      "season",
+      "scenario",
+      "player",
+      "attempt",
+      "rank",
+      "cohort"
+    ],
+    "recovery_credentials": [
+      "token_hash",
+      "player",
+      "created",
+      "expires",
+      "consumed"
+    ],
+    "attempt_requests": [
+      "player",
+      "request_key",
+      "attempt"
+    ],
+    "competition_reviews": [
+      "attempt",
+      "state",
+      "validation_version",
+      "reason",
+      "updated"
+    ],
+    "competition_replay": [
+      "attempt",
+      "protocol",
+      "state",
+      "bag",
+      "seq",
+      "last_hash",
+      "created"
+    ],
+    "competition_commands": [
+      "attempt",
+      "seq",
+      "payload",
+      "received",
+      "previous_hash",
+      "command_hash"
+    ],
+    "arena_demo_settings": [
+      "id",
+      "enabled"
+    ],
+    "competition_stage_catalog": [
+      "scenario",
+      "version",
+      "verification",
+      "registered"
+    ],
+    "attempt_events": [
+      "attempt",
+      "seq",
+      "kind",
+      "received"
+    ]
+  },
+  "objects": [
+    "attempts_verified_best",
+    "attempts_season_player",
+    "sessions_presence",
+    "friends_unordered_pair",
+    "command_no_update",
+    "command_no_delete",
+    "player_new_name_unique",
+    "player_rename_unique",
+    "audit_no_update",
+    "audit_no_delete",
+    "season_snapshot_no_update",
+    "season_snapshot_no_delete",
+    "stage_snapshot_no_update",
+    "stage_snapshot_no_delete",
+    "season_stage_no_update",
+    "season_stage_no_delete",
+    "season_rules_no_update"
+  ]
+}

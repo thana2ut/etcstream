@@ -18,11 +18,17 @@ import { soundEngine } from "@/game/audio/sound-engine";
  * Mission hall.
  * - `draw` (public /missions): venues are sealed; "รับภารกิจ" spins a roulette over the cards and assigns one.
  *   The assignment can be redrawn once; a new one can be drawn only after all 5 levels of it are cleared.
- * - `admin` (unlisted /missions/admin): the original hall — every venue can be opened and played.
+ * - `admin` (embedded in /admin): the original hall — every venue can be opened and played.
  */
-export function MissionHall({ admin = false }: { admin?: boolean }) {
+export function MissionHall({ admin = false, embedded = false, active = true, onPreview }: { admin?: boolean; embedded?: boolean; active?: boolean; onPreview?: (slug: string, level: number) => Promise<void> }) {
+  const Container = embedded ? "section" : "main";
   const router = useRouter();
-  const { hydrated, player, progress, hydrate, selectMission } = useAcademyStore();
+  const previewOnly = admin && Boolean(onPreview);
+  const { hydrated: storedHydrated, player: storedPlayer, progress: storedProgress, hydrate, selectMission } = useAcademyStore();
+  const hydrated = previewOnly || storedHydrated;
+  const player = previewOnly ? { playerId: "admin-preview", nickname: "ผู้ดูแล · ไม่บันทึกผล" } : storedPlayer;
+  const progress = previewOnly ? { version: 1 as const, playerId: "admin-preview", selected: null, completed: {} as Record<string, number[]> } : storedProgress;
+  const [launching, setLaunching] = useState(false);
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
   const [selectedLevel, setSelectedLevel] = useState(1);
   const [error, setError] = useState("");
@@ -34,10 +40,10 @@ export function MissionHall({ admin = false }: { admin?: boolean }) {
   const stopSpin = useRef<(() => void) | null>(null);
   useEffect(() => () => { timers.current.forEach((id) => window.clearTimeout(id)); stopSpin.current?.(); }, []);
 
-  useEffect(() => { hydrate(); }, [hydrate]);
-  useEffect(() => { if (hydrated && !player) router.replace("/"); }, [hydrated, player, router]);
+  useEffect(() => { if (!previewOnly) hydrate(); }, [hydrate, previewOnly]);
+  useEffect(() => { if (hydrated && !player && !embedded) router.replace("/"); }, [hydrated, player, router, embedded]);
   // The mission detail opens as its own page over the hall: start at its top, lock the hall behind it, ESC goes back.
-  const detailOpen = Boolean(selectedSlug) && !rolling;
+  const detailOpen = active && Boolean(selectedSlug) && !rolling;
   useEffect(() => {
     if (!detailOpen) return;
     detailRef.current?.scrollTo({ top: 0 });
@@ -49,10 +55,10 @@ export function MissionHall({ admin = false }: { admin?: boolean }) {
   }, [detailOpen, selectedSlug]);
 
   if (!hydrated || !player || !progress) {
-    return <main className="fantasy-viewport mission-loading"><p>กำลังเปิดหอภารกิจ...</p></main>;
+    return <Container className={embedded ? "arena-panel" : "fantasy-viewport mission-loading"}><p>{hydrated && !player ? "หอภารกิจเดิมต้องใช้โปรไฟล์ฝึกในเบราว์เซอร์นี้ กรุณาสร้างโปรไฟล์ที่หน้าต้อนรับก่อน ระบบจะไม่สร้างผู้เล่นหรือผลภารกิจแทนคุณ" : "กำลังเปิดหอภารกิจ..."}</p>{embedded && hydrated && !player && <a href="/">ไปหน้าต้อนรับ</a>}</Container>;
   }
 
-  const record = drawnLocal ?? missionDrawRepository.load(player.playerId);
+  const record = previewOnly ? null : drawnLocal ?? missionDrawRepository.load(player.playerId);
   const drawn = record?.slug ?? null;
   const rerollsUsed = record?.rerolls ?? 0;
   const clearedOf = (slug: string) => progress.completed[slug]?.length ?? 0;
@@ -106,7 +112,14 @@ export function MissionHall({ admin = false }: { admin?: boolean }) {
   const selectedMission = selectedSlug && selectable(selectedSlug) ? getMissionBySlug(selectedSlug) : null;
   const difficulty = selectedMission ? getDifficultyMeta(selectedMission, selectedLevel) : null;
 
-  const startMission = (slug: string, level: number) => {
+  const startMission = async (slug: string, level: number) => {
+    if (previewOnly && onPreview) {
+      if (launching) return;
+      setLaunching(true); setError("");
+      try { await onPreview(slug, level); } catch (e) { setError((e as Error).message); }
+      finally { setLaunching(false); }
+      return;
+    }
     if (!selectMission(slug, level, admin)) {
       setError("เริ่มภารกิจไม่ได้ โปรดตรวจการตั้งค่าเบราว์เซอร์แล้วลองอีกครั้ง");
       return;
@@ -125,15 +138,15 @@ export function MissionHall({ admin = false }: { admin?: boolean }) {
   };
 
   return (
-    <main className="fantasy-viewport mission-hall-page">
-      <FantasyBackground variant="archive" image="/images/xianxia/bg-missions.webp" />
-      <AcademyHeader traineeName={player.nickname} onBack={() => router.push("/academy")} backLabel="กลับโถงสำนัก" />
+    <Container className={`fantasy-viewport mission-hall-page${embedded ? " mission-hall-embedded" : ""}${admin && embedded ? " mission-hall-compact-admin" : ""}`}>
+      {!embedded && <FantasyBackground variant="archive" image="/images/xianxia/bg-missions.webp" />}
+      {!embedded && <AcademyHeader traineeName={player.nickname} onBack={() => router.push(admin ? "/admin" : "/academy")} backLabel={admin ? "กลับหน้าผู้ดูแล" : "กลับโถงสำนัก"} />}
       <div className="mission-hall-content">
         <header className="mission-hall-heading">
           <span className="mission-hall-eyebrow">◈ หอจารึกแห่งภารกิจ{admin ? " · ผู้ดูแล" : ""} ◈</span>
-          <h1>{admin ? "ทุกภารกิจของสำนัก" : "วันนี้เจ้าอยากรับภารกิจใด"}</h1>
+          <h1>{admin ? "หอจารึกแห่งภารกิจ" : "วันนี้เจ้าอยากรับภารกิจใด"}</h1>
           <p>{admin
-            ? <>โหมดผู้ดูแล: เปิดดูและเล่นได้ทุกสถานที่ ระดับยังปลดล็อกตามลำดับเหมือนเดิม</>
+            ? <>โหมดผู้ดูแล: เปิดตรวจได้ครบ 5 สถานที่ 25 ระดับ · ไม่ปลดล็อกหรือบันทึกผลให้ผู้เล่น</>
             : <>กดรับภารกิจ แล้วหอจารึกจะสุ่มมอบสถานที่ให้เจ้าหนึ่งแห่ง<br />ผ่านครบ 5 ระดับของสถานที่นั้นจึงรับภารกิจใหม่ได้</>}</p>
         </header>
 
@@ -160,15 +173,16 @@ export function MissionHall({ admin = false }: { admin?: boolean }) {
                 aria-pressed={selectedSlug === mission.slug}
                 onClick={() => { setSelectedSlug(mission.slug); setSelectedLevel(mission.difficulties.find((d) => !progress.completed[mission.slug]?.includes(d.level))?.level ?? 1); setError(""); soundEngine.play("mission_reveal"); }}
               >
+                {admin && embedded && <span className="admin-chapter-art" aria-hidden="true" />}
                 <span className="mission-plaque-number">บทที่ {String(index + 1).padStart(2, "0")}</span>
                 <span className="mission-plaque-sigil" aria-hidden="true">{["✦", "☾", "◇", "⌘", "♛"][index]}</span>
                 <strong>{mission.title}</strong>
-                <span className="mission-plaque-subtitle">{mission.subtitle}</span>
-                <span className="mission-plaque-place">สถานที่: {mission.venue}<br />ลักษณะงาน: {mission.venueConcept}</span>
-                <span className="mission-plaque-description">{mission.description}</span>
+                {!(admin && embedded) && <span className="mission-plaque-subtitle">{mission.subtitle}</span>}
+                <span className="mission-plaque-place">{!(admin && embedded) && "สถานที่: "}{mission.venue}{!(admin && embedded) && <><br />ลักษณะงาน: {mission.venueConcept}</>}</span>
+                <span className="mission-plaque-description">{admin && embedded ? ["ฝึกภาพและเสียงสำหรับห้องเรียนไฮบริด", "ฝึกหลายกล้องและเสียงในงานสตูดิโอ", "ฝึกควบคุมภาพและเสียงสำหรับหอประชุม", "ฝึกจัดระบบภาพและเสียงงานกลางแจ้ง", "ฝึกระบบถ่ายทอดสดการแข่งขันกีฬา"][index] : mission.description}</span>
                 <span className="mission-plaque-footer">
-                  <span>{cleared >= 5 ? "ผ่านครบ 5/5 ระดับ ✓" : `ผ่านแล้ว ${cleared}/5 ระดับ`}</span>
-                  <span>{open ? "เลือกภารกิจ →" : cleared >= 5 ? "สำเร็จแล้ว" : "รอสุ่มภารกิจ"}</span>
+                  <span>{previewOnly ? "5 ระดับ · ไม่บันทึกผล" : cleared >= 5 ? "ผ่านครบ 5/5 ระดับ ✓" : `ผ่านแล้ว ${cleared}/5 ระดับ`}</span>
+                  <span>{open ? admin && embedded ? "เลือกบท →" : "เลือกภารกิจ →" : cleared >= 5 ? "สำเร็จแล้ว" : "รอสุ่มภารกิจ"}</span>
                 </span>
               </button>
             );
@@ -176,7 +190,7 @@ export function MissionHall({ admin = false }: { admin?: boolean }) {
         </section>
 
         {/* Portal: the hall content is its own stacking context, so the detail page must live at <body> to cover the header. */}
-        {selectedMission && createPortal(
+        {active && selectedMission && createPortal(
           <div ref={detailRef} className="mission-detail-page" role="dialog" aria-modal="true" aria-labelledby="selected-mission-title">
           <FantasyBackground variant="archive" image="/images/xianxia/bg-mission-detail.webp" />
           <div className="mission-detail-inner">
@@ -224,7 +238,7 @@ export function MissionHall({ admin = false }: { admin?: boolean }) {
                 <strong>{difficulty ? `ระดับ ${difficulty.level} · ${difficulty.title}` : ""}</strong>
                 <p>{difficulty?.objective}</p>
               </div>
-              <ActionButton variant="gold" size="lg" onClick={() => difficulty && startMission(selectedMission.slug, difficulty.level)}>เริ่มภารกิจนี้</ActionButton>
+              <ActionButton variant="gold" size="lg" disabled={launching} onClick={() => { if (difficulty) void startMission(selectedMission.slug, difficulty.level); }}>{launching ? "กำลังเตรียมชุดสาย…" : previewOnly ? "เข้าดูในโหมดผู้ดูแล" : "เริ่มภารกิจนี้"}</ActionButton>
             </div>
             {error && <p className="form-error" role="alert">{error}</p>}
           </section>
@@ -233,6 +247,6 @@ export function MissionHall({ admin = false }: { admin?: boolean }) {
           document.body,
         )}
       </div>
-    </main>
+    </Container>
   );
 }

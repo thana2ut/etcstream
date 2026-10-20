@@ -1,0 +1,20 @@
+-- New isolated store. Review before running scripts/provision-arena.mjs.
+PRAGMA foreign_keys=ON;
+CREATE TABLE IF NOT EXISTS schema_version(version INTEGER PRIMARY KEY);
+INSERT OR IGNORE INTO schema_version VALUES(1);
+CREATE TABLE players(id TEXT PRIMARY KEY, friend_code TEXT NOT NULL UNIQUE, name TEXT NOT NULL, name_locked INTEGER NOT NULL DEFAULT 0, public INTEGER NOT NULL DEFAULT 0, presence INTEGER NOT NULL DEFAULT 0, hidden INTEGER NOT NULL DEFAULT 0, suspended INTEGER NOT NULL DEFAULT 0, deleted INTEGER NOT NULL DEFAULT 0, created INTEGER NOT NULL);
+CREATE TABLE admins(id TEXT PRIMARY KEY, hash TEXT NOT NULL, rotate INTEGER NOT NULL DEFAULT 1, active INTEGER NOT NULL DEFAULT 1);
+CREATE TABLE sessions(token_hash TEXT PRIMARY KEY, principal TEXT NOT NULL, role TEXT NOT NULL CHECK(role IN ('player','admin')), expires INTEGER NOT NULL, seen INTEGER NOT NULL);
+CREATE INDEX sessions_principal ON sessions(principal,role,expires);
+CREATE TABLE friends(a TEXT NOT NULL REFERENCES players(id), b TEXT NOT NULL REFERENCES players(id), status TEXT NOT NULL CHECK(status IN ('pending','accepted')), created INTEGER NOT NULL, PRIMARY KEY(a,b), CHECK(a<>b));
+CREATE TABLE blocks(a TEXT NOT NULL REFERENCES players(id), b TEXT NOT NULL REFERENCES players(id), PRIMARY KEY(a,b), CHECK(a<>b));
+CREATE TABLE attempts(id TEXT PRIMARY KEY, player TEXT NOT NULL REFERENCES players(id), scenario TEXT NOT NULL, scenario_version TEXT NOT NULL, rules_version INTEGER NOT NULL, rules TEXT NOT NULL, seed INTEGER NOT NULL, status TEXT NOT NULL, created INTEGER NOT NULL, start INTEGER, finish INTEGER, elapsed INTEGER, penalty INTEGER NOT NULL DEFAULT 0, total INTEGER, mistakes INTEGER NOT NULL DEFAULT 0, graph_valid INTEGER NOT NULL DEFAULT 0, evidence TEXT, invalid INTEGER NOT NULL DEFAULT 0, reason TEXT);
+CREATE INDEX attempts_board ON attempts(scenario,scenario_version,rules_version,status,invalid,total,finish);
+CREATE INDEX attempts_player ON attempts(player,created);
+CREATE TABLE attempt_events(attempt TEXT NOT NULL REFERENCES attempts(id), seq INTEGER NOT NULL, kind TEXT NOT NULL, received INTEGER NOT NULL, PRIMARY KEY(attempt,seq));
+CREATE TABLE audit(id TEXT PRIMARY KEY, actor TEXT NOT NULL, action TEXT NOT NULL, target TEXT NOT NULL, reason TEXT NOT NULL, metadata TEXT NOT NULL, created INTEGER NOT NULL, request_id TEXT NOT NULL);
+CREATE TRIGGER audit_no_update BEFORE UPDATE ON audit BEGIN SELECT RAISE(ABORT,'append-only'); END;
+CREATE TRIGGER audit_no_delete BEFORE DELETE ON audit BEGIN SELECT RAISE(ABORT,'append-only'); END;
+CREATE TABLE limits(key TEXT PRIMARY KEY, count INTEGER NOT NULL, until INTEGER NOT NULL);
+CREATE TABLE settings(id INTEGER PRIMARY KEY CHECK(id=1), version INTEGER NOT NULL, time_attack INTEGER NOT NULL, board INTEGER NOT NULL, connector_ms INTEGER NOT NULL, route_ms INTEGER NOT NULL, hint_ms INTEGER NOT NULL, failed_ms INTEGER NOT NULL);
+INSERT INTO settings VALUES(1,1,1,1,5000,10000,15000,10000);

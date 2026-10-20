@@ -1,0 +1,114 @@
+[
+  {
+    "asset": "bg-admin-command-hall.png",
+    "destination": "public/assets/arena/bg-admin-command-hall.png",
+    "consumer": "ArenaShell /admin/* and AdminGate",
+    "sha256": "a837cec5c9382b2b2fcc0dc717c721715b45f0363f89552d18e54a8abecbd1ce",
+    "verification": "source-mapped, byte-identical to supplied ZIP; not browser-verified"
+  },
+  {
+    "asset": "bg-arena-hub.png",
+    "destination": "public/assets/arena/bg-arena-hub.png",
+    "consumer": "ArenaShell /arena/*",
+    "sha256": "69d94fa43673839f83364d96b5ba578ac294d85563955b4858f4db6d894fc1bf",
+    "verification": "source-mapped, byte-identical to supplied ZIP; not browser-verified"
+  },
+  {
+    "asset": "card-duel.png",
+    "destination": "public/assets/arena/card-duel.png",
+    "consumer": "ArenaPortal /arena, /arena/duel",
+    "sha256": "f779a9c16d55a0f81423db43ac57f5efa558af299a56e77468f9808553066195",
+    "verification": "source-mapped, byte-identical to supplied ZIP; not browser-verified"
+  },
+  {
+    "asset": "card-friends.png",
+    "destination": "public/assets/arena/card-friends.png",
+    "consumer": "ArenaPortal /arena, /arena/friends",
+    "sha256": "8c794a8777ee0fae49fd43479b79243f60ad14df5a707433a6315a0177add3da",
+    "verification": "source-mapped, byte-identical to supplied ZIP; not browser-verified"
+  },
+  {
+    "asset": "card-leaderboard.png",
+    "destination": "public/assets/arena/card-leaderboard.png",
+    "consumer": "ArenaPortal /arena, /arena/leaderboard",
+    "sha256": "78ac446df10340dd50f8b15ea93f5cc462824af16e69c9606fa0461fa4b497cc",
+    "verification": "source-mapped, byte-identical to supplied ZIP; not browser-verified"
+  },
+  {
+    "asset": "card-time-attack.png",
+    "destination": "public/assets/arena/card-time-attack.png",
+    "consumer": "ArenaPortal /arena, /arena/time-attack",
+    "sha256": "4059caade31e92acdf0e2ea85713b2bf404dd3f98dac1d74201bf3a1ac4831e0",
+    "verification": "source-mapped, byte-identical to supplied ZIP; not browser-verified"
+  },
+  {
+    "asset": "hero-celestial-gate.png",
+    "destination": "public/assets/arena/hero-celestial-gate.png",
+    "consumer": "ArenaBanner /arena",
+    "sha256": "542776b4dc25222875e35df25e0362c79a917c275d56b1278de71202195daf57",
+    "verification": "source-mapped, byte-identical to supplied ZIP; not browser-verified"
+  },
+  {
+    "asset": "icon-admin.png",
+    "destination": "public/assets/arena/icon-admin.png",
+    "consumer": "AdminGate/AdminShell",
+    "sha256": "dbbb155579f2e10652d1a064693bd27116c57ee00365693948ee0e9f9c288042",
+    "verification": "source-mapped, byte-identical to supplied ZIP; not browser-verified"
+  },
+  {
+    "asset": "icon-arena.png",
+    "destination": "public/assets/arena/icon-arena.png",
+    "consumer": "Welcome new action",
+    "sha256": "4c7763e4829622108c968dd5c021037adfc11b9057f832ece1d0a87589ac90b5",
+    "verification": "source-mapped, byte-identical to supplied ZIP; not browser-verified"
+  },
+  {
+    "asset": "icon-duel.png",
+    "destination": "public/assets/arena/icon-duel.png",
+    "consumer": "Arena mode card",
+    "sha256": "ddc03c155a19847ee73cc0d01739803637a1559429cefc691d2befbe91e2111b",
+    "verification": "source-mapped, byte-identical to supplied ZIP; not browser-verified"
+  },
+  {
+    "asset": "icon-friends.png",
+    "destination": "public/assets/arena/icon-friends.png",
+    "consumer": "Arena mode card",
+    "sha256": "c6ba5851cece259c9587dbd69639e72a3b341c8a4425d5fb965965f4c786adf3",
+    "verification": "source-mapped, byte-identical to supplied ZIP; not browser-verified"
+  },
+  {
+    "asset": "icon-leaderboard.png",
+    "destination": "public/assets/arena/icon-leaderboard.png",
+    "consumer": "Arena mode card",
+    "sha256": "ab228111f928d8cbc9d5bbe39da187e2d02c1863340dec9ba6a817700ceb8bc4",
+    "verification": "source-mapped, byte-identical to supplied ZIP; not browser-verified"
+  },
+  {
+    "asset": "icon-profile.png",
+    "destination": "public/assets/arena/icon-profile.png",
+    "consumer": "real player profile summary",
+    "sha256": "1d7d97328a685f9a3de100db89143b7f6d4207a8376d1504971869ddc12505ab",
+    "verification": "source-mapped, byte-identical to supplied ZIP; not browser-verified"
+  },
+  {
+    "asset": "icon-settings.png",
+    "destination": "public/assets/arena/icon-settings.png",
+    "consumer": "admin RulesForm",
+    "sha256": "d81e073bcfde81d470e6ec2dff0cb783d3686c6d79e55e4183b8b95984295127",
+    "verification": "source-mapped, byte-identical to supplied ZIP; not browser-verified"
+  },
+  {
+    "asset": "icon-time-attack.png",
+    "destination": "public/assets/arena/icon-time-attack.png",
+    "consumer": "Arena mode card",
+    "sha256": "c1649a0f5073f2d4ecc0c5c288043af3c42d134deabbe533d95ad83da11b3130",
+    "verification": "source-mapped, byte-identical to supplied ZIP; not browser-verified"
+  },
+  {
+    "asset": "icon-trophy.png",
+    "destination": "public/assets/arena/icon-trophy.png",
+    "consumer": "Leaderboard section heading (no player award)",
+    "sha256": "ea61ddf72e4169c0f0784033490f615b858ab935b10042f398479d709621b75d",
+    "verification": "source-mapped, byte-identical to supplied ZIP; not browser-verified"
+  }
+]

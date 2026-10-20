@@ -1,0 +1,19 @@
+import "server-only";
+import { one, run, audit, transaction, requireOnlineSchema, ArenaError } from "./db";
+export const demoRoster = ["ต้นกล้า", "ฟ้าใส", "ธารา", "เมฆา", "ขวัญข้าว"].map((name, index) => ({ id: `demo-thai-${index + 1}`, name, label: "DEMO · ตัวอย่างข้อมูล", rank: null, bestMs: null, online: false }));
+export function demoView(admin = false) {
+  requireOnlineSchema();
+  const environmentEnabled = process.env.ARENA_DEMO_ENABLED === "1";
+  const selected = Boolean(one("SELECT enabled FROM arena_demo_settings WHERE id=1")?.enabled);
+  return { enabled: environmentEnabled && selected, ...(admin ? { environmentEnabled, selected } : {}), profiles: admin || environmentEnabled && selected ? demoRoster : [], label: "ตัวอย่างข้อมูลเท่านั้น ไม่ใช่ผู้เล่นหรือผลแข่งขันจริง" };
+}
+export function setDemo(actor: string, body: Record<string, unknown>) {
+  requireOnlineSchema();
+  if (typeof body.enabled !== "boolean" || body.confirm !== "DEMO" || String(body.reason || "").trim().length < 5 || String(body.reason || "").length > 500) throw new ArenaError(400,"กรอกเหตุผล 5–500 ตัวอักษรและยืนยัน DEMO ก่อนเปลี่ยนการแสดงตัวอย่าง");
+  if (body.enabled && process.env.ARENA_DEMO_ENABLED !== "1") throw new ArenaError(409,"เจ้าของต้องเปิด ARENA_DEMO_ENABLED=1 บนเซิร์ฟเวอร์ก่อน ไม่มีการเปลี่ยน environment ให้โดยอัตโนมัติ");
+  return transaction(() => {
+  run("UPDATE arena_demo_settings SET enabled=? WHERE id=1",body.enabled ? 1 : 0);
+  audit(actor,"demo-visibility","sample-roster",String(body.reason));
+  return demoView(true);
+  });
+}

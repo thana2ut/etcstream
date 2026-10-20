@@ -1,0 +1,9 @@
+"use client";
+import { useEffect, useState } from "react";
+import { api, statusText, type AttemptView } from "./client-api";
+type Evidence = { attempt: AttemptView; replay: {protocol:string;seq:number;last_hash:string}|null; commands:{seq:number;payload:string;received:number;command_hash:string}[] };
+export function AdminEvidence({id,onClose}:{id:string;onClose:()=>void}) {
+  const [data,setData]=useState<Evidence|null>(null),[error,setError]=useState(""),[offset,setOffset]=useState(0);
+  useEffect(()=>{const controller=new AbortController();api<Evidence>(`evidence?id=${encodeURIComponent(id)}&offset=${offset}`,undefined,true,controller.signal).then((value)=>{setData(value);setError("");}).catch((e:Error)=>{if(e.name!=="AbortError"){setData(null);setError(e.message);}});return()=>controller.abort();},[id,offset]);
+  return <section className="arena-panel"><button onClick={onClose}>ปิดหลักฐาน</button><h3>หลักฐานฝั่งเซิร์ฟเวอร์ของรอบ {id}</h3>{error&&<p role="alert">{error}</p>}{!data&&!error&&<p role="status">กำลังอ่านหลักฐานจริง…</p>}{data&&<><p>{data.attempt.scenario} · {statusText(data.attempt.status)}</p>{data.replay?<p>Protocol {data.replay.protocol} · {data.replay.seq} คำสั่ง · hash สุดท้าย <code>{data.replay.last_hash}</code></p>:<p>เป็นรอบเดิมที่ไม่มี command ledger จึงไม่รับรองย้อนหลังจาก snapshot</p>}<div className="arena-table-wrap"><table><thead><tr><th>ลำดับ/เวลารับ</th><th>คำสั่งจริง</th></tr></thead><tbody>{data.commands.map((c)=><tr key={c.seq}><td>{c.seq}<br/>{new Date(c.received).toLocaleString("th-TH")}</td><td><code>{c.payload}</code></td></tr>)}</tbody></table></div><p><button disabled={offset===0} onClick={()=>setOffset(Math.max(0,offset-100))}>ก่อนหน้า</button><button disabled={data.commands.length<100} onClick={()=>setOffset(offset+100)}>ถัดไป</button></p></>}</section>;
+}

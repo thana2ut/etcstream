@@ -1,6 +1,8 @@
 "use client";
 
-import { Text } from "@react-three/drei";
+import { SceneText as Text } from "@/components/game/scene-text";
+
+
 import { useTrainingStore } from "@/game/stores/training-store";
 import { venueScreenFeed } from "@/game/training/monitor-feed";
 import { SCENE_FONT, sceneText } from "@/game/rendering/scene-font";

@@ -1,12 +1,14 @@
 "use client";
 
+import { SceneText as Text } from "@/components/game/scene-text";
+
 import { DeviceVisual } from "../../equipment/device-visual";
 import { Hcx2000Model } from "../../equipment/hc-x2000";
 import { useTrainingStore } from "@/game/stores/training-store";
 import { scenarioOf } from "@/game/training/hdmi-training";
-import { ROOMS } from "@/game/training/sim/rooms";
+import { MISSION_ROOMS as ROOMS } from "@/game/training/sim/rooms";
 import { MODELS } from "@/game/training/sim/equipment";
-import { Text } from "@react-three/drei";
+
 import { SCENE_FONT } from "@/game/rendering/scene-font";
 import { SCENE_CANVAS_FONT } from "@/game/rendering/scene-font";
 import { useMemo } from "react";

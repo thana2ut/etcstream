@@ -33,6 +33,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -40,3 +41,19 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Server-only local Arena database, sessions, salted credential hashes and backups.
+/.arena/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+# Local reference downloads, recordings and private operator output.
+/dm-qinglian-extract/
+/docs/qa-evidence/
+/docs/references/
+*.har
+*.zip
+/supabase/.temp/
+# Keep the owner's uncommitted merged font local; deploy uses the already tracked font.
+/public/fonts/scene-sarabun.ttf

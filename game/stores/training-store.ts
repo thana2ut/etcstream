@@ -1,3 +1,4 @@
+import { emitCompetitionCommand, hasCompetitionCommandListeners } from "@/game/training/competition-commands";
 import { create } from "zustand";
 import {
   initialTrainingState, interactWithTarget, placeHeldOnCenterTable,
@@ -56,6 +57,7 @@ function targetKey(target: TrainingTarget | null): string {
   if (target.kind === "item") return `item:${target.itemId}`;
   if (target.kind === "action") return `action:${target.actionId}`;
   if (target.kind === "device") return `device:${target.deviceId}`;
+  if (target.kind === "control") return `control:${target.deviceId}:${target.key}:${String(target.value)}`;
   return `end:${target.cableId}:${target.end}`;
 }
 
@@ -117,3 +119,15 @@ export const useTrainingStore = create<TrainingStore>((set, get) => ({
   // Device front faces the player (facing = camera yaw), plus any extra R-key turn.
   drop: (position, facing = 0) => set((state) => ({ ...placeHeldOnCenterTable(state, position, facing + state.heldTurn), heldTurn: state.heldItem ? 0 : state.heldTurn })),
 }));
+
+// Observe original gameplay intents without replacing any simulation/interaction behavior.
+for (const method of ["interact", "drop", "takeCable", "stowHeld", "control", "test", "trace", "streamCheck", "allClear", "quiz", "review", "signOff"] as const) {
+  const original = useTrainingStore.getState()[method] as unknown as (...args: unknown[]) => unknown;
+  useTrainingStore.setState({ [method]: (...args: unknown[]) => {
+    const before = useTrainingStore.getState();
+    const evidence = method === "interact" ? [before.focusedTarget, before.pickMode] : method === "drop" ? [args[0], args[1] ?? 0, before.heldTurn] : ["stowHeld", "allClear", "signOff"].includes(method) ? [] : method === "control" ? args.slice(0,3) : args.slice(0,1);
+    const result = original(...args);
+    if (hasCompetitionCommandListeners()) emitCompetitionCommand({ method, args: JSON.parse(JSON.stringify(evidence)) });
+    return result;
+  } } as Partial<ReturnType<typeof useTrainingStore.getState>>);
+}

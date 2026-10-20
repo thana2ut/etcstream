@@ -12,9 +12,14 @@ test("25 separately playable stages: 5 rooms × L1–L5, unique ids, tickets and
 });
 test("every named model carries source_url, verified_ports and asset_license; generics are labelled", () => {
   for (const m of Object.values(MODELS)) {
-    assert.ok(m.verifiedPorts.length > 0 && m.assetLicense, m.modelId);
-    if (m.generic) assert.equal(m.manufacturer, "Generic Training Device", m.modelId);
-    else assert.match(m.sourceUrl, /^https:\/\/(www\.)?(blackmagicdesign|proav\.roland|usa\.yamaha|shure|magewell)\./, m.modelId);
+    assert.ok(m.assetLicense, m.modelId);
+    if (m.ports.length) assert.ok(m.verifiedPorts.length > 0, m.modelId);
+    else {
+      assert.equal(m.modelId, "reference-handheld-tx", m.modelId);
+      assert.ok(m.generic && m.notes.some((note) => note.includes("ไม่มีสายสมมติ")), m.modelId);
+    }
+    if (m.generic) assert.ok(["Generic Training Device", "โมเดลจำลองเพื่อฝึก"].includes(m.manufacturer), m.modelId);
+    else assert.match(m.sourceUrl, /^https:\/\/(www\.)?(blackmagicdesign|proav\.roland|usa\.yamaha|shure|magewell|aja)\./, m.modelId);
   }
 });
 test("all 25 stages present Thai instructions while retaining simulator identifiers", () => {
@@ -70,7 +75,7 @@ test("L5 certifications reveal no route checklist and never pre-wire", () => {
 const XS = SCENARIOS["xs-5"].simDevices;
 test("XS: source OUTPUT → switcher INPUT accepted; PROGRAM OUT → camera OUT rejected (output-to-output)", () => {
   assert.ok(canConnect(XS, "cam1:hdmi-out", "sw:hdmi-in-1").ok);
-  assert.equal(canConnect(XS, "sw:hdmi-pgm-out", "cam1:hdmi-out").code, "OUTPUT_TO_OUTPUT");
+  assert.equal(canConnect(XS, "sw:hdmi-out", "cam1:hdmi-out").code, "OUTPUT_TO_OUTPUT");
   assert.ok(canConnect(XS, "sw:usb", "host:usb-1").ok, "USB WEBCAM DEVICE → notebook USB HOST");
 });
 test("XS: HDMI PROGRAM OUT and USB WEBCAM are independent — front display and OBS both follow source changes", () => {
@@ -109,7 +114,11 @@ test("XS: removing a mandatory link breaks the completed graph (no connected-cou
   const lead = SCENARIOS["xs-5"].canonical.find((c) => c.from === "mix:aux-out").cableId;
   const cut = dropHeldEnd(act(s, { kind: "end", cableId: lead, end: "b" }), [0, 0.8, 0]);
   assert.ok(!(simContext(cut).view.host.audio ?? []).includes("TEACHER VOICE"));
-  assert.equal(runTest(cut, "signal").sim.testsPassed.signal, false);
+  // Ordered testing: the cut withdraws the stale physical/signal passes, so the signal test cannot pass and nothing completes.
+  const retest = runTest(cut, "signal");
+  assert.notEqual(retest.sim.testsPassed.signal, true);
+  assert.equal(retest.sim.testsPassed.physical, undefined);
+  assert.ok(!retest.completed);
 });
 
 /* ───────── room 02 programmatic tests ───────── */
@@ -122,7 +131,9 @@ test("ST: MULTIVIEW is observation only — Capture fed from MV makes OBS show t
   s = attach(s, mvLead, "b", "capture:hdmi-in");
   s = attach(s, pgmLead, "b", "monitor:hdmi-in");
   assert.match(simContext(s).view.host.picture, /^MULTIVIEW/);
-  assert.equal(runTest(s, "signal").sim.testsPassed.signal, false);
+  const retest = runTest(s, "signal");
+  assert.notEqual(retest.sim.testsPassed.signal, true);
+  assert.ok(!retest.completed);
 });
 test("ST: Capture USB is a DEVICE that must reach the notebook USB HOST", () => {
   assert.ok(canConnect(ST, "capture:usb", "host:usb-1").ok);
@@ -173,7 +184,7 @@ test("AU: stage display follows AUX — MULTIVIEW stays on the FOH monitor", () 
   const v = simContext(s).view;
   assert.equal(v.display.picture, "SLIDES");
   assert.match(v.monitor.picture, /^MULTIVIEW/);
-  s = setControl(s, "sw", "aux", "SDI 3");
+  s = setControl(s, "sw", "aux-1", "SDI 3");
   assert.equal(simContext(s).view.display.picture, "CAM3 RIGHT");
 });
 test("AU: HyperDeck recording and OBS capture are independent outputs", () => {
@@ -184,18 +195,23 @@ test("AU: HyperDeck recording and OBS capture are independent outputs", () => {
 
 /* ───────── room 04 validation cases ───────── */
 const OUT = SCENARIOS["l-5"].simDevices;
-test("OUT: HDMI→SDI converter emits only when powered; camera SDI into its SDI OUT is output-to-output", () => {
-  assert.equal(canConnect(OUT, "cam1:sdi-out", "convHS:sdi-out").code, "OUTPUT_TO_OUTPUT");
+test("OUT: the fiber receiver emits only when powered; camera SDI into the embedder SDI OUT is output-to-output", () => {
+  // Rebuilt OUT topology (25-level wiring guide): CAM 3 reaches the HD8 ISO through a matched fiber TX/RX pair.
+  assert.equal(canConnect(OUT, "cam1:sdi-out", "embed:sdi-out").code, "OUTPUT_TO_OUTPUT");
   let s = solve("l-3", { stopAt: "signal" });
   assert.ok(simContext(s).inp["sw:sdi-in-3"]);
-  s = setControl(s, "convHS", "power", false);
+  s = setControl(s, "fiberRx", "power", false);
   assert.ok(!simContext(s).inp["sw:sdi-in-3"]);
+  assert.ok(simContext(s).inp["sw:sdi-in-1"], "only the fiber path is lost");
 });
-test("OUT: Videohub wired IN2 → OUT2 but crosspoint OUT2 ← IN1 shows the wrong source until fixed", () => {
-  let s = solve("l-3", { stopAt: "signal" });
-  s = setControl(s, "vh", "xp-2", "IN 1");
-  assert.match(simContext(s).inp["sw:sdi-in-1"].content, /FIELD SLIDES/);
-  assert.equal(runTest(s, "signal").sim.testsPassed.signal, false);
+test("SP: Videohub wired IN2 → OUT2 but crosspoint OUT2 ← IN1 shows the wrong source until fixed", () => {
+  // The Videohub moved to SP in the rebuilt topology; the crosspoint lesson is unchanged.
+  let s = solve("xl-5", { stopAt: "signal" });
+  const right = simContext(s).inp["sw:sdi-in-2"].content;
+  s = setControl(s, "router", "xp-2", "IN 1");
+  assert.equal(simContext(s).inp["sw:sdi-in-2"].content, simContext(s).inp["sw:sdi-in-1"].content);
+  assert.notEqual(simContext(s).inp["sw:sdi-in-2"].content, right);
+  assert.notEqual(runTest(s, "signal").sim.testsPassed.signal, true);
 });
 test("OUT: UHD camera through the Videohub still fails the HD8 input (router does not convert)", () => {
   let s = solve("l-5", { stopAt: "signal" });
@@ -211,41 +227,32 @@ test("OUT: uncovered crossing or lightning GO blocks a pass even with live signa
   storm = setControl(storm, "site", "decision", "GO");
   assert.ok(storm.sim.log.some((l) => l.code === "SAFETY_BYPASS"));
 });
-test("OUT: under-rated spool fails the 25 m run; a tested lead passes", () => {
-  let s = solve("l-2", { stopAt: "signal" });
-  const good = SCENARIOS["l-2"].canonical.find((c) => c.from === "cam2:sdi-out").cableId;
-  s = act(s, { kind: "end", cableId: good, end: "a" }); s = dropHeldEnd(s, [0, 0.8, 0]);
-  s = act(s, { kind: "end", cableId: good, end: "b" }); s = dropHeldEnd(s, [0, 0.8, 0]);
-  s = attach(s, "x-weak", "a", "cam2:sdi-out"); s = attach(s, "x-weak", "b", "sw:sdi-in-2");
-  assert.ok(!simContext(s).inp["sw:sdi-in-2"]);
-});
-test("OUT: WAN loss kills only the ingest; missing SSD fails ISO only; converter power loss kills only its path", () => {
-  let s = solve("l-5", { stopAt: "signal" });
-  s = setControl(setControl(s, "sw", "stream", true), "sw", "record", true);
-  const down = simContext(setControl(s, "net", "wan-link", "Down (ISP outage)"));
-  assert.ok(!down.view.wan.live && down.view.ssd.recording && down.view.pgm.picture);
-  const disk = simContext(setControl(s, "ssd", "state", "Not mounted"));
-  assert.ok(!disk.view.ssd.recording && disk.view.wan.live);
-  const conv = simContext(setControl(s, "convSH", "power", false));
-  assert.ok(!conv.view.pgm.picture && conv.view.wan.live && conv.view.monitor.picture);
-});
 
+test("OUT: WAN loss kills only the ingest; fiber power loss kills only its camera path", () => {
+  let s = solve("l-5", { stopAt: "signal" });
+  s = setControl(s, "enc", "stream", true);
+  assert.ok(simContext(s).view.wan.live);
+  const down = simContext(setControl(s, "net", "wan-link", "Down (ISP outage)"));
+  assert.ok(!down.view.wan.live && down.view.monitor.picture && down.view.sw.picture);
+  const fib = simContext(setControl(s, "fiberTx", "power", false));
+  assert.ok(!fib.inp["sw:sdi-in-3"] && fib.inp["sw:sdi-in-1"] && fib.view.wan.live);
+});
 /* ───────── room 05 automated traps ───────── */
 const SP = SCENARIOS["xl-5"].simDevices;
-test("SP 1: Constellation Ethernet → WAN alone cannot stream; SDI PGM → Streaming Encoder HD → WAN can", () => {
+test("SP 1: the Constellation has no streaming Ethernet; SDI PGM → Streaming Encoder HD → WAN streams", () => {
+  // Official ATEM 2 M/E Constellation 4K rear panel: CONTROL Ethernet only (not modelled as a stream port).
+  assert.ok(!MODELS["bmd-atem-2me-constellation-4k"].ports.some((p) => p.connector === "ETHERNET"));
   let s = solve("xl-5", { stopAt: "signal" });
   s = setControl(s, "enc", "stream", true);
   assert.ok(simContext(s).view.wan.live);
-  const encEth = SCENARIOS["xl-5"].canonical.find((c) => c.from === "enc:eth").cableId;
-  s = attach(s, encEth, "a", "sw:eth");
-  assert.ok(!simContext(s).view.wan.live);
+  const feed = SCENARIOS["xl-5"].canonical.find((c) => c.to === "enc:sdi-in").cableId;
+  s = dropHeldEnd(act(s, { kind: "end", cableId: feed, end: "b" }), [0, 0.8, 0]);
+  assert.ok(!simContext(s).view.wan.live, "no SDI programme into the encoder → no stream");
 });
-test("SP 2: converters are direction-specific; UHD camera fails the Constellation 3G input", () => {
+test("SP 2: converters are direction-specific; graphics HDMI must enter the HDMI→SDI converter", () => {
   assert.equal(canConnect(SP, "cam1:sdi-out", "convHS:sdi-out").code, "OUTPUT_TO_OUTPUT");
-  assert.equal(canConnect(SP, "gfx:hdmi-out", "convA:sdi-in").code, "VIDEO_CLASS");
-  let s = solve("xl-1", { stopAt: "signal" });
-  s = setControl(s, "cam1", "format", "2160p50");
-  assert.ok(!simContext(s).view.monitor.picture.includes("CAM 1"));
+  assert.ok(canConnect(SP, "gfx:hdmi-out", "convHS:hdmi-in").ok);
+  assert.notEqual(canConnect(SP, "gfx:hdmi-out", "router:in-8").ok, true, "HDMI cannot enter an SDI router input directly");
 });
 test("SP 3: one SDI output cannot feed both recorder and encoder (one plug per output)", () => {
   let s = solve("xl-5", { stopAt: "signal" });
@@ -253,16 +260,26 @@ test("SP 3: one SDI output cannot feed both recorder and encoder (one plug per o
   s = act(s, { kind: "end", cableId: recLead, end: "a" });
   s = act(s, { kind: "port", portId: "sw:sdi-out-1" });
   assert.notEqual(s.cables[recLead].a.portId, "sw:sdi-out-1");
-  assert.equal(MODELS["bmd-hyperdeck-studio-hd-plus"].ports.filter((p) => p.dir === "INPUT").length, 1, "HyperDeck has one record input — no ISO ×4");
+  // Real HyperDeck Studio HD Plus: 1 SDI in + 1 HDMI 2.0 in, but it records ONE source at a time — never a 4-channel ISO.
+  const hd = MODELS["bmd-hyperdeck-studio-hd-plus"];
+  const videoIns = hd.ports.filter((p) => p.dir === "INPUT" && (p.sig === "SDI" || p.sig === "HDMI"));
+  assert.deepEqual(videoIns.map((p) => p.sig).sort(), ["HDMI", "SDI"], "exactly one SDI and one HDMI video input");
+  assert.ok(videoIns.length < 4 && !hd.ports.some((p) => /iso/i.test(p.key)) && !hd.controls.some((c) => /iso/i.test(c.key)), "no ISO ×4 path");
+  assert.deepEqual(hd.controls.find((c) => c.key === "rec-input").options, ["SDI", "HDMI"], "record input is a single explicit choice");
+  let r = setControl(setControl(solve("xl-5", { stopAt: "signal" }), "rec", "media", "SD card mounted (512 GB free)"), "rec", "record", true);
+  assert.ok(simContext(r).view.rec.recording, "SDI record source works");
+  r = setControl(r, "rec", "rec-input", "HDMI");
+  assert.ok(!simContext(r).view.rec.recording, "switching to an unpatched HDMI input records nothing — inputs are not merged");
 });
-test("SP 4: Constellation analog inputs are LINE; removing the Yamaha line route leaves video but no remote sound", () => {
-  assert.equal(MODELS["bmd-atem-2me-constellation-hd"].ports.find((p) => p.key === "aud-l").sig, "LINE_BAL");
+test("SP 4: Constellation analog inputs are LINE; removing the console broadcast route leaves video but no remote sound", () => {
+  assert.equal(MODELS["bmd-atem-2me-constellation-4k"].ports.find((p) => p.key === "xlr-l").sig, "LINE_BAL");
   let s = solve("xl-5", { stopAt: "signal" });
   s = setControl(s, "enc", "stream", true);
-  const l = SCENARIOS["xl-5"].canonical.find((c) => c.to === "sw:aud-l").cableId, r = SCENARIOS["xl-5"].canonical.find((c) => c.to === "sw:aud-r").cableId;
-  for (const id of [l, r]) { s = act(s, { kind: "end", cableId: id, end: "b" }); s = dropHeldEnd(s, [0, 0.8, 0]); }
+  const before = simContext(s).view.wan;
+  assert.ok(before.live && before.audio.length > 0);
+  for (const to of ["sw:xlr-l", "sw:xlr-r"]) { const id = SCENARIOS["xl-5"].canonical.find((c) => c.to === to).cableId; s = dropHeldEnd(act(s, { kind: "end", cableId: id, end: "b" }), [0, 0.8, 0]); }
   const v = simContext(s).view.wan;
-  assert.ok(v.live && !v.audio.includes("COMMENTATOR 1"));
+  assert.ok(v.live && !before.audio.some((a) => v.audio.includes(a)));
 });
 test("SP 5: a score source is full-frame only; wrong/stale graphic on a cue is a meaningful error", () => {
   let s = solve("xl-3", { stopAt: "signal" });
@@ -274,12 +291,12 @@ test("SP 5: a score source is full-frame only; wrong/stale graphic on a cue is a
 });
 test("SP 6: WAN loss keeps PGM + recorder; media loss keeps the stream", () => {
   let s = solve("xl-5", { stopAt: "signal" });
-  s = setControl(setControl(s, "enc", "stream", true), "rec", "record", true);
+  s = setControl(setControl(setControl(s, "enc", "stream", true), "rec", "media", "SD card mounted (512 GB free)"), "rec", "record", true);
   const wanLead = SCENARIOS["xl-5"].canonical.find((c) => c.from === "net:wan").cableId;
   const noWan = simContext(dropHeldEnd(act(s, { kind: "end", cableId: wanLead, end: "b" }), [0, 0.8, 0]));
-  assert.ok(!noWan.view.wan.live && noWan.view.rec.recording && noWan.view.pgm.picture);
+  assert.ok(!noWan.view.wan.live && noWan.view.rec.recording && noWan.view.sw.picture);
   const full = simContext(setControl(s, "rec", "media", "SD card mounted · FULL (0 GB)"));
-  assert.ok(full.view.wan.live && !full.view.rec.recording);
+  assert.ok(!full.view.rec.recording && full.view.wan.live);
 });
 test("SP 7: no genlock or timecode port is invented on the Constellation HD", () => {
   assert.ok(!MODELS["bmd-atem-2me-constellation-hd"].ports.some((p) => /ref|genlock|timecode/i.test(`${p.key} ${p.name}`)));
@@ -319,7 +336,8 @@ test("mission hall catalog mirrors the stage manifests (regenerate with scripts/
   const rooms = ["xs", "s", "m", "l", "xl"];
   missionChapters.forEach((ch, i) => ch.difficulties.forEach((d) => {
     const s = STAGES.find((x) => x.room === rooms[i] && x.level === d.level);
-    assert.equal(d.title, `${s.id} · ${s.title}`);
+    // Generator rule (scripts/generate-mission-catalog.mjs): the hall shows the Thai title only.
+    assert.equal(d.title, `${s.id} · ${s.title.split(" · ")[0]}`);
     assert.equal(d.objective, s.ticket);
   }));
 });

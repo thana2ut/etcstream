@@ -1,9 +1,11 @@
 "use client";
 
+import { SceneText as Text } from "@/components/game/scene-text";
+
 import { DeviceVisual } from "../../equipment/device-visual";
 import { useTrainingStore } from "@/game/stores/training-store";
 import { scenarioOf } from "@/game/training/hdmi-training";
-import { ROOMS } from "@/game/training/sim/rooms";
+import { MISSION_ROOMS as ROOMS } from "@/game/training/sim/rooms";
 import { MODELS } from "@/game/training/sim/equipment";
 import { SignalScreen } from "./signal-screen";
 import { useMemo } from "react";
@@ -12,7 +14,7 @@ import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeom
 import { VenueLighting, Ball, BLACK_METAL, CHROME, Cyl, g, Instanced, Lathe, merge, place, RB, RUBBER, Slab, STEEL, Tube, type Placement, type V3, FONT } from "./kit";
 import { tex } from "./textures";
 import { CuboidCollider, RigidBody } from "@react-three/rapier";
-import { Text } from "@react-three/drei";
+
 import { LAYOUTS, VENUE_SCALE } from "@/game/training/venue-layouts";
 import { LayoutColliders, LayoutFurniture } from "./layout-furniture";
 
@@ -483,7 +485,9 @@ function InstalledStadiumEquipment() {
 
 /** The spare CCU/router bays are fitted, not empty structural frames; no pretend patch targets. */
 function RackInfill() {
-  const racks = LAYOUTS.stadium.furniture.filter((f) => ["xl-rack-ccu", "xl-rack-router", "xl-rack-backup", "xl-rack-backup-net"].includes(f.id));
+  const active = useTrainingStore((state) => scenarioOf(state).devices.map((d) => d.id).join("|"));
+  const occupants: Record<string, string> = { "xl-rack-ccu": "ccu1", "xl-rack-router": "router", "xl-rack-backup": "enc2", "xl-rack-backup-net": "net2" };
+  const racks = LAYOUTS.stadium.furniture.filter((f) => occupants[f.id] && !active.split("|").includes(occupants[f.id]));
   return <>{racks.map((f, i) => <group key={f.id} position={f.center} rotation={[0, Math.PI / 2, 0]}>
     <RB p={[0, 0.95, 0]} s={[0.51, 1.8, 0.48]} rad={0.012} c="#191e26" />
     {Array.from({ length: 8 }, (_, row) => <group key={row} position={[0, 0.18 + row * 0.21, 0.25]}>

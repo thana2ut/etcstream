@@ -1,3 +1,4 @@
+import { loadSceneFont } from "@/game/rendering/scene-font";
 import { CanvasTexture, RepeatWrapping, SRGBColorSpace, type Texture } from "three";
 
 /** Procedural canvas textures, generated once per key on the client and shared by every venue. */
@@ -23,6 +24,14 @@ function make(key: string, size: [number, number], draw: (g: CanvasRenderingCont
   t.repeat.set(...repeat);
   t.anisotropy = 4;
   if (color) t.colorSpace = SRGBColorSpace;
+  if (key.startsWith("sign:")) {
+    // Covers late font arrival outside the main GameCanvas gate as well.
+    void loadSceneFont().then(() => {
+      g.clearRect(0, 0, c.width, c.height);
+      draw(g, c.width, c.height, rng(key.length * 7919 + key.charCodeAt(0)));
+      t.needsUpdate = true;
+    }).catch((error: unknown) => console.error("Sign font redraw failed", error));
+  }
   cache.set(id, t);
   return t;
 }

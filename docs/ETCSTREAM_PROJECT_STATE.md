@@ -1,5 +1,13 @@
 # ETCSTREAM — Project state
 
+## Current update — 2026-10-20 (Appendix A reconciliation)
+
+The following older milestone notes are historical. Current active data is `STAGES = ORIGINAL_STAGES.map(reconcileStage)` and `MISSION_ROOMS`, with mission-only `reference-equipment.ts`, `reference-rooms.ts`, `reference-stages.ts`. Original stage/room definitions and all five chapters × five levels remain. Protected Studio Room 01/free-practice assets, controller, HDMI semantics and persistence are unchanged.
+
+Full current graphs: XS 10 devices/8 required leads; S 16/13 (PROVISIONAL hardware); M 29/29; L 18/17; XL 39/50. L includes matched optical, field audio, embedder and encoder; XL includes six camera/base pairs, eight-source router/switcher, replay/control, PA/broadcast audio and two encoding/network paths. XL redundancy is PARTIAL because production/power remain shared. Original references are preserved in `docs/references/`.
+
+Authoritative current manifests, source traceability and limits: `MISSION_25_EQUIPMENT_PORT_CABLE_MATRIX.md`, `MISSION_25_BILL_OF_MATERIALS.json`, `MISSION_SIGNAL_FLOW_SOURCE_MATRIX.md`, `IMPLEMENTATION_SUMMARY_AND_HUMAN_QA.md`. Generic training subsets are not assertions of exact vendor I/O, optics or university ownership. Tally/intercom/PTZ-control hardware and studio physical ports remain unresolved. **NOT TESTED / NOT PLAYTESTED**; static compilation checks are reported separately.
+
 _Updated: 2026-10-06 · milestone "XS/S/M/L/XL venue system + 25 signal-flow scenarios"_
 
 > Runtime status: **implemented, not tested and not playtested.** No scenario in this milestone has been

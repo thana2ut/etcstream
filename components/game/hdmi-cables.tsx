@@ -2,7 +2,7 @@
 
 import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Group, Mesh, Quaternion, Vector3 } from "three";
+import { Group, InstancedMesh, Matrix4, Mesh, Quaternion, Vector3 } from "three";
 import { CABLE_ENDS, portAvailable, portPosition, scenarioOf, type CableEnd, type CableId, type Point3 } from "@/game/training/hdmi-training";
 import type { PortDef } from "@/game/training/scenarios";
 import { useTrainingStore } from "@/game/stores/training-store";
@@ -26,6 +26,8 @@ const micOffset = new Vector3(0.15, -0.4, -0.64);
 const hostPos = new Vector3();
 const hostRot = new Quaternion();
 const segmentRotation = new Quaternion();
+const segmentMatrix = new Matrix4();
+const segmentScale = new Vector3();
 const segmentCount = 9;
 const tipDir = new Vector3();
 const negZ = new Vector3(0, 0, -1);
@@ -49,6 +51,7 @@ function Cable({ id }: { id: CableId }) {
   const held = useTrainingStore((state) => state.held);
   const ends = useRef<Record<CableEnd, Group | null>>({ a: null, b: null });
   const segments = useRef<(Mesh | null)[]>([]);
+  const missionSegments = useRef<InstancedMesh>(null);
   const last = useRef({ a: new Vector3(NaN, NaN, NaN), b: new Vector3(NaN, NaN, NaN) });
   const scenario = useTrainingStore((state) => scenarioOf(state));
   const def = scenario.cables.find((c) => c.id === id)!;
@@ -115,7 +118,7 @@ function Cable({ id }: { id: CableId }) {
       ? classroomCableRoute(a.toArray() as Point3, b.toArray() as Point3, scenario.layout) : null;
     for (let index = 0; index < segmentCount; index++) {
       const mesh = segments.current[index];
-      if (!mesh) continue;
+      if (!mesh && !missionSegments.current) continue;
       const t0 = index / segmentCount;
       const t1 = (index + 1) / segmentCount;
       start.copy(a).lerp(b, t0);
@@ -126,10 +129,16 @@ function Cable({ id }: { id: CableId }) {
       midpoint.copy(start).add(finish).multiplyScalar(0.5);
       direction.copy(finish).sub(start);
       segmentRotation.setFromUnitVectors(up, unit.copy(direction).normalize());
-      mesh.position.copy(midpoint);
-      mesh.quaternion.copy(segmentRotation);
-      mesh.scale.set(1, direction.length(), 1);
+      if (scenario.stage && missionSegments.current) {
+        segmentMatrix.compose(midpoint, segmentRotation, segmentScale.set(1, Math.max(0.001, direction.length()), 1));
+        missionSegments.current.setMatrixAt(index, segmentMatrix);
+      } else if (mesh) {
+        mesh.position.copy(midpoint);
+        mesh.quaternion.copy(segmentRotation);
+        mesh.scale.set(1, direction.length(), 1);
+      }
     }
+    if (scenario.stage && missionSegments.current) missionSegments.current.instanceMatrix.needsUpdate = true;
   });
 
   return <group>
@@ -142,7 +151,11 @@ function Cable({ id }: { id: CableId }) {
       </mesh>
       </group>
     </group>)}
-    {!adapter && Array.from({ length: segmentCount }, (_, index) => <mesh key={index} ref={(node) => { segments.current[index] = node; }} castShadow>
+    {!adapter && scenario.stage && <instancedMesh ref={missionSegments} args={[undefined, undefined, segmentCount]} frustumCulled={false} castShadow>
+      <cylinderGeometry args={[def.short ? 0.009 : 0.012, def.short ? 0.009 : 0.012, 1, 7]} />
+      <meshStandardMaterial color={color} roughness={0.7} metalness={0.15} />
+    </instancedMesh>}
+    {!adapter && !scenario.stage && Array.from({ length: segmentCount }, (_, index) => <mesh key={index} ref={(node) => { segments.current[index] = node; }} castShadow>
       <cylinderGeometry args={[def.short ? 0.009 : 0.012, def.short ? 0.009 : 0.012, 1, 7]} />
       <meshStandardMaterial color={color} roughness={0.7} metalness={0.15} />
     </mesh>)}

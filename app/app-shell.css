@@ -381,3 +381,9 @@ html, body {
   .scroll-hint span { animation: none; }
   .entry-orbit, .chamber-orbit, .hall-orbit { animation: none; }
 }
+
+/* One additional Welcome destination; original hero and primary action are unchanged. */
+.welcome-arena-action { display: inline-flex; justify-content: center; align-items: center; gap: 10px; min-height: 50px; width: min(100%, 330px); padding: 8px 18px; border: 1px solid #d6b77c; border-radius: 10px; background: linear-gradient(#234743,#111b2c); color: #f5e9d4; font: 600 1rem/1.6 var(--font-thai); cursor: pointer; }
+.welcome-arena-action img { object-fit: contain; }
+.welcome-arena-action:focus-visible { outline: 3px solid #78cada; outline-offset: 4px; }
+.welcome-arena-action:hover { box-shadow: 0 0 16px #d6b77c44; }

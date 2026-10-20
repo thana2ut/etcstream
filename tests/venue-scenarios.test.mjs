@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
-import { SCENARIOS, load, projectRoot, initialTrainingState, act, dropHeldEnd, placeHeldOnCenterTable, setControl, simContext, setUp, attach, solve as solveStage } from "./helpers/solver.mjs";
+import { SCENARIOS, MODELS, load, projectRoot, initialTrainingState, act, dropHeldEnd, placeHeldOnCenterTable, setControl, simContext, setUp, attach, solve as solveStage } from "./helpers/solver.mjs";
 
 const { plugFits } = load("../game/training/hdmi-training.ts");
 const venues = Object.values(SCENARIOS).filter(s => s.venueScale);
@@ -96,7 +96,7 @@ test("classroom screen goes dark when its selected source is unplugged even with
   let state = solve(SCENARIOS["xs-5"]);
   state = setControl(state, "sw", "pgm", "HDMI 1");
   assert.ok(venueScreenLive(state, "monitor"));
-  assert.match(venueScreenFeed(state, "monitor"), /TEACHER CAM/);
+  assert.match(venueScreenFeed(state, "monitor"), /กล้องผู้สอน/); // Thai UI: simThai("TEACHER CAM")
   state = act(state, { kind: "port", portId: "cam1:hdmi-out" });
   assert.ok(!venueScreenLive(state, "monitor"), "Program input gone: the projector shows black although slides are still connected");
 });
@@ -104,19 +104,20 @@ test("classroom screen goes dark when its selected source is unplugged even with
 test("studio monitors reflect partial patching, selected camera, audio and stream readiness", () => {
   const { studioSignalFeed, venueScreenLive } = load("../game/training/monitor-feed.ts");
   let state = setUp("s-5");
-  assert.match(studioSignalFeed(state, "program"), /NO PROGRAM/);
-  assert.match(studioSignalFeed(state, "recording"), /NOT READY/);
+  // Thai UI wording of the same states (no programme / not ready / input present / no input).
+  assert.match(studioSignalFeed(state, "program"), /ยังไม่มีภาพออกอากาศ/);
+  assert.match(studioSignalFeed(state, "recording"), /ยังไม่พร้อม/);
   assert.ok(!venueScreenLive(state, "monitor"));
   state = solve(SCENARIOS["s-5"]);
-  assert.match(studioSignalFeed(state, "inputs"), /CAM1: READY\nCAM2: READY\nCAM3: READY/);
+  assert.match(studioSignalFeed(state, "inputs"), /CAM 1: ตรวจพบภาพ\nCAM 2: ตรวจพบภาพ\nCAM 3: ตรวจพบภาพ/);
   state = setControl(state, "sw", "pgm", "HDMI 3");
   assert.match(studioSignalFeed(state, "program"), /CAM3/);
-  assert.match(studioSignalFeed(state, "audio"), /HOST VOICE/);
-  assert.match(studioSignalFeed(state, "recording"), /OBS ● CAM3 .* · AUDIO/);
+  assert.match(studioSignalFeed(state, "audio"), /เสียงพิธีกร/);
+  assert.match(studioSignalFeed(state, "recording"), /OBS ● CAM3 .* · มีเสียง/);
   assert.ok(venueScreenLive(state, "monitor"));
   state = act(state, { kind: "port", portId: "cam3:hdmi-out" });
-  assert.match(studioSignalFeed(state, "program"), /NO PROGRAM/);
-  assert.match(studioSignalFeed(state, "inputs"), /CAM3: NO INPUT/);
+  assert.match(studioSignalFeed(state, "program"), /ยังไม่มีภาพออกอากาศ/);
+  assert.match(studioSignalFeed(state, "inputs"), /CAM 3: ไม่มีสัญญาณ/);
 });
 
 test("studio cameras cover the interview set from three distinct angles and stored bodies fit their return desk", () => {
@@ -132,7 +133,7 @@ test("studio cameras cover the interview set from three distinct angles and stor
     yaws.push(d.yaw);
   }
   assert.equal(new Set(yaws.map((y) => y.toFixed(2))).size, 3, "non-identical camera angles");
-  const items = scenario.placeables;
+  const items = scenario.placeables.filter((p) => !p.installed);
   for (const item of items) assert.ok(onSurface(layout.equipment, item.start[0], item.start[2]));
   for (let i = 0; i < items.length; i++) for (let j = i + 1; j < items.length; j++) {
     const a = items[i], b = items[j];
@@ -200,7 +201,10 @@ for (const scenario of venues) {
 test("equipment coverage: every non-decoy device takes part in the documented graph", () => {
   for (const s of venues) {
     const used = new Set(s.canonical.flatMap((r) => [r.from, r.to]).map((p) => s.ports[p].device));
-    for (const d of s.devices) assert.ok(used.has(d.id) || (s.stage.decoys ?? []).includes(d.id), `${s.id} orphan ${d.id}`);
+    const role = (id) => MODELS[s.simDevices[id].model].role;
+    // A handheld transmitter has no cable: it takes part through the RF link to a receiver that IS in the graph.
+    const rfLinked = (id) => role(id) === "wireless-tx" && MODELS[s.simDevices[id].model].ports.length === 0 && s.devices.some((r) => role(r.id) === "wireless-rx" && used.has(r.id));
+    for (const d of s.devices) assert.ok(used.has(d.id) || rfLinked(d.id) || (s.stage.decoys ?? []).includes(d.id), `${s.id} orphan ${d.id}`);
   }
 });
 test("cable coverage: every lead is a documented patch or a listed spare/decoy, with a length tag", () => {
@@ -223,7 +227,7 @@ test("wrong direction, connector, signal class, occupied and loop never mutate t
     assert.deepEqual(state.held, before.held);
     assert.equal(state.notice.tone, "error");
   }
-  rejected("cam1:hdmi-out", "sw:hdmi-pgm-out", lead("sw:hdmi-in-1")); // output -> output
+  rejected("cam1:hdmi-out", "sw:hdmi-out", lead("sw:hdmi-in-1")); // output -> output
   rejected("sw:hdmi-in-1", "monitor:hdmi-in-1", lead("sw:hdmi-in-1")); // input -> input
   rejected(null, "mix:in-1", lead("sw:hdmi-in-1")); // HDMI plug into an XLR socket
   rejected("cam1:hdmi-out", "cam1:hdmi-out", lead("sw:hdmi-in-1")); // same endpoint
@@ -255,16 +259,17 @@ test("venue placement: every port, control and cable start sits inside its venue
     // Portable equipment starts in storage (L4 starts set up) and has a named operating position.
     for (const item of s.placeables) {
       assert.ok(item.zoneLabel, `${s.id}: ${item.id} has no operating position label`);
-      if (s.level !== 4) assert.ok(onSurface(L.equipment, item.start[0], item.start[2], 0.05), `${s.id}: ${item.id} must start in equipment storage`);
+      if (s.level !== 4 && !item.installed) assert.ok(onSurface(L.equipment, item.start[0], item.start[2], 0.05), `${s.id}: ${item.id} must start in equipment storage`);
     }
   }
 });
 test("SDI switcher takes HDMI sources only through explicit converters", () => {
-  const s = SCENARIOS["l-5"];
-  assert.equal(s.ports["lap:hdmi-out"].connector, "HDMI");
+  // Rebuilt topology: the HDMI graphics PC in SP reaches the SDI router/Constellation through a Micro Converter.
+  const s = SCENARIOS["xl-5"];
+  assert.equal(s.ports["gfx:hdmi-out"].connector, "HDMI");
   assert.equal(s.ports["convHS:sdi-out"].connector, "SDI");
-  assert.ok(!Object.values(s.ports).some((p) => p.device === "sw" && p.connector === "HDMI" && p.direction === "INPUT"));
-  assert.ok(s.canonical.some((r) => r.from === "lap:hdmi-out" && r.to === "convHS:hdmi-in"));
+  assert.ok(!Object.values(s.ports).some((p) => (p.device === "sw" || p.device === "router") && p.connector === "HDMI" && p.direction === "INPUT"));
+  assert.ok(s.canonical.some((r) => r.from === "gfx:hdmi-out" && r.to === "convHS:hdmi-in"));
 });
 
 test("a lead that physically fits but carries the wrong signal family is rejected atomically", () => {
@@ -413,7 +418,8 @@ test("auditorium presenter faces the laptop and input equipment rests on its sup
 test("outdoor stations share camera positions and keep installed equipment on sheltered worktops", () => {
   const { LAYOUTS } = load("../game/training/venue-layouts.ts");
   const layout = LAYOUTS.outdoor;
-  const desk = layout.furniture.find((f) => f.id === "l-tent-desk");
+  // Installed control gear sits on one of the sheltered tent desks (control desk or delivery desk).
+  const desks = layout.furniture.filter((f) => f.kind === "tentDesk");
   for (const level of [1, 2, 3, 4, 5]) {
     const scenario = SCENARIOS[`l-${level}`];
     for (const id of ["cam1", "cam2"]) {
@@ -426,9 +432,9 @@ test("outdoor stations share camera positions and keep installed equipment on sh
     for (const id of ["mix", "sw", "monitor", "pgm", "net", "net2", "ssd", "convSH"]) {
       const device = scenario.devices.find((d) => d.id === id);
       if (!device) continue;
+      const desk = desks.find((f) => Math.abs(device.position[0] - f.center[0]) + device.size[0] / 2 <= f.size[0] / 2 && Math.abs(device.position[2] - f.center[2]) + device.size[2] / 2 <= f.size[2] / 2);
+      assert.ok(desk, `${scenario.id} ${id} is on a sheltered desk`);
       assert.equal(device.position[1], desk.size[1]);
-      assert.ok(Math.abs(device.position[0] - desk.center[0]) + device.size[0] / 2 <= desk.size[0] / 2, id);
-      assert.ok(Math.abs(device.position[2] - desk.center[2]) + device.size[2] / 2 <= desk.size[2] / 2, id);
     }
   }
   assert.ok(layout.places.cam1.p[0] > 0 && layout.places.cam2.p[0] < 0);

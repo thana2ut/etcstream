@@ -1,10 +1,14 @@
 "use client";
 
+import { SceneText as Text, EquipmentNameplate } from "@/components/game/scene-text";
+
 import { SCENE_FONT, sceneText } from "@/game/rendering/scene-font";
-import { Billboard, Text } from "@react-three/drei";
 import type { DeviceDef } from "@/game/training/scenarios";
 import { GlbModel, Hcx2000Model } from "./hc-x2000";
 import { GenericDevice } from "./generic-device";
+import { AtemMiniProModel } from "./atem-mini-pro";
+import { HardwareModel, RackTower, Tripod } from "./hardware-model";
+import { MODEL_GEOMETRY } from "@/game/training/sim/model-geometry";
 import { Hds7105Model } from "./hds7105";
 import { SamsungTv } from "./samsung-tv";
 import { useTrainingStore } from "@/game/stores/training-store";
@@ -16,7 +20,7 @@ const ROOM_FONT = SCENE_FONT;
 function MissionStudioMonitor() {
   const feed = useTrainingStore((state) => venueScreenFeed(state, "monitor") === "MULTIVIEW" ? studioSignalFeed(state, "inputs") : venueScreenFeed(state, "monitor"));
   return <group position={[0, 0.294, 0]}><SamsungTv />
-    <Text font={ROOM_FONT} position={[0, 0.003, 0.022]} fontSize={0.035} maxWidth={0.9} color="#cbd8e6" textAlign="center">{sceneText(feed)}</Text>
+    <Text font={ROOM_FONT} position={[0, 0.003, 0.022]} fontSize={0.043} lineHeight={1.55} maxWidth={0.88} color="#edf4ff" textAlign="center">{sceneText(feed)}</Text>
   </group>;
 }
 
@@ -26,21 +30,25 @@ function Box({ position, scale, color }: { position: [number, number, number]; s
 
 /** Placeholder body + name/model label for a studio device (model marked when unverified). Drawn at its own origin. */
 /** Floating name plate: always faces the player, centred over the device (model on top, role below). */
-export function DeviceLabel({ device, y }: { device: Pick<DeviceDef, "label" | "model">; y: number }) {
-  return <Billboard position={[0, y, 0]}>
-    <Text font={ROOM_FONT} fontSize={0.055} color="#f6ddaa" anchorX="center" anchorY="bottom" textAlign="center" outlineWidth={0.004} outlineColor="#000">
-      {sceneText(device.model || device.label)}
-    </Text>
-    {device.model && <Text font={ROOM_FONT} position={[0, -0.012, 0]} fontSize={0.034} color="#8be4f4" anchorX="center" anchorY="top" textAlign="center" outlineWidth={0.003} outlineColor="#000">
-      {sceneText(device.label)}
-    </Text>}
-  </Billboard>;
+export function DeviceLabel({ device, y }: { device: Pick<DeviceDef, "label" | "model"> & { id?: string }; y: number }) {
+  return <EquipmentNameplate title={device.label} subtitle={device.model} y={y} deviceId={device.id} />;
 }
 
 /** `bare` hides the floating name label (used in the inspector). */
 export function DeviceVisual({ device, bare = false }: { device: DeviceDef; bare?: boolean }) {
   const [w, h, d] = device.size;
   if (device.generic) return <GenericDevice device={device} bare={bare} />;
+  const geo = device.modelId ? MODEL_GEOMETRY[device.modelId] : undefined;
+  if (geo?.parts && device.modelId) {
+    const o = device.mount?.offset ?? [0, 0, 0], top = device.mount?.kind === "rack" ? h : o[1] + geo.size[1] * geo.displayScale;
+    return <group>
+      {device.mount?.kind === "tripod" && <Tripod top={o[1]} />}
+      {device.mount?.kind === "rack" && <RackTower size={device.size} />}
+      <group position={o}><HardwareModel geo={geo} deviceId={device.id} modelId={device.modelId} /></group>
+      {!bare && <DeviceLabel device={device} y={top + 0.16} />}
+    </group>;
+  }
+  if (device.modelId === "bmd-atem-mini-pro") return <group><AtemMiniProModel deviceId={device.id} />{!bare && <DeviceLabel device={device} y={h + 0.16} />}</group>;
   if (device.id === "sw" && device.model.startsWith("DeviceWell HDS7105")) return <group><Hds7105Model />{!bare && <DeviceLabel device={device} y={h + 0.16} />}</group>;
   if (device.id === "monitor" && device.model.startsWith("Samsung")) return <><MissionStudioMonitor />{!bare && <DeviceLabel device={device} y={0.75} />}</>;
   if (device.kind === "camera") {

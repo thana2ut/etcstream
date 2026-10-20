@@ -3,9 +3,10 @@
 import { useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { CapsuleCollider, RigidBody, useBeforePhysicsStep, type RapierRigidBody } from "@react-three/rapier";
-import { Euler, MathUtils, Object3D, Raycaster, Vector2, Vector3 } from "three";
+import { Euler, MathUtils, Mesh, Object3D, Raycaster, Vector2, Vector3 } from "three";
 import { useTrainingStore } from "@/game/stores/training-store";
 import type { Point3, TrainingTarget } from "@/game/training/hdmi-training";
+import { scenarioOf } from "@/game/training/hdmi-training";
 import { TRAINING_INPUT_EVENT, type TrainingInputDetail } from "@/game/input/training-input";
 import type { ReviewView } from "@/game/training/environment-review";
 
@@ -18,6 +19,7 @@ const movement = new Vector3();
 const forward = new Vector3();
 const right = new Vector3();
 const dropDirection = new Vector3();
+const targetPosition = new Vector3();
 const raycaster = new Raycaster();
 const look = new Euler();
 raycaster.far = 2.65;
@@ -46,21 +48,33 @@ export function FirstPersonController({ active, fallbackLook, touch, onExitFallb
   const layout = LAYOUTS[venue];
   const angles = useRef({ yaw: layout.spawnYaw, pitch: -0.12 });
   const targets = useRef<Object3D[]>([]);
+  const occluders = useRef<Mesh[]>([]);
   const frame = useRef(0);
   const telemetryFrame = useRef(0);
+  const inspectTarget = useRef<TrainingTarget | null>(null);
 
   useEffect(() => {
     const element = gl.domElement;
+    const pressedKeys = keys.current;
     const canControl = () => active && (touch || document.pointerLockElement === element || fallbackLook);
     const beginInteract = () => {
       const store = useTrainingStore.getState();
       const target = store.focusedTarget;
-      if (!store.held && !store.heldItem && (target?.kind === "item" || target?.kind === "device")) store.setInspectHold(performance.now());
+      if (!store.held && !store.heldItem && (target?.kind === "item" || target?.kind === "device")) {
+        inspectTarget.current = target;
+        store.setInspectHold(performance.now());
+      }
       else store.interact();
     };
     const endInteract = () => {
       const store = useTrainingStore.getState();
+      if (scenarioOf(store).stage && (!canControl() || store.inspecting || store.consoleOpen || JSON.stringify(inspectTarget.current) !== JSON.stringify(store.focusedTarget))) {
+        store.setInspectHold(null);
+        inspectTarget.current = null;
+        return;
+      }
       if (store.inspectHoldStart !== null) { store.setInspectHold(null); store.interact(); }
+      inspectTarget.current = null;
     };
     const onMove = (event: MouseEvent) => {
       if (!active) return;
@@ -114,6 +128,12 @@ export function FirstPersonController({ active, fallbackLook, touch, onExitFallb
     document.addEventListener("pointerlockchange", clear);
     window.addEventListener("blur", clear);
     return () => {
+      if (scenarioOf(useTrainingStore.getState()).stage) {
+        pressedKeys.clear();
+        inspectTarget.current = null;
+        useTrainingStore.getState().setInspectHold(null);
+        useTrainingStore.getState().focus(null);
+      }
       document.removeEventListener("mousemove", onMove);
       document.removeEventListener("keydown", onKeyDown);
       document.removeEventListener("keyup", onKeyUp);
@@ -128,7 +148,10 @@ export function FirstPersonController({ active, fallbackLook, touch, onExitFallb
     if (!rigidBody) return;
     const velocity = rigidBody.linvel();
     movement.set(0, 0, 0);
-    if (active && (touch || document.pointerLockElement === gl.domElement || fallbackLook)) {
+    const store = useTrainingStore.getState();
+    const blocked = Boolean(scenarioOf(store).stage && (store.inspecting || store.consoleOpen));
+    if (blocked) keys.current.clear();
+    if (active && !blocked && (touch || document.pointerLockElement === gl.domElement || fallbackLook)) {
       const yaw = angles.current.yaw;
       forward.set(-Math.sin(yaw), 0, -Math.cos(yaw));
       right.set(Math.cos(yaw), 0, -Math.sin(yaw));
@@ -163,6 +186,13 @@ export function FirstPersonController({ active, fallbackLook, touch, onExitFallb
     camera.quaternion.setFromEuler(look.set(angles.current.pitch, angles.current.yaw, 0, "YXZ"));
     if (!active || (!touch && document.pointerLockElement !== gl.domElement && !fallbackLook)) return;
     const store = useTrainingStore.getState();
+    if (scenarioOf(store).stage) {
+      if (store.inspecting || store.consoleOpen) { keys.current.clear(); store.focus(null); return; }
+      if (store.inspectHoldStart !== null && JSON.stringify(inspectTarget.current) !== JSON.stringify(store.focusedTarget)) {
+        store.setInspectHold(null);
+        inspectTarget.current = null;
+      }
+    }
     if (store.inspectHoldStart !== null && performance.now() - store.inspectHoldStart >= INSPECT_HOLD_MS) {
       const target = store.focusedTarget;
       const id = target?.kind === "item" ? target.itemId : target?.kind === "device" ? target.deviceId : null;
@@ -173,17 +203,46 @@ export function FirstPersonController({ active, fallbackLook, touch, onExitFallb
     // Walking the whole scene graph is expensive in large venues: refresh the target list ~6×/s, raycast every frame.
     if (++frame.current % 10 === 1 || targets.current.length === 0) {
       targets.current = [];
-      scene.traverse((object) => { if (object.userData.trainingTarget) targets.current.push(object); });
+      occluders.current = [];
+      const mission = Boolean(scenarioOf(store).stage);
+      scene.traverse((object) => {
+        if (object.userData.trainingTarget) targets.current.push(object);
+        else if (mission && object instanceof Mesh) {
+          const materials = Array.isArray(object.material) ? object.material : [object.material];
+          if (materials.some((material) => material.visible && material.depthTest && material.opacity >= 0.95)) occluders.current.push(object);
+        }
+      });
     }
     raycaster.setFromCamera(lookCenter, camera);
     // Device hit volumes are coarse boxes that can enclose their own ports (e.g. the camera's HDMI OUT):
     // a port or cable end just behind a device box wins over the box itself.
-    const hits = raycaster.intersectObjects(targets.current, false);
+    const hits = raycaster.intersectObjects(targets.current, false).filter((hit) => {
+      if (!scenarioOf(store).stage) return true;
+      const normal = hit.object.userData.serviceNormal as number[] | undefined;
+      if (!normal) return true;
+      hit.object.getWorldPosition(targetPosition);
+      // A real panel is serviced from its outward face, never through the back of its casing.
+      return (camera.position.x - targetPosition.x) * normal[0]
+        + (camera.position.y - targetPosition.y) * normal[1]
+        + (camera.position.z - targetPosition.z) * normal[2] >= -0.02;
+    });
     const first = hits[0];
     const hit = first?.object.userData.trainingTarget?.kind === "device"
       ? hits.find((h) => h.distance - first.distance < 0.6 && h.object.userData.trainingTarget?.kind !== "device") ?? first
       : first;
-    useTrainingStore.getState().focus((hit?.object.userData.trainingTarget as TrainingTarget | undefined) ?? null);
+    let blocked = false;
+    if (hit && scenarioOf(store).stage) {
+      // Raycast the rendered opaque geometry, not only invisible interaction volumes.
+      // Stop before the target's surface so its own socket/plug does not block selection.
+      raycaster.far = Math.max(0, hit.distance - 0.015);
+      blocked = raycaster.intersectObjects(occluders.current, false).some((obstacle) => {
+        let ancestor: Object3D | null = obstacle.object;
+        while (ancestor) { if (!ancestor.visible) return false; ancestor = ancestor.parent; }
+        return true;
+      });
+      raycaster.far = 2.65;
+    }
+    useTrainingStore.getState().focus(!blocked ? (hit?.object.userData.trainingTarget as TrainingTarget | undefined) ?? null : null);
   });
 
   return <>

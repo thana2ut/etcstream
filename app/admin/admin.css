@@ -1,0 +1,179 @@
+/* Only the unified administrator workspace; public Arena and gameplay retain their styles. */
+/* V11 entry only: intrinsic sizing permits natural scroll for zoom/short windows. */
+.is-admin:has(.admin-celestial-gate) > .arena-content { box-sizing: border-box; width: 100%; max-width: none; min-height: 100dvh; padding: 16px clamp(18px, 3vw, 48px); margin: 0; display: grid; grid-template-rows: auto 1fr; gap: 8px; }
+.is-admin:has(.admin-celestial-gate) > .arena-scrim { background: radial-gradient(ellipse at 50% 43%, #081b2c42 0%, #07112088 48%, #030a15d9 100%), linear-gradient(0deg,#06101bc7,#0b172b50); }
+.is-admin:has(.admin-celestial-gate) .admin-gate-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0; min-width: 0; }
+.admin-gate-header:has(+ .admin-celestial-gate) a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 4px 10px; font-size: .9rem; color: #e2d3b3; border-radius: 6px; }
+.admin-gate-header:has(+ .admin-celestial-gate) a:hover { color: #fff0c9; background: #173c4266; }
+.admin-gate-seal { color: #c6d9d3; font-size: .65rem; letter-spacing: .16em; }
+.is-admin .admin-celestial-gate { box-sizing: border-box; position: relative; isolation: isolate; align-self: center; justify-self: center; width: min(520px, 100%); min-width: 0; margin: 0; padding: clamp(20px, 3dvh, 32px) clamp(22px, 3vw, 40px); border: 1px solid #c9ad72b3; border-radius: 18px; background: radial-gradient(ellipse at 50% 0%,#2b60575e,transparent 60%),linear-gradient(155deg,#102737f5,#081324fa 76%); box-shadow: 0 24px 70px #0008,0 0 45px #78c9b817,inset 0 0 0 5px #bca4750b,inset 0 1px #f3e0af44; text-align: center; }
+.admin-celestial-gate::before, .admin-celestial-gate::after { content: ""; position: absolute; pointer-events: none; width: 26px; height: 26px; border-color: #ead39a; border-style: solid; opacity: .8; }
+.admin-celestial-gate::before { inset: 10px auto auto 10px; border-width: 1px 0 0 1px; }
+.admin-celestial-gate::after { inset: auto 10px 10px auto; border-width: 0 1px 1px 0; }
+.admin-gate-emblem { position: relative; display: grid; place-items: center; width: 76px; height: 76px; margin: 0 auto 10px; border: 1px solid #ddbf7a77; border-radius: 50%; background: radial-gradient(circle,#365d4666,#0d263333 68%); box-shadow: 0 0 28px #afcc7a14,inset 0 0 18px #9cceab12; }
+.admin-gate-emblem::before { content: ""; position: absolute; inset: -5px; border: 1px solid #c0a16b33; border-radius: 50%; pointer-events: none; }
+.admin-gate-emblem .arena-icon { width: 60px; height: 60px; margin: 0; object-fit: contain; }
+.is-admin .admin-celestial-gate .arena-eyebrow { margin: 0 0 6px; color: #b9d5cb; font-size: .75rem; font-weight: 500; letter-spacing: .045em; }
+.is-admin .admin-celestial-gate h1 { font-family: var(--font-legacy-brush),var(--font-thai); font-size: clamp(1.55rem, 2.5vw, 2rem); line-height: 1.5; color: #f3deb0; margin: 0; text-wrap: balance; text-shadow: 0 2px 14px #d0ac5820; }
+.admin-celestial-gate .admin-gate-description { margin: 8px 0 0; font-size: .9rem; line-height: 1.65; color: #c8d9dc; }
+.admin-gate-divider { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 14px 0; color: #d9bf83; font-size: .7rem; }
+.admin-gate-divider::before,.admin-gate-divider::after { content: ""; width: 30%; height: 1px; background: linear-gradient(90deg,transparent,#bda36a88); }
+.admin-gate-divider::after { transform: rotate(180deg); }
+.is-admin .admin-celestial-gate form { display: grid; gap: 14px; margin: 0; text-align: left; }
+.admin-celestial-gate form label { display: grid; gap: 6px; color: #e4d5b7; font-size: .9rem; font-weight: 500; }
+.is-admin .admin-celestial-gate input { display: block; box-sizing: border-box; width: 100%; min-width: 0; min-height: 48px; margin: 0; padding: 10px 14px; border: 1px solid #8eaa9c80; border-radius: 8px; background: linear-gradient(#071322,#0d2030); color: #fff0d5; font-family: inherit; font-size: 1rem; box-shadow: inset 0 2px 8px #0005; }
+.is-admin .admin-celestial-gate .admin-gate-submit { display: flex; justify-content: center; align-items: center; gap: 8px; width: 100%; min-height: 48px; padding: 10px 16px; border: 1px solid #d0b371; border-radius: 8px; color: #fff0ce; background: linear-gradient(180deg,#32645b,#1b463f); font-size: 1rem; font-weight: 600; box-shadow: inset 0 1px #dceac12b,0 6px 16px #0003; transition: background .15s ease,box-shadow .15s ease; }
+.is-admin .admin-celestial-gate .admin-gate-submit:hover:not(:disabled) { background: linear-gradient(180deg,#3d796b,#24564c); box-shadow: 0 0 18px #83c7aa26,inset 0 1px #e4e9c944; }
+.is-admin .admin-celestial-gate .admin-gate-submit:active:not(:disabled) { background: #204b43; box-shadow: inset 0 2px 8px #0005; }
+.admin-celestial-gate button:disabled { opacity: .65; cursor: wait; }
+.admin-celestial-gate input:disabled { opacity: .65; }
+.admin-celestial-gate :focus-visible,.admin-gate-header:has(+ .admin-celestial-gate) a:focus-visible { outline: 2px solid #aae8d2; outline-offset: 4px; }
+.is-admin .admin-celestial-gate .admin-gate-helper { margin: 14px 0 0; font-size: .75rem; line-height: 1.65; color: #afc2c9; }
+.admin-celestial-gate .arena-error { margin: 12px 0 0; padding: 10px 12px; border: 1px solid #d5a19c66; border-radius: 8px; background: #49252b66; color: #ffd3cc; line-height: 1.6; font-size: .85rem; overflow-wrap: anywhere; }
+.admin-celestial-gate .admin-gate-rotation-note { margin: 0; color: #d4d9c7; font-size: .8rem; line-height: 1.6; }
+.is-admin .admin-celestial-gate .admin-gate-retry { margin-top: 12px; min-height: 44px; padding: 8px 14px; background: #193846; border: 1px solid #91b6aa88; color: #e2eee4; border-radius: 8px; }
+@media (max-height: 740px) and (min-width: 701px) {
+ .is-admin .admin-celestial-gate { padding-block: 18px; }
+ .admin-gate-emblem { width: 58px; height: 58px; margin-bottom: 8px; }
+ .admin-gate-emblem .arena-icon { width: 48px; height: 48px; }
+ .admin-gate-divider { margin-block: 10px; }
+ .is-admin .admin-celestial-gate form { gap: 10px; }
+}
+@media (max-width: 700px) {
+ .admin-gate-seal { display: none; }
+ .is-admin:has(.admin-celestial-gate) > .arena-content { padding: 12px 18px 24px; }
+}
+@media (prefers-reduced-motion: reduce) { .is-admin .admin-celestial-gate .admin-gate-submit { transition: none; } }
+.is-admin:has(.admin-unified) > .arena-content { max-width: 1320px; width: 100%; box-sizing: border-box; }
+.admin-masthead { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 24px 0; border-bottom: 1px solid #bca26b66; margin-bottom: 28px; }
+.admin-masthead h1 { margin: 6px 0 12px; font-size: clamp(1.6rem, 3vw, 2.6rem); color: #f7dfaa; }
+.admin-masthead p { margin: 5px 0; overflow-wrap: anywhere; }
+.admin-header-actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.admin-header-actions a { color: #dceee9; text-decoration: underline; text-underline-offset: 5px; padding: 12px 4px; }
+.admin-unified { min-width: 0; padding-bottom: 32px; }
+.admin-unified [hidden] { display: none !important; }
+.admin-unified button, .admin-header-actions button { min-height: 44px; }
+.admin-unified button:focus-visible, .admin-header-actions :focus-visible { outline: 3px solid #94ecdc; outline-offset: 4px; }
+.admin-unified h2 { color: #f7dfaa; }
+.admin-room-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; margin: 28px 0; }
+.admin-unified .admin-room-card { display: flex; flex-direction: column; align-items: flex-start; gap: 18px; min-height: 305px; padding: 30px; text-align: left; white-space: normal; color: #f6ead0; border: 1px solid #bca26b88; border-radius: 20px; background: radial-gradient(ellipse at top right, #408e9455, transparent 65%), linear-gradient(150deg, #132c3aeb, #07111ff2); box-shadow: 0 14px 40px #0005, inset 0 1px #e8d8ac22; }
+.admin-unified .admin-room-card:hover { border-color: #efd496; background-color: #163c42; transform: translateY(-2px); }
+.admin-room-card strong { font-size: 1.65rem; color: #ffe5a8; }
+.admin-room-card small { color: #c0d4dc; line-height: 1.8; font-size: .9rem; }
+.admin-room-card .arena-icon { width: 56px; height: 56px; }
+.admin-room-enter { margin-top: auto; color: #a4e4d6; }
+.admin-room-nav, .admin-subnav { display: flex; gap: 10px; flex-wrap: wrap; margin: 20px 0; }
+.admin-room-nav { padding-bottom: 18px; border-bottom: 1px solid #bca26b55; }
+.admin-unified .admin-room-nav button, .admin-unified .admin-subnav button { white-space: normal; background: #101f30; color: #dfebee; border: 1px solid #7b8b9766; }
+.admin-unified button[aria-pressed="true"] { background: #214b4c; color: #ffe3a2; border-color: #d8ba76; box-shadow: inset 0 -3px #d8ba76; }
+.admin-workspace-title small { display: block; margin-top: 10px; font-size: 1rem; font-weight: 400; color: #c9dadf; }
+.admin-config-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 24px 0; }
+.admin-config-stats div { border: 1px solid #829b9655; border-radius: 12px; padding: 18px; background: #1b3b3c55; }
+.admin-config-stats dd { margin: 10px 0 0; font-size: 1.6rem; color: #f7dfaa; }
+.admin-unified .arena-panel { overflow-wrap: anywhere; min-width: 0; }
+.admin-unified .arena-table-wrap { max-width: 100%; }
+.is-admin .admin-unified .mission-hall-embedded { position: relative; inset: auto; box-sizing: border-box; width: 100%; max-width: 100%; min-width: 0; height: auto; max-height: none; min-height: 0; overflow: visible; padding: 0; background: transparent; }
+.admin-unified .mission-hall-embedded .mission-hall-content { box-sizing: border-box; padding: 0; width: 100%; max-width: 100%; min-width: 0; }
+@media (max-width: 900px) {
+ .admin-masthead { align-items: flex-start; flex-direction: column; gap: 12px; }
+ .admin-room-grid { grid-template-columns: 1fr; gap: 16px; }
+ .admin-unified .admin-room-card { min-height: 0; padding: 24px; gap: 12px; }
+ .admin-room-enter { margin-top: 8px; }
+ .admin-config-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) { .admin-unified .admin-room-card:hover { transform: none; } }
+
+/* V8: resolve Arena's generic button rules overriding the original illustrated Mission Hall plaques. */
+.admin-unified .mission-hall-embedded { border: 1px solid #b99b6655; border-radius: 16px; background: linear-gradient(#09131ac9,#09131ae8), url(/images/xianxia/bg-missions.webp) center / cover !important; padding: clamp(18px, 3vw, 32px) !important; }
+.admin-unified .mission-hall-heading { text-align: center; margin-bottom: 28px; }
+.admin-unified .mission-hall-heading h1 { font-size: clamp(1.65rem, 3vw, 2.5rem); }
+.admin-unified .mission-board-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 20px; align-items: stretch; }
+.admin-unified .mission-hall-embedded button.mission-plaque { grid-column: span 2; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; text-align: left; gap: 8px; min-width: 0; min-height: 360px; padding: 145px 22px 22px; border: 1px solid #cfa969; border-radius: 12px; color: #f2e4ca; background: linear-gradient(180deg,#07101912 0%,#071019ad 35%,#071019f5 75%),var(--plaque-art) center top / cover no-repeat,#101a28; box-shadow: inset 0 0 0 4px #d8b87814,0 12px 26px #0005; }
+.admin-unified .mission-hall-embedded button.mission-plaque:nth-child(4) { grid-column: 2 / span 2; }
+.admin-unified .mission-hall-embedded button.mission-plaque:nth-child(5) { grid-column: 4 / span 2; }
+.admin-unified .mission-plaque strong { color: #f4d59d; line-height: 1.6; font-family: var(--font-legacy-brush); font-size: 1.45rem; }
+.admin-unified .mission-plaque-number { position: absolute; top: 18px; left: 20px; padding: 4px 10px; background: #071019b8; color: #ffe3a4; border: 1px solid #d6b77c66; }
+.admin-unified .mission-plaque-sigil { position: absolute; top: 22px; right: 22px; margin: 0; color: #f4d59d; }
+.admin-unified .mission-plaque-description { display: block; overflow: visible; -webkit-line-clamp: unset; margin: 8px 0 18px; line-height: 1.7; }
+.admin-unified .mission-plaque-footer { flex-wrap: wrap; line-height: 1.7; }
+.admin-unified .mission-plaque:hover { border-color: #ffe5aa; box-shadow: 0 0 0 1px #ffe5aa,0 15px 32px #0008; }
+.admin-master-gate { width: min(560px,100%); margin: clamp(25px,8vh,100px) auto; padding: clamp(24px,4vw,42px); text-align: center; background: linear-gradient(145deg,#172c3bed,#081222ef); border-color: #c5a364a8; }
+.admin-master-gate > .arena-icon { width: 72px; height: 72px; margin: 0 auto 16px; }
+.admin-master-gate form { text-align: left; display: grid; gap: 18px; margin: 26px 0 20px; }
+.admin-gate-header { padding: 12px 0; }
+.admin-unified .admin-room-card { align-items: center; text-align: center; justify-content: flex-start; padding-top: 36px; background-position: center; }
+.admin-room-card .arena-icon { width: 86px; height: 86px; padding: 14px; border: 1px solid #d4b77c77; border-radius: 50%; background: #0b1c2a99; box-shadow: 0 0 28px #ac945b22; object-fit: contain; }
+.admin-unified .admin-room-competition { background-image: linear-gradient(#0b1422c4,#0b1422f5),url(/assets/arena/card-time-attack.png); background-size: cover; }
+.admin-unified .admin-room-training { background-image: linear-gradient(#0b1422c4,#0b1422f5),url(/images/xianxia/card-1.webp); background-size: cover; }
+.admin-unified .admin-room-missions { background-image: linear-gradient(#0b1422c4,#0b1422f5),url(/images/xianxia/card-5.webp); background-size: cover; }
+.admin-competition-layout { display: grid; grid-template-columns: 190px minmax(0,1fr); gap: 24px; align-items: start; }
+.admin-competition-layout .admin-subnav { margin: 0; display: grid; gap: 8px; }
+.admin-competition-layout .admin-subnav button { width: 100%; text-align: left; justify-content: flex-start; }
+.admin-kpi-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; margin: 24px 0; }
+.admin-kpi-grid > div { border: 1px solid #bda06a55; padding: 20px; border-radius: 12px; background: linear-gradient(135deg,#28434588,#111e3188); }
+.admin-kpi-grid dt { color: #cdddda; font-size: .9rem; }
+.admin-kpi-grid dd { margin: 10px 0 0; color: #f4d59d; font-size: clamp(1.2rem,2vw,1.8rem); font-variant-numeric: tabular-nums; }
+.admin-season-status { border-top: 1px solid #bda06a55; padding-top: 20px; }
+.admin-training-scenes { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; margin: 24px 0; }
+.admin-training-scene { border: 1px solid #bda06a77; padding: 22px; border-radius: 12px; background: linear-gradient(#111e31d9,#111e31f5),url(/images/xianxia/card-1.webp) center/cover; }
+.admin-playable-preview { position: fixed !important; inset: 0 !important; width: 100vw; height: 100dvh; z-index: 10000; background: #050d1a; font-family: var(--font-thai); }
+.admin-preview-status { position: fixed; inset: 0; z-index: 10001; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; background: #091322; color: #f4d59d; text-align: center; }
+.admin-preview-badge { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 45; max-width: 65%; padding: 8px 16px; border-radius: 10px; background: #081321dc; border: 1px solid #d6b77c88; color: #f4d59d; font-size: .85rem; text-align: center; }
+.admin-preview-pause,.admin-preview-console { position: absolute; z-index: 46; top: 70px; right: 18px; min-height: 44px; padding: 9px 16px; color: #f4d59d; background: #102637ee; border: 1px solid #d6b77c; border-radius: 8px; }
+.admin-preview-console { top: auto; bottom: 92px; }
+.admin-preview-dialog { position: absolute; inset: 0; z-index: 80; display: grid; place-items: center; padding: 20px; background: #030914b3; }
+.admin-preview-dialog > section { width: min(520px,100%); padding: 28px; color: #eadeca; background: #0d1d30; display: grid; gap: 18px; }
+.admin-playable-preview button,.admin-preview-status button { cursor: pointer; min-height: 44px; }
+.admin-playable-preview button:focus-visible,.admin-preview-status button:focus-visible { outline: 3px solid #8cddcf; outline-offset: 4px; }
+.admin-preview-dialog button,.admin-preview-status button { padding: 12px 18px; background: #244642; color: #f6dfb3; border: 1px solid #d6b77c; border-radius: 8px; }
+.admin-preview-complete { position: absolute; z-index: 44; bottom: 20px; left: 50%; transform: translateX(-50%); max-width: 80%; background: #0d2a27e8; color: #b8f6dc; padding: 12px 18px; border: 1px solid #70a792; border-radius: 10px; }
+@media (min-width: 651px) and (max-width: 1000px) {
+ .admin-unified .mission-board-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+ .admin-unified .mission-hall-embedded button.mission-plaque:nth-child(n) { grid-column: auto; }
+ .admin-unified .mission-hall-embedded button.mission-plaque:last-child { grid-column: 1 / -1; width: calc(50% - 10px); justify-self: center; }
+}
+@media (max-width: 1050px) { .admin-competition-layout { grid-template-columns: 1fr; } .admin-competition-layout .admin-subnav { display: flex; } .admin-competition-layout .admin-subnav button { width: auto; } }
+@media (min-width: 651px) and (max-width: 900px) { .admin-room-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .admin-room-card:last-child { grid-column: 1 / -1; width: calc(50% - 8px); justify-self: center; } }
+@media (max-width: 650px) {
+ .admin-unified .mission-board-grid,.admin-kpi-grid,.admin-training-scenes { grid-template-columns: 1fr; }
+ .admin-unified .mission-hall-embedded button.mission-plaque:nth-child(n) { grid-column: auto; }
+ .admin-preview-badge { max-width: 90%; width: max-content; font-size: .74rem; }
+}
+
+/* V10: intrinsic card content + a compact command strip, never viewport clipping. */
+.is-admin:has(.admin-unified[data-room="missions"]) > .arena-content { padding: 12px 24px 18px; }
+.admin-unified[data-room="missions"] { padding-bottom: 0; }
+.admin-mission-command { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 20px; margin-bottom: 12px; padding: 4px 0; }
+.admin-mission-command > div { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.admin-mission-command h1 { margin: 0; font-size: 1.15rem; line-height: 1.6; color: #f7dfaa; }
+.admin-command-badge { padding: 2px 10px; border: 1px solid #9cd7c766; border-radius: 20px; color: #b4e7d8; font-size: .8rem; background: #163b3599; }
+.admin-mission-command nav { display: flex; flex-wrap: wrap; gap: 8px; }
+.admin-mission-command button { min-height: 44px; padding: 8px 14px; }
+.admin-mission-command :focus-visible { outline: 3px solid #94ecdc; outline-offset: 3px; }
+.admin-unified .mission-hall-compact-admin { padding: clamp(12px, 1.5dvh, 18px) !important; }
+.admin-unified .mission-hall-compact-admin .mission-hall-heading { margin: 0 auto 12px; }
+.admin-unified .mission-hall-compact-admin .mission-hall-eyebrow { display: none; }
+.admin-unified .mission-hall-compact-admin .mission-hall-heading h1 { margin: 0; font-size: 1.65rem; line-height: 1.5; }
+.admin-unified .mission-hall-compact-admin .mission-hall-heading p { margin: 4px 0 0; font-size: .85rem; line-height: 1.6; color: #d0ddd9; }
+.admin-unified .mission-hall-compact-admin .mission-board-grid { box-sizing: border-box; width: 100%; min-width: 0; max-width: 100%; gap: clamp(12px, 1.2vw, 18px); grid-auto-rows: 1fr; margin: 0; }
+.admin-unified .mission-hall-compact-admin button.mission-plaque { box-sizing: border-box; position: relative; width: 100%; max-width: 100%; gap: 5px; min-height: 0; height: auto; margin: 0; padding: 0 16px 14px; white-space: normal; overflow: visible; background: linear-gradient(145deg,#152e36,#091725); border-radius: 12px; }
+.admin-unified .mission-hall-compact-admin .admin-chapter-art { display: block; flex: 0 0 auto; align-self: stretch; margin: 0 -16px 6px; height: clamp(80px, calc(24dvh - 110px), 132px); border-radius: 11px 11px 0 0; background: linear-gradient(0deg,#112731cc,transparent 65%),var(--plaque-art) center 32% / cover no-repeat; }
+.admin-unified .mission-hall-compact-admin .mission-plaque-number { top: 10px; left: 12px; padding: 2px 8px; font-size: .75rem; }
+.admin-unified .mission-hall-compact-admin .mission-plaque-sigil { top: 10px; right: 14px; font-size: 1.3rem; }
+.admin-unified .mission-hall-compact-admin .mission-plaque strong { margin-top: 2px; font-size: 1.25rem; line-height: 1.55; overflow-wrap: anywhere; }
+.admin-unified .mission-hall-compact-admin .mission-plaque-place { margin: 0; font-size: .9rem; line-height: 1.6; color: #b4ded7; }
+.admin-unified .mission-hall-compact-admin .mission-plaque-description { margin: 0 0 8px; font-size: .85rem; line-height: 1.6; color: #d4dfdd; }
+.admin-unified .mission-hall-compact-admin .mission-plaque-footer { margin-top: auto; padding-top: 7px; font-size: .8rem; line-height: 1.6; color: #f3d79c; }
+@media (max-width: 1000px), (max-height: 620px) {
+ .admin-unified .mission-hall-compact-admin .mission-board-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+ .admin-unified .mission-hall-compact-admin button.mission-plaque:nth-child(n) { grid-column: auto; width: auto; }
+ .admin-unified .mission-hall-compact-admin button.mission-plaque:last-child { grid-column: 1 / -1; width: calc(50% - 6px); justify-self: center; }
+ .admin-unified .mission-hall-compact-admin .admin-chapter-art { height: 110px; }
+}
+@media (max-width: 650px) {
+ .is-admin:has(.admin-unified[data-room="missions"]) > .arena-content { padding: 12px 14px 24px; }
+ .admin-mission-command, .admin-mission-command > div { align-items: flex-start; }
+ .admin-unified .mission-hall-compact-admin .mission-board-grid { grid-template-columns: minmax(0,1fr); }
+ .admin-unified .mission-hall-compact-admin button.mission-plaque:last-child { grid-column: auto; width: 100%; }
+ .admin-unified .mission-hall-compact-admin .mission-hall-heading h1 { font-size: 1.4rem; }
+}

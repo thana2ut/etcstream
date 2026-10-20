@@ -1,0 +1,526 @@
+.arena-shell { position: relative; height: 100dvh; overflow: auto; color: #f5e9d4; background: #111b2c; font-family: var(--font-thai); line-height: 1.7; }
+.arena-backdrop { position: fixed !important; object-fit: cover; object-position: center; pointer-events: none; }
+.arena-scrim { position: fixed; inset: 0; background: linear-gradient(#111b2cd9,#111b2ce8); pointer-events: none; }
+.arena-content { position: relative; width: min(1180px, 100%); margin: auto; padding: 18px 24px 56px; }
+.arena-top, .arena-nav { display: flex; flex-wrap: wrap; gap: 12px 24px; padding: 10px 0 20px; }
+.arena-shell a { color: #f0d29a; text-decoration: none; }
+.arena-shell h1 { font-size: clamp(1.6rem, 4vw, 2.6rem); line-height: 1.5; margin: 8px 0 12px; }
+.arena-shell h2 { font-size: 1.25rem; line-height: 1.6; margin: 8px 0 14px; }
+.arena-banner { position: relative; min-height: 230px; border: 1px solid #d6b77c80; border-radius: 18px; overflow: hidden; margin: 12px 0 24px; }
+.arena-banner > img { object-fit: cover; object-position: center 45%; }
+.arena-banner > div { position: relative; padding: 32px; background: linear-gradient(90deg,#111b2cf0,#111b2c80); min-height: 230px; }
+.arena-banner p { margin: 0; color: #d7e5ed; }
+.arena-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,260px),1fr)); gap: 20px; }
+.arena-card, .arena-panel { border: 1px solid #d6b77c66; border-radius: 14px; background: #17263cf2; padding: 22px; margin-bottom: 20px; min-width: 0; }
+.arena-card { padding: 0; overflow: hidden; }
+.arena-card-art { position: relative; height: 170px; }
+.arena-card-art img { object-fit: cover; }
+.arena-card-body { padding: 20px; }
+.arena-mode-cards { align-items: stretch; }
+.arena-mode-cards .arena-card { display: flex; flex-direction: column; margin-bottom: 0; transition: border-color .18s ease, box-shadow .18s ease; }
+.arena-mode-cards .arena-card-art { flex: 0 0 170px; border-bottom: 1px solid #d6b77c44; }
+.arena-mode-cards .arena-card-body { flex: 1; display: flex; flex-direction: column; gap: 16px; padding: 22px; }
+.arena-mode-cards h2 { display: grid; grid-template-columns: 56px minmax(0, 1fr); align-items: center; gap: 12px; min-height: 72px; margin: 0; font-size: 1.15rem; line-height: 1.6; }
+.arena-mode-cards h2 > span:last-child { overflow-wrap: anywhere; }
+.arena-mode-icon { display: grid; place-items: center; align-self: center; flex-shrink: 0; box-sizing: border-box; width: 56px; height: 56px; padding: 3px; border: 1px solid #d6b77c66; border-radius: 14px; background: radial-gradient(circle at 50% 35%, #3e746e66, #111b2ce6); box-shadow: inset 0 1px 0 #f5e9d414; }
+.arena-mode-icon .arena-icon { display: block; width: 48px; height: 48px; max-width: none; margin: 0; object-fit: contain; object-position: center; transform: translate(var(--arena-icon-x, 0px), var(--arena-icon-y, 0px)); }
+/* Optical offsets from the main connected alpha bounds of the original 418px PNGs,
+   scaled to 48px. Keep the original art and identical image/frame sizes intact. */
+.arena-mode-icon[data-arena-icon="time-attack"] { --arena-icon-x: -2.01px; --arena-icon-y: -.29px; }
+.arena-mode-icon[data-arena-icon="duel"] { --arena-icon-x: .57px; --arena-icon-y: -2.01px; }
+.arena-mode-icon[data-arena-icon="leaderboard"] { --arena-icon-x: -.98px; --arena-icon-y: -1.38px; }
+.arena-mode-icon[data-arena-icon="friends"] { --arena-icon-x: -.4px; --arena-icon-y: -.52px; }
+.arena-mode-cards .arena-card-body > p { flex: 1; margin: 0; line-height: 1.8; color: #d4dfeb; overflow-wrap: anywhere; }
+.arena-mode-cards .arena-action { align-self: stretch; width: 100%; min-height: 60px; margin-top: 4px; padding: 10px 12px; text-align: center; line-height: 1.6; box-sizing: border-box; }
+.arena-mode-cards .arena-card:focus-within, .arena-mode-cards .arena-card:hover { border-color: #d6b77cc9; box-shadow: 0 8px 24px #0003; }
+.arena-icon { object-fit: contain; display: inline-block; vertical-align: middle; margin-right: 10px; }
+.arena-shell :is(button,input,select) { font: inherit; border-radius: 8px; min-height: 44px; }
+.arena-shell :is(input,select) { color: #f5e9d4; background: #0c1728; border: 1px solid #abbacb88; padding: 8px 12px; max-width: 100%; }
+.arena-shell input:not([type=checkbox]) { width: min(100%,380px); }
+.arena-shell button, .arena-action { display: inline-flex; align-items: center; justify-content: center; gap: 8px; color: #f5e9d4; background: #294b4b; border: 1px solid #d6b77c; padding: 9px 18px; cursor: pointer; min-height: 44px; border-radius: 8px; }
+.arena-shell button:disabled { opacity: .5; cursor: not-allowed; }
+.arena-shell :is(a,button,input,select):focus-visible { outline: 3px solid #78cada; outline-offset: 3px; }
+.arena-shell label { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.arena-error { padding: 14px; border: 1px solid #f18d80; background: #451c28; border-radius: 8px; }
+.arena-note { color: #c6d5e5; font-size: .95rem; }
+.arena-table-wrap { overflow: auto; }
+.arena-shell table { border-collapse: collapse; width: 100%; font-size: .95rem; }
+.arena-shell :is(td,th) { text-align: left; padding: 12px; border-bottom: 1px solid #abbacb44; vertical-align: top; overflow-wrap: anywhere; }
+.arena-form-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
+.arena-modal { position: fixed; z-index: 200; inset: 0; overflow: auto; background: #06101bf2; display: grid; place-items: center; padding: 20px; }
+.arena-modal > form { width: min(650px,100%); max-height: 90dvh; overflow: auto; }
+.arena-admin-nav { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
+.is-admin .mission-hall-page { position: relative; inset: auto; height: auto; min-height: 70dvh; overflow: visible; }
+.arena-live { font-variant-numeric: tabular-nums; font-size: 1.2rem; }
+.arena-game-bar { position: absolute; left: 12px; top: 12px; right: 12px; z-index: 65; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 10px; background: #0c1728f5; color: #f5e9d4; border: 1px solid #d6b77c; border-radius: 10px; }
+.arena-game-bar button { min-height: 44px; padding: 6px 14px; background: #294b4b; color: white; border: 1px solid #d6b77c; border-radius: 8px; }
+@media(max-width:600px) { .arena-content { padding: 12px 14px 32px; } .arena-banner > div { padding: 22px; } .arena-panel { padding: 16px; } }
+@media(prefers-reduced-motion:reduce) { .arena-shell * { transition: none !important; animation: none !important; } }
+
+
+/* Shared public controls. V5 scene composition below refines these defaults. */
+.arena-public {
+  --arena-ink: #111c2d; --arena-surface: #1b2b43; --arena-gold: #cda86c;
+  --arena-ivory: #f5ead3; --arena-muted: #b9c6d2; --arena-jade: #67bed1;
+  overflow-y: auto; overflow-x: clip; font-size: 16px; line-height: 1.6;
+}
+.arena-public *, .arena-public *::before, .arena-public *::after { box-sizing: border-box; }
+.arena-public .arena-content { width: min(1264px, 100%); padding: 0 28px 28px; }
+.arena-public .arena-scrim { background: linear-gradient(90deg,#101b2ddb,#122039b8 55%,#101b2ddb),linear-gradient(0deg,#0c172ae6,transparent); }
+.arena-header { position: relative; z-index: 20; min-height: 76px; display: flex; align-items: center; gap: 20px; border-bottom: 1px solid #cda86c40; margin-bottom: 22px; }
+.arena-brand { display: flex; align-items: center; gap: 9px; flex: none; font-weight: 600; line-height: 1.4; }
+.arena-brand .arena-icon { width: 38px; height: 38px; margin: 0; }
+.arena-brand small { display: block; font-size: 12px; color: var(--arena-muted); font-weight: 400; }
+.arena-navigation { display: flex; justify-content: center; flex: 1; gap: 4px; }
+.arena-navigation a { display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 8px 11px; border-bottom: 2px solid transparent; color: var(--arena-muted); font-size: 14px; white-space: nowrap; }
+.arena-navigation a[aria-current=page] { color: #f5dfad; border-color: var(--arena-gold); background: linear-gradient(transparent,#cda86c14); }
+.arena-navigation a:hover { color: #fff3d6; background-color: #cda86c12; }
+.arena-player-chip { display: flex; align-items: center; gap: 6px; max-width: 160px; min-width: 0; }
+.arena-player-chip .arena-icon { width: 32px; height: 32px; margin: 0; flex: none; }
+.arena-player-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.arena-public .arena-menu-toggle { display: none; }
+.arena-public h1 { font-family: var(--font-kart),var(--font-thai); font-size: clamp(28px, 2.6vw, 38px); font-weight: 600; line-height: 1.5; margin: 4px 0 8px; }
+.arena-public h2 { font-size: 21px; line-height: 1.5; margin: 0 0 16px; color: #f2ddae; }
+.arena-public h3 { font-size: 18px; line-height: 1.6; margin: 0 0 6px; color: #f3e5c9; }
+.arena-public p { margin: 0 0 12px; }
+.arena-public :is(h1,h2,h3,p,strong,code) { overflow-wrap: anywhere; }
+.arena-public .arena-banner { min-height: 150px; margin: 0 0 22px; border-radius: 16px; border-color: #cda86c70; isolation: isolate; }
+.arena-public .arena-banner > div { min-height: 150px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; padding: 20px 28px; background: linear-gradient(90deg,#101b2df2,#101b2dbd 55%,#101b2d16); }
+.arena-public .arena-banner.is-hub, .arena-public .arena-banner.is-hub > div { min-height: 180px; }
+.arena-public .arena-banner > img { object-position: center 48%; }
+.arena-public .arena-banner p { max-width: 600px; font-size: 15px; color: #d4dfeb; }
+.arena-public .arena-eyebrow { font-size: 12px; color: #d2b984; letter-spacing: .06em; display: block; }
+.arena-public .arena-banner .arena-eyebrow { font-size: 12px; color: #d5bd8d; }
+.arena-public .arena-panel { margin: 0; padding: 24px; border: 1px solid #cda86c59; border-radius: 14px; background: linear-gradient(135deg,#1b2b43f5,#132237f5); box-shadow: inset 0 1px 0 #f4ddb60a,0 10px 30px #02091424; }
+.arena-public .arena-content > :is(.arena-panel,.arena-split,.arena-stats,.arena-profile-heading,.arena-friend-groups,.arena-error) { margin-bottom: 22px; }
+.arena-public .arena-hub-summary { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; border: 1px solid #cda86c45; border-radius: 12px; padding: 12px 18px; background: #15253bdf; margin: 0 0 20px; }
+.arena-identity { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.arena-identity .arena-icon { margin: 0; flex: none; }
+.arena-identity strong { display: block; font-size: 19px; }
+.arena-identity > div { min-width: 0; }
+.arena-identity .arena-text-link { margin-left: 8px; }
+.arena-summary-metrics { display: flex; gap: 24px; color: var(--arena-muted); font-size: 13px; }
+.arena-summary-metrics strong { display: block; font-size: 17px; color: #f1e5ca; font-variant-numeric: tabular-nums; }
+.arena-public .arena-mode-cards { grid-template-columns: repeat(4,minmax(0,1fr)); gap: 18px; }
+.arena-public .arena-mode-cards .arena-card { position: relative; border-color: #cda86c69; background: #17263df2; border-radius: 14px; }
+.arena-public .arena-mode-cards .arena-card-art { height: 132px; flex-basis: 132px; }
+.arena-public .arena-card-art img { object-position: center; }
+.arena-public .arena-mode-cards .arena-card-body { gap: 12px; padding: 18px; }
+.arena-public .arena-mode-cards h2 { grid-template-columns: 44px minmax(0,1fr); min-height: 60px; gap: 9px; font-size: 18px; }
+.arena-public .arena-mode-icon { width: 44px; height: 44px; border-radius: 11px; padding: 1px; }
+.arena-public .arena-mode-icon .arena-icon { width: 40px; height: 40px; }
+.arena-public .arena-mode-cards .arena-card-body > p { font-size: 15px; line-height: 1.6; color: var(--arena-muted); }
+.arena-public .arena-mode-cards .arena-action { min-height: 44px; margin: 0 0 28px; padding: 8px 10px; font-size: 15px; }
+.arena-card-footer { display: flex; flex-direction: column; gap: 6px; }
+.arena-card-footer > .arena-status { position: absolute; top: 10px; right: 10px; background: #101b2def; }
+.arena-card-footer .arena-text-link { text-align: center; font-size: 13px; line-height: 22px; }
+.arena-public :is(button,.arena-action) { min-height: 44px; border-radius: 9px; font-weight: 600; line-height: 1.5; transition: background .18s ease, border-color .18s ease, box-shadow .18s ease; }
+.arena-public button, .arena-public .arena-action { background: linear-gradient(#b38c4c,#7d5c31); border-color: #d7bb80; color: #fff6e2; box-shadow: inset 0 1px 0 #ffe7aa24; }
+.arena-public :is(button,.arena-action):hover:not(:disabled) { border-color: #f4d69c; box-shadow: 0 3px 18px #cda86c29; }
+.arena-public .arena-button-secondary { background: #193247; color: #d9edf0; border-color: #64989e88; }
+.arena-public .arena-button-danger { background: #482932; border-color: #b4727888; color: #f5cece; }
+.arena-public button:disabled { opacity: 1; color: #9baabb; background: #243348; border-color: #63718466; box-shadow: none; cursor: not-allowed; }
+.arena-public :is(a,button,input,select,summary):focus-visible { outline: 3px solid #67bed1; outline-offset: 4px; }
+.arena-public .arena-text-link { color: #dfc38e; text-underline-offset: 4px; min-height: 30px; display: inline-flex; align-items: center; }
+.arena-public .arena-text-link:hover { text-decoration: underline; }
+.arena-public .arena-note, .arena-footnote { color: var(--arena-muted); font-size: 13px; line-height: 1.65; }
+.arena-footnote { margin: 18px 0 0; }
+.arena-status { display: inline-flex; width: fit-content; max-width: 100%; padding: 4px 10px; border-radius: 99px; font-size: 12px; line-height: 1.5; border: 1px solid #67bed14d; color: #abdfe4; background: #15364199; }
+.arena-status.is-muted { border-color: #cda86c59; color: #d7bc8a; background: #332e2899; }
+.arena-split { display: grid; grid-template-columns: minmax(0,1.35fr) minmax(0,1fr); gap: 22px; align-items: start; }
+.arena-selected-stage { margin: 20px 0; padding: 16px 18px; border-left: 3px solid #cda86c; background: #0e1c30a6; border-radius: 0 10px 10px 0; }
+.arena-selected-stage > span { font-size: 13px; color: #b6d9df; }
+.arena-selected-stage p { color: #c4d1df; margin: 0; }
+.arena-public label { display: grid; align-content: start; gap: 7px; margin: 0 0 16px; font-size: 14px; color: #d6e0e9; }
+.arena-public :is(input,select) { min-width: 0; width: 100%; max-width: 100%; padding: 10px 12px; background: #0d1a2c; border: 1px solid #71839b80; color: #f3e9d8; }
+.arena-public input:not([type=checkbox]) { width: 100%; }
+.arena-public :is(input,select):disabled { opacity: .65; }
+.arena-public .arena-form-row { display: grid; grid-template-columns: minmax(0,1.6fr) minmax(0,1fr); gap: 14px; align-items: start; }
+.arena-public .arena-form-row label { margin: 0; }
+.arena-filter-toolbar { display: grid; grid-template-columns: minmax(0,2fr) minmax(150px,1fr); gap: 14px; padding: 16px; background: #0d1a2c88; border-radius: 10px; margin-bottom: 20px; }
+.arena-public .arena-filter-toolbar > label { margin: 0; }
+.arena-section-heading { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+.arena-section-heading h2 { margin: 0; }
+.arena-public .arena-empty { display: flex; gap: 16px; align-items: flex-start; padding: 24px 10px; max-width: 650px; margin: auto; }
+.arena-empty .arena-icon { flex: none; margin: 0; opacity: .85; }
+.arena-empty p { font-size: 14px; color: var(--arena-muted); }
+.arena-steps { list-style: none; counter-reset: step; margin: 0; padding: 0; display: grid; gap: 18px; }
+.arena-steps li { position: relative; padding-left: 40px; counter-increment: step; }
+.arena-steps li::before { content: counter(step,decimal-leading-zero); position: absolute; left: 0; top: 0; color: #d9bd85; font-size: 15px; }
+.arena-steps span { display: block; color: var(--arena-muted); font-size: 14px; margin-top: 3px; }
+.arena-details { border-top: 1px solid #cda86c30; margin-top: 18px; padding-top: 14px; color: var(--arena-muted); font-size: 14px; }
+.arena-details summary { cursor: pointer; min-height: 44px; padding: 8px 0; color: #dbc18d; }
+.arena-details p { margin-top: 10px; }
+.arena-availability { max-width: 820px; margin-inline: auto !important; }
+.arena-availability > .arena-icon { width: 68px; height: 68px; display: block; margin-bottom: 16px; }
+.arena-availability h2 { margin-top: 14px; }
+.arena-checklist { padding-left: 22px; margin: 20px 0; color: #c7d6e0; }
+.arena-checklist li { margin: 10px 0; }
+.arena-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 18px; }
+.arena-public .arena-table-wrap { overflow: visible; }
+.arena-table-caption { text-align: left; color: var(--arena-muted); padding: 0 0 12px; font-size: 13px; }
+.arena-public th { color: #d9c18f; font-weight: 600; }
+.arena-public :is(th,td) { font-size: 14px; padding: 14px 10px; }
+.arena-public td:nth-child(n+3):nth-child(-n+5) { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.arena-public tbody tr:hover { background: #67bed10a; }
+.arena-profile-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+.arena-profile-heading h2 { margin: 0; font-size: 24px; }
+.arena-friend-code { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; min-width: 0; font-size: 13px; color: var(--arena-muted); }
+.arena-friend-code code { display: block; font-size: 14px; color: #e8d7b4; letter-spacing: .03em; user-select: all; }
+.arena-friend-code [role=status]:empty { display: none; }
+.arena-public .arena-friend-code button { padding: 8px 12px; font-size: 13px; }
+.arena-stats { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 14px; margin: 0 0 22px; }
+.arena-stats > div { padding: 16px 20px; border: 1px solid #cda86c40; border-radius: 10px; background: #17263de8; min-width: 0; }
+.arena-stats dt { font-size: 13px; color: var(--arena-muted); }
+.arena-stats dd { font-size: 25px; font-variant-numeric: tabular-nums; margin: 4px 0 0; color: #f1dca6; overflow-wrap: anywhere; }
+.arena-privacy { padding: 16px; margin: 18px 0; border: 1px solid #cda86c38; border-radius: 10px; }
+.arena-privacy legend { padding: 0 8px; color: #dbc18d; }
+.arena-public .arena-privacy label { display: flex; align-items: flex-start; flex-wrap: nowrap; margin: 8px 0 14px; gap: 12px; cursor: pointer; min-height: 44px; }
+.arena-public input[type=checkbox] { flex: none; width: 20px; height: 20px; min-height: 20px; margin: 4px 0 0; accent-color: #67bed1; }
+.arena-privacy small { display: block; color: var(--arena-muted); font-size: 13px; margin-top: 4px; }
+.arena-history { list-style: none; padding: 0; margin: 0; }
+.arena-history li { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; border-bottom: 1px solid #cda86c26; padding: 14px 0; }
+.arena-history li > div { flex: 1 1 180px; }
+.arena-history small { display: block; color: var(--arena-muted); font-size: 12px; margin-top: 5px; }
+.arena-history li > strong { font-size: 14px; font-variant-numeric: tabular-nums; }
+.arena-friend-groups { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 18px; }
+.arena-person-row { display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center; gap: 10px 16px; border-top: 1px solid #cda86c26; padding: 16px 0; }
+.arena-person-row code,.arena-person-row span { display: block; font-size: 13px; color: var(--arena-muted); }
+.arena-person-row .arena-actions { margin: 0; }
+.arena-public .arena-error { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; background: #40242ee8; border-color: #b87880; }
+.arena-skeleton { color: #becbd9; min-height: 100px; display: flex; align-items: center; }
+.arena-public .arena-modal { z-index: 300; background: #050d1bd9; }
+.arena-public .arena-confirm { width: min(500px,100%); max-height: calc(100dvh - 40px); overflow-y: auto; }
+.arena-footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 22px 0 0; margin-top: 26px; border-top: 1px solid #cda86c26; color: #9caec0; font-size: 12px; }
+.arena-round-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+.arena-round-heading h1 { margin: 0; }
+.arena-round-objective { color: #dfd2b6; font-size: 18px; }
+.arena-connection-steps { margin: 20px 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.arena-connection-steps li { display: grid; grid-template-columns: 32px minmax(0,1fr); align-items: start; gap: 12px; padding: 14px 16px; background: #0e1c30c9; border: 1px solid #67bed12e; border-radius: 10px; overflow-wrap: anywhere; }
+.arena-connection-steps li > span:first-child { color: #d9bd85; font-variant-numeric: tabular-nums; }
+.arena-result { max-width: 840px; margin-inline: auto !important; }
+.arena-result > .arena-icon { width: 64px; height: 64px; margin: 0 0 12px; }
+.arena-result .arena-stats { grid-template-columns: repeat(3,minmax(0,1fr)); margin-block: 22px; }
+@media (max-width:1100px) {
+ .arena-public .arena-mode-cards { grid-template-columns: repeat(2,minmax(0,1fr)); }
+ .arena-header { flex-wrap: wrap; gap: 8px 16px; padding: 12px 0; }
+ .arena-navigation { order: 3; flex-basis: 100%; justify-content: flex-start; }
+ .arena-player-chip { margin-left: auto; }
+ .arena-friend-groups { grid-template-columns: 1fr; }
+}
+@media (max-width:760px) {
+ .arena-public .arena-content { padding-inline: 18px; }
+ .arena-split { grid-template-columns: 1fr; gap: 18px; }
+ .arena-stats { grid-template-columns: repeat(2,minmax(0,1fr)); }
+ .arena-filter-toolbar { grid-template-columns: 1fr; }
+ .arena-public .arena-banner > div { padding: 20px; }
+ .arena-public .arena-menu-toggle { display: inline-flex; margin-left: auto; background: #193247; padding: 8px 14px; }
+ .arena-navigation { display: none; }
+ .arena-navigation.is-open { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); }
+ .arena-player-chip { margin-left: 0; max-width: 120px; }
+ .arena-profile-heading { align-items: flex-start; }
+}
+@media (max-width:640px) {
+ .arena-public .arena-mode-cards { grid-template-columns: 1fr; }
+ .arena-public .arena-mode-cards .arena-card-art { height: 158px; flex-basis: 158px; }
+ .arena-public .arena-mode-cards .arena-action { margin-bottom: 0; }
+ .arena-public .arena-panel { padding: 20px; }
+ .arena-brand { font-size: 15px; }
+ .arena-player-chip { flex-basis: 100%; max-width: 100%; font-size: 13px; }
+ .arena-player-chip .arena-icon { width: 24px; height: 24px; }
+ .arena-public .arena-form-row { grid-template-columns: 1fr; }
+ .arena-public .arena-banner.is-hub,.arena-public .arena-banner.is-hub > div { min-height: 170px; }
+ .arena-public .arena-empty { padding: 18px 0; gap: 12px; }
+ .arena-public table,.arena-public tbody,.arena-public tr,.arena-public td { display: block; width: 100%; }
+ .arena-public thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+ .arena-public tbody tr { border: 1px solid #cda86c40; border-radius: 10px; margin-bottom: 14px; padding: 10px; }
+ .arena-public td { border: 0; padding: 6px; }
+ .arena-public td::before { content: attr(data-label); display: inline-block; min-width: 100px; color: #cbb58d; }
+ .arena-result .arena-stats { grid-template-columns: 1fr; }
+ .arena-stats > div { padding: 14px; }
+}
+
+/* V5 scene layer: public Arena only; keep the administrator and training layouts independent. */
+.arena-public {
+ --arena-ink: #111a2b; --arena-surface: #192a42; --arena-gold: #caa66b;
+ --arena-highlight: #edd39d; --arena-jade: #75c9ca; --arena-ivory: #f3ebd9;
+ --arena-muted: #b9c6d3; --arena-border: #caa66b55; --arena-gap: 24px;
+ scrollbar-gutter: stable;
+}
+.arena-public .arena-content { width: min(1280px,100%); padding: 0 32px 24px; }
+.arena-public .arena-backdrop { object-position: center 38%; }
+.arena-public .arena-scrim { background: linear-gradient(90deg,#0a1429b8,#10203966 55%,#091326b8),linear-gradient(0deg,#0b1529f2 5%,#10203933 75%); }
+.arena-public h1 { text-shadow: 0 2px 15px #050c1c; }
+.arena-public h2 { font-size: 23px; }
+.arena-public h3 { font-size: 20px; }
+.arena-public .arena-eyebrow { font-size: 13px; letter-spacing: .025em; }
+.arena-header { min-height: 70px; margin-bottom: 0; }
+.arena-navigation a { position: relative; border: 0; padding-inline: 10px; }
+.arena-navigation a::after { content: ""; position: absolute; inset: auto 12px 0; height: 1px; background: transparent; }
+.arena-navigation a[aria-current=page]::after { background: linear-gradient(90deg,transparent,var(--arena-highlight),transparent); box-shadow: 0 0 8px #caa66b66; }
+.arena-public .arena-banner { min-height: 118px; border: 0; border-bottom: 1px solid var(--arena-border); border-radius: 0; margin-bottom: var(--arena-gap); }
+.arena-public .arena-banner > img { width: 38% !important; left: auto !important; opacity: .65; object-fit: cover; object-position: center 48%; mask-image: linear-gradient(90deg,transparent,#000 40%,#000); }
+.arena-public .arena-banner > div { min-height: 118px; padding: 18px 0; background: linear-gradient(90deg,#111a2b55,transparent); }
+.arena-public .arena-banner p { max-width: 690px; }
+.arena-public .arena-banner.is-hub { min-height: 136px; border: 0; margin-bottom: 4px; }
+.arena-public .arena-banner.is-hub > img { display: none; }
+.arena-public .arena-banner.is-hub > div { min-height: 136px; align-items: center; text-align: center; padding: 20px 0 12px; background: transparent; }
+.arena-public .arena-banner.is-hub h1 { font-size: clamp(32px,3.2vw,44px); }
+.arena-public[data-arena-scene=profile] .arena-banner,.arena-public[data-arena-scene=profile] .arena-banner > div { min-height: 100px; }
+.arena-public[data-arena-scene=profile] .arena-banner > img { opacity: .35; }
+.arena-public .arena-hub-summary { justify-content: center; gap: 12px 32px; padding: 8px 0 18px; margin-bottom: 8px; border: 0; background: transparent; }
+.arena-hub-summary .arena-text-link { font-size: 13px; }
+.arena-summary-metrics { align-items: center; }
+.arena-summary-metrics strong { display: inline; font-size: 15px; margin-left: 8px; }
+.arena-public .arena-mode-cards { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px; }
+.arena-public .arena-mode-cards .arena-card { isolation: isolate; min-height: 250px; border-radius: 3px 18px 3px 18px; border-color: #caa66b88; background: #111a2b; transition: transform .2s ease,border-color .2s ease; }
+.arena-public .arena-mode-cards .arena-card-art { position: absolute; inset: 0; height: 100%; border: 0; z-index: -2; }
+.arena-public .arena-mode-cards .arena-card-art img { object-position: 67% center; transition: transform .35s ease; }
+.arena-public .arena-portal-tile::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(90deg,#0c172cf5 5%,#101c31dc 47%,#101c3150 80%),linear-gradient(0deg,#0a132bd9,transparent 70%); }
+.arena-public .arena-mode-cards .arena-card-body { min-height: 250px; width: 80%; padding: 24px; gap: 10px; }
+.arena-public .arena-mode-cards h2 { display: flex; align-items: center; gap: 12px; min-height: 48px; font-size: 21px; }
+.arena-public .arena-mode-icon { flex: none; width: 48px; height: 48px; padding: 3px; border-radius: 50%; background: #111e2dd9; }
+.arena-public .arena-mode-icon .arena-icon { transform: none; width: 40px; height: 40px; object-fit: contain; object-position: center; }
+.arena-public .arena-mode-cards .arena-card-body > p { max-width: 340px; color: #d0dce6; }
+.arena-public .arena-mode-cards .arena-action { width: auto; min-width: 200px; align-self: flex-start; min-height: 44px; margin: 0; padding: 10px 18px; }
+.arena-public .arena-mode-cards .arena-card:hover { transform: translateY(-3px); border-color: var(--arena-highlight); box-shadow: 0 6px 24px #050e2033; }
+.arena-public .arena-mode-cards .arena-card:hover .arena-card-art img { transform: scale(1.025); }
+.arena-card-footer { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.arena-card-footer > .arena-status { position: static; order: -1; flex-basis: 100%; width: fit-content; background: transparent; border: 0; padding: 0; text-align: left; }
+.arena-public .arena-card-footer button { min-width: 200px; }
+.arena-public .is-sealed .arena-card-art { filter: saturate(.7); }
+.arena-public .arena-lobby-help { border: 0; margin: 16px 0 0; padding: 0; font-size: 13px; }
+.arena-public .arena-panel { border-radius: 8px; border-color: var(--arena-border); background: linear-gradient(135deg,#192a42e8,#101d32e8); box-shadow: inset 0 1px 0 #edd39d0d; position: relative; }
+.arena-public .arena-panel::before { content: ""; position: absolute; top: -1px; left: -1px; width: 28px; height: 28px; border-top: 2px solid var(--arena-gold); border-left: 2px solid var(--arena-gold); border-radius: 8px 0 0; pointer-events: none; }
+.arena-split { grid-template-columns: minmax(0,7fr) minmax(0,5fr); gap: var(--arena-gap); }
+.arena-public :is(button,.arena-action) { border-radius: 4px; }
+.arena-public button,.arena-public .arena-action { background: linear-gradient(115deg,#9d733c,#785330); }
+.arena-public .arena-button-secondary { background: #15323e; border-color: #75c9ca66; }
+.arena-public .arena-button-danger { background: #3e2530; border-color: #b27a7b88; }
+.arena-public button:disabled { background: #243044; color: #b5bfcd; border-color: #78829266; }
+.arena-public :is(button,.arena-action):active:not(:disabled) { transform: translateY(1px); }
+.arena-public .arena-text-link { min-height: 44px; }
+.arena-public :is(input,select) { min-height: 46px; border-radius: 4px; background: #0c182a; color-scheme: dark; }
+.arena-public input::placeholder { color: #98a7b8; }
+.arena-status { font-size: 13px; border-radius: 3px; }
+.arena-section-heading > .arena-icon { margin: 0; width: 48px; height: 48px; }
+.arena-public .arena-mission-selector fieldset { min-width: 0; padding: 0; margin: 0 0 20px; border: 0; }
+.arena-public .arena-mission-selector legend { margin-bottom: 10px; color: #cfdddf; font-size: 14px; }
+.arena-venue-picker > div,.arena-level-picker > div { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 8px; }
+.arena-public .arena-venue-picker button { display: flex; flex-direction: column; justify-content: flex-start; min-height: 94px; padding: 10px 6px; gap: 6px; background: linear-gradient(#20374b,#132236); color: #c2cfda; border: 1px solid #66858a66; box-shadow: none; }
+.arena-venue-picker button > span { color: #89aaa9; font-variant-numeric: tabular-nums; font-size: 13px; border-bottom: 1px solid #caa66b33; padding-bottom: 3px; }
+.arena-venue-picker strong { font-size: 13px; line-height: 1.45; font-weight: 500; }
+.arena-public .arena-level-picker button { display: grid; place-items: center; gap: 4px; padding: 8px; background: #12293a; border: 1px solid #75c9ca55; color: #b9d6d5; }
+.arena-level-picker button > span { display: grid; place-items: center; width: 32px; height: 32px; border: 1px solid #75c9ca44; border-radius: 50%; font-size: 19px; font-variant-numeric: tabular-nums; }
+.arena-level-picker small { font-size: 12px; font-weight: 400; }
+.arena-public .arena-mission-selector button[aria-pressed=true] { border-color: var(--arena-highlight); background: linear-gradient(#43504b,#273844); color: #fff0cb; box-shadow: inset 0 -2px 0 var(--arena-gold); }
+.arena-public .arena-mission-selector button[aria-pressed=true] > span { color: var(--arena-highlight); }
+.arena-selected-stage { position: relative; padding: 20px 24px; border-block: 1px solid #caa66b66; border-left: 3px solid var(--arena-gold); border-radius: 0; background: linear-gradient(100deg,#3c3b3070,#172a3d99); }
+.arena-selected-stage::after { content: ""; position: absolute; top: 8px; right: 8px; width: 26px; height: 26px; border-top: 1px solid #caa66b55; border-right: 1px solid #caa66b55; pointer-events: none; }
+.arena-public .arena-selected-stage h3 { margin-top: 8px; color: #f2dfb6; }
+.arena-selected-stage .arena-note { display: block; margin-top: 14px; }
+.arena-public .arena-ready-action { width: 100%; margin-bottom: 12px; }
+.arena-readiness-art { position: relative; height: 144px; margin: -24px -24px 20px; overflow: hidden; border-radius: 8px 8px 0 0; }
+.arena-readiness-art img { object-fit: cover; object-position: center 47%; opacity: .8; }
+.arena-readiness-art::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg,#192a42,transparent 80%); pointer-events: none; }
+.arena-steps li::before { border-bottom: 1px solid #caa66b66; padding-bottom: 4px; }
+.arena-public .arena-sealed-gate { max-width: 1040px; margin-inline: auto; display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); align-items: center; padding: 0; background: #121e32d9; }
+.arena-gate-art { position: relative; min-height: 430px; align-self: stretch; overflow: hidden; border-radius: 8px 0 0 8px; }
+.arena-gate-art > img { object-fit: cover; filter: saturate(.65); }
+.arena-gate-art::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg,#111a2b22,#111a2b88),linear-gradient(0deg,#111a2b,transparent 55%); pointer-events: none; }
+.arena-gate-crest { position: absolute; z-index: 1; bottom: 32px; left: calc(50% - 40px); width: 80px; height: 80px; display: grid; place-items: center; border: 1px solid #caa66b99; border-radius: 50%; background: #111a2be6; outline: 1px solid #caa66b44; outline-offset: 6px; }
+.arena-gate-crest .arena-icon { width: 60px; height: 60px; margin: 0; }
+.arena-gate-copy { padding: 32px; text-align: center; }
+.arena-public .arena-gate-copy h2 { margin: 18px 0 12px; font-family: var(--font-kart),var(--font-thai); font-size: 29px; }
+.arena-gate-copy p { color: #cbd5df; }
+.arena-gate-copy .arena-details { text-align: left; }
+.arena-public .arena-gate-lock { width: 100%; margin-top: 8px; }
+.arena-gate-copy .arena-actions { justify-content: center; flex-direction: column; }
+.arena-public .arena-ranking-hall { padding: 24px 28px; }
+.arena-public .arena-filter-toolbar { background: transparent; padding: 0 0 20px; border-bottom: 1px solid var(--arena-border); border-radius: 0; }
+.arena-ranking-empty { display: grid; grid-template-columns: minmax(0,4fr) minmax(0,6fr); align-items: center; gap: 24px; margin: 20px 0; }
+.arena-ranking-art { position: relative; min-height: 236px; overflow: hidden; mask-image: linear-gradient(90deg,#000 65%,transparent); }
+.arena-ranking-art img { object-fit: cover; object-position: center; opacity: .85; }
+.arena-public .arena-empty h3 { font-size: 20px; }
+.arena-public .arena-empty p { font-size: 15px; }
+.arena-public table { table-layout: fixed; }
+.arena-invitation-row { margin-bottom: 20px; }
+.arena-public .arena-invitation form { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: end; gap: 12px; }
+.arena-public .arena-invitation form label { margin: 0; }
+.arena-invitation [role=status] { margin: 12px 0 0; color: var(--arena-jade); font-size: 14px; }
+.arena-invitation [role=status]:empty { display: none; }
+.arena-public .arena-code-token { background: linear-gradient(120deg,#254044d9,#192a42dd); }
+.arena-code-token > .arena-icon { position: absolute; right: 18px; top: 20px; width: 40px; height: 40px; opacity: .45; margin: 0; }
+.arena-public .arena-code-token h2 { padding-right: 42px; font-size: 19px; }
+.arena-code-token .arena-note { margin: 12px 0 0; }
+.arena-friend-code code { font-size: 15px; letter-spacing: .04em; }
+.arena-friend-code [role=status] { flex-basis: 100%; }
+.arena-companions > .arena-panel,.arena-companions > .arena-error { margin-bottom: 20px; }
+.arena-public .arena-roster { padding-top: 0; }
+.arena-roster-tabs { display: flex; flex-wrap: wrap; border-bottom: 1px solid var(--arena-border); margin-bottom: 8px; }
+.arena-public .arena-roster-tabs button { background: transparent; border: 0; border-bottom: 2px solid transparent; box-shadow: none; color: var(--arena-muted); border-radius: 0; padding: 16px; min-height: 54px; display: flex; align-items: center; gap: 12px; }
+.arena-public .arena-roster-tabs button[aria-pressed=true] { color: var(--arena-highlight); border-color: var(--arena-gold); background: linear-gradient(transparent,#caa66b0d); }
+.arena-roster-tabs button > span { display: grid; place-items: center; min-width: 23px; height: 23px; font-size: 12px; border: 1px solid #caa66b44; border-radius: 50%; }
+.arena-public .arena-roster-heading { margin: 18px 0 0; font-size: 17px; }
+.arena-person-identity { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.arena-person-identity .arena-icon { flex: none; margin: 0; }
+.arena-public .arena-directory { padding-block: 8px; background: #132238a8; }
+.arena-directory > summary { min-height: 44px; padding: 10px 0; color: var(--arena-highlight); cursor: pointer; }
+.arena-character-sheet { padding: 20px 24px 0; margin-bottom: 24px; border-block: 1px solid var(--arena-border); background: linear-gradient(90deg,#192a42e6,#1c34418c,#17283ae6); }
+.arena-character-sheet .arena-profile-heading { margin-bottom: 20px; }
+.arena-character-sheet .arena-identity > .arena-icon { width: 64px; height: 64px; padding: 4px; border: 1px solid #caa66b88; outline: 1px solid #caa66b33; outline-offset: 4px; border-radius: 50%; background: #11243a; }
+.arena-public .arena-profile-heading h2 { margin: 3px 0 0; font-size: 25px; }
+.arena-stats { gap: 0; margin: 0; }
+.arena-stats > div { padding: 14px 18px; border: 0; border-top: 1px solid #caa66b44; border-right: 1px solid #caa66b33; border-radius: 0; background: linear-gradient(#75c9ca08,transparent); }
+.arena-stats > div:last-child { border-right: 0; }
+.arena-public .arena-profile-panels .arena-panel { background: linear-gradient(120deg,#192a42e0,#122237cc); }
+.arena-profile-panels form { display: flex; flex-direction: column; }
+.arena-profile-panels form > button { align-self: stretch; margin-top: 4px; }
+.arena-public .arena-privacy { min-width: 0; padding: 0; margin: 8px 0 16px; border: 0; border-top: 1px solid var(--arena-border); border-radius: 0; }
+.arena-privacy legend { padding: 0 12px 0 0; font-size: 14px; }
+.arena-public .arena-error { background: #3b2533ed; }
+.arena-skeleton { gap: 12px; min-height: 140px; }
+.arena-skeleton::before { content: ""; width: 20px; height: 20px; flex: none; border: 1px solid #caa66b55; border-top-color: var(--arena-highlight); border-radius: 50%; animation: arena-seal-turn 1.8s linear infinite; }
+.arena-public .arena-join { max-width: 620px; margin-inline: auto; }
+.arena-footer { margin-top: 24px; padding-top: 8px; }
+.arena-footer > a { min-height: 44px; display: inline-flex; align-items: center; }
+.arena-connection-steps li { border: 0; border-left: 1px solid var(--arena-gold); border-radius: 0; }
+.arena-round-status { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.arena-round-status > strong { color: var(--arena-highlight); font-variant-numeric: tabular-nums; }
+.arena-dialog-error { display: block; margin-top: 12px; color: #f3b8b6; }
+.arena-public .arena-result { max-width: 860px; text-align: center; padding: 32px; border-top: 2px solid var(--arena-gold); }
+.arena-result-seal { display: grid; place-items: center; width: 88px; height: 88px; margin: 4px auto 24px; border: 1px solid var(--arena-gold); outline: 1px solid #caa66b44; outline-offset: 7px; background: radial-gradient(#344b49,#111f32); border-radius: 50%; }
+.arena-result-seal .arena-icon { width: 60px; height: 60px; margin: 0; }
+.arena-result[data-outcome=DNF] .arena-result-seal { filter: saturate(.55); background: #302b26; }
+.arena-public .arena-result h2 { margin-top: 16px; }
+.arena-result .arena-stats { border-bottom: 1px solid var(--arena-border); }
+.arena-result .arena-actions { justify-content: center; }
+.arena-public .arena-banner,.arena-public .arena-portal-tile,.arena-public .arena-character-sheet { animation: arena-scene-enter .3s ease both; }
+@keyframes arena-scene-enter { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes arena-seal-turn { to { transform: rotate(360deg); } }
+/* Competition status rail only; keep original TrainingHud and 3D controls intact. */
+.arena-game-bar { gap: 8px 12px; padding: 10px 14px; border-radius: 3px 12px; background: linear-gradient(110deg,#101c30f5,#1a3042f5); border-color: #caa66b88; font-family: var(--font-thai); }
+.arena-game-bar .arena-live { color: #f4dba7; border-inline: 1px solid #caa66b44; padding-inline: 14px; }
+.arena-game-bar > span:not(.arena-live) { font-size: 13px; }
+.arena-game-bar button { font-family: inherit; cursor: pointer; background: #1b3845; color: #e0edee; border-color: #75c9ca66; }
+.arena-game-bar button.arena-game-primary { background: linear-gradient(#96713e,#684a2a); border-color: #caa66b; }
+.arena-game-bar button.arena-game-danger { margin-left: auto; background: #382631; border-color: #b27a7b66; color: #f1cfca; }
+.arena-game-bar button:disabled { opacity: .55; cursor: not-allowed; }
+.arena-game-bar button:focus-visible { outline: 3px solid #75c9ca; outline-offset: 3px; }
+@media (max-width:1100px) {
+ .arena-public .arena-mode-cards .arena-card-body { width: 90%; padding: 20px; }
+ .arena-public .arena-mode-cards h2 { font-size: 19px; }
+ .arena-venue-picker > div { grid-template-columns: repeat(3,minmax(0,1fr)); }
+ .arena-public .arena-invitation form { grid-template-columns: 1fr; }
+}
+@media (max-width:760px) {
+ .arena-public { --arena-gap: 20px; }
+ .arena-public .arena-mode-cards { grid-template-columns: 1fr; }
+ .arena-navigation a { min-width: 0; white-space: normal; text-align: center; justify-content: center; padding-inline: 6px; overflow-wrap: anywhere; }
+ .arena-public .arena-content { padding: 0 20px 20px; }
+ .arena-public .arena-banner > img { width: 55% !important; opacity: .4; }
+ .arena-public .arena-banner > div { padding: 18px 0; }
+ .arena-public .arena-banner p { max-width: 90%; }
+ .arena-public .arena-mode-cards .arena-card-body { width: 100%; }
+ .arena-public .arena-mode-cards h2 { font-size: 18px; gap: 8px; }
+ .arena-split { grid-template-columns: 1fr; }
+ .arena-public .arena-invitation form { grid-template-columns: minmax(0,1fr) auto; }
+ .arena-venue-picker > div { grid-template-columns: repeat(5,minmax(0,1fr)); }
+ .arena-public .arena-sealed-gate { grid-template-columns: 1fr; }
+ .arena-gate-art { min-height: 240px; border-radius: 8px 8px 0 0; }
+ .arena-gate-crest { bottom: 22px; }
+ .arena-gate-copy { padding: 24px; }
+ .arena-ranking-empty { gap: 12px; }
+}
+@media (max-width:640px) {
+ .arena-public .arena-content { padding-inline: 16px; }
+ .arena-public .arena-mode-cards { grid-template-columns: 1fr; gap: 16px; }
+ .arena-public .arena-mode-cards .arena-card,.arena-public .arena-mode-cards .arena-card-body { min-height: 240px; }
+ .arena-public .arena-mode-cards .arena-card-body { width: 88%; padding: 20px; }
+ .arena-public .arena-mode-cards h2 { font-size: 20px; }
+ .arena-public .arena-mode-cards .arena-card-art { height: 100%; flex-basis: auto; }
+ .arena-public .arena-card-footer button { min-width: 0; }
+ .arena-card-footer > .arena-status { top: 10px; right: 10px; padding: 3px 7px; font-size: 12px; }
+ .arena-public .arena-hub-summary { justify-content: flex-start; gap: 4px 20px; padding-bottom: 16px; }
+ .arena-hub-summary .arena-identity { flex-wrap: wrap; gap: 8px; }
+ .arena-summary-metrics { flex-wrap: wrap; gap: 8px 24px; }
+ .arena-public .arena-banner.is-hub,.arena-public .arena-banner.is-hub > div { min-height: 136px; }
+ .arena-public .arena-banner.is-hub > div { align-items: flex-start; text-align: left; }
+ .arena-public .arena-sealed-gate { padding: 0; }
+ .arena-venue-picker > div { grid-template-columns: repeat(3,minmax(0,1fr)); }
+ .arena-public .arena-venue-picker button { min-height: 80px; }
+ .arena-public .arena-level-picker button { padding: 8px 4px; }
+ .arena-readiness-art { margin: -20px -20px 20px; }
+ .arena-selected-stage { padding: 16px; }
+ .arena-public .arena-invitation form { grid-template-columns: 1fr; }
+ .arena-ranking-empty { grid-template-columns: 1fr; }
+ .arena-ranking-art { min-height: 160px; mask-image: linear-gradient(#000 60%,transparent); }
+ .arena-public .arena-empty h3 { font-size: 18px; }
+ .arena-character-sheet { padding: 20px 16px 0; }
+ .arena-stats > div { padding: 12px; }
+ .arena-stats > div:nth-child(2) { border-right: 0; }
+ .arena-roster-tabs { flex-direction: column; align-items: stretch; }
+ .arena-public .arena-roster-tabs button { justify-content: space-between; padding: 12px 0; }
+ .arena-person-row .arena-actions { width: 100%; }
+ .arena-result .arena-stats > div { border-right: 0; }
+ .arena-public .arena-result { padding: 24px 20px; }
+ .arena-game-bar { left: 6px; right: 6px; top: 6px; padding: 8px; max-height: 42dvh; overflow-y: auto; }
+ .arena-game-bar button { flex: 1 1 auto; }
+}
+@media (prefers-reduced-motion:reduce) {
+ .arena-public *,.arena-game-bar * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+/* V6: authoritative online standings, using the V5 jade / celestial-sword frames. */
+.arena-player-chip small { display: block; white-space: normal; font-size: 11px; line-height: 1.4; color: var(--arena-muted); }
+.arena-public .arena-my-season { display: grid; grid-template-columns: 48px minmax(0,1fr) auto; gap: 16px; align-items: center; margin-bottom: 20px; padding: 18px 22px; background: linear-gradient(110deg,#244447db,#15243cd9); }
+.arena-my-season > .arena-icon { margin: 0; }
+.arena-public .arena-my-season h2 { font-size: 21px; margin: 4px 0; }
+.arena-my-season p { font-size: 14px; }
+.arena-my-season .arena-error { grid-column: 1/-1; }
+.arena-scope-tabs { display: flex; flex-wrap: wrap; gap: 4px; padding-bottom: 14px; margin-bottom: 18px; border-bottom: 1px solid var(--arena-border); }
+.arena-public .arena-scope-tabs button { min-height: 44px; padding: 8px 14px; background: transparent; border: 1px solid transparent; color: var(--arena-muted); box-shadow: none; }
+.arena-public .arena-scope-tabs button[aria-pressed=true] { border-color: #caa66b77; color: var(--arena-highlight); background: linear-gradient(#34505266,#1a2f4266); }
+.arena-pinned-standing { position: sticky; top: 10px; z-index: 12; padding: 18px 20px; margin: 16px 0 20px; border: 1px solid #75c9ca66; border-left: 3px solid var(--arena-gold); background: #142b3df7; box-shadow: 0 8px 20px #07101d33; }
+.arena-pinned-standing > strong { display: block; color: #eed4a3; font-size: 19px; margin: 6px 0; }
+.arena-pinned-standing > small { color: var(--arena-muted); font-size: 12px; display: block; }
+.arena-standing-values { display: flex; flex-wrap: wrap; gap: 10px 24px; font-size: 13px; margin: 10px 0; }
+.arena-standing-values b { margin-left: 8px; font-variant-numeric: tabular-nums; color: #e6e2cf; }
+.arena-public .is-me { background: #75c9ca12; outline: 1px solid #75c9ca44; outline-offset: -1px; }
+.arena-season-row { display: grid; grid-template-columns: 46px minmax(0,1fr) auto; align-items: center; gap: 12px; padding: 16px 12px; border-bottom: 1px solid #caa66b33; }
+.arena-season-row > strong { color: var(--arena-highlight); font-variant-numeric: tabular-nums; }
+.arena-season-row span,.arena-season-row small { display: block; font-size: 13px; color: var(--arena-muted); }
+.arena-season-row div > small { color: #e1c18c; }
+.arena-tier-track { list-style: none; padding: 0; margin: 0; }
+.arena-tier-track li { position: relative; display: flex; align-items: center; gap: 16px; padding: 14px 12px; border-left: 1px solid #caa66b44; margin-left: 12px; }
+.arena-tier-track li[aria-current=step] { border-color: var(--arena-highlight); background: linear-gradient(90deg,#caa66b20,transparent); }
+.arena-tier-track .arena-icon { width: 40px; height: 40px; margin: 0; }
+.arena-tier-track span { display: block; color: var(--arena-muted); font-size: 13px; }
+.arena-public .arena-profile-records { margin-top: 24px; }
+.arena-comparison { flex-basis: 100%; min-width: 0; }
+.arena-compare-drawer { padding: 16px; margin-top: 12px; background: #0e1c2f99; border-left: 1px solid var(--arena-jade); }
+.arena-public .arena-recovery { padding-block: 12px; margin-block: 24px; }
+.arena-recovery > summary { cursor: pointer; color: var(--arena-highlight); min-height: 44px; padding: 10px 0; }
+.arena-recovery-secret { display: grid; gap: 12px; padding: 20px; margin-top: 16px; border: 1px solid #ccaa7377; background: #101d30; }
+.arena-recovery-secret code { user-select: all; overflow-wrap: anywhere; font-size: 15px; color: #f4dba5; }
+.arena-public .arena-consent { display: flex; align-items: flex-start; gap: 12px; }
+.arena-public .arena-profile-records .arena-person-row { align-items: flex-start; }
+.arena-season-admin-form { padding: 20px 0; border-block: 1px solid #caa66b44; margin-block: 18px; }
+@media(max-width:760px) {
+ .arena-public .arena-my-season { grid-template-columns: 40px minmax(0,1fr); padding: 18px; }
+ .arena-my-season > .arena-text-link { grid-column: 2; }
+ .arena-pinned-standing { position: relative; top: auto; }
+}
+@media(max-width:450px) {
+ .arena-season-row { grid-template-columns: 32px minmax(0,1fr); }
+ .arena-season-row > strong:last-child { grid-column: 2; }
+ .arena-standing-values { flex-direction: column; gap: 8px; }
+ .arena-public .arena-scope-tabs button { flex: 1 1 auto; }
+}
+
+/* V9 isolated sample roster: never shares ranking row/podium presentation. */
+.arena-demo-roster { border-style: dashed; border-color: #a6a2d588; background: #202039de; }
+.arena-demo-roster ul { display: grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr)); gap: 12px; padding: 0; list-style: none; }
+.arena-demo-roster li { display: grid; gap: 8px; border: 1px dashed #a6a2d566; padding: 18px; border-radius: 10px; }
+.arena-demo-roster span,.arena-demo-roster small { color: #d0cfe7; }
+.arena-online-unavailable { border-color: #bfa66a; }
