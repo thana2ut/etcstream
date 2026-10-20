@@ -11,6 +11,7 @@ import { api, statusText, timeText, type AttemptView, type PlayerView, type Prof
 import {DuelArena,HallOfImmortals,OnlineLeaderboard,RankedPage,MySeasonCapsule,OnlineFriendsSignal,ProfileRecords,PlayerSessionControls,RecoveryPanel,FriendCompare,type RankedResponse,type SeasonStanding} from "./online";
 import {useArenaResource} from "./use-arena-resource";
 import { CloudLobby } from "./cloud-lobby";
+import { RankBadge } from "./rank-badge";
 
 const scales = { classroom: "xs", studio: "s", auditorium: "m", outdoor: "l", stadium: "xl" };
 export function selectedMission(id: string) {
@@ -139,7 +140,7 @@ function Friends({ ownCode }: { ownCode: string }) {
       <div id="arena-roster-list" aria-live="polite" aria-busy={loading}>
         <h2 className="arena-roster-heading">{activeGroup.title}</h2>
         {loading ? <p className="arena-skeleton" role="status">กำลังเปิดสมุดสหาย…</p> : error ? <p className="arena-note">ยังโหลดข้อมูลไม่ครบ กรุณาลองอีกครั้งก่อนดำเนินการ</p> : activeGroup.list.length === 0 ? <ArenaEmptyState icon="friends" title={activeGroup.empty}>{activeGroup.help}</ArenaEmptyState> : activeGroup.list.map((f) => <article className="arena-person-row" key={f.friendCode}>
-          <div className="arena-person-identity"><ArenaIcon name="profile" /><div><strong>{f.name}</strong><code>{f.friendCode}</code><span>{f.seasonal?f.seasonal.tier+" · "+f.seasonal.score+" คะแนน · อันดับทั้งหมด #"+f.seasonal.globalRank:"ยังไม่มีสถิติยืนยันที่เปิดเผย"}</span><span>{f.online ? "ออนไลน์ตามสิทธิ์ที่เปิดเผย" : "ไม่ได้แสดงสถานะออนไลน์"}</span></div></div>
+          <div className="arena-person-identity">{f.seasonal?<RankBadge tier={f.seasonal.tier} size={44}/>:<ArenaIcon name="profile" />}<div><strong>{f.name}</strong><code>{f.friendCode}</code><span>{f.seasonal?f.seasonal.tier+" · "+f.seasonal.score+" คะแนน · อันดับทั้งหมด #"+f.seasonal.globalRank:"ยังไม่มีสถิติยืนยันที่เปิดเผย"}</span><span>{f.online ? "ออนไลน์ตามสิทธิ์ที่เปิดเผย" : "ไม่ได้แสดงสถานะออนไลน์"}</span></div></div>
           <div className="arena-actions">{f.status === "pending" ? f.incoming ? <><button disabled={busy} onClick={() => void action("accept", f.friendCode)}>รับคำขอ</button><button className="arena-button-secondary" disabled={busy} onClick={() => void action("decline", f.friendCode)}>ปฏิเสธ</button></> : <button className="arena-button-secondary" disabled={busy} onClick={() => void action("cancel", f.friendCode)}>ยกเลิกคำขอ</button> : <button className="arena-button-secondary" disabled={busy} onClick={() => setConfirmation({ action: "remove", code: f.friendCode })}>เลิกเป็นสหาย</button>}<button className="arena-button-danger" disabled={busy} onClick={() => setConfirmation({ action: "block", code: f.friendCode })}>ปิดกั้น</button></div>
         {f.status!=="pending" && <FriendCompare code={f.friendCode}/>}</article>)}
       </div>

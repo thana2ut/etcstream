@@ -543,3 +543,14 @@
 .arena-duel-board strong { font-size: 1.5rem; color: var(--arena-highlight); }
 .arena-duel-board b { font-size: 1.3rem; color: var(--arena-highlight); }
 .arena-duel-verdict { grid-column: 1 / -1; text-align: center; margin: 0; font-weight: 700; }
+/* V17 rank badges: fixed square region, artwork never cropped or stretched. */
+.arena-rank-badge { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; aspect-ratio: 1; }
+.arena-rank-badge img { display: block; width: 100%; height: 100%; object-fit: contain; object-position: center; }
+.arena-rank-badge.is-current { filter: drop-shadow(0 0 6px #caa66b88) drop-shadow(0 0 10px #6fb8ff44); }
+.arena-tier-track li:not([aria-current]) .arena-rank-badge { opacity: .72; }
+.arena-season-row { grid-template-columns: 46px 40px minmax(0,1fr) auto; }
+@media (max-width: 640px) { .arena-season-row { grid-template-columns: 32px 32px minmax(0,1fr); } .arena-season-row > strong:last-child { grid-column: 3; } }
+.arena-hall-list li { grid-template-columns: 2.5em 36px minmax(0,1fr) auto; }
+.arena-hall-mine { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.arena-player-chip .arena-rank-badge { margin-right: 2px; }
+@media (max-width: 640px) { .arena-hall-list li { grid-template-columns: 2em 32px minmax(0,1fr); } .arena-hall-list li small { grid-column: 3; } }
