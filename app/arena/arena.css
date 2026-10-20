@@ -79,9 +79,9 @@
 .arena-player-chip .arena-icon { width: 32px; height: 32px; margin: 0; flex: none; }
 .arena-player-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .arena-public .arena-menu-toggle { display: none; }
-.arena-public h1 { font-family: var(--font-kart),var(--font-thai); font-size: clamp(28px, 2.6vw, 38px); font-weight: 600; line-height: 1.5; margin: 4px 0 8px; }
-.arena-public h2 { font-size: 21px; line-height: 1.5; margin: 0 0 16px; color: #f2ddae; }
-.arena-public h3 { font-size: 18px; line-height: 1.6; margin: 0 0 6px; color: #f3e5c9; }
+.arena-public h1 { font-family: var(--font-charm),var(--font-thai); font-size: clamp(28px, 2.6vw, 38px); font-weight: 700; line-height: 1.5; margin: 4px 0 8px; }
+.arena-public h2 { font-family: var(--font-charm),var(--font-thai); font-weight: 700; font-size: 21px; line-height: 1.5; margin: 0 0 16px; color: #f2ddae; }
+.arena-public h3 { font-family: var(--font-charm),var(--font-thai); font-weight: 700; font-size: 18px; line-height: 1.6; margin: 0 0 6px; color: #f3e5c9; }
 .arena-public p { margin: 0 0 12px; }
 .arena-public :is(h1,h2,h3,p,strong,code) { overflow-wrap: anywhere; }
 .arena-public .arena-banner { min-height: 150px; margin: 0 0 22px; border-radius: 16px; border-color: #cda86c70; isolation: isolate; }
@@ -331,7 +331,7 @@
 .arena-gate-crest { position: absolute; z-index: 1; bottom: 32px; left: calc(50% - 40px); width: 80px; height: 80px; display: grid; place-items: center; border: 1px solid #caa66b99; border-radius: 50%; background: #111a2be6; outline: 1px solid #caa66b44; outline-offset: 6px; }
 .arena-gate-crest .arena-icon { width: 60px; height: 60px; margin: 0; }
 .arena-gate-copy { padding: 32px; text-align: center; }
-.arena-public .arena-gate-copy h2 { margin: 18px 0 12px; font-family: var(--font-kart),var(--font-thai); font-size: 29px; }
+.arena-public .arena-gate-copy h2 { margin: 18px 0 12px; font-family: var(--font-charm),var(--font-thai); font-size: 29px; }
 .arena-gate-copy p { color: #cbd5df; }
 .arena-gate-copy .arena-details { text-align: left; }
 .arena-public .arena-gate-lock { width: 100%; margin-top: 8px; }
