@@ -17,6 +17,7 @@ import { CableLobby } from "@/components/ui/cable-lobby";
 import { TouchControls } from "@/components/game/touch-controls";
 import { ArenaBanner, ArenaConfirmDialog, ArenaEmptyState, ArenaIcon, ArenaShell } from "./shell";
 import { api, statusText, timeText, type AttemptView } from "./client-api";
+import { RewardReceipt } from "./economy";
 import { subscribeCompetitionCommands, type CompetitionCommand } from "@/game/training/competition-commands";
 import {AttemptStanding} from "./online";
 
@@ -143,6 +144,7 @@ export function ArenaPlay({ id }: { id: string }) {
         <div><dt>เวลารวม</dt><dd>{attempt.start === null ? "—" : timeText(attempt.totalMs)}</dd></div>
       </dl>
       <p className="arena-muted">การตรวจการต่อสัญญาณเบื้องต้น: {attempt.graphValid ? "ผ่าน" : "ยังไม่ผ่าน"} · {attempt.status === "VERIFIED" ? "ระบบบันทึกสถานะยืนยันแล้ว" : "ผลนี้ไม่ถูกนำเข้าอันดับอัตโนมัติ"}</p>
+      <RewardReceipt attempt={attempt}/>
       <AttemptStanding attempt={attempt}/>
       <div className="arena-actions"><Link className="arena-action" href="/arena/time-attack">เลือกรอบฝึกใหม่</Link><Link className="arena-action arena-button-secondary" href="/arena/profile">ดูประวัติของฉัน</Link><Link className="arena-text-link" href="/arena">กลับหอประลอง →</Link></div>
     </section>

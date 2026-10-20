@@ -12,6 +12,7 @@ import {DuelArena,HallOfImmortals,OnlineLeaderboard,RankedPage,MySeasonCapsule,O
 import {useArenaResource} from "./use-arena-resource";
 import { CloudLobby } from "./cloud-lobby";
 import { RankBadge } from "./rank-badge";
+import { CelestialMarket, EconomyHubPanel, FriendPortrait, QiankunBag, useFriendAppearance } from "./economy";
 
 const scales = { classroom: "xs", studio: "s", auditorium: "m", outdoor: "l", stadium: "xl" };
 export function selectedMission(id: string) {
@@ -29,7 +30,7 @@ const modes = [
   ["leaderboard", "ทำเนียบเซียน", "ค้นหาผลที่ผ่านการยืนยัน เปรียบเทียบภายใต้กติกาเดียวกัน", "card-leaderboard"],
   ["friends", "สหายร่วมสำนัก", "แลกรหัสสหาย ส่งคำขอ และเลือกเปิดเผยสถานะได้ด้วยตนเอง", "card-friends"],
 ];
-const subtitles: Record<string, string> = { home: "ฝึกวิชาให้แม่นยำ แล้วก้าวสู่บททดสอบแห่งสำนัก", "time-attack": "ห้าสถานที่ ยี่สิบห้าบททดสอบ · ทุกสายต่อด้วยฝีมือของเจ้า", duel: "สองกระบี่ หนึ่งบททดสอบ · ความยุติธรรมต้องมาก่อนชัยชนะ", leaderboard: "จารึกเฉพาะผลที่ผ่านการยืนยันจากระบบกลาง", friends: "ร่วมเส้นทางกับสหาย โดยเคารพความเป็นส่วนตัว", profile: "ตัวตน ความเป็นส่วนตัว และประวัติการฝึกของเจ้า",ranked:"วิถีกระบี่แห่งสายสัญญาณ · ผลยืนยันคนละด่าน สู่การจัดอันดับประจำฤดูกาล" };
+const subtitles: Record<string, string> = { home: "ฝึกวิชาให้แม่นยำ แล้วก้าวสู่บททดสอบแห่งสำนัก", "time-attack": "ห้าสถานที่ ยี่สิบห้าบททดสอบ · ทุกสายต่อด้วยฝีมือของเจ้า", duel: "สองกระบี่ หนึ่งบททดสอบ · ความยุติธรรมต้องมาก่อนชัยชนะ", leaderboard: "จารึกเฉพาะผลที่ผ่านการยืนยันจากระบบกลาง", friends: "ร่วมเส้นทางกับสหาย โดยเคารพความเป็นส่วนตัว", profile: "ตัวตน ความเป็นส่วนตัว และประวัติการฝึกของเจ้า",ranked:"วิถีกระบี่แห่งสายสัญญาณ · ผลยืนยันคนละด่าน สู่การจัดอันดับประจำฤดูกาล", market: "แลกหินวิญญาณจากการประลองจริง เป็นเครื่องตกแต่งที่ไม่เพิ่มความได้เปรียบ", bag: "ถุงเฉียนคุน · เก็บและสวมใส่ของสะสม แยกจากถุงอุปกรณ์ในภารกิจ" };
 export function ArenaPortal({ section = "home",initialScope="all",initialSeason }: { section?: string;initialScope?:string;initialSeason?:string }) {
   const [profile, setProfile] = useState<Profile | null>(null), [error, setError] = useState(""), [loading, setLoading] = useState(true);
   const [register, setRegister] = useState(false), [name, setName] = useState(""), [joining, setJoining] = useState(false);
@@ -50,7 +51,7 @@ export function ArenaPortal({ section = "home",initialScope="all",initialSeason 
     beat(); const timer = window.setInterval(beat, 30000);document.addEventListener("visibilitychange",visible); return () => {clearInterval(timer);document.removeEventListener("visibilitychange",visible);};
   }, [profile]);
   const join = async (e: FormEvent) => { e.preventDefault(); if (joiningRef.current) return; joiningRef.current = true; setJoining(true); try { await api("register", { name: name || localName }); await reload(); } catch (e) { setError((e as Error).message); } finally { joiningRef.current = false; setJoining(false); } };
-  const title = section === "home" ? "หอประลองเซียน" : section === "profile" ? "บันทึกวิถีเซียน" : section === "ranked" ? "จัดอันดับฤดูกาล" : modes.find((m) => m[0] === section)?.[1] || "หอประลองเซียน";
+  const title = section === "home" ? "หอประลองเซียน" : section === "profile" ? "บันทึกวิถีเซียน" : section === "ranked" ? "จัดอันดับฤดูกาล" : section === "market" ? "ตลาดสวรรค์" : section === "bag" ? "ถุงเฉียนคุน" : modes.find((m) => m[0] === section)?.[1] || "หอประลองเซียน";
   return <ArenaShell player={profile?.player} rank={season.stale ? null : season.data?.mine} rankState={season.error?"stale":season.loading?"loading":"ready"} connection={connection}><ArenaBanner file={section === "home" ? "hero-celestial-gate" : section === "profile" ? "card-friends" : section === "ranked" ? "card-leaderboard" : modes.find((m) => m[0] === section)?.[3] || "hero-celestial-gate"} title={title}><p>{subtitles[section]}</p></ArenaBanner>
     {loading && <div className="arena-panel arena-skeleton" role="status" aria-live="polite">กำลังเชื่อมต่อข้อมูลผู้ฝึก…</div>}
     {error && <div className="arena-error" role="alert"><span>{error}</span><button className="arena-button-secondary" onClick={() => void reload()}>ลองอีกครั้ง</button></div>}
@@ -58,6 +59,7 @@ export function ArenaPortal({ section = "home",initialScope="all",initialSeason 
     {register && <RecoveryPanel onRecovered={reload}/>}
     {section === "home" && <>
       {profile && <div className="arena-hub-summary"><div className="arena-identity"><ArenaIcon name="profile" /><div><span className="arena-eyebrow">ผู้ฝึกแห่งหอประลอง</span><strong>{profile.player.name}</strong></div></div><div className="arena-summary-metrics"><span>ยืนยันแล้ว <strong>{profile.stats.verified ?? "—"} รอบ</strong></span><span>เวลายืนยันสั้นสุด <strong>{timeText(profile.stats.bestMs)}</strong></span></div></div>}
+      {profile && <EconomyHubPanel name={profile.player.name} />}
       <div className="arena-grid arena-mode-cards">{modes.map(([key, label, description, art]) => <section className={`arena-card arena-portal-tile`} key={key}><div className="arena-card-art"><Image src={arenaAsset(art)} alt="" fill sizes="(max-width:640px) 100vw, (max-width:1280px) 50vw, 600px" /></div><div className="arena-card-body"><h2><span className="arena-mode-icon" data-arena-icon={key}><ArenaIcon name={key} /></span><span>{label}</span></h2><p>{description}</p><Link className="arena-action" href={`/arena/${key}`}>{key === "time-attack" ? "เลือกสนามประลอง" : key === "leaderboard" ? "เปิดทำเนียบ" : key === "duel" ? "เข้าสู่ลานประลอง" : "พบสหาย"}</Link></div></section>)}</div>
       <details className="arena-details arena-lobby-help"><summary>ว่าด้วยการยืนยันผลประลอง</summary><p>ผลจับเวลาที่บันทึกยังไม่เป็นอันดับ จนกว่าจะผ่านการตรวจยืนยันที่เชื่อถือได้</p></details>
     </>}
@@ -67,7 +69,9 @@ export function ArenaPortal({ section = "home",initialScope="all",initialSeason 
     {section === "ranked" && <><HallOfImmortals signedIn={Boolean(profile)} mine={season}/>{profile && <><OnlineFriendsSignal/><CloudLobby/></>}</>}
     {section === "ranked" && <RankedPage key={initialScope+initialSeason} initialScope={initialScope} initialSeason={initialSeason}/>}
     {section === "friends" && profile && <Friends ownCode={profile.player.friendCode} />}
-    {section === "profile" && profile && <><MySeasonCapsule resource={season}/><PlayerProfile profile={profile} onChange={reload}/><ProfileRecords/><RecoveryPanel/><PlayerSessionControls onChange={reload}/></>}
+    {section === "market" && (profile ? <CelestialMarket /> : !loading && <p className="arena-note">สร้างตัวตนผู้ฝึกก่อน จึงจะเข้าตลาดสวรรค์ได้</p>)}
+    {section === "bag" && (profile ? <QiankunBag name={profile.player.name} /> : !loading && <p className="arena-note">สร้างตัวตนผู้ฝึกก่อน จึงจะเปิดถุงเฉียนคุนได้</p>)}
+    {section === "profile" && profile && <><EconomyHubPanel name={profile.player.name} /><MySeasonCapsule resource={season}/><PlayerProfile profile={profile} onChange={reload}/><ProfileRecords/><RecoveryPanel/><PlayerSessionControls onChange={reload}/></>}
   </ArenaShell>;
 }
 function MissionSelector({ value, onChange }: { value: string; onChange: (id: string) => void }) {
@@ -105,6 +109,7 @@ function Friends({ ownCode }: { ownCode: string }) {
   const [code, setCode] = useState(""), [message, setMessage] = useState(""), [error, setError] = useState(""), [busy, setBusy] = useState(false), [loading, setLoading] = useState(true);
   const [group, setGroup] = useState(0);
   const [confirmation, setConfirmation] = useState<{ action: string; code: string } | null>(null); const pending = useRef(false);
+  const appearance = useFriendAppearance(true);
   const refresh = useCallback(async () => {
     try {
       const [f, d] = await Promise.all([api<{ friends: Friend[]; blocks: { friendCode: string }[] }>("friends"), api<{ players: PlayerView[] }>("directory")]);
@@ -140,7 +145,7 @@ function Friends({ ownCode }: { ownCode: string }) {
       <div id="arena-roster-list" aria-live="polite" aria-busy={loading}>
         <h2 className="arena-roster-heading">{activeGroup.title}</h2>
         {loading ? <p className="arena-skeleton" role="status">กำลังเปิดสมุดสหาย…</p> : error ? <p className="arena-note">ยังโหลดข้อมูลไม่ครบ กรุณาลองอีกครั้งก่อนดำเนินการ</p> : activeGroup.list.length === 0 ? <ArenaEmptyState icon="friends" title={activeGroup.empty}>{activeGroup.help}</ArenaEmptyState> : activeGroup.list.map((f) => <article className="arena-person-row" key={f.friendCode}>
-          <div className="arena-person-identity">{f.seasonal?<RankBadge tier={f.seasonal.tier} size={44}/>:<ArenaIcon name="profile" />}<div><strong>{f.name}</strong><code>{f.friendCode}</code><span>{f.seasonal?f.seasonal.tier+" · "+f.seasonal.score+" คะแนน · อันดับทั้งหมด #"+f.seasonal.globalRank:"ยังไม่มีสถิติยืนยันที่เปิดเผย"}</span><span>{f.online ? "ออนไลน์ตามสิทธิ์ที่เปิดเผย" : "ไม่ได้แสดงสถานะออนไลน์"}</span></div></div>
+          <div className="arena-person-identity"><FriendPortrait items={appearance.data?.friends[f.friendCode]} />{f.seasonal?<RankBadge tier={f.seasonal.tier} size={44}/>:<ArenaIcon name="profile" />}<div><strong>{f.name}</strong><code>{f.friendCode}</code><span>{f.seasonal?f.seasonal.tier+" · "+f.seasonal.score+" คะแนน · อันดับทั้งหมด #"+f.seasonal.globalRank:"ยังไม่มีสถิติยืนยันที่เปิดเผย"}</span><span>{f.online ? "ออนไลน์ตามสิทธิ์ที่เปิดเผย" : "ไม่ได้แสดงสถานะออนไลน์"}</span></div></div>
           <div className="arena-actions">{f.status === "pending" ? f.incoming ? <><button disabled={busy} onClick={() => void action("accept", f.friendCode)}>รับคำขอ</button><button className="arena-button-secondary" disabled={busy} onClick={() => void action("decline", f.friendCode)}>ปฏิเสธ</button></> : <button className="arena-button-secondary" disabled={busy} onClick={() => void action("cancel", f.friendCode)}>ยกเลิกคำขอ</button> : <button className="arena-button-secondary" disabled={busy} onClick={() => setConfirmation({ action: "remove", code: f.friendCode })}>เลิกเป็นสหาย</button>}<button className="arena-button-danger" disabled={busy} onClick={() => setConfirmation({ action: "block", code: f.friendCode })}>ปิดกั้น</button></div>
         {f.status!=="pending" && <FriendCompare code={f.friendCode}/>}</article>)}
       </div>

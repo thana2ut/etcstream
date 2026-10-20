@@ -68,6 +68,36 @@ export async function cloudAdmin(request: Request, path: string[]) {
     }
     if (route === "preview-end" && post) { check(await db.from("etc_admin_sessions").update({ preview: null }).eq("token_hash", admission.token_hash)); return reply({ ok: true }); }
     if (route === "training" && !post) return reply(trainingStatus());
+    // V19 economy chamber: read views + audited, reason-required mutations through etc_economy_admin only.
+    if (route.startsWith("economy/")) {
+      const op = route.slice(8);
+      if (!post && ["overview", "wallets", "ledger", "config"].includes(op)) {
+        const player = url.searchParams.get("player");
+        return reply(check(await db.rpc("etc_economy_admin", { operation: op, body: { offset: Math.min(100000, Math.max(0, Math.floor(Number(url.searchParams.get("offset")) || 0))), ...(player && /^[0-9a-f-]{36}$/i.test(player) ? { player } : {}) } })));
+      }
+      if (post && ["adjust", "catalog", "rule", "medal", "medal-clear"].includes(op)) {
+        const reason = String(body.reason || "").trim();
+        if (reason.length < 5 || reason.length > 500) throw new ArenaError(400, "ต้องระบุเหตุผลอย่างน้อย 5 ตัวอักษรทุกครั้ง");
+        if (op === "adjust" && (!/^[0-9a-f-]{36}$/i.test(String(body.player)) || body.confirm !== body.player || !Number.isSafeInteger(body.amount) || body.amount === 0 || Math.abs(Number(body.amount)) > 100000 || !/^[0-9a-f-]{36}$/i.test(String(body.idempotencyKey)))) throw new ArenaError(400, "กรอกรหัสผู้ฝึก ยืนยันรหัสซ้ำ และจำนวนที่ไม่เป็นศูนย์ (ไม่เกิน ±100,000)");
+        if (op === "catalog" && (body.price !== undefined && (!Number.isSafeInteger(body.price) || Number(body.price) < 1 || Number(body.price) > 1000000))) throw new ArenaError(400, "ราคาต้องเป็นจำนวนเต็มบวก");
+        if (op === "rule" && (!Number.isSafeInteger(body.amount) || Number(body.amount) < 0 || Number(body.amount) > 100000)) throw new ArenaError(400, "จำนวนรางวัลไม่ถูกต้อง");
+        if (op === "medal") {
+          const versions = stageVersions() as Record<string, string>, id = String(body.scenario || "");
+          if (!versions[id]) throw new ArenaError(400, "ไม่พบด่านนี้");
+          body.version = versions[id];
+          if (![body.goldMs, body.silverMs, body.bronzeMs].every((n) => Number.isSafeInteger(n) && Number(n) > 0) || !(Number(body.goldMs) < Number(body.silverMs) && Number(body.silverMs) < Number(body.bronzeMs))) throw new ArenaError(400, "เวลาต้องเรียงทอง < เงิน < ทองแดง และมากกว่าศูนย์");
+        }
+        if (op === "medal-clear") { const versions = stageVersions() as Record<string, string>; body.version = versions[String(body.scenario || "")] || ""; }
+        const result = await db.rpc("etc_economy_admin", { operation: op, body: { ...body, reason } });
+        if (result.error) {
+          if (/INSUFFICIENT_STONES|check constraint/.test(result.error.message)) throw new ArenaError(409, "การหักนี้จะทำให้ยอดติดลบ จึงไม่ดำเนินการ");
+          if (/PROFILE_REQUIRED/.test(result.error.message)) throw new ArenaError(404, "ไม่พบผู้ฝึกนี้");
+          throw new ArenaError(400, "ดำเนินการไม่สำเร็จ กรุณาตรวจข้อมูลอีกครั้ง");
+        }
+        return reply(result.data);
+      }
+      throw new ArenaError(404, "ไม่พบรายการนี้");
+    }
     if (route === "database" && !post) {
       check(await db.from("etc_stage_catalog").select("scenario", { head: true }).limit(0));
       check(await db.from("etc_seasons").select("id", { head: true }).limit(0));

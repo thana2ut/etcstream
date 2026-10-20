@@ -15,3 +15,7 @@
 - `/api/arena/status` = READY, anon อ่าน/เขียนตารางตรงถูกปฏิเสธ (42501), `/api/admin/*` ไม่มี session = 401
 - env (ชื่อเท่านั้น): ARENA_BACKEND, NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, SUPABASE_SECRET_KEY, ADMIN_PASSWORD_HASH, ADMIN_CREDENTIAL_ROTATED, ARENA_PUBLIC_ORIGIN, NEXT_PUBLIC_SITE_URL
 - ARENA_VERIFIED_SLICE_ENABLED ยังไม่ตั้ง (= ปิด) รอเจ้าของตรวจรับ xs-1
+
+## V19 (21 ตุลาคม 2026)
+- apply migration `celestial_economy_v19` บน `unohixcxthiilnkmjunc` แล้ว (เพิ่มอย่างเดียว) รายละเอียดใน `docs/ECONOMY_V19_TH.md`
+- Vercel ยังไม่ได้ deploy โค้ด V19

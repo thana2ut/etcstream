@@ -4,6 +4,6 @@ export default async function Page({ params,searchParams }: { params: Promise<{ 
   const { section } = await params;
   const query=await searchParams;
   const initialScope=["friends","around_me","me"].includes(query.scope || "")?query.scope!:"all";
-  if (!["time-attack", "duel", "leaderboard", "friends", "profile", "ranked"].includes(section)) notFound();
+  if (!["time-attack", "duel", "leaderboard", "friends", "profile", "ranked", "market", "bag"].includes(section)) notFound();
   return <ArenaPortal section={section} initialScope={initialScope} initialSeason={typeof query.season==="string"?query.season:undefined}/>;
 }

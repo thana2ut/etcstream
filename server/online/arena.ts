@@ -76,6 +76,25 @@ export async function cloudArena(request: Request, path: string[]) {
     const player = checked(await client.rpc("etc_player", { action: "get" })) as { id: string; rankPublic: boolean };
     const rpc = async (action: string, value: unknown = {}) => checked(await client.rpc("etc_player", { action, body: json(value) }));
     if (route === "profile" && post) return response(await rpc("profile", body));
+    // V19 economy: identity comes from the verified Supabase session (auth.uid()); never from the body.
+    const economy = async (action: string, value: unknown = {}) => checked(await client.rpc("etc_economy", { action, body: json(value) }));
+    if (route === "economy" && !post) return response(await economy("summary"));
+    if (route === "economy/ledger" && !post) return response(await economy("ledger", { offset: Math.min(100000, Math.max(0, Math.floor(Number(url.searchParams.get("offset")) || 0))) }));
+    if (route === "economy/receipt" && !post) {
+      if (!uuid(url.searchParams.get("run"))) throw new ArenaError(400, "รหัสรอบไม่ถูกต้อง");
+      return response(await economy("receipt", { run: url.searchParams.get("run") }));
+    }
+    if (route === "economy/friends" && !post) return response(await economy("friend-appearance"));
+    if (route === "market" && !post) return response(await economy("catalog"));
+    if (route === "market/purchase" && post) {
+      if (typeof body.sku !== "string" || !/^[a-z][a-z0-9_]{2,40}$/.test(body.sku) || !uuid(body.idempotencyKey)) throw new ArenaError(400, "ข้อมูลการซื้อไม่ถูกต้อง");
+      return response(await economy("purchase", { sku: body.sku, idempotencyKey: body.idempotencyKey }));
+    }
+    if (route === "economy/equip" && post) {
+      if (typeof body.sku !== "string" || !/^[a-z][a-z0-9_]{2,40}$/.test(body.sku)) throw new ArenaError(400, "ไม่พบของสะสมนี้");
+      return response(await economy("equip", { sku: body.sku }));
+    }
+    if (route === "economy/unequip" && post) return response(await economy("unequip", { slot: String(body.slot || "") }));
     if (route === "heartbeat" && post) return response(await rpc("heartbeat"));
     if (route === "logout" && post) { await rpc("offline"); const result = await client.auth.signOut(); if (result.error) throw result.error; return response({ ok: true }); }
     if (route === "friends") return response(await rpc(post ? "friends" : "friend-list", body));
@@ -186,6 +205,11 @@ export async function cloudArena(request: Request, path: string[]) {
     if (/REVISION_CONFLICT/.test(code)) return response({ error: "ข้อมูลรอบเปลี่ยนระหว่างส่งคำสั่ง กรุณาลองส่งคำสั่งเดิมอีกครั้ง" }, 409);
     if (/FRIEND_NOT_FOUND|REQUEST_NOT_FOUND|duplicate key/.test(code)) return response({ error: "ไม่พบคำขอที่ใช้ได้ หรือมีคำขอถึงสหายนี้แล้ว" }, 409);
     if (/INVALID_NAME/.test(code)) return response({ error: "ใช้ชื่อภาษาไทยหรืออังกฤษ 2–20 ตัวอักษร และไม่ใช้ชื่อสงวน" }, 400);
+    if (/INSUFFICIENT_STONES/.test(code)) return response({ error: "หินวิญญาณไม่พอสำหรับรายการนี้", code: "INSUFFICIENT_STONES" }, 409);
+    if (/ALREADY_OWNED/.test(code)) return response({ error: "เจ้ามีของสะสมชิ้นนี้ในถุงเฉียนคุนแล้ว ไม่มีการหักหินซ้ำ", code: "ALREADY_OWNED" }, 409);
+    if (/ITEM_UNAVAILABLE/.test(code)) return response({ error: "สินค้านี้ยังไม่เปิดขายในตลาดสวรรค์", code: "ITEM_UNAVAILABLE" }, 409);
+    if (/NOT_OWNED/.test(code)) return response({ error: "ต้องเป็นเจ้าของของสะสมก่อนจึงจะสวมใส่ได้", code: "NOT_OWNED" }, 403);
+    if (/INVALID_REQUEST/.test(code)) return response({ error: "ข้อมูลคำขอไม่ถูกต้อง" }, 400);
     if (/RUN_NOT_STARTED|COMMAND_LIMIT/.test(code)) return response({ error: "รอบยังไม่เริ่มหรือเกินข้อจำกัด กรุณาตรวจสถานะรอบ" }, 409);
     console.error("Online request unavailable", error instanceof Error ? error.name : "UnknownError");
     return response({ error: "ยังเชื่อมต่อระบบออนไลน์ไม่ได้ กรุณาติดต่อผู้ดูแลเพื่อตรวจสิทธิ์โครงการและการตั้งค่า" }, 503);
