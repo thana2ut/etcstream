@@ -1,18 +1,19 @@
 import "server-only";
 import { NextResponse } from "next/server";
-import { randomBytes, randomUUID, createHash } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import { playerClient, trustedClient } from "./supabase";
 import { input } from "@/server/arena/auth";
 import { ArenaError } from "@/server/arena/db";
 import { apply, commandCost } from "@/server/arena/command-replay";
 import { validateNickname } from "@/game/security/nickname-validation";
 import { SCENARIOS, type ScenarioId } from "@/game/training/scenarios";
-import { initialTrainingState, initSim, simContext, type TrainingState } from "@/game/training/hdmi-training";
+import { initialTrainingState, initSim, type TrainingState } from "@/game/training/hdmi-training";
 import { checkMissionBag } from "@/game/content/mission-bag";
 import { hiddenCablesFor, packedLeadsFor } from "@/game/content/cable-catalog";
-import { validateLevel } from "@/game/training/sim/engine";
 import type { Json } from "./types";
 import { cloudAdminSession } from "./admin";
+import { replayCloudRun } from "./replay";
+import { cloudStages as stages, stageVersion as version, ensureCloudCatalog, verificationEnabled, seasonDTO, standingDTO, type CloudSeason } from "./ranked";
 
 const rules = { connector_ms: 5000, route_ms: 10000, hint_ms: 15000, failed_ms: 10000, version: 1, board: 1, time_attack: 1 };
 const protocol = "server-command-v1";
@@ -24,13 +25,11 @@ type Run = {
   state: TrainingState | null; bag: Record<string, number> | null; verified_at: string | null; validation_version: string | null;
 };
 const ms = (s: string | null) => s ? Date.parse(s) : null;
-const stages = Object.keys(SCENARIOS).filter((s) => /^(xs|s|m|l|xl)-[1-5]$/.test(s)) as ScenarioId[];
-const version = (id: ScenarioId) => createHash("sha256").update(JSON.stringify(SCENARIOS[id])).digest("hex").slice(0, 24);
 function view(r: Run, replay = false) {
   return { id: r.id, scenario: r.scenario, scenarioVersion: r.scenario_version, rulesVersion: r.rules_version, status: r.status,
     start: ms(r.start), elapsedMs: r.elapsed, penaltyMs: r.penalty, totalMs: r.total, mistakes: r.mistakes,
     graphValid: r.graph_valid, invalid: r.invalid, created: ms(r.created), serverNow: Date.now(), seed: r.seed,
-    protocol, commandSeq: r.seq, verificationEnabled: false, verifiedAt: ms(r.verified_at), validationVersion: r.validation_version,
+    protocol, commandSeq: r.seq, verificationEnabled: verificationEnabled(r.scenario), verifiedAt: ms(r.verified_at), validationVersion: r.validation_version,
     reason: r.status === "UNDER_REVIEW" ? "บันทึกคำสั่งและตรวจกราฟฝั่งเซิร์ฟเวอร์แล้ว แต่ยังไม่เปิดรับรองอันดับของด่านนี้" : null,
     ...(replay ? { replay: r.state ? { state: r.state, bag: r.bag, seq: r.seq, protocol } : null } : {}),
   };
@@ -49,7 +48,10 @@ export async function cloudArena(request: Request, path: string[]) {
     if (route === "demo") return response({ enabled: false, profiles: [] });
     const client = await playerClient();
     if (route === "status" && !post) {
-      const result = await client.rpc("etc_can_join_lobby");
+      // The lobby membership RPC deliberately requires an authenticated profile.
+      // Check schema through a server-only, zero-row read so new visitors are not
+      // incorrectly shown a database outage before they can register.
+      const result = await trustedClient().from("etc_profiles").select("id", { head: true }).limit(0);
       return response({ state: result.error ? "MIGRATION_OR_CONNECTION_REQUIRED" : "READY", available: !result.error,
         message: result.error ? "ยังเชื่อมต่อโครงสร้างข้อมูลออนไลน์ไม่ได้ กรุณาติดต่อผู้ดูแล" : "เชื่อมต่อ Supabase แล้ว · ยังไม่ผ่านการทดสอบการเล่น", serverNow: Date.now() });
     }
@@ -81,16 +83,28 @@ export async function cloudArena(request: Request, path: string[]) {
       const records = checked(await client.rpc("etc_my_records", { stage_versions: Object.fromEntries(stages.map((id) => [id,version(id)])) })) as { stats: unknown; history: unknown };
       return response({ player, stats: records.stats, history: records.history, rules, duelEnabled: false });
     }
-    if (route === "seasons" && !post) return response({ seasons: [], unavailableReason: "ยังไม่เปิดฤดูกาลจนกว่าระบบรับรองผลครบและเจ้าของตรวจรับ" });
-    if (route === "ranked" && !post) return response({ season: null, rows: [], mine: null, total: 0, hasMore: false, nextOffset: null, enabled: false, serverNow: Date.now() });
+    if (route === "seasons" && !post) {
+      const result = checked(await client.rpc("etc_season_list")) as { seasons: CloudSeason[] };
+      return response({ seasons: result.seasons.map(seasonDTO) });
+    }
+    if (route === "ranked" && !post) {
+      const id = url.searchParams.get("season");
+      if (id && !uuid(id)) throw new ArenaError(400, "รหัสฤดูกาลไม่ถูกต้อง");
+      const board = checked(await client.rpc("etc_ranked", { season_id: id || null, scope: url.searchParams.get("scope") || "all", page_offset: Math.min(100000, Math.max(0, Math.floor(Number(url.searchParams.get("offset")) || 0))) })) as { season: CloudSeason | null; rows: Record<string, unknown>[]; mine: Record<string, unknown> | null };
+      return response({ ...board, season: board.season ? seasonDTO(board.season) : null, rows: board.rows.map(standingDTO), mine: standingDTO(board.mine), serverNow: Date.now() });
+    }
     const scenario = (url.searchParams.get("scenario") || "xs-1") as ScenarioId;
     if (["leaderboard", "my-standing", "stage-summary", "compare"].includes(route) && !post) {
       // Remain explicit about eligibility. No unverified times are exposed as rankings.
-      if (route === "compare") throw new ArenaError(409, "ยังไม่มีผลที่รับรองสำหรับเปรียบเทียบอันดับออนไลน์");
-      if (route === "stage-summary") return response(checked(await client.rpc("etc_my_records", { stage_versions: Object.fromEntries(stages.map((id) => [id,version(id)])) })));
+      if (route === "compare") {
+        if (!stages.includes(scenario)) throw new ArenaError(400, "ไม่พบภารกิจที่เลือก");
+        return response(checked(await client.rpc("etc_compare", { stage: scenario, stage_version: version(scenario), friend: url.searchParams.get("friend") || "" })));
+      }
+      if (route === "stage-summary") return response(checked(await client.rpc("etc_stage_summary", { stage_versions: Object.fromEntries(stages.map((id) => [id,version(id)])) })));
       if (!stages.includes(scenario)) throw new ArenaError(400, "ไม่พบภารกิจที่เลือก");
-      if (url.searchParams.get("season")) throw new ArenaError(409, "ยังไม่เปิดฤดูกาลออนไลน์");
-      const board = checked(await client.rpc("etc_stage_board", { stage: scenario, stage_version: version(scenario),
+      const season = url.searchParams.get("season");
+      if (season && !uuid(season)) throw new ArenaError(400, "รหัสฤดูกาลไม่ถูกต้อง");
+      const board = checked(await client.rpc("etc_stage_board_v13", { stage: scenario, stage_version: version(scenario), season_id: season || null,
         scope: url.searchParams.get("scope") || "all", page_offset: Math.min(100000,Math.max(0,Math.floor(Number(url.searchParams.get("offset"))||0))),
         weekly: url.searchParams.get("period") === "weekly" })) as { mine: unknown };
       return response(route === "my-standing" ? board.mine : board);
@@ -103,9 +117,12 @@ export async function cloudArena(request: Request, path: string[]) {
         const old = checked(await db.from("etc_runs").select("*").eq("player", user.id).eq("request_id", body.requestId).maybeSingle()) as Run | null;
         if (old) { if (old.scenario !== body.scenario) throw new ArenaError(409, "รหัสรอบนี้ใช้กับด่านอื่นแล้ว"); return response(view(old)); }
         checked(await db.rpc("etc_trusted_budget", { k: "run:" + user.id, maximum: 8, seconds: 3600 }));
+        await ensureCloudCatalog();
         const id = body.scenario as ScenarioId;
+        const current = checked(await db.from("etc_seasons").select("id").eq("status", "open").lte("starts", new Date().toISOString()).gt("ends", new Date().toISOString()).order("starts", { ascending: false }).limit(1).maybeSingle());
+        const seasonStage = current ? checked(await db.from("etc_season_stages").select("season").eq("season", current.id).eq("scenario", id).eq("version", version(id)).eq("rules_version", rules.version).maybeSingle()) : null;
         const result = await db.from("etc_runs").insert({ id: randomUUID(), player: user.id, request_id: body.requestId,
-          scenario: id, scenario_version: version(id), rules_version: rules.version, rules, seed: randomBytes(4).readUInt32BE() }).select("*").single();
+          scenario: id, scenario_version: version(id), rules_version: rules.version, rules, season: seasonStage?.season ?? null, seed: randomBytes(4).readUInt32BE() }).select("*").single();
         if (result.error?.code === "23505") {
           const retry = checked(await db.from("etc_runs").select("*").eq("player", user.id).eq("request_id", body.requestId).single()) as Run;
           if (retry.scenario !== id) throw new ArenaError(409, "รหัสรอบนี้ใช้กับด่านอื่นแล้ว");
@@ -121,6 +138,7 @@ export async function cloudArena(request: Request, path: string[]) {
       if (version(r.scenario) !== r.scenario_version) throw new ArenaError(409, "ข้อมูลด่านเปลี่ยนแล้ว กรุณาเริ่มรอบใหม่");
       const patch: Record<string, unknown> = { action: body.action };
       let command: { method: string; args: unknown[] } | null = null;
+      let evidence: Awaited<ReturnType<typeof replayCloudRun>> | null = null;
       if (body.action === "ready") {
         if (r.status === "RUNNING") return response(view(r));
         const bag = body.bag as Record<string, number>;
@@ -143,10 +161,13 @@ export async function cloudArena(request: Request, path: string[]) {
         const after = apply(r.state, command.method, command.args), cost = commandCost(r.state, after, command.method, r.rules);
         Object.assign(patch, { state: after, penalty: cost.penalty, mistakes: cost.mistakes });
       } else if (body.action === "finish") {
-        const ctx = r.state && simContext(r.state);
-        patch.valid = Boolean(ctx && r.state?.completed && r.seq >= 2 && !SCENARIOS[r.scenario].designIssues?.length && validateLevel(ctx).every((v) => v.result.ok));
+        evidence = await replayCloudRun(r);
+        patch.valid = evidence.valid;
       } else if (body.action !== "abandon") throw new ArenaError(400, "ไม่รองรับคำสั่งนี้");
-      const saved = checked(await db.rpc("etc_save_run", { run_id: r.id, expected_revision: r.revision, patch: json(patch), command: json(command) })) as Run;
+      let saved = checked(await db.rpc("etc_save_run", { run_id: r.id, expected_revision: r.revision, patch: json(patch), command: json(command) })) as Run;
+      if (evidence?.valid && saved.status === "UNDER_REVIEW" && verificationEnabled(saved.scenario)) {
+        saved = checked(await db.rpc("etc_certify_run", { run_id: saved.id, expected_revision: saved.revision, proof: json(evidence) })) as Run;
+      }
       return response(view(saved));
     }
     throw new ArenaError(404, "ไม่พบรายการนี้");

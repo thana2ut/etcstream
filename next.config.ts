@@ -2,8 +2,8 @@ import type { NextConfig } from "next";
 
 const isDevelopment = process.env.NODE_ENV === "development";
 // Restrict production network access to the owner-confirmed Supabase project.
-const onlineOrigin = "https://abtzrovcsomghbuwdmrr.supabase.co";
-const onlineSocket = "wss://abtzrovcsomghbuwdmrr.supabase.co";
+const onlineOrigin = "https://kppjvrhpnunuurwvjanj.supabase.co";
+const onlineSocket = "wss://kppjvrhpnunuurwvjanj.supabase.co";
 // Static App Router pages need inline Next hydration scripts and React styles.
 // The 3D room's troika text worker imports generated blob scripts at runtime.
 const contentSecurityPolicy = [

@@ -7,7 +7,7 @@ export const cloudEnabled = () => process.env.ARENA_BACKEND === "supabase";
 export function cloudConfig() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !key || new URL(url).hostname !== "abtzrovcsomghbuwdmrr.supabase.co") {
+  if (!url || !key || new URL(url).hostname !== "kppjvrhpnunuurwvjanj.supabase.co") {
     throw new Error("ONLINE_CONFIGURATION_REQUIRED");
   }
   return { url, key };

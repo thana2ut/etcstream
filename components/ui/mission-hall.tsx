@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import Link from "next/link";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { getDifficultyMeta, getMissionBySlug, missionChapters } from "@/game/content/mission-catalog";
@@ -26,7 +27,7 @@ export function MissionHall({ admin = false, embedded = false, active = true, on
   const previewOnly = admin && Boolean(onPreview);
   const { hydrated: storedHydrated, player: storedPlayer, progress: storedProgress, hydrate, selectMission } = useAcademyStore();
   const hydrated = previewOnly || storedHydrated;
-  const player = previewOnly ? { playerId: "admin-preview", nickname: "ผู้ดูแล · ไม่บันทึกผล" } : storedPlayer;
+  const player = useMemo(() => previewOnly ? { playerId: "admin-preview", nickname: "ผู้ดูแล · ไม่บันทึกผล" } : storedPlayer, [previewOnly, storedPlayer]);
   const progress = previewOnly ? { version: 1 as const, playerId: "admin-preview", selected: null, completed: {} as Record<string, number[]> } : storedProgress;
   const [launching, setLaunching] = useState(false);
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
@@ -55,7 +56,7 @@ export function MissionHall({ admin = false, embedded = false, active = true, on
   }, [detailOpen, selectedSlug]);
 
   if (!hydrated || !player || !progress) {
-    return <Container className={embedded ? "arena-panel" : "fantasy-viewport mission-loading"}><p>{hydrated && !player ? "หอภารกิจเดิมต้องใช้โปรไฟล์ฝึกในเบราว์เซอร์นี้ กรุณาสร้างโปรไฟล์ที่หน้าต้อนรับก่อน ระบบจะไม่สร้างผู้เล่นหรือผลภารกิจแทนคุณ" : "กำลังเปิดหอภารกิจ..."}</p>{embedded && hydrated && !player && <a href="/">ไปหน้าต้อนรับ</a>}</Container>;
+    return <Container className={embedded ? "arena-panel" : "fantasy-viewport mission-loading"}><p>{hydrated && !player ? "หอภารกิจเดิมต้องใช้โปรไฟล์ฝึกในเบราว์เซอร์นี้ กรุณาสร้างโปรไฟล์ที่หน้าต้อนรับก่อน ระบบจะไม่สร้างผู้เล่นหรือผลภารกิจแทนคุณ" : "กำลังเปิดหอภารกิจ..."}</p>{embedded && hydrated && !player && <Link href="/">ไปหน้าต้อนรับ</Link>}</Container>;
   }
 
   const record = previewOnly ? null : drawnLocal ?? missionDrawRepository.load(player.playerId);

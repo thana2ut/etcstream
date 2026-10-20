@@ -23,11 +23,11 @@ export function CloudLobby() {
       if (!active) return;
       setTransport(status === "SUBSCRIBED" ? "เชื่อมต่อข้อมูลสดแล้ว" : "ข้อมูลสดขาดการเชื่อมต่อ · กำลังเรียกข้อมูลทุก 30 วินาที");
     });
-    void refresh();
+    const initial = window.setTimeout(() => void refresh(), 0);
     const timer = setInterval(() => { if (!document.hidden) void refresh(); }, 30000);
     const notify = () => { if (!document.hidden) { void refresh(); void channel.send({ type: "broadcast", event: "roster-changed", payload: {} }); } };
     window.addEventListener("etc-profile-updated", notify);
-    return () => { active = false; clearInterval(timer); window.removeEventListener("etc-profile-updated", notify); void client.removeChannel(channel); };
+    return () => { active = false; clearTimeout(initial); clearInterval(timer); window.removeEventListener("etc-profile-updated", notify); void client.removeChannel(channel); };
   }, [refresh]);
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return null;
   return <section className="arena-panel" aria-label="ผู้ฝึกที่เชื่อมต่อจริง"><h2>ผู้ฝึกที่ยินยอมแสดงออนไลน์</h2><p role="status">{transport}</p>

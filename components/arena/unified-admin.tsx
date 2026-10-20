@@ -28,7 +28,8 @@ export function UnifiedAdmin({ actorId, expires, serverNow, entryId, onExit }: {
   const [locked, setLocked] = useState("");
   const [busy, setBusy] = useState(false);
   const [checking, setChecking] = useState(false);
-  const deadline = useRef(Date.now() + Math.max(0, expires - serverNow));
+  const deadline = useRef(0);
+  useEffect(() => { deadline.current = Date.now() + Math.max(0, expires - serverNow); }, [expires, serverNow]);
   const heading = useRef<HTMLHeadingElement>(null);
   const check = useCallback(async (signal?: AbortSignal) => {
     setChecking(true);

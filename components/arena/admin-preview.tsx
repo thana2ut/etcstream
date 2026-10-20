@@ -58,10 +58,13 @@ export function AdminPreview({ context, onExit }: { context: AdminPreviewContext
   }, [context.id, context.expires, context.scenarioId, escapePointer]);
   useEffect(() => {
     if (!confirmed) return;
-    const installed = new Set((scenario.initialConnections ?? []).map((c) => c.cableId));
-    const hidden = scenario.cables.filter((c) => !c.fixedA && !installed.has(c.id) && !context.loadout.leads.includes(c.id)).map((c) => c.id);
-    useTrainingStore.getState().reset(context.scenarioId, hidden, context.loadout.leads);
-    setReady(true); setBagOpen(false); setPaused(false);
+    const frame = requestAnimationFrame(() => {
+      const installed = new Set((scenario.initialConnections ?? []).map((c) => c.cableId));
+      const hidden = scenario.cables.filter((c) => !c.fixedA && !installed.has(c.id) && !context.loadout.leads.includes(c.id)).map((c) => c.id);
+      useTrainingStore.getState().reset(context.scenarioId, hidden, context.loadout.leads);
+      setReady(true); setBagOpen(false); setPaused(false);
+    });
+    return () => cancelAnimationFrame(frame);
   }, [context.scenarioId, context.loadout, scenario, replay, confirmed]);
   useEffect(() => {
     const query = window.matchMedia("(pointer: coarse), (max-width: 768px)");

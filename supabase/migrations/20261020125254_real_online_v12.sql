@@ -1,5 +1,6 @@
 -- V12 additive proposal. OWNER REVIEW REQUIRED; not applied automatically.
--- Target only abtzrovcsomghbuwdmrr. No legacy SQLite data or scores are imported.
+-- Owner-confirmed replacement target: kppjvrhpnunuurwvjanj (etcstream).
+-- No legacy SQLite data or scores are imported. Still requires owner review before applying.
 begin;
 create schema if not exists etc_private;
 revoke all on schema etc_private from public, anon, authenticated;

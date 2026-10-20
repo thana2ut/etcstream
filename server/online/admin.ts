@@ -8,6 +8,8 @@ import { ArenaError } from "@/server/arena/db";
 import { previewStart } from "@/server/arena/admin-preview";
 import { trainingStatus } from "@/server/arena/training-status";
 import type { AdminPreviewContext } from "@/game/security/admin-preview-types";
+import { ensureCloudCatalog, stageVersions, seasonDTO, type CloudSeason } from "./ranked";
+import { verificationEnabled } from "./ranked";
 
 const cookie = "etc_cloud_admin";
 const digest = (s: string) => createHash("sha256").update(s).digest("hex");
@@ -44,7 +46,7 @@ export async function cloudAdmin(request: Request, path: string[]) {
       const admission = check(await db.from("etc_admin_sessions").insert({ token_hash: digest(token), expires: new Date(expires).toISOString(), credential_version: digest(hash) }).select("entry_id").single());
       if (!admission) throw new ArenaError(503, "ยังสร้างเซสชันผู้ดูแลไม่ได้");
       check(await db.from("etc_admin_audit").insert({ actor: "owner", action: "login", target: "admin", reason: "Owner authenticated with rotated credential" }));
-      jar.set(cookie, token, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "strict", path: "/" });
+      jar.set(cookie, token, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "strict", path: "/", maxAge: 8 * 3600 });
       return reply({ ok: true, entryId: admission.entry_id, actorId: "owner", rotate: false, expires, serverNow: Date.now() });
     }
     const admission = await cloudAdminSession();
@@ -66,12 +68,29 @@ export async function cloudAdmin(request: Request, path: string[]) {
     }
     if (route === "preview-end" && post) { check(await db.from("etc_admin_sessions").update({ preview: null }).eq("token_hash", admission.token_hash)); return reply({ ok: true }); }
     if (route === "training" && !post) return reply(trainingStatus());
-    if (route === "database" && !post) return reply({ state: "READY", message: "Supabase · ข้อมูลส่วนกลาง", requiredVersion: 12, schemaVersion: 12, missing: [], backend: "supabase" });
+    if (route === "database" && !post) {
+      check(await db.from("etc_stage_catalog").select("scenario", { head: true }).limit(0));
+      check(await db.from("etc_seasons").select("id", { head: true }).limit(0));
+      return reply({ state: "READY", message: "Supabase · อ่านโครงสร้างข้อมูลร่วมได้ · ยังรอเจ้าของตรวจการเล่น", requiredVersion: 13, schemaVersion: 13, missing: [], backend: "supabase", verifiedSliceEnabled: verificationEnabled("xs-1") });
+    }
     if (route === "demo" && !post) return reply({ enabled: false, profiles: [] });
-    if (route === "seasons" && !post) return reply({ seasons: [] });
+    if (route === "seasons" && !post) return reply({ seasons: ((check(await db.from("etc_seasons").select("*").order("starts", { ascending: false }).limit(50)) || []) as CloudSeason[]).map(seasonDTO) });
+    if (route === "seasons" && post) {
+      await ensureCloudCatalog();
+      return reply(check(await db.rpc("etc_season_admin", { operation: String(body.action || ""), body: { ...body, versions: stageVersions() } })));
+    }
+    if ((route === "invalidate" || route === "reviews" && body.action === "reject") && post) {
+      const id = String(body.id || "");
+      if (!/^[0-9a-f-]{36}$/i.test(id) || body.confirm !== id) throw new ArenaError(400, "กรอกรหัสรอบยืนยันให้ตรงก่อนดำเนินการ");
+      check(await db.rpc("etc_invalidate_run", { run_id: id, why: String(body.reason || "") }));
+      return reply({ ok: true });
+    }
     if (post && route === "moderate") {
       const target = String(body.id || ""), reason = String(body.reason || "").trim();
       if (body.confirm !== target || reason.length < 5 || reason.length > 500 || !/^[0-9a-f-]{36}$/i.test(target)) throw new ArenaError(400, "กรอกรหัสยืนยันและเหตุผลให้ครบก่อนดำเนินการ");
+      if (body.action === "invalidate") {
+        check(await db.rpc("etc_invalidate_run", { run_id: target, why: reason })); return reply({ ok: true });
+      }
       if (!["rename", "clear", "hide", "suspend", "restore"].includes(String(body.action))) throw new ArenaError(409, "การลบข้อมูลและแก้ผลอันดับยังไม่เปิดใช้งาน ต้องตรวจนโยบายเก็บรักษาและสำรองข้อมูลก่อน");
       check(await db.rpc("etc_moderate", { target_id: target, operation: body.action, new_name: String(body.name || "").normalize("NFC"), reason }));
       return reply({ ok: true });
@@ -79,16 +98,24 @@ export async function cloudAdmin(request: Request, path: string[]) {
     if (post) throw new ArenaError(409, "การตั้งค่านี้ยังไม่เปิดบนระบบออนไลน์ กรุณารอการตรวจรับโครงสร้างและกติกาก่อน");
     const offset = Math.min(100000, Math.max(0, Math.floor(Number(url.searchParams.get("offset")) || 0)));
     const search = (url.searchParams.get("q") || "").slice(0, 80).toLowerCase();
+    if (route === "evidence") {
+      const id = url.searchParams.get("id") || "";
+      if (!/^[0-9a-f-]{36}$/i.test(id)) throw new ArenaError(400, "รหัสรอบไม่ถูกต้อง");
+      const r = check(await db.from("etc_runs").select("*").eq("id", id).maybeSingle());
+      if (!r) throw new ArenaError(404, "ไม่พบรอบนี้");
+      const events = check(await db.from("etc_commands").select("seq,payload,received").eq("run_id", id).order("seq").range(offset, offset + 99)) || [];
+      return reply({ attempt: { ...r, created: Date.parse(r.created), totalMs: r.total }, replay: { protocol: "cloud-independent-replay-v1", seq: r.seq, last_hash: r.evidence?.hash || "ยังไม่รับรอง" }, commands: events.map((e) => ({ ...e, payload: JSON.stringify(e.payload), received: Date.parse(e.received) })) });
+    }
     if (route === "players") {
       const players = check(await db.from("etc_profiles").select("*").order("created", { ascending: false }).range(offset, offset + 99)) || [];
-      return reply({ players: players.filter((p) => !search || [p.name,p.friend_code,p.id].some((v) => String(v).toLowerCase().includes(search))).map((p) => ({ ...p, created: Date.parse(p.created), deleted: 0, attempt_count: null })) });
+      return reply({ backend: "supabase", players: players.filter((p) => !search || [p.name,p.friend_code,p.id].some((v) => String(v).toLowerCase().includes(search))).map((p) => ({ ...p, created: Date.parse(p.created), deleted: 0, attempt_count: null })) });
     }
     if (["competitions", "leaderboards", "reviews"].includes(route)) {
       let query = db.from("etc_runs").select("id,player,scenario,status,start,created,elapsed,penalty,total,graph_valid,invalid,verified_at,validation_version").order("created", { ascending: false }).range(offset, offset + 99);
-      if (route === "reviews") query = query.in("status", ["UNDER_REVIEW", "REJECTED"]);
+      if (route === "reviews") query = query.in("status", ["UNDER_REVIEW", "REJECTED"]).eq("invalid", false);
       const runs = check(await query) || [];
       if (route === "reviews") return reply({ reviews: runs.map((r) => ({ attempt: r.id, player: r.player, scenario: r.scenario, status: r.status, graph_valid: r.graph_valid, state: "pending", reason: "ยังไม่เปิดรับรองอันดับ" })), verificationAvailable: false });
-      return reply({ attempts: runs.map((r) => ({ ...r, playerId: r.player, start: r.start ? Date.parse(r.start) : null, created: Date.parse(r.created), elapsedMs: r.elapsed, penaltyMs: r.penalty, totalMs: r.total, graphValid: r.graph_valid })) });
+      return reply({ backend: "supabase", attempts: runs.map((r) => ({ ...r, playerId: r.player, start: r.start ? Date.parse(r.start) : null, created: Date.parse(r.created), elapsedMs: r.elapsed, penaltyMs: r.penalty, totalMs: r.total, graphValid: r.graph_valid })) });
     }
     if (route === "audit") return reply({ events: (check(await db.from("etc_admin_audit").select("*").order("created", { ascending: false }).range(offset, offset + 99)) || []).map((e) => ({ ...e, created: Date.parse(e.created) })) });
     if (route === "overview" || route === "friends") {
