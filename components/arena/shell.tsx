@@ -8,9 +8,8 @@ import { timeText } from "./client-api";
 
 export const arenaAsset = (file: string) => `/assets/arena/${file}.png`;
 export const arenaDestinations = [
-  ["home", "/arena", "หน้าหลัก"], ["time-attack", "/arena/time-attack", "กาลเวลา"],
-  ["duel", "/arena/duel", "สองเซียน"], ["leaderboard", "/arena/leaderboard", "ทำเนียบ"],
-  ["ranked", "/arena/ranked", "แรงก์"],
+  // Top menu keeps four destinations; other modes stay reachable from the home cards.
+  ["home", "/arena", "หน้าหลัก"], ["ranked", "/arena/ranked", "แรงก์"],
   ["friends", "/arena/friends", "สหาย"], ["profile", "/arena/profile", "ข้อมูลส่วนตัว"],
 ] as const;
 export function ArenaIcon({ name }: { name: string }) { return <Image src={arenaAsset(`icon-${name}`)} alt="" width={44} height={44} className="arena-icon" />; }
