@@ -28,7 +28,7 @@ const modes = [
   ["leaderboard", "ทำเนียบเซียน", "ค้นหาผลที่ผ่านการยืนยัน เปรียบเทียบภายใต้กติกาเดียวกัน", "card-leaderboard"],
   ["friends", "สหายร่วมสำนัก", "แลกรหัสสหาย ส่งคำขอ และเลือกเปิดเผยสถานะได้ด้วยตนเอง", "card-friends"],
 ];
-const subtitles: Record<string, string> = { home: "ฝึกวิชาให้แม่นยำ แล้วก้าวสู่บททดสอบแห่งสำนัก", "time-attack": "ห้าสถานที่ ยี่สิบห้าบททดสอบ · ทุกสายต่อด้วยฝีมือของเจ้า", duel: "สองกระบี่ หนึ่งบททดสอบ · ความยุติธรรมต้องมาก่อนชัยชนะ", leaderboard: "จารึกเฉพาะผลที่ผ่านการยืนยันจากระบบกลาง", friends: "ร่วมเส้นทางกับสหาย โดยเคารพความเป็นส่วนตัว", profile: "ตัวตน ความเป็นส่วนตัว และประวัติการฝึกของเจ้า",ranked:"วิถีกระบี่แห่งสายสัญญาณ · ผลยืนยันคนละด่าน สู่จัดอันดับฤดูกาล" };
+const subtitles: Record<string, string> = { home: "ฝึกวิชาให้แม่นยำ แล้วก้าวสู่บททดสอบแห่งสำนัก", "time-attack": "ห้าสถานที่ ยี่สิบห้าบททดสอบ · ทุกสายต่อด้วยฝีมือของเจ้า", duel: "สองกระบี่ หนึ่งบททดสอบ · ความยุติธรรมต้องมาก่อนชัยชนะ", leaderboard: "จารึกเฉพาะผลที่ผ่านการยืนยันจากระบบกลาง", friends: "ร่วมเส้นทางกับสหาย โดยเคารพความเป็นส่วนตัว", profile: "ตัวตน ความเป็นส่วนตัว และประวัติการฝึกของเจ้า",ranked:"วิถีกระบี่แห่งสายสัญญาณ · ผลยืนยันคนละด่าน สู่การจัดอันดับประจำฤดูกาล" };
 export function ArenaPortal({ section = "home",initialScope="all",initialSeason }: { section?: string;initialScope?:string;initialSeason?:string }) {
   const [profile, setProfile] = useState<Profile | null>(null), [error, setError] = useState(""), [loading, setLoading] = useState(true);
   const [register, setRegister] = useState(false), [name, setName] = useState(""), [joining, setJoining] = useState(false);
