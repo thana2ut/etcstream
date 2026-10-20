@@ -524,3 +524,14 @@
 .arena-demo-roster li { display: grid; gap: 8px; border: 1px dashed #a6a2d566; padding: 18px; border-radius: 10px; }
 .arena-demo-roster span,.arena-demo-roster small { color: #d0cfe7; }
 .arena-online-unavailable { border-color: #bfa66a; }
+.arena-hall header { display: grid; grid-template-columns: 40px minmax(0,1fr) auto; gap: 12px; align-items: center; margin-bottom: 12px; }
+.arena-hall h2 { margin: 0; }
+.arena-hall-online { margin: 0; color: var(--arena-muted); font-size: .92rem; }
+.arena-hall-list, .arena-hall-demo { display: grid; gap: 6px; padding: 0; margin: 0; list-style: none; }
+.arena-hall-list li { display: grid; grid-template-columns: 2.5em minmax(0,1fr) auto; gap: 10px; align-items: center; padding: 8px 12px; border: 1px solid var(--arena-border); border-radius: 8px; }
+.arena-hall-list li.is-me { border-color: #caa66b99; }
+.arena-hall-list b { color: var(--arena-highlight); }
+.arena-hall-demo { grid-template-columns: repeat(auto-fit,minmax(130px,1fr)); }
+.arena-hall-demo li { display: grid; gap: 6px; padding: 12px; border: 1px dashed #a6a2d588; border-radius: 8px; overflow-wrap: anywhere; }
+@media (max-width: 640px) { .arena-hall header { grid-template-columns: 32px minmax(0,1fr); } .arena-hall-online { grid-column: 1 / -1; } }
+.arena-public .arena-hall .arena-scope-tabs button[aria-selected=true] { border-color: #caa66b77; color: var(--arena-highlight); background: linear-gradient(#34505266,#1a2f4266); }

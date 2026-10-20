@@ -91,3 +91,23 @@ export function PlayerSessionControls({onChange}:{onChange:()=>Promise<void>}) {
   const [confirm,setConfirm]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState("");const pending=useRef(false);
   return <div className="arena-actions"><button className="arena-button-secondary" onClick={()=>setConfirm(true)}>ออกจากตัวตนในเบราว์เซอร์นี้</button><ArenaConfirmDialog open={confirm} title="ออกจากตัวตนนี้หรือไม่?" busy={busy} onCancel={()=>setConfirm(false)} onConfirm={async()=>{if(pending.current)return;pending.current=true;setBusy(true);try{await api("logout",{});setConfirm(false);await onChange();}catch(e){setError((e as Error).message);}finally{pending.current=false;setBusy(false);}}}>ประวัติยังเก็บไว้ แต่ต้องมีรหัสกู้คืนที่ยังใช้ได้เพื่อกลับมาใช้ตัวตนเดิม ชื่อเล่นและรหัสสหายใช้เข้าสู่ระบบแทนไม่ได้{error&&<span role="alert">{error}</span>}</ArenaConfirmDialog></div>;
 }
+
+type PublicHall={season:{id:string;name:string;ends:number}|null;top:{name:string;rank:number;score:number;stages:number}[];rankedPlayers:number;onlineNow:number;demoProfiles:{id:string;name:string;demo:true}[];serverNow:number};
+// ทำเนียบเซียน: every tab renders real server state; test profiles never enter rankings or presence.
+export function HallOfImmortals({signedIn,mine}:{signedIn:boolean;mine:ReturnType<typeof useArenaResource<RankedResponse>>}) {
+  const [tab,setTab]=useState("all");
+  const hall=useArenaResource<PublicHall>("public",30000);
+  const friends=useArenaResource<RankedResponse>(signedIn&&tab==="friends"?"ranked?scope=friends":null);
+  const tabs:[string,string][]=[["all","อันดับทั้งหมด"],["me","อันดับของฉัน"],["friends","อันดับสหาย"],["demo",`ผู้เล่นทดสอบ (${hall.data?.demoProfiles.length ?? "—"})`]];
+  const needSign=<p className="arena-note">สร้างตัวตนผู้ฝึกก่อน จึงจะเห็นอันดับส่วนตัวและอันดับสหาย</p>;
+  const rows=(list:{name:string;rank:number;score:number;stages:number;isMe?:boolean}[])=>list.length?<ol className="arena-hall-list">{list.map((r)=><li key={r.rank} className={r.isMe?"is-me":undefined}><b>{r.rank}</b><span>{r.name}</span><small>{r.score} คะแนน · {r.stages} ด่าน</small></li>)}</ol>:<ArenaEmptyState title="ยังไม่มีผลยืนยัน">ยังไม่มีผู้ฝึกที่มีผลผ่านการยืนยันและยินยอมเปิดเผยอันดับ</ArenaEmptyState>;
+  let body;
+  if(tab==="all") body=hall.loading?<p role="status">กำลังโหลดทำเนียบ…</p>:hall.data?(hall.data.season?rows(hall.data.top):<p className="arena-note">ยังไม่มีฤดูกาลที่เปิดอยู่ · ทำเนียบจะแสดงเมื่อมีผลยืนยันจริง</p>):null;
+  else if(tab==="me") body=!signedIn?needSign:mine.loading?<p role="status">กำลังโหลดอันดับของฉัน…</p>:mine.data?.mine?<p><strong>อันดับ {mine.data.mine.globalRank}</strong> · {mine.data.mine.tier} · {mine.data.mine.score} คะแนน · {mine.data.mine.stages} ด่านยืนยัน</p>:mine.error?null:<p className="arena-note">ยังไม่มีอันดับ · ต้องมีผลที่ผ่านการยืนยันฝั่งเซิร์ฟเวอร์และเปิดเผยอันดับในหน้าข้อมูลส่วนตัว</p>;
+  else if(tab==="friends") body=!signedIn?needSign:friends.loading?<p role="status">กำลังโหลดอันดับสหาย…</p>:friends.data?rows(friends.data.rows):null;
+  else body=hall.data?<><p className="arena-note">สมาชิกทดลองสำหรับทดสอบหน้าจอ · ไม่มีบัญชีเข้าสู่ระบบ ไม่มีเวลา ไม่มีอันดับ ไม่นับเป็นผู้เล่นออนไลน์</p><ul className="arena-hall-demo">{hall.data.demoProfiles.map((p)=><li key={p.id}><strong>{p.name}</strong><span className="arena-status is-muted">ผู้เล่นทดสอบ</span></li>)}</ul></>:hall.loading?<p role="status">กำลังโหลด…</p>:null;
+  const err=tab==="me"?mine.error:tab==="friends"?friends.error:hall.error, retry=tab==="me"?mine.retry:tab==="friends"?friends.retry:hall.retry;
+  return <section className="arena-panel arena-hall" aria-label="ทำเนียบเซียน"><header><ArenaIcon name="leaderboard"/><div><span className="arena-eyebrow">{hall.data?.season?.name || "ฤดูกาลปัจจุบัน"}</span><h2>ทำเนียบเซียน</h2></div><p role="status" className="arena-hall-online">{hall.error?"สถานะออนไลน์: —":hall.loading?"กำลังนับผู้ฝึกออนไลน์…":`ผู้ฝึกที่ยินยอมแสดงออนไลน์ขณะนี้ ${hall.data?.onlineNow} คน`}</p></header>
+    <div className="arena-scope-tabs" role="tablist">{tabs.map(([v,l])=><button key={v} type="button" role="tab" aria-selected={tab===v} onClick={()=>setTab(v)}>{l}</button>)}</div>
+    {body}<ConnectionNotice error={err} stale={false} retry={retry}/></section>;
+}

@@ -52,9 +52,13 @@ export async function cloudArena(request: Request, path: string[]) {
       // Check schema through a server-only, zero-row read so new visitors are not
       // incorrectly shown a database outage before they can register.
       const result = await trustedClient().from("etc_profiles").select("id", { head: true }).limit(0);
-      return response({ state: result.error ? "MIGRATION_OR_CONNECTION_REQUIRED" : "READY", available: !result.error,
-        message: result.error ? "ยังเชื่อมต่อโครงสร้างข้อมูลออนไลน์ไม่ได้ กรุณาติดต่อผู้ดูแล" : "เชื่อมต่อ Supabase แล้ว · ยังไม่ผ่านการทดสอบการเล่น", serverNow: Date.now() });
+      // Keep key rejection distinct from schema problems so the owner knows what to fix.
+      const state = !result.error ? "READY" : result.status === 401 || result.status === 403 ? "SERVER_KEY_REJECTED" : "MIGRATION_OR_CONNECTION_REQUIRED";
+      return response({ state, available: !result.error,
+        message: state === "READY" ? "เชื่อมต่อ Supabase แล้ว" : state === "SERVER_KEY_REJECTED" ? "คีย์ฝั่งเซิร์ฟเวอร์ถูกปฏิเสธ · ผู้ดูแลต้องตั้ง SUPABASE_SECRET_KEY ของโครงการนี้ใหม่ (ดูอันดับได้ แต่บันทึกรอบแข่งขันยังไม่ได้)" : "ยังเชื่อมต่อโครงสร้างข้อมูลออนไลน์ไม่ได้ กรุณาติดต่อผู้ดูแล", serverNow: Date.now() });
     }
+    // Public hall works without signing in: consented verified ranks, real presence count, labelled test profiles.
+    if (route === "public" && !post) return response(checked(await client.rpc("etc_public_hall")));
     let { data: { user } } = await client.auth.getUser();
     if (post && route === "register") {
       const name = validateNickname(body.name);

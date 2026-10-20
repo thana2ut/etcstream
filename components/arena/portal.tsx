@@ -8,7 +8,7 @@ import { useAcademyStore } from "@/game/stores/academy-store";
 import { validateNickname } from "@/game/security/nickname-validation";
 import { ArenaBanner, ArenaConfirmDialog, ArenaEmptyState, ArenaFriendCode, ArenaIcon, ArenaShell, ArenaStatsStrip, arenaAsset } from "./shell";
 import { api, statusText, timeText, type AttemptView, type PlayerView, type Profile } from "./client-api";
-import {OnlineLeaderboard,RankedPage,MySeasonCapsule,OnlineFriendsSignal,ProfileRecords,PlayerSessionControls,RecoveryPanel,FriendCompare,type RankedResponse,type SeasonStanding} from "./online";
+import {HallOfImmortals,OnlineLeaderboard,RankedPage,MySeasonCapsule,OnlineFriendsSignal,ProfileRecords,PlayerSessionControls,RecoveryPanel,FriendCompare,type RankedResponse,type SeasonStanding} from "./online";
 import {useArenaResource} from "./use-arena-resource";
 import { CloudLobby } from "./cloud-lobby";
 
@@ -56,7 +56,8 @@ export function ArenaPortal({ section = "home",initialScope="all",initialSeason 
     {register && <form className="arena-panel arena-join" onSubmit={join}><ArenaIcon name="profile" /><h2>เข้าร่วมหอประลอง</h2><p>ตัวตนเฉพาะเบราว์เซอร์นี้ ชื่อซ้ำไม่ใช่บัญชีเดียวกัน และคะแนนฝึกเดิมไม่ถูกนำมาจัดอันดับ</p><label>ชื่อผู้ฝึก<input required minLength={2} maxLength={20} value={name || localName || ""} onChange={(e) => setName(e.target.value)} /></label><p className="arena-note">เริ่มต้นไม่เปิดเผยรายชื่อหรือสถานะออนไลน์ ตั้งค่าเพิ่มเติมได้ภายหลัง</p><button type="submit" disabled={joining}>{joining ? "กำลังสร้างตัวตน…" : "สร้างตัวตนผู้ฝึก"}</button></form>}
     {register && <RecoveryPanel onRecovered={reload}/>}
     {section === "home" && <>
-      {profile && <><MySeasonCapsule resource={season}/><OnlineFriendsSignal/><CloudLobby/></>}
+      <HallOfImmortals signedIn={Boolean(profile)} mine={season}/>
+      {profile && <><OnlineFriendsSignal/><CloudLobby/></>}
       {profile && <div className="arena-hub-summary"><div className="arena-identity"><ArenaIcon name="profile" /><div><span className="arena-eyebrow">ผู้ฝึกแห่งหอประลอง</span><strong>{profile.player.name}</strong></div><Link className="arena-text-link" href="/arena/profile">ข้อมูลของเจ้า →</Link></div><div className="arena-summary-metrics"><span>ยืนยันแล้ว <strong>{profile.stats.verified ?? "—"} รอบ</strong></span><span>เวลายืนยันสั้นสุด <strong>{timeText(profile.stats.bestMs)}</strong></span></div></div>}
       <div className="arena-grid arena-mode-cards">{modes.map(([key, label, description, art]) => <section className={`arena-card arena-portal-tile${key === "duel" ? " is-sealed" : ""}`} key={key}><div className="arena-card-art"><Image src={arenaAsset(art)} alt="" fill sizes="(max-width:640px) 100vw, (max-width:1280px) 50vw, 600px" /></div><div className="arena-card-body"><h2><span className="arena-mode-icon" data-arena-icon={key}><ArenaIcon name={key} /></span><span>{label}</span></h2><p>{description}</p>{key === "duel" ? <div className="arena-card-footer"><span className="arena-status is-muted">ยังไม่เปิดใช้งาน</span><button disabled>ยังไม่พร้อมประลอง</button><Link className="arena-text-link" href="/arena/duel">ดูรายละเอียด →</Link></div> : <Link className="arena-action" href={`/arena/${key}`}>{key === "time-attack" ? "เลือกสนามประลอง" : key === "leaderboard" ? "เปิดทำเนียบ" : "พบสหาย"}</Link>}</div></section>)}</div>
       <details className="arena-details arena-lobby-help"><summary>ว่าด้วยการยืนยันผลประลอง</summary><p>ผลจับเวลาที่บันทึกยังไม่เป็นอันดับ จนกว่าจะผ่านการตรวจยืนยันที่เชื่อถือได้</p></details>

@@ -23,6 +23,7 @@ async function handle(request: Request, context: Context) {
     return { state: status.state, available: status.state === "READY", message: status.state === "READY" ? "เชื่อมต่อข้อมูลส่วนกลางแล้ว" : "ไม่สามารถโหลดข้อมูลออนไลน์ได้", serverNow: Date.now() };
   }
   if (!post && route === "demo") return demoView();
+  if (!post && route === "public") throw new ArenaError(503, "ทำเนียบเซียนออนไลน์ยังไม่ได้ตั้งค่า (ARENA_BACKEND ไม่ใช่ supabase)", "ONLINE_NOT_CONFIGURED");
   if (post && path.join("/") === "recovery/redeem") return recoverPlayer(body.credential);
   if (post && route === "register") {
     if (await session("player")) throw new ArenaError(409, "มีบัญชีผู้เล่นในเบราว์เซอร์นี้แล้ว ใช้หน้าข้อมูลส่วนตัวเพื่อแก้ไข");
