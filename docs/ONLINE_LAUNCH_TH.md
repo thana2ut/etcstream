@@ -6,6 +6,7 @@
 
 - โค้ดปัจจุบัน: `D:\etcstream` · GitHub: https://github.com/thana2ut/etcstream
 - แยกงานที่ `codex/real-online-launch-v12` โดยเก็บ main และ remote branches เดิม ไม่ force push
+- อัปโหลด source สำเร็จและอัปเดต main แบบ fast-forward ที่ `a47d8bf117c62312fad5a221e07d1b1a5c93f229`; ไม่มีการรวมสาขาทางเลือกที่ยังขัดแย้ง
 - Supabase เป้าหมายเดียว: `etcstream-online` / `abtzrovcsomghbuwdmrr` / https://abtzrovcsomghbuwdmrr.supabase.co
 - ห้ามใช้โครงการ `etcstream` / `kppjvrhpnunuurwvjanj` แทน ตัวตรวจ configuration ฝั่งเซิร์ฟเวอร์ปฏิเสธ hostname อื่น
 - ไม่สร้าง Supabase project ใหม่ ไม่แก้ `.env.local` ไม่รัน migration/seed ไม่ทดสอบเกม

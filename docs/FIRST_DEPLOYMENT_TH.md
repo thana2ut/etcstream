@@ -1,8 +1,12 @@
 # ก่อน First Deployment — ETCSTREAM
 
-ตรวจ 20 ตุลาคม 2026: GitHub main ยังอยู่ `05cbeed`; source ใหม่อยู่ local branch `codex/real-online-launch-v12`
+ตรวจ 20 ตุลาคม 2026: อัปเดต GitHub main แบบ fast-forward จาก `05cbeed` เป็น source commit `a47d8bf117c62312fad5a221e07d1b1a5c93f229` สำเร็จ
+สาขา `codex/real-online-launch-v12` ถูก push สำรองด้วย commit เดียวกัน ไม่มี force push
 Vercel New Project เชื่อม repository `thana2ut/etcstream` แล้ว แต่ยังเป็นหน้า Import ไม่ได้สร้าง deployment
-Framework Next.js, root ./, workspace Thanawut Hobby ถูกต้อง หน้าฟอร์มยังไม่มี env ที่บันทึก
+Framework Next.js, root ./, workspace Thanawut Hobby ถูกต้อง เตรียมค่าที่ไม่เป็นความลับในฟอร์มแล้ว ยังไม่ได้ submit
+ค่าที่เตรียม: ARENA_BACKEND, NEXT_PUBLIC_SUPABASE_URL, ARENA_DEMO_ENABLED และ ARENA_VERIFIED_SLICE_ENABLED เฉพาะ Production
+ค่าที่ต้องกรอกส่วนตัว: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, SUPABASE_SECRET_KEY และ ADMIN_PASSWORD_HASH
+เจ้าของยืนยันเลิกใช้รหัสเก่า และตรวจเฉพาะรูปแบบ hash ใหม่ผ่านโดยไม่แสดงค่า
 Vercel connector ไม่มีสิทธิ์ scope `thanawut` (403); ใช้หน้า Dashboard ที่เจ้าของเข้าสู่ระบบแล้วได้ แต่ไม่กรอก secret ผ่านแชต
 Supabase connector ยังไม่มีสิทธิ์ `abtzrovcsomghbuwdmrr`; ไม่ได้เปลี่ยนฐานข้อมูลหรือใช้ project อื่นแทน
 
@@ -41,7 +45,7 @@ ARENA_DB_PATH ไม่ใช้บน cloud
 ## ประตูที่ยังต้องผ่านก่อนเปิดจริง
 
 - เจ้าของยืนยันเลิกใช้รหัสเก่าและใช้รหัสใหม่ที่ไม่เคยแชร์; ประวัติ hash เก่าไม่ถูก rewrite
-- อัปโหลด source ใหม่อย่างปลอดภัย; main เก่าไม่ใช่ V12 และห้ามอ้างว่ารหัสเก่าถูกปิดใน main ปัจจุบัน
+- source ใหม่อัปโหลดแล้ว แต่ยังไม่ deploy; ไม่อ้างว่ารหัสเก่าถูกปิดในระบบ production ที่ยังไม่เกิดขึ้น
 - ได้สิทธิ์ตรวจ Supabase เป้าหมาย สำรอง/ตรวจ schema และให้เจ้าของอนุมัติ migration ก่อนรัน
 - ตั้ง secrets แบบส่วนตัวและยืนยันชื่อ env/Production เท่านั้น ไม่แสดงค่า
 - build/deployment สำเร็จจริง จากนั้นเจ้าของทดสอบ login/Gameplay เอง
