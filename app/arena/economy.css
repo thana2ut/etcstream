@@ -121,3 +121,19 @@
   .social-challenge-list li { grid-template-columns: auto minmax(0,1fr); }
   .social-challenge-list li .arena-actions { grid-column: 1 / -1; }
 }
+
+/* V20.1: back button, after-buy actions, profile showcase. */
+.arena-public .arena-back-button { align-self: flex-start; margin: 0 0 12px; min-height: 40px; padding: 6px 16px; background: #132237cc; border-color: #cda86c88; font-weight: 600; }
+.econ-after-buy { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 12px; }
+.profile-hub-header { background: radial-gradient(120% 140% at 0% 0%, #1f3d4f 0%, #14233a 45%, #0f1a2c 100%) !important; border-color: #d6b77c80 !important; box-shadow: 0 0 0 1px #d6b77c22, 0 18px 50px #02091455 !important; }
+.profile-hub-portrait .profile-avatar { filter: drop-shadow(0 0 22px #6fe0c844); }
+.profile-showcase-grid { list-style: none; margin: 10px 0 14px; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; }
+.profile-showcase-grid li { display: grid; gap: 4px; padding: 12px; border-radius: 14px; border: 1px solid #cda86c40; background: linear-gradient(160deg, #16263c, #0b1424); }
+.profile-showcase-grid li[data-slot="swordSkin"], .profile-showcase-grid li[data-slot="profileCompanion"] { border-color: #6fe0c866; }
+.profile-showcase-art { position: relative; aspect-ratio: 1; border-radius: 10px; overflow: hidden; background: radial-gradient(circle at 50% 45%, #1d3550, #0a1322); }
+.profile-showcase-art img { object-fit: contain; transition: transform .25s ease; }
+.profile-showcase-grid li:hover .profile-showcase-art img { transform: scale(1.04); }
+.profile-showcase-grid small { color: var(--arena-muted); }
+.profile-showcase-grid strong { color: #f6e2a8; }
+@media (max-width: 560px) { .profile-showcase-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (prefers-reduced-motion: reduce) { .profile-showcase-art img { transition: none; } }

@@ -17,6 +17,21 @@ type SocialMe = PlayerCard & { searchable: boolean; acceptRequests: boolean; pen
 type Challenge = { id: string; stage: string; incoming: boolean; status: "pending" | "accepted" | "declined" | "cancelled" | "expired" | "completed"; created: number; expires: number; other: PlayerCard; myBestMs: number | null; otherBestMs: number | null };
 type Standing = { tier: string; score: number; globalRank?: number } | null | undefined;
 
+const SHOWCASE = [["swordSkin", "กระบี่ประจำตัว"], ["profileCompanion", "สัตว์วิญญาณ"], ["residenceDecor", "ของประดับตำหนัก"], ["profileAvatar", "ภาพโปรไฟล์"], ["profileFrame", "กรอบโปรไฟล์"]] as const;
+/** Large display of equipped cosmetics (profile art only; not 3D gameplay items). */
+export function Showcase({ equipped, own = false }: { equipped: Equipped; own?: boolean }) {
+  const shown = SHOWCASE.filter(([slot]) => equipped[slot]);
+  return <section className="arena-panel profile-showcase"><span className="arena-eyebrow">ตู้โชว์เซียน</span><h3>ของสะสมที่จัดแสดง</h3>
+    {shown.length === 0 ? <ArenaEmptyState icon="trophy" title="ยังไม่ได้จัดแสดงของสะสม" href={own ? "/arena/market" : undefined} action={own ? "ไปตลาดสวรรค์" : undefined}>{own ? "ซื้อของในตลาดสวรรค์แล้วสวมใส่ในถุงเฉียนคุน จะแสดงที่นี่ให้สหายเห็น" : "ผู้ฝึกท่านนี้ยังไม่ได้สวมใส่ของสะสม"}</ArenaEmptyState>
+      : <ul className="profile-showcase-grid">{shown.map(([slot, label]) => { const it = equipped[slot]!; return <li key={slot} data-slot={slot}><div className="profile-showcase-art"><Image src={it.asset} alt={it.name} fill sizes="(max-width:560px) 45vw, 220px" /></div><small>{label}</small><strong>{it.name}</strong></li>; })}</ul>}
+    {own && <Link className="arena-text-link" href="/arena/bag">จัดของในถุงเฉียนคุน →</Link>}
+  </section>;
+}
+function ShareProfile({ code }: { code: string }) {
+  const [msg, setMsg] = useState("");
+  return <><button type="button" className="arena-button-secondary" onClick={async () => { try { await navigator.clipboard.writeText(`${window.location.origin}/arena/players/${code}`); setMsg("คัดลอกลิงก์แล้ว ส่งให้สหายเปิดดูได้"); } catch { setMsg("คัดลอกไม่ได้ กรุณาคัดลอกจากหน้าโปรไฟล์สาธารณะ"); } }}>คัดลอกลิงก์โปรไฟล์</button><span role="status" className="arena-note">{msg}</span></>;
+}
+
 const avatarOf = (e: Equipped) => (e.profileAvatar ?? e.portraitOutfit)?.asset;
 export function useSocialMe(enabled = true) { return useArenaResource<SocialMe>(enabled ? "social/me" : null, 30000); }
 
@@ -136,14 +151,12 @@ export function ProfileHub({ profile, standing }: { profile: Profile; standing: 
         <Link className="arena-action econ-secondary" href="/arena/bag">ถุงเฉียนคุน{economy.data ? ` · ${economy.data.ownedCount}` : ""}</Link>
         <Link className="arena-action econ-secondary" href="/arena/friends">สหาย{me.data && me.data.pendingIn > 0 ? ` · คำขอใหม่ ${me.data.pendingIn}` : ""}</Link>
         <Link className="arena-action econ-secondary" href="/arena/ranked">อันดับ</Link>
-        <Link className="arena-action econ-secondary" href="/arena/time-attack">เข้าบททดสอบ</Link>
+        <Link className="arena-action econ-secondary" href={`/arena/players/${profile.player.friendCode}`}>ดูโปรไฟล์แบบที่ผู้อื่นเห็น</Link>
+        <ShareProfile code={profile.player.friendCode} />
       </nav>
     </div>
     <div className="profile-hub-grid">
-      <section className="arena-panel"><span className="arena-eyebrow">ของที่สวมใส่</span><h3>ภาพลักษณ์ปัจจุบัน</h3>
-        <ul className="profile-hub-equip">{([["profileAvatar", "โปรไฟล์เซียน"], ["profileFrame", "กรอบโปรไฟล์"], ["swordSkin", "กระบี่"], ["profileCompanion", "สัตว์วิญญาณ"], ["residenceDecor", "ของประดับตำหนัก"]] as const).map(([slot, label]) => { const it = eq[slot]; return <li key={slot}>{it ? <Image src={it.asset} alt="" width={64} height={64} /> : <span className="profile-hub-empty" aria-hidden="true" />}<div><small>{label}</small><strong>{it?.name ?? "ยังไม่ได้สวมใส่"}</strong></div></li>; })}</ul>
-        <Link className="arena-text-link" href="/arena/bag">เปลี่ยนในถุงเฉียนคุน →</Link>
-      </section>
+      <Showcase equipped={eq as Equipped} own />
       <section className="arena-panel"><span className="arena-eyebrow">สหายและการแจ้งเตือน</span><h3>ความเคลื่อนไหว</h3>
         {me.loading ? <p role="status">กำลังโหลด…</p> : me.error && !me.data ? <p className="arena-error">{me.error} <button onClick={me.retry}>ลองอีกครั้ง</button></p> : me.data && <>
           <p>คำขอเป็นสหายที่รอเจ้าตอบ: <strong>{me.data.pendingIn}</strong> · คำท้าทำเวลาที่รอตอบ: <strong>{me.data.challengesIn}</strong></p>
@@ -163,13 +176,12 @@ export function PlayerProfilePage({ code }: { code: string }) {
   if (loading) return <p className="arena-panel arena-skeleton" role="status">กำลังเปิดโปรไฟล์…</p>;
   if (error || !card) return <div className="arena-panel"><ArenaEmptyState icon="profile" title="เปิดโปรไฟล์นี้ไม่ได้" href="/arena/friends" action="กลับหน้าสหาย">{error || "ผู้ฝึกท่านนี้ไม่ได้เปิดเผยโปรไฟล์ หรือไม่พบรหัสนี้"}</ArenaEmptyState></div>;
   const eq = card.equipped;
-  return <section className="arena-panel profile-hub-header is-public">
+  return <div className="profile-hub"><section className="arena-panel profile-hub-header is-public">
     <div className="profile-hub-portrait"><ProfileAvatar avatar={avatarOf(eq)} frame={eq.profileFrame?.asset} name={card.name} size={168} />{eq.profileCompanion && <Image className="profile-hub-pet" src={eq.profileCompanion.asset} alt={eq.profileCompanion.name} width={96} height={96} />}</div>
     <div className="profile-hub-identity"><span className="arena-eyebrow">{card.isMe ? "โปรไฟล์ของเจ้า (มุมมองผู้อื่น)" : card.relation === "friend" ? "สหายร่วมสำนัก" : "ผู้ฝึกในหอประลอง"}</span><h2>{card.name}</h2><code>@{card.friendCode}</code>
       <p>{card.online ? "ออนไลน์ (ผู้ฝึกยินยอมแสดง)" : "ไม่ได้แสดงสถานะออนไลน์"}</p>
       {card.stats ? <dl className="profile-hub-stats"><div><dt>ด่านที่รับรองแล้ว</dt><dd>{card.stats.verifiedStages}</dd></div><div><dt>เวลารับรองดีที่สุด</dt><dd>{timeText(card.stats.bestMs)}</dd></div></dl> : <p className="arena-note">ผู้ฝึกท่านนี้ไม่ได้เปิดเผยสถิติ</p>}
-      {eq.swordSkin && <p>กระบี่: {eq.swordSkin.name}</p>}{eq.residenceDecor && <p>ตำหนัก: {eq.residenceDecor.name}</p>}
     </div>
     <div className="profile-hub-actions">{card.isMe ? <Link className="arena-action" href="/arena/profile">กลับโปรไฟล์ของข้า</Link> : <><RelationButton card={card} onChange={() => void load()} />{card.relation === "friend" && <ChallengeSender code={card.friendCode} name={card.name} />}</>}<Link className="arena-text-link" href="/arena/friends">กลับหน้าสหาย →</Link></div>
-  </section>;
+  </section><Showcase equipped={eq} own={card.isMe} /></div>;
 }

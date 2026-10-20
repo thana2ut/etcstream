@@ -77,6 +77,7 @@ export function CelestialMarket() {
   const [data, setData] = useState<{ items: EconomyItem[]; balance: number } | null>(null), [error, setError] = useState(""), [loading, setLoading] = useState(true);
   const [category, setCategory] = useState<CosmeticSlot | "all" | "legacy">("all"), [selected, setSelected] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false), [busy, setBusy] = useState(false), [message, setMessage] = useState("");
+  const [bought, setBought] = useState<string | null>(null);
   const pending = useRef(false), purchaseKey = useRef<{ sku: string; key: string } | null>(null);
   const load = useCallback(async () => {
     try { const value = await api<{ items: EconomyItem[]; balance: number }>("market"); setData(value); setError(""); }
@@ -93,15 +94,15 @@ export function CelestialMarket() {
     if (purchaseKey.current?.sku !== item.sku) purchaseKey.current = { sku: item.sku, key: crypto.randomUUID() };
     try {
       const result = await api<{ balance: number; price: number; retry: boolean }>("market/purchase", { sku: item.sku, idempotencyKey: purchaseKey.current.key });
-      purchaseKey.current = null; setConfirming(false);
-      setMessage(`ได้รับ ${item.name} แล้ว · หักหินวิญญาณ ${stones(result.price)} ก้อน · คงเหลือ ${stones(result.balance)} ก้อน`);
+      purchaseKey.current = null; setConfirming(false); setBought(item.sku);
+      setMessage(`ได้รับ ${item.name} แล้ว · หักหินวิญญาณ ${stones(result.price)} ก้อน · คงเหลือ ${stones(result.balance)} ก้อน · เก็บเข้าถุงเฉียนคุนแล้ว`);
       await load();
     } catch (e) { setMessage((e as Error).message); setConfirming(false); if (/หินวิญญาณไม่พอ|มีของสะสม|ยังไม่เปิดขาย/.test((e as Error).message)) purchaseKey.current = null; }
     finally { pending.current = false; setBusy(false); }
   };
   const equip = async (sku: string) => {
     if (pending.current) return; pending.current = true; setBusy(true);
-    try { await api("economy/equip", { sku }); setMessage("สวมใส่แล้ว"); await load(); } catch (e) { setMessage((e as Error).message); } finally { pending.current = false; setBusy(false); }
+    try { await api("economy/equip", { sku }); setMessage("สวมใส่แล้ว · เปิดโปรไฟล์เพื่อดูภาพลักษณ์ใหม่ได้เลย"); await load(); } catch (e) { setMessage((e as Error).message); } finally { pending.current = false; setBusy(false); }
   };
   const balance = data?.balance ?? 0;
   return <div className="econ-market">
@@ -112,6 +113,7 @@ export function CelestialMarket() {
     {error && <div className="arena-error" role="alert"><span>{error}</span><button className="arena-button-secondary" onClick={() => void load()}>ลองอีกครั้ง</button></div>}
     <div className="econ-tabs" role="group" aria-label="หมวดสินค้า">{categories.map((c) => <button type="button" key={c} aria-pressed={category === c} onClick={() => { setCategory(c); setSelected(null); }}>{c === "all" ? "ทั้งหมด" : SLOT_LABELS[c]}</button>)}{hasLegacy && <button type="button" aria-pressed={category === "legacy"} onClick={() => { setCategory("legacy"); setSelected(null); }}>ของสะสมรุ่นก่อน</button>}</div>
     <p role="status" aria-live="polite" className="econ-message">{message}</p>
+    {bought && data?.items.find((i) => i.sku === bought && i.owned && !i.equipped) && <div className="econ-after-buy"><button disabled={busy} onClick={() => { void equip(bought); setBought(null); }}>สวมใส่เลย</button><Link className="arena-action econ-secondary" href="/arena/bag">ดูในถุงเฉียนคุน</Link><Link className="arena-action econ-secondary" href="/arena/profile">ดูโปรไฟล์</Link></div>}
     {loading ? <p className="arena-panel arena-skeleton" role="status">กำลังเปิดแผงสินค้า…</p> : !data || data.items.length === 0 ? <ArenaEmptyState icon="trophy" title="ตลาดยังไม่มีสินค้าเปิดขาย">เมื่อผู้ดูแลเปิดรายการ สินค้าจริงจะแสดงที่นี่</ArenaEmptyState> :
     <div className="econ-market-body">
       <ul className="econ-grid" aria-label="รายการสินค้า">{items.map((i) => <li key={i.sku}><button type="button" className="econ-item" aria-pressed={item?.sku === i.sku} onClick={() => setSelected(i.sku)}>
