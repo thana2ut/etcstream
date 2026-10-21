@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useCableBag } from "./use-cable-bag";
 import { createPortal } from "react-dom";
+import { useMissionAccess, useTester } from "@/components/game/use-tester";
 import { checkMissionBag, venueCandidateStock, type BagProblem } from "@/game/content/mission-bag";
 import { CableInspector, CablePreview, CableThumbnail, CatalogCanvas } from "./cable-model";
 import { CategoryIcon } from "./lobby-ornaments";
@@ -80,6 +81,9 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
   const remove = (c: CatalogCable) => { removeOne(c); soundEngine.play("button_hover"); };
   const pick = (c: CatalogCable) => { setSelected(c); soundEngine.play("button_hover"); };
   const mission = true;
+  // Free Practice: admin1–3 and the owner Admin may enter with any bag; everyone else needs the exact bag.
+  const tester = useTester(), owner = useMissionAccess();
+  const bypass = !scenario.stage && (tester || owner);
   const canEnter = mission ? true : total > 0;
   // Problem found by the last entry attempt: opens the centred red warning (one dialog per invalid click).
   const [rejected, setRejected] = useState<BagProblem | null>(null);
@@ -244,7 +248,7 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
           if (!canEnter || entering.current) return;
           if (mission) {
             // Re-check the live bag at click time against THIS level; a rejected bag stays as it is for editing.
-            const result = checkMissionBag(scenario, bag);
+            const result = bypass ? { ok: true as const } : checkMissionBag(scenario, bag);
             if (!result.ok) { if (!rejected) { setRejected(result.problem); soundEngine.play("button_hover"); } return; }
             entering.current = true;
             soundEngine.play("mission_accept"); onConfirm({ ...bag });
