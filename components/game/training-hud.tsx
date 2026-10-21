@@ -48,10 +48,12 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
     { id: "capture", title: "รับภาพและบันทึก" },
     { id: "monitor", title: "ตรวจสัญญาณ" },
   ];
+  // Mission stages tick by the same rule that completes the level (accepted equivalent ports count).
+  const routeDone = scenario.stage ? new Map(missionRoutes(state).map((r) => [r.id, r.done])) : null;
   const connectionRows = GROUPS.map((group) => ({
     ...group,
     items: [
-      ...scenario.requirements.filter((r) => r.group === group.id).map((r) => ({ id: r.id, label: r.label, done: requirementDone(state, r) })),
+      ...scenario.requirements.filter((r) => r.group === group.id).map((r) => ({ id: r.id, label: r.label, done: routeDone?.get(`${r.from[0]}>${r.to[0]}`) ?? requirementDone(state, r) })),
       ...scenario.actions.filter((a) => a.group === group.id).map((a) => ({ id: a.id, label: a.label, done: Boolean(state.actionsDone[a.id]) })),
     ],
   })).filter((group) => group.items.length > 0);

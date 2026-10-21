@@ -2,7 +2,7 @@ import { simThai } from "@/game/content/sim-thai";
 import { nearestTablePlacement, STUDIO } from "./studio-room-layout";
 import { clampToSurface, LAYOUTS, nearStaging, onSurface, type VenueLayout } from "./venue-layouts";
 import { feedbackCopy } from "@/game/content/feedback-copy";
-import { SCENARIOS, type Connector, type PlaceableItemId, type PortDef, type Point3, type Requirement, type Scenario, type ScenarioId } from "./scenarios";
+import { SCENARIOS, type CableDef, type Connector, type PlaceableItemId, type PortDef, type Point3, type Requirement, type Scenario, type ScenarioId } from "./scenarios";
 import { canConnect, evaluate, modelOf, portOf, scoreOf, validateLevel } from "./sim/engine";
 import type { ConceptId, ControlValue, EvalContext, FaultScenario, SimRuntime, TestStage } from "./sim/types";
 import { CONCEPTS } from "./sim/library";
@@ -252,18 +252,37 @@ export function portAvailable(state: TrainingState, portId: PortId): boolean {
  */
 export function missionRoutes(state: Pick<TrainingState, "scenarioId" | "cables">, cables: TrainingState["cables"] = state.cables) {
   const scenario = scenarioOf(state);
-  return (scenario.canonical ?? []).flatMap((route) => {
+  const routes = (scenario.canonical ?? []).flatMap((route) => {
     const def = scenario.cables.find((c) => c.id === route.cableId);
-    if (!def || catalogIdFor(def) === "CTRL-REPLAY") return [];
-    const kind = catalogIdFor(def);
-    const done = scenario.cables.some((c) => {
-      const lead = cables[c.id];
-      if (!lead || catalogIdFor(c) !== kind) return false;
-      const ends = [lead.a.portId, lead.b.portId];
-      return ends.includes(route.from as PortId) && ends.includes(route.to as PortId);
-    });
+    return !def || catalogIdFor(def) === "CTRL-REPLAY" ? [] : [{ route, def }];
+  });
+  // Every lead actually plugged at both ends (adapter sockets resolved to the real device port).
+  const real = (id: PortId | null) => resolvePort(state as TrainingState, id, cables);
+  const links = scenario.cables.flatMap((c) => {
+    const lead = cables[c.id], x = lead && real(lead.a.portId), y = lead && real(lead.b.portId);
+    return x && y ? [{ def: c, x, y }] : [];
+  });
+  // A port the game accepted for this route: the documented port, or a sibling on the same device with the
+  // same direction and connector (e.g. SDI IN 2 instead of IN 1, monitor input B instead of A).
+  const fits = (port: string, want: string) => {
+    if (port === want) return true;
+    const a = scenario.ports[port], b = scenario.ports[want];
+    return Boolean(a && b && a.device === b.device && a.direction === b.direction && a.connector === b.connector);
+  };
+  const sameLead = (c: CableDef, d: CableDef) => catalogIdFor(c) === catalogIdFor(d) || (c.ends[0] === d.ends[0] && c.ends[1] === d.ends[1]) || (c.ends[0] === d.ends[1] && c.ends[1] === d.ends[0]);
+  const joins = (l: { x: string; y: string }, from: string, to: string, exact: boolean) => exact
+    ? (l.x === from && l.y === to) || (l.x === to && l.y === from)
+    : (fits(l.x, from) && fits(l.y, to)) || (fits(l.x, to) && fits(l.y, from));
+  // Each plugged lead satisfies at most one route: exact matches first, then accepted equivalents.
+  const used = new Set<number>(), done = new Array(routes.length).fill(false);
+  for (const exact of [true, false]) routes.forEach(({ route, def }, i) => {
+    if (done[i]) return;
+    const k = links.findIndex((l, n) => !used.has(n) && sameLead(l.def, def) && joins(l, route.from, route.to, exact));
+    if (k >= 0) { used.add(k); done[i] = true; }
+  });
+  return routes.map(({ route }, i) => {
     const from = scenario.ports[route.from]?.label ?? route.from, to = scenario.ports[route.to]?.label ?? route.to;
-    return [{ id: `${route.from}>${route.to}`, label: `${from} → ${to}`, done }];
+    return { id: `${route.from}>${route.to}`, label: `${from} → ${to}`, done: done[i] };
   });
 }
 export const missionWired = (state: Pick<TrainingState, "scenarioId" | "cables">, cables: TrainingState["cables"] = state.cables) => {
