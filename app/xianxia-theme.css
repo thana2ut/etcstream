@@ -1314,3 +1314,8 @@ html[data-overlay] .cloud-layer { transition: none; }
 
 /* iPad only: movement pad sits lower and a touch further left. */
 @media (pointer: coarse) and (min-width: 761px) { .touch-move-pad { left: max(52px, 5vw); bottom: max(calc(18vh - 36px), calc(env(safe-area-inset-bottom, 0px) + 84px)); } }
+
+/* One-line interaction prompt (overrides the wrapping rules above). */
+.game-screen .interaction-prompt-center { width: min(720px, calc(100vw - 32px)); }
+.game-screen .interaction-prompt-center .prompt-action-pill { width: max-content; max-width: 100%; white-space: nowrap; align-items: center; font-size: clamp(12px, 0.9vw, 13.5px); line-height: 1.5; min-height: 32px; padding-block: 3px; }
+.game-screen .interaction-prompt-center .prompt-action-pill > span:last-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-wrap: nowrap; line-height: 1.5; font-size: inherit; }
