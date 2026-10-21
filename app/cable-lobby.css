@@ -760,3 +760,14 @@
 .cl-screen.cl-v3 .is-grid .cl-slot-3d { width: 86%; max-width: 190px; height: 84px; min-height: 84px; }
 .cl-screen.cl-v3 .is-grid .cl-slot-text { width: 100%; align-items: center; text-align: center; padding: 0 6px; gap: 6px; }
 @media (max-width: 1000px) { .cl-screen.cl-v3 .cl-catalog.is-grid { grid-auto-rows: 226px; } }
+
+/* Reference layout: the hit area fills the whole card exactly, content in one centred column. */
+.cl-screen.cl-v3 .is-grid .cl-slot { position: relative; padding: 0 !important; height: 100%; }
+.cl-screen.cl-v3 .is-grid .cl-slot-hit {
+  position: absolute !important; inset: 0 !important; width: auto !important; height: auto !important; margin: 0 !important;
+  display: flex !important; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  padding: 16px 14px !important; text-align: center;
+}
+.cl-screen.cl-v3 .is-grid .cl-slot-3d { position: relative !important; inset: auto !important; flex: none; width: 80% !important; max-width: 180px; height: 76px !important; min-height: 0 !important; margin: 0 auto !important; }
+.cl-screen.cl-v3 .is-grid .cl-slot-text { position: relative; flex: none; width: 100% !important; margin: 0 !important; padding: 0 4px !important; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; }
+.cl-screen.cl-v3 .is-grid .cl-slot-name, .cl-screen.cl-v3 .is-grid .cl-slot-ends { margin: 0 auto; text-align: center; }
