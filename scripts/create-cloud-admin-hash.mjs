@@ -28,7 +28,10 @@ try {
   console.log("ใช้รหัสใหม่ที่ไม่เคยส่งในแชต รหัสจะไม่แสดงบนหน้าจอหรือถูกบันทึกลงประวัติคำสั่ง");
   const secret = await masked("รหัสหลักใหม่ (ซ่อนตัวอักษร): ");
   const confirmation = await masked("ยืนยันรหัสหลักใหม่: ");
-  if (secret !== confirmation || secret.length < 14 || !/[A-Za-z]/.test(secret) || !/[^A-Za-z]/.test(secret)) throw Error("รหัสใหม่ต้องตรงกัน ยาวอย่างน้อย 14 ตัวอักษร และผสมตัวอักษรกับตัวเลขหรือสัญลักษณ์");
+  // --test: owner test accounts (admin1-admin3) may use a shorter code.
+  const test = process.argv.includes("--test");
+  if (secret !== confirmation) throw Error("รหัสสองครั้งไม่ตรงกัน");
+  if (test ? secret.length < 6 : secret.length < 14 || !/[A-Za-z]/.test(secret) || !/[^A-Za-z]/.test(secret)) throw Error(test ? "รหัสบัญชีทดสอบต้องยาวอย่างน้อย 6 ตัวอักษร" : "รหัสใหม่ต้องยาวอย่างน้อย 14 ตัวอักษร และผสมตัวอักษรกับตัวเลขหรือสัญลักษณ์");
   const salt = randomBytes(24).toString("hex");
   const hash = `scrypt$${salt}$${scryptSync(secret,salt,64,{N:32768,r:8,p:1,maxmem:64*1024*1024}).toString("hex")}`;
   mkdirSync(resolve(".arena"), { recursive: true, mode: 0o700 });
