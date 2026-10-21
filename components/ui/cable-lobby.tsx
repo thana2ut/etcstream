@@ -104,14 +104,12 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
       // Base row height comes from CSS; rows stretch a little so N whole rows fill the panel with no leftover gap.
       const styles = getComputedStyle(grid);
       const gap = parseFloat(styles.rowGap) || 0, base = slot.offsetHeight;
-      const columns = Math.max(1, styles.gridTemplateColumns.split(/\s+/).length);
-      const requiredRows = Math.ceil(grid.children.length / columns);
       const pads = parseFloat(getComputedStyle(el).paddingTop) + parseFloat(getComputedStyle(el).paddingBottom);
       const pad = parseFloat(getComputedStyle(panel).paddingBottom) || 0;
       const avail = panel.getBoundingClientRect().bottom - pad - el.getBoundingClientRect().top - pads;
-      // Fit at least the rows represented by the bag slots; otherwise a short panel hides half the empty bag.
-      const rows = Math.max(requiredRows, Math.floor((avail + gap) / (base + gap)));
-      const rowH = Math.max(1, Math.min(base * 1.35, (avail - gap * (rows - 1)) / rows));
+      // Keep complete rows only; forcing a second row into a short panel flattens every slot.
+      const rows = Math.max(1, Math.floor((avail + gap) / (base + gap)));
+      const rowH = Math.min(base * 1.35, (avail - gap * (rows - 1)) / rows);
       grid.style.gridAutoRows = `${rowH}px`;
       el.style.height = `${rows * rowH + gap * (rows - 1) + pads}px`;
     };
