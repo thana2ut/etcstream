@@ -178,7 +178,7 @@ function ClassroomConfidenceScreen() {
     <Cyl p={[0, 1.22, -0.04]} rt={0.018} h={0.48} {...BLACK_METAL} />
     <RB p={[0, 1.55, -0.04]} s={[0.92, 0.55, 0.06]} rad={0.018} c="#20252c" />
     <Slab p={[0, 1.55, -0.006]} s={[0.86, 0.49, 0.004]} c="#101b2a" />
-    <Text font={SCENE_FONT} position={[0, 1.55, 0]} fontSize={0.047} maxWidth={0.8} color="#dce8f4" textAlign="center">{sceneText(feed)}</Text>
+    <Text font={SCENE_FONT} position={[0, 1.55, 0]} fontSize={0.06} maxWidth={0.95} color="#eaf3fa" textAlign="center">{sceneText(feed)}</Text>
     <Text font={SCENE_FONT} position={[0, 1.9, 0]} fontSize={0.05} color="#384556">จอตรวจภาพโปรเจกเตอร์</Text>
   </group>;
 }

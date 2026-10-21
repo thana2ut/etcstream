@@ -495,7 +495,7 @@ function RackInfill() {
       <RB p={[-0.12, 0.015, 0.016]} s={[0.11, 0.035, 0.005]} rad={0.002} c="#3b5962" />
       {Array.from({ length: 5 }, (_, n) => <Slab key={n} p={[0.02 + n * 0.025, 0, 0.016]} s={[0.009, 0.07, 0.005]} c="#11151b" />)}
     </group>)}
-    <Text font={FONT} position={[0, 1.93, 0.31]} fontSize={0.038} maxWidth={0.5} color="#e2cfac">{["ควบคุมกล้องสำรอง", "แผงจัดสายสำรอง", "ตัวเข้ารหัสสำรอง", "เครือข่ายสำรอง"][i]}</Text>
+    <Text font={FONT} position={[0, 1.93, 0.31]} fontSize={0.052} maxWidth={0.7} textAlign="center" color="#f0dfbd">{["ควบคุมกล้องสำรอง", "แผงจัดสายสำรอง", "ตัวเข้ารหัสสำรอง", "เครือข่ายสำรอง"][i]}</Text>
   </group>)}</>;
 }
 

@@ -278,7 +278,7 @@ function InstalledOutdoorEquipment() {
         id, label: model.role === "display" ? `${inst.label} · Monitor` : inst.label, model: model.name, generic: model.generic, verified: !model.generic,
         kind: model.kind, size: [...model.size], position: spot.p, color: "#263345",
       }} />}
-      <Text font={SCENE_FONT} position={[0, id.startsWith("cam") ? 1.78 : (model?.size[1] ?? 0.2) + 0.18, 0]} fontSize={0.038} maxWidth={0.7} color="#ead8af" outlineWidth={0.002} outlineColor="#14202b">{id.startsWith("cam") ? id === "cam3" ? "กล้องสำรองประจำพื้นที่" : "กล้องประจำจุด · ใช้ตามระดับฝึก" : "อุปกรณ์ประจำพื้นที่ · ใช้ตามระดับฝึก"}</Text>
+      <Text font={SCENE_FONT} position={[0, id.startsWith("cam") ? 1.78 : (model?.size[1] ?? 0.2) + 0.18, 0]} fontSize={0.055} maxWidth={0.95} textAlign="center" color="#f5e5c4" outlineWidth={0.002} outlineColor="#14202b">{id.startsWith("cam") ? id === "cam3" ? "กล้องสำรองประจำพื้นที่" : "กล้องประจำจุด · ใช้ตามระดับฝึก" : "อุปกรณ์ประจำพื้นที่ · ใช้ตามระดับฝึก"}</Text>
     </group>;
   })}</>;
 }

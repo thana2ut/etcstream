@@ -1,7 +1,7 @@
 import { simThai } from "@/game/content/sim-thai";
 
 /** Sarabun Regular: existing Thai/Latin subsets merged locally, with original shaping tables. */
-export const SCENE_FONT = "/fonts/scene-thai-latin.ttf";
+export const SCENE_FONT = "/fonts/scene-sarabun.ttf";
 export const SCENE_FONT_FAMILY = "EtcstreamSceneSarabun";
 export const SCENE_CANVAS_FONT = "'EtcstreamSceneSarabun','Leelawadee UI','Tahoma',sans-serif";
 
@@ -33,12 +33,12 @@ export function loadSceneFont(): Promise<void> {
 
 /** World-unit roles share one face and generous Thai line metrics. */
 export const SCENE_TYPE = {
-  equipmentTitle: { fontSize: 0.06, lineHeight: 1.65, maxWidth: 1.2, color: "#f6ddaa" },
-  equipmentSubtitle: { fontSize: 0.04, lineHeight: 1.65, maxWidth: 1.2, color: "#c7e5ef" },
-  portLabel: { fontSize: 0.04, lineHeight: 1.65, color: "#edf4ff" },
-  statusLabel: { fontSize: 0.045, lineHeight: 1.65, color: "#edf4ff" },
+  equipmentTitle: { fontSize: 0.082, lineHeight: 1.55, maxWidth: 1.3, color: "#f6ddaa" },
+  equipmentSubtitle: { fontSize: 0.056, lineHeight: 1.55, maxWidth: 1.3, color: "#d5edf4" },
+  portLabel: { fontSize: 0.05, lineHeight: 1.55, color: "#edf4ff" },
+  statusLabel: { fontSize: 0.055, lineHeight: 1.55, color: "#edf4ff" },
   interactionPrompt: { lineHeight: 1.65, color: "#edf4ff" },
-  monitorReadout: { fontSize: 0.05, lineHeight: 1.65, color: "#edf4ff" },
+  monitorReadout: { fontSize: 0.06, lineHeight: 1.55, color: "#edf4ff" },
   mapLabel: { lineHeight: 1.65, color: "#edf4ff" },
   helpText: { lineHeight: 1.7, color: "#c7e5ef" },
 } as const;

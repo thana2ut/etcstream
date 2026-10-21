@@ -150,8 +150,8 @@ function Port({ id }: { id: string }) {
   const showTag = focused;
   const status = mission && connection ? signal ? "เสียบแล้ว · พอร์ตมีสัญญาณจำลอง" : "เสียบแล้ว · พอร์ตยังไม่มีสัญญาณจำลอง" : "";
   const tag = `${fits === true ? "✓ เสียบได้ · " : ""}${port.label.replace(/\s*\([^)]*\)\s*$/, "")} · ${plug} · ${dir}${status ? ` · ${status}` : ""}`;
-  const tagSize = focused ? 0.026 : 0.019;
-  const tagWidth = Math.min(0.9, tag.length * tagSize * 0.58 + 0.05);
+  const tagSize = 0.036;
+  const tagWidth = Math.min(1.35, Math.max(0.6, tag.length * tagSize * 0.44 + 0.12));
   const [mx, my, mz, yaw, flat] = at.split(",").map(Number);
   return <group position={[mx, my, mz]}>
     <group rotation={flat ? [-Math.PI / 2, 0, 0] : [0, yaw, 0]}>
@@ -164,10 +164,10 @@ function Port({ id }: { id: string }) {
     </group>
     <Billboard>
       {/* Port tag floats above the socket and a little toward the player so it never lies on the device face. */}
-      {showTag && <group position={[0, ring + 0.075, 0.05]}>
-        <mesh renderOrder={10}><planeGeometry args={[tagWidth, tagSize * 1.9]} /><meshBasicMaterial color={fits === true ? "#0d3a22" : "#0b1220"} transparent opacity={0.82} depthTest={false} depthWrite={false} /></mesh>
-        <mesh position={[0, -tagSize * 0.95 - 0.012, 0]} renderOrder={10}><planeGeometry args={[0.003, 0.024]} /><meshBasicMaterial color={color} transparent opacity={0.7} depthTest={false} depthWrite={false} /></mesh>
-        <Text font={ROOM_FONT} position={[0, 0, 0.001]} fontSize={tagSize} color={fits === true ? "#c8ffd8" : "#f7f1e3"} anchorX="center" anchorY="middle" renderOrder={11} material-depthTest={false} material-depthWrite={false} maxWidth={0.88}>
+      {showTag && <group position={[0, ring + 0.12, 0.05]}>
+        <mesh renderOrder={10}><planeGeometry args={[tagWidth, 0.16]} /><meshBasicMaterial color={fits === true ? "#0d3a22" : "#0b1220"} transparent opacity={0.82} depthTest={false} depthWrite={false} /></mesh>
+        <mesh position={[0, -0.092, 0]} renderOrder={10}><planeGeometry args={[0.003, 0.024]} /><meshBasicMaterial color={color} transparent opacity={0.7} depthTest={false} depthWrite={false} /></mesh>
+        <Text font={ROOM_FONT} position={[0, 0, 0.001]} fontSize={tagSize} lineHeight={1.5} color={fits === true ? "#c8ffd8" : "#f7f1e3"} anchorX="center" anchorY="middle" textAlign="center" renderOrder={11} material-depthTest={false} material-depthWrite={false} maxWidth={tagWidth - 0.1}>
           {sceneText(tag)}
         </Text>
       </group>}
@@ -190,7 +190,7 @@ function ActionSpot({ action }: { action: ActionDef }) {
   return <group position={at.split(",").map(Number) as [number, number, number]}>
     <mesh><torusGeometry args={[0.05, 0.008, 8, 24]} /><meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.8} /></mesh>
     <mesh userData={{ trainingTarget: { kind: "action", actionId: action.id } }}><sphereGeometry args={[0.1, 12, 10]} /><meshBasicMaterial transparent opacity={0} depthWrite={false} /></mesh>
-    {focused && <Billboard position={[0, 0.09, 0]}><Text font={ROOM_FONT} fontSize={0.04} color={color} anchorX="center" outlineWidth={0.002} outlineColor="#000" maxWidth={0.7} textAlign="center">{sceneText(done ? action.doneLabel : action.label)}</Text></Billboard>}
+    {focused && <Billboard position={[0, 0.12, 0]}><Text font={ROOM_FONT} fontSize={0.055} color={color} anchorX="center" outlineWidth={0.002} outlineColor="#000" maxWidth={0.95} textAlign="center">{sceneText(done ? action.doneLabel : action.label)}</Text></Billboard>}
   </group>;
 }
 
@@ -305,7 +305,7 @@ function WirelessLink({ tx }: { tx: string }) {
   const mid: [number, number, number] = [(ax + bx) / 2, Math.max(ay, by) + 0.25, (az + bz) / 2];
   return <group>
     <Line points={[[ax, ay, az], mid, [bx, by, bz]]} color="#62dce9" lineWidth={2} dashed dashSize={0.05} gapSize={0.04} transparent opacity={0.85} />
-    <Billboard position={mid}><Text font={ROOM_FONT} fontSize={0.035} color="#94edfa" anchorX="center">{sceneText(`${tx.toUpperCase()} ⟶ RX · ไร้สาย`)}</Text></Billboard>
+    <Billboard position={mid}><Text font={ROOM_FONT} fontSize={0.05} color="#b5f3ff" anchorX="center" textAlign="center" maxWidth={1.1}>{sceneText(`${tx.toUpperCase()} ⟶ RX · ไร้สาย`)}</Text></Billboard>
   </group>;
 }
 

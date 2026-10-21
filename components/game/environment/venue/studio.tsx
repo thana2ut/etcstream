@@ -251,7 +251,7 @@ function InstalledStudioCameras() {
     const spot = LAYOUTS.studioMission.places[id];
     return <group key={id} position={spot.p} rotation={[0, spot.yaw, 0]}>
       <Hcx2000Model />
-      <Text font={SCENE_FONT} position={[0, 1.78, 0]} fontSize={0.045} color="#e7cf9c" rotation={[0, Math.PI, 0]}>{`กล้อง ${["A", "B", "C"][i]} · จุดติดตั้งกล้อง`}</Text>
+      <Text font={SCENE_FONT} position={[0, 1.78, 0]} fontSize={0.06} maxWidth={1.25} color="#f2ddb4" rotation={[0, Math.PI, 0]}>{`กล้อง ${["A", "B", "C"][i]} · จุดติดตั้งกล้อง`}</Text>
       <RigidBody type="fixed" colliders={false}><CylinderCollider position={[0, 0.52, 0]} args={[0.52, 0.38]} /></RigidBody>
     </group>;
   })}</>;
