@@ -146,7 +146,7 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
       <div className={`interaction-prompt-center${touch ? " is-touch" : ""}`} role="status">
         {(state.held || state.heldItem) && (
           <div className="prompt-holding-pill">
-            <span>{heldCable ? `กำลังถือ${heldCable.label}` : `กำลังถือ${playerEquipmentText(state.items[state.heldItem!]?.label ?? "อุปกรณ์")}`} · {touch ? "ใช้ปุ่มวางบนโต๊ะกลาง · ปุ่มหมุนปรับครั้งละ 45°" : "เล็งจุดบนโต๊ะกลางแล้วกด F วาง · T หมุน 45°"}</span>
+            <span>{heldCable ? `กำลังถือ${heldCable.label}` : `กำลังถือ${playerEquipmentText(state.items[state.heldItem!]?.label ?? "อุปกรณ์")}`}</span>
           </div>
         )}
 
