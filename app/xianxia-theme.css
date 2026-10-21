@@ -1311,3 +1311,6 @@ html[data-overlay] .cloud-layer { transition: none; }
 .prompt-action-pill { max-width: min(760px, calc(100vw - 32px)); white-space: nowrap; align-items: center; gap: 10px; padding: 7px 16px 7px 8px; }
 .prompt-action-pill > span:last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: clamp(12.5px, 0.95vw, 14px); line-height: 1.4; }
 .prompt-action-pill .prompt-action-key { flex: none; }
+
+/* iPad only: movement pad sits lower and a touch further left. */
+@media (pointer: coarse) and (min-width: 761px) { .touch-move-pad { left: max(52px, 5vw); bottom: max(calc(18vh - 36px), calc(env(safe-area-inset-bottom, 0px) + 84px)); } }
