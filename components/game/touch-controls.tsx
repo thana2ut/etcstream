@@ -1,24 +1,65 @@
 "use client";
 
-import { useRef, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { emitTrainingInput, type TrainingMoveCode } from "@/game/input/training-input";
 import { useTrainingStore } from "@/game/stores/training-store";
 
-function MoveButton({ code, label, className = "" }: { code: TrainingMoveCode; label: string; className?: string }) {
-  const release = () => emitTrainingInput({ type: "move", code, pressed: false });
-  return <button
-    type="button"
-    className={`touch-control-button ${className}`}
-    aria-label={label}
+const JOY_RADIUS = 62;
+const JOY_DEAD = 0.35;
+
+/** Analog-style stick: the knob follows the finger inside the ring; direction maps to W/A/S/D (diagonals allowed). */
+function MoveStick() {
+  const [knob, setKnob] = useState<[number, number]>([0, 0]);
+  const active = useRef<{ id: number; cx: number; cy: number } | null>(null);
+  const held = useRef(new Set<TrainingMoveCode>());
+  const apply = (next: Set<TrainingMoveCode>) => {
+    for (const code of held.current) if (!next.has(code)) emitTrainingInput({ type: "move", code, pressed: false });
+    for (const code of next) if (!held.current.has(code)) emitTrainingInput({ type: "move", code, pressed: true });
+    held.current = next;
+  };
+  const track = (x: number, y: number) => {
+    const c = active.current;
+    if (!c) return;
+    let dx = x - c.cx, dy = y - c.cy;
+    const len = Math.hypot(dx, dy);
+    if (len > JOY_RADIUS) { dx = (dx / len) * JOY_RADIUS; dy = (dy / len) * JOY_RADIUS; }
+    setKnob([dx, dy]);
+    const next = new Set<TrainingMoveCode>();
+    if (dy < -JOY_RADIUS * JOY_DEAD) next.add("KeyW");
+    if (dy > JOY_RADIUS * JOY_DEAD) next.add("KeyS");
+    if (dx < -JOY_RADIUS * JOY_DEAD) next.add("KeyA");
+    if (dx > JOY_RADIUS * JOY_DEAD) next.add("KeyD");
+    apply(next);
+  };
+  const stop = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (active.current?.id !== event.pointerId) return;
+    active.current = null;
+    setKnob([0, 0]);
+    apply(new Set());
+  };
+  useEffect(() => () => apply(new Set()), []);
+  return <div
+    className="touch-move-pad"
+    role="application"
+    aria-label="ปุ่มเคลื่อนที่ ลากลูกกลมเพื่อเดิน"
     onPointerDown={(event) => {
       event.preventDefault();
       event.currentTarget.setPointerCapture(event.pointerId);
-      emitTrainingInput({ type: "move", code, pressed: true });
+      const box = event.currentTarget.getBoundingClientRect();
+      active.current = { id: event.pointerId, cx: box.left + box.width / 2, cy: box.top + box.height / 2 };
+      track(event.clientX, event.clientY);
     }}
-    onPointerUp={release}
-    onPointerCancel={release}
-    onLostPointerCapture={release}
-  >{label}</button>;
+    onPointerMove={(event) => { if (active.current?.id === event.pointerId) { event.preventDefault(); track(event.clientX, event.clientY); } }}
+    onPointerUp={stop}
+    onPointerCancel={stop}
+    onLostPointerCapture={stop}
+  >
+    <span className="touch-joy-arrow is-up" aria-hidden="true">▲</span>
+    <span className="touch-joy-arrow is-left" aria-hidden="true">◀</span>
+    <span className="touch-joy-arrow is-down" aria-hidden="true">▼</span>
+    <span className="touch-joy-arrow is-right" aria-hidden="true">▶</span>
+    <span className={`touch-joy-knob${active.current ? " is-active" : ""}`} aria-hidden="true" style={{ transform: `translate(calc(-50% + ${knob[0]}px), calc(-50% + ${knob[1]}px))` }} />
+  </div>;
 }
 
 export function TouchControls() {
@@ -54,12 +95,7 @@ export function TouchControls() {
       onPointerCancel={stopLook}
       onLostPointerCapture={stopLook}
     />
-    <div className="touch-move-pad" aria-label="ปุ่มเคลื่อนที่">
-      <MoveButton code="KeyW" label="▲" className="touch-up" />
-      <MoveButton code="KeyA" label="◀" className="touch-left" />
-      <MoveButton code="KeyS" label="▼" className="touch-down" />
-      <MoveButton code="KeyD" label="▶" className="touch-right" />
-    </div>
+    <MoveStick />
 
 
     <div className="touch-pick-buttons" aria-label="เลือกหยิบหัวหรือปลายสาย">

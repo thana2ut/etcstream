@@ -1294,3 +1294,15 @@ html[data-overlay] .cloud-layer { transition: none; }
 /* Long action prompts wrap inside the pill instead of running past its edge. */
 .game-screen .interaction-prompt-center .prompt-action-pill { width: auto; max-width: 100%; white-space: normal; }
 .game-screen .interaction-prompt-center .prompt-action-pill > span:last-child { min-width: 0; white-space: normal; text-wrap: balance; overflow-wrap: break-word; }
+
+/* Touch move stick (iPad): sits higher above the bottom-left corner; the knob follows the finger inside the ring. */
+.touch-move-pad { left: max(64px, 6vw); bottom: max(18vh, calc(env(safe-area-inset-bottom, 0px) + 120px)); pointer-events: auto; touch-action: none; }
+.touch-move-pad::after { content: none; }
+.touch-joy-arrow { position: absolute; color: rgba(255, 255, 255, .85); font-size: 1.1rem; line-height: 1; pointer-events: none; transform: translate(-50%, -50%); }
+.touch-joy-arrow.is-up { left: 50%; top: 14%; }
+.touch-joy-arrow.is-down { left: 50%; top: 86%; }
+.touch-joy-arrow.is-left { left: 14%; top: 50%; }
+.touch-joy-arrow.is-right { left: 86%; top: 50%; }
+.touch-joy-knob { position: absolute; left: 50%; top: 50%; width: 58px; height: 58px; border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, .5); background: rgba(255, 255, 255, .22); pointer-events: none; transition: transform .12s ease-out; }
+.touch-joy-knob.is-active { transition: none; background: rgba(255, 255, 255, .3); }
+.game-screen:has(.touch-controls) .hud-objective-panel { max-height: calc(100dvh - env(safe-area-inset-top, 0px) - 14px - 184px - max(18vh, calc(env(safe-area-inset-bottom, 0px) + 120px)) - 20px) !important; }
