@@ -154,6 +154,14 @@ export function ProfileHub({ profile, standing }: { profile: Profile; standing: 
   const eq = (economy.data?.equipped || {}) as EconomySummary["equipped"];
   const name = profile.player.name;
   return <section className="profile-hub" aria-label="โปรไฟล์ของข้า">
+    <nav className="profile-hub-actions profile-hub-menu" aria-label="ทางลัดโปรไฟล์">
+        <Link className="arena-action" href="/arena/market"><HubIcon name="market" />ตลาดสวรรค์</Link>
+        <Link className="arena-action econ-secondary" href="/arena/bag"><HubIcon name="bag" />ถุงเฉียนคุน{economy.data ? ` · ${economy.data.ownedCount}` : ""}</Link>
+        <Link className="arena-action econ-secondary" href="/arena/friends"><HubIcon name="friends" />สหาย{me.data && me.data.pendingIn > 0 ? ` · คำขอใหม่ ${me.data.pendingIn}` : ""}</Link>
+        <Link className="arena-action econ-secondary" href="/arena/ranked"><HubIcon name="trophy" />อันดับ</Link>
+        <Link className="arena-action econ-secondary" href={`/arena/players/${profile.player.friendCode}`}><HubIcon name="eye" />ดูโปรไฟล์แบบที่ผู้อื่นเห็น</Link>
+        <ShareProfile code={profile.player.friendCode} />
+      </nav>
     <ProfileCover cover={eq.profileCover?.asset} className="arena-panel profile-hub-card" bodyClassName="profile-hub-header" tools={economy.data ? <><ChangeCoverButton onChanged={economy.retry} /><ChangeCoverButton slot="profileNameplate" onChanged={economy.retry} /></> : null}>
       <div className="profile-hub-portrait">
         <ProfileAvatar avatar={(eq.profileAvatar ?? eq.portraitOutfit)?.asset} frame={eq.profileFrame?.asset} name={name} size={168} />
@@ -169,14 +177,6 @@ export function ProfileHub({ profile, standing }: { profile: Profile; standing: 
           <div><span className="stat-icon"><Image src="/arena/economy/currencies/spirit-stone.png" alt="" width={34} height={34} /></span><span><dt>หินวิญญาณ</dt><dd>{economy.data ? stones(economy.data.balance) : economy.error ? "โหลดไม่ได้" : "…"}</dd></span></div>
         </dl>
       </div>
-      <nav className="profile-hub-actions" aria-label="ทางลัดโปรไฟล์">
-        <Link className="arena-action" href="/arena/market"><HubIcon name="market" />ตลาดสวรรค์</Link>
-        <Link className="arena-action econ-secondary" href="/arena/bag"><HubIcon name="bag" />ถุงเฉียนคุน{economy.data ? ` · ${economy.data.ownedCount}` : ""}</Link>
-        <Link className="arena-action econ-secondary" href="/arena/friends"><HubIcon name="friends" />สหาย{me.data && me.data.pendingIn > 0 ? ` · คำขอใหม่ ${me.data.pendingIn}` : ""}</Link>
-        <Link className="arena-action econ-secondary" href="/arena/ranked"><HubIcon name="trophy" />อันดับ</Link>
-        <Link className="arena-action econ-secondary" href={`/arena/players/${profile.player.friendCode}`}><HubIcon name="eye" />ดูโปรไฟล์แบบที่ผู้อื่นเห็น</Link>
-        <ShareProfile code={profile.player.friendCode} />
-      </nav>
     </ProfileCover>
     <div className="profile-hub-grid">
       <Showcase equipped={eq as Equipped} own />
