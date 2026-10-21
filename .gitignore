@@ -64,3 +64,6 @@ next-env.d.ts
 
 # Owner art intake (originals stay local; runtime copies live in public/arena/economy/catalog)
 /artwork_inbox/
+
+# Blender auto-backups (local only)
+*.blend1

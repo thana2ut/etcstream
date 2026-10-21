@@ -1,6 +1,6 @@
 # สเปกโมเดล 3D: ATEM Mini Pro
 
-`bmd-atem-mini-pro` · ใช้ในด่าน XS · สถานะ: **ทำโมเดลแล้ว (Phase 04.1)** · ดู `docs/16_ATEM_MINI_PRO_3D_IMPLEMENTATION_TH.md`
+`bmd-atem-mini-pro` · ใช้ในด่าน XS · สถานะ: **ทำโมเดลแล้ว (Phase 04.1)** · ดู `docs/hardware-3d/16_ATEM_MINI_PRO_3D_IMPLEMENTATION_TH.md`
 
 ## แหล่งอ้างอิงทางการ (Blackmagic Design techspecs, ตรวจ 2026-10-20)
 - **รูปขนาด:** https://images.blackmagicdesign.com/images/products/atemmini/techspecs/physical-specifications/atem-mini-pro-imperial.jpg

@@ -14,5 +14,5 @@ for (const [scale, name] of Object.entries(names)) {
   text += `ติดตั้งประจำ (${s.devices.length-movable.size}): ${s.devices.filter(d=>!movable.has(d.id)).map(d=>`${d.id} [${d.modelId}]`).join(', ')}\n\n`;
 }
 text += '## การจัดและผลตรวจ\n\nรักษาโต๊ะ/ตำแหน่งสถานที่และธีมจีนเซียนเดิม ใช้ลำดับหมวดจากระบบเดิม จัด shelf slot ด้วยขนาด footprint หมุนจริง รวม stagingBounds ของ breakout/tail ระยะคั่น35มม.และขอบ40มม. จัด poolเต็มก่อนเลือกของที่เริ่มบนโต๊ะเพื่อให้ slot ไม่เลื่อนข้ามระดับ\n\nเครื่องบน tripod/rack/camera mount อยู่สถานีเดิม สถานีใหญ่/จอ/PA มีฐานรองเดิม ไม่ย้าย fixed-install ไปกองบนโต๊ะ อุปกรณ์ stockOnly ไม่เข้า objective, canonical wiring หรือ initial connections; ไม่แตะเกณฑ์ผ่านเพื่อเลี่ยงปัญหาโมเดล\n\nAutomated tests ตรวจทั้ง25: roster union, fixed station, stable portable slot, full-footprint fit/no overlap, tabletop height, reachability และไม่ผ่านทันทีจาก stock เพิ่ม; end-to-end logicทุกด่านผ่าน ต้องให้ ownerเดินตรวจภาพ/การหยิบจริงครั้งสุดท้าย ไม่อ้างว่าการตรวจเชิงเรขาคณิตแทน manual playtest\n';
-fs.writeFileSync('docs/PHASE07_ALL_25_LEVEL_TABLE_INTEGRATION_TH.md', text);
+fs.writeFileSync('docs/hardware-3d/PHASE07_ALL_25_LEVEL_TABLE_INTEGRATION_TH.md', text);
 console.log(`reported ${stages.length} stages`);

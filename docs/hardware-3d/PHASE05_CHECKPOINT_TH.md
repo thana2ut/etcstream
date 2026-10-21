@@ -12,11 +12,11 @@
 - `npm test` 212/212 · tsc, lint, build ผ่าน · git diff --check ไม่มี error
 
 ## รายละเอียดของงานรอบนี้
-- `docs/PHASE05_ALL_25_VENUE_EQUIPMENT_TABLE_INTEGRATION_TH.md`
-- `docs/PHASE05_ALL_25_TABLE_INTERACTION_AND_REGRESSION_TH.md`
+- `docs/hardware-3d/PHASE05_ALL_25_VENUE_EQUIPMENT_TABLE_INTEGRATION_TH.md`
+- `docs/hardware-3d/PHASE05_ALL_25_TABLE_INTERACTION_AND_REGRESSION_TH.md`
 
 ## งานถัดไป
-- เจ้าของทดสอบด้วยตนเองครั้งเดียวตาม `docs/PHASE05_OWNER_ONE_FINAL_MANUAL_PLAYTEST_TH.md`
+- เจ้าของทดสอบด้วยตนเองครั้งเดียวตาม `docs/hardware-3d/PHASE05_OWNER_ONE_FINAL_MANUAL_PLAYTEST_TH.md`
 - ถ้าพบปัญหาภาพ ให้แก้ตามที่รายงาน
 - ถ้าเฟรมเรต SP บน iPhone ต่ำ ให้เพิ่ม LOD หรือซ่อน label ของเครื่อง `stockOnly` ที่อยู่ไกล
 

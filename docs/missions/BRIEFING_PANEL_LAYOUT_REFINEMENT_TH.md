@@ -10,7 +10,7 @@
 
 1. `app/play/page.tsx`: ใช้กรอบร่วมเดิม เพิ่ม briefing-backdrop และ briefing-frame แยก header, briefing-body, footer จริง ย้ายปุ่มย้อนกลับ สถานที่ ชื่อภารกิจ รหัส/ระดับ ไปส่วนหัว ย้ายปุ่ม “เตรียมสาย” ลงแถบล่างซึ่งอยู่นอกพื้นที่เลื่อน เนื้อหาและภาพรวมอยู่ใน body ที่โฟกัสด้วยคีย์บอร์ดได้
 2. `app/xianxia-theme.css`: เพิ่มกฎที่จำกัดเฉพาะ briefing-frame ไม่แก้ dialog อื่น กรอบกว้างไม่เกิน 1180px สูงไม่เกิน 840px และไม่เกินพื้นที่ผู้เล่นมีจริง เผื่อ safe area 16px (จอเล็ก/เตี้ย 8px) ตรงกลางหน้าจอ ใช้ grid แถว auto / minmax(0,1fr) / auto จึงแยกส่วนหัวและปุ่มจากบริเวณเลื่อนได้
-3. `docs/BRIEFING_PANEL_LAYOUT_REFINEMENT_TH.md`: รายงานนี้
+3. `docs/missions/BRIEFING_PANEL_LAYOUT_REFINEMENT_TH.md`: รายงานนี้
 
 ## สมดุลเนื้อหาและแผนผัง
 

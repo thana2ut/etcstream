@@ -45,7 +45,7 @@ export function StudioRoom01() {
     <ambientLight intensity={0.3} />
     <directionalLight position={[0, 2.8, 1.8]} target-position={[0, 0, -0.8]} intensity={2.2} color="#fff2dc" castShadow shadow-mapSize={[1024, 1024]} shadow-camera-left={-3.5} shadow-camera-right={3.5} shadow-camera-top={3.5} shadow-camera-bottom={-3.5} shadow-normalBias={0.025} />
     {STUDIO.lights.slice(0, 3).map((p, i) => <pointLight key={i} position={[p[0], p[1] - 0.15, p[2] + 0.3]} intensity={5} distance={5} decay={2} color="#fff3e0" />)}
-    {STUDIO.lights.slice(3).map((p, i) => <spotLight key={`panel-${i}`} position={[p[0], p[1], p[2] + 0.05]} target-position={[p[0] * 0.22, 0.75, -0.55]} intensity={32} distance={7} angle={0.72} penumbra={0.75} decay={2} color="#fff6e9" castShadow shadow-mapSize={[512, 512]} shadow-bias={-0.0002} shadow-normalBias={0.02} />)}
+    {STUDIO.lights.slice(3).map((p, i) => <spotLight key={`panel-${i}`} position={[p[0], p[1], p[2] + 0.05]} target-position={[p[0] * 0.22, 0.75, -0.55]} intensity={32} distance={7} angle={0.72} penumbra={0.75} decay={2} color="#fff6e9" />)} {/* Fill panels light only; the key light owns the shadows (each shadow light is a full extra scene pass). */}
     <RoomBoundary><Suspense fallback={<FallbackRoom />}><RoomAsset /></Suspense></RoomBoundary>
     <group position={[STUDIO.speaker[0], 0, STUDIO.speaker[2]]} rotation={[0, -Math.PI / 2, 0]}>
       <GlbModel url="/models/equipment/yamaha-hs5.glb" fallback={<mesh position={[0, 0.45, 0]}><boxGeometry args={[0.54, 0.9, 0.43]} /><meshStandardMaterial color="#191a1c" /></mesh>} />

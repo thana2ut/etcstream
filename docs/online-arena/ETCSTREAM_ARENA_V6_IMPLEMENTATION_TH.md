@@ -87,7 +87,7 @@
 4. จัด HTTPS และให้สองเครื่องเข้าที่ origin เดียวกัน `localhost` คนละเครื่องไม่ได้เชื่อมถึงกันเอง
 5. ผู้ดูแลสร้างฤดูกาลจริงและผู้เล่นยินยอมเข้าทำเนียบตามต้องการ ไม่ได้สร้างฤดูกาลตัวอย่างให้
 
-คู่มือเต็ม: `docs/ARENA_ONLINE_DEPLOY_TH.md`
+คู่มือเต็ม: `docs/online-arena/ARENA_ONLINE_DEPLOY_TH.md`
 
 ## 4. ยังบล็อก / ยังไม่ได้ทำ
 
@@ -113,8 +113,8 @@
 | `components/arena/use-arena-resource.ts` | การอ่านข้อมูล อัปเดต ถอยระยะ ยกเลิก request และ stale state |
 | `components/arena/online.tsx` | หน้าอันดับ ฤดูกาล สถิติรายด่าน เปรียบเทียบ กู้คืน และออกจากตัวตน |
 | `components/arena/admin-seasons.tsx` | หน้าจัดการฤดูกาลและคิวตรวจภายใต้ admin เดิม |
-| `docs/ARENA_ONLINE_DEPLOY_TH.md` | คู่มือติดตั้ง/สำรอง/กู้คืน/ข้อจำกัดและรายการให้เจ้าของตรวจ |
-| `docs/ETCSTREAM_ARENA_V6_IMPLEMENTATION_TH.md` | รายงานนี้ |
+| `docs/online-arena/ARENA_ONLINE_DEPLOY_TH.md` | คู่มือติดตั้ง/สำรอง/กู้คืน/ข้อจำกัดและรายการให้เจ้าของตรวจ |
+| `docs/online-arena/ETCSTREAM_ARENA_V6_IMPLEMENTATION_TH.md` | รายงานนี้ |
 
 ## 6. ไฟล์เดิมที่แก้รอบ V6
 

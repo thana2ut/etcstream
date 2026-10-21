@@ -115,4 +115,4 @@
 
 ---
 ## อัปเดตรอบที่ 4 (2026-10-20): ผูกรุ่นที่ยืนยันแล้ว (ยกเว้น ST)
-ผูกในโค้ดแล้ว ได้แก่ Studio Camera 4K Plus G2 (XS), Studio Camera 4K Pro G2 (AU/OUT), SmartView Duo (AU/OUT/SP), Magewell USB Capture SDI Gen 2 (AU), HD8 ISO (OUT), Videohub 20x20 12G (SP), ATEM 2 M/E Constellation 4K (SP), HyperDeck Studio HD Plus (SP) และ Streaming Encoder HD ×2 (SP) รายละเอียดอยู่ใน `docs/10_VERIFIED_BINDING_REPORT_TH.md` · ตารางสถานะรายรุ่น `docs/generated/MODEL_STATUS_TABLE_TH.md` (ต้องสร้างใหม่หลังเอกสารนี้)
+ผูกในโค้ดแล้ว ได้แก่ Studio Camera 4K Plus G2 (XS), Studio Camera 4K Pro G2 (AU/OUT), SmartView Duo (AU/OUT/SP), Magewell USB Capture SDI Gen 2 (AU), HD8 ISO (OUT), Videohub 20x20 12G (SP), ATEM 2 M/E Constellation 4K (SP), HyperDeck Studio HD Plus (SP) และ Streaming Encoder HD ×2 (SP) รายละเอียดอยู่ใน `docs/hardware-3d/10_VERIFIED_BINDING_REPORT_TH.md` · ตารางสถานะรายรุ่น `docs/generated/MODEL_STATUS_TABLE_TH.md` (ต้องสร้างใหม่หลังเอกสารนี้)

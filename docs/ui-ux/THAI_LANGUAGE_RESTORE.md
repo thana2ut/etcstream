@@ -37,7 +37,7 @@
 ## ไฟล์ใหม่
 
 - `game/content/sim-thai.ts` — ชื่อแสดงผลไทย โดยไม่เปลี่ยนค่าจำลอง
-- `docs/THAI_LANGUAGE_RESTORE.md` — รายงานนี้
+- `docs/ui-ux/THAI_LANGUAGE_RESTORE.md` — รายงานนี้
 - `art/review/thai-language/stadium-job-thai.png`
 - `art/review/thai-language/stadium-controls-thai.png`
 

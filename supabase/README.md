@@ -7,7 +7,7 @@ Client เขียน/อ่านตารางตรงไม่ได้ �
 เจ้าของอนุมัติ `20261020153000_cloud_ranked_v13.sql` แล้ว apply cloud_ranked_v13 สำเร็จ remote version `20261020150344` ทั้ง 11 ตาราง etc_ เปิด RLS
 Advisors แจ้ง INFO ไม่มี policies เพราะตั้งใจ deny direct access และ WARN authenticated SECURITY DEFINER สำหรับ API ที่ตรวจสิทธิ์ภายใน
 Migration V13 เสนอถอน public EXECUTE ของ rls_auto_enable ที่มีอยู่เดิมด้วย
-รายละเอียดและข้อจำกัดล่าสุดดู `../docs/ETCSTREAM_ONLINE_DEPLOY_TH.md`
+รายละเอียดและข้อจำกัดล่าสุดดู `../docs/online-arena/ETCSTREAM_ONLINE_DEPLOY_TH.md`
 
 ---
 

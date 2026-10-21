@@ -12,7 +12,7 @@
 
 - `app/play/page.tsx`: เงื่อนไขหน้าเลือกสายเพิ่ม !introOpen; ปุ่มใบงานเปลี่ยนเป็น “เตรียมสาย” และเพียงปิดใบงาน; ยืนยันกระเป๋าที่ไม่ว่างแล้ว resetTraining ด้วยสายที่เลือก ตั้ง introOpen=false และเริ่มภารกิจทันที; ป้องกัน effect เริ่ม/จบภารกิจและปุ่ม C ระหว่าง bag=null; เพลงยังอยู่ช่วงก่อนเล่นขณะเลือกสาย; retry กลับใบงานก่อนเตรียมสายใหม่
 - `components/ui/cable-lobby.tsx`: เพิ่ม backLabel แบบ optional โดยเก็บค่าเดิมสำหรับผู้เรียกอื่น หน้าเล่นส่ง “กลับหน้าใบงาน” และ callback ย้อนอ่านใบงานได้ ไม่กลับหอภารกิจทันที
-- `docs/MISSION_ENTRY_FLOW_BRIEFING_THEN_CABLE_TH.md`: รายงานนี้
+- `docs/missions/MISSION_ENTRY_FLOW_BRIEFING_THEN_CABLE_TH.md`: รายงานนี้
 
 ## ขั้นตอนผู้เล่น
 

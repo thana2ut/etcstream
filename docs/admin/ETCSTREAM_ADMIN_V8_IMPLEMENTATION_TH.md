@@ -104,7 +104,7 @@ Training ที่ไม่ใช่ production stage อ่าน requirement �
 - `game/content/admin-loadout.ts` — ใช้ canonical ต่อระดับ + resolver/diagnostic สำหรับ training
 - `server/arena/auth.ts` — ผูก admin session กับ entry ชั่วคราวและ revoke ทุก grant
 - `server/arena/db.ts` — optional error code เพื่อแยกประตูสองชั้น
-- `SECURITY.md`, `docs/ARENA_ONLINE_DEPLOY_TH.md`, `docs/ADMIN_ONLY_AUTO_CABLE_LOADOUT_TH.md` — ข้อกำหนด V8 ปัจจุบัน
+- `SECURITY.md`, `docs/online-arena/ARENA_ONLINE_DEPLOY_TH.md`, `docs/admin/ADMIN_ONLY_AUTO_CABLE_LOADOUT_TH.md` — ข้อกำหนด V8 ปัจจุบัน
 
 ไฟล์ใหม่:
 
@@ -115,7 +115,7 @@ Training ที่ไม่ใช่ production stage อ่าน requirement �
 - `server/arena/admin-preview.ts`
 - `game/security/admin-preview-types.ts`
 - `scripts/provision-competition-code.mjs`
-- `docs/ETCSTREAM_ADMIN_V8_IMPLEMENTATION_TH.md` (ฉบับนี้)
+- `docs/admin/ETCSTREAM_ADMIN_V8_IMPLEMENTATION_TH.md` (ฉบับนี้)
 
 ไฟล์ redirect/layout/theme assets เดิมคงอยู่และไม่ได้สร้างหน้าแอดมินแยก ไม่เพิ่ม dependency มีไฟล์ untracked/modified จากงานเดิมจำนวนมากอยู่ก่อนรอบนี้ ซึ่งเก็บไว้
 

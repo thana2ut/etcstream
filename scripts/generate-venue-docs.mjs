@@ -1,4 +1,4 @@
-// Regenerates docs/VENUE_SCENARIO_MATRIX.md and docs/EQUIPMENT_INVENTORY.md from the scenario data
+// Regenerates docs/venues/VENUE_SCENARIO_MATRIX.md and docs/hardware-3d/EQUIPMENT_INVENTORY.md from the scenario data
 // (game/training/venue-scenarios.ts), so documentation can never drift from what the game loads.
 // Usage: node scripts/generate-venue-docs.mjs   (documentation only — not a test or auto-solver)
 import fs from "node:fs";
@@ -89,7 +89,7 @@ ${(s.assumptions ?? []).map((a) => `- ${a}`).join("\n")}
 
 `;
 }
-fs.writeFileSync(path.join(root, "docs/VENUE_SCENARIO_MATRIX.md"), m);
+fs.writeFileSync(path.join(root, "docs/venues/VENUE_SCENARIO_MATRIX.md"), m);
 
 const seen = new Map();
 for (const s of scenarios) for (const d of s.devices) {
@@ -112,5 +112,5 @@ let inv = `# Equipment inventory
 |---|---|---|---|---|---|
 ${[...seen.values()].map(({ scale, d, levels }) => `| ${scale.toUpperCase()} | ${d.id} | ${d.label} | ${statusOf(d)} | ${d.model} | ${levels.join(", ")} |`).join("\n")}
 `;
-fs.writeFileSync(path.join(root, "docs/EQUIPMENT_INVENTORY.md"), inv);
+fs.writeFileSync(path.join(root, "docs/hardware-3d/EQUIPMENT_INVENTORY.md"), inv);
 console.log(`wrote ${scenarios.length} scenarios, ${seen.size} equipment rows`);

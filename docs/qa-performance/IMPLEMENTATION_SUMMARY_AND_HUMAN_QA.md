@@ -96,13 +96,13 @@ Created:
 - `game/training/sim/reference-equipment.ts`
 - `game/training/sim/reference-rooms.ts`
 - `game/training/sim/reference-stages.ts`
-- `docs/MISSION_25_BILL_OF_MATERIALS.json`
+- `docs/missions/MISSION_25_BILL_OF_MATERIALS.json`
 - `docs/references/` (three original documents, copied without edits)
-- `docs/VIDEO_BASELINE_AND_GAP_AUDIT.md`
-- `docs/MISSION_25_EQUIPMENT_PORT_CABLE_MATRIX.md`
-- `docs/SCENE_WORK_ZONES_AND_INTERACTION_ANCHORS.md`
-- `docs/TECHNICAL_SIMULATION_STATE_AND_FEEDBACK.md`
-- `docs/IMPLEMENTATION_SUMMARY_AND_HUMAN_QA.md`
+- `docs/production-sim/VIDEO_BASELINE_AND_GAP_AUDIT.md`
+- `docs/missions/MISSION_25_EQUIPMENT_PORT_CABLE_MATRIX.md`
+- `docs/venues/SCENE_WORK_ZONES_AND_INTERACTION_ANCHORS.md`
+- `docs/production-sim/TECHNICAL_SIMULATION_STATE_AND_FEEDBACK.md`
+- `docs/qa-performance/IMPLEMENTATION_SUMMARY_AND_HUMAN_QA.md`
 
 ## Proposed human QA — NOT EXECUTED
 

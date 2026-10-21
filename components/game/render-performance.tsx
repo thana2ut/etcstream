@@ -3,6 +3,7 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import type { Group } from "three";
+import { useTrainingStore } from "@/game/stores/training-store";
 
 /**
  * Static scenery: thousands of meshes never move, so stop three.js from recomputing their matrices every frame.
@@ -25,19 +26,32 @@ export function StaticScenery({ children }: { children: ReactNode }) {
 }
 
 /**
- * Shadows: the venue is static and only small items / cable ends move, so the shadow map is refreshed
- * every few frames instead of every frame (one fewer full scene pass most frames).
+ * Shadows: the venue is static, so the shadow map is redrawn only when something that casts one changes
+ * (items, cables, what is held). A fixed every-N-frames refresh re-rendered the whole scene once per shadow
+ * light on the same frame, which showed up as a regular stutter. While carrying, refresh every `every` frames.
  */
 export function ShadowThrottle({ every = 4 }: { every?: number }) {
   const get = useThree((s) => s.get);
   const frame = useRef(0);
+  const dirty = useRef(3);
   useEffect(() => {
     const { shadowMap } = get().gl;
     shadowMap.autoUpdate = false;
     shadowMap.needsUpdate = true;
-    return () => { shadowMap.autoUpdate = true; };
+    // Late assets (GLBs, textures) settle over the first second; refresh a few times, then go event-driven.
+    const timers = [300, 1200, 3000].map((ms) => window.setTimeout(() => { dirty.current = Math.max(dirty.current, 1); }, ms));
+    const unsubscribe = useTrainingStore.subscribe((state, prev) => {
+      if (state.items !== prev.items || state.cables !== prev.cables || state.heldItem !== prev.heldItem || state.held !== prev.held) dirty.current = 2;
+    });
+    return () => { timers.forEach(window.clearTimeout); unsubscribe(); shadowMap.autoUpdate = true; };
   }, [get]);
-  useFrame((state) => { if (++frame.current % every === 0) state.gl.shadowMap.needsUpdate = true; });
+  useFrame((state) => {
+    const f = ++frame.current, carrying = Boolean(useTrainingStore.getState().heldItem || useTrainingStore.getState().held);
+    if (carrying ? f % every === 0 : dirty.current > 0 && f % 2 === 0) {
+      state.gl.shadowMap.needsUpdate = true;
+      if (dirty.current > 0) dirty.current--;
+    }
+  });
   return null;
 }
 

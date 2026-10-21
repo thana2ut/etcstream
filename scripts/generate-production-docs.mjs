@@ -1,5 +1,5 @@
-// Generates docs/PRODUCTION_STAGES.md (per-stage wiring diagrams, configs, faults, cues, pass criteria) and
-// docs/PRODUCTION_EQUIPMENT_MANIFEST.md from game/training/sim. It also replays every stage headlessly with the
+// Generates docs/production-sim/PRODUCTION_STAGES.md (per-stage wiring diagrams, configs, faults, cues, pass criteria) and
+// docs/production-sim/PRODUCTION_EQUIPMENT_MANIFEST.md from game/training/sim. It also replays every stage headlessly with the
 // test solver and records the result (mission test records). Usage: node scripts/generate-production-docs.mjs
 import fs from "node:fs";
 import path from "node:path";
@@ -41,11 +41,11 @@ for (const room of Object.keys(ROOMS)) {
     void id;
   }
 }
-fs.writeFileSync(path.join(root, "docs/PRODUCTION_STAGES.md"), lines.join("\n"));
+fs.writeFileSync(path.join(root, "docs/production-sim/PRODUCTION_STAGES.md"), lines.join("\n"));
 
 const eq = ["# Equipment manifest", "", "_Generated from `game/training/sim/equipment.ts`._", "", "| Model id | Manufacturer / name | Source | Verified / defined ports | Asset licence |", "|---|---|---|---|---|"];
 for (const m of Object.values(MODELS)) eq.push(`| ${m.modelId} | ${m.manufacturer} · ${m.name} | ${m.sourceUrl ?? "Generic Training Device (room specification)"} | ${m.verifiedPorts.join("; ")} | ${m.assetLicense} |`);
-fs.writeFileSync(path.join(root, "docs/PRODUCTION_EQUIPMENT_MANIFEST.md"), eq.join("\n") + "\n");
+fs.writeFileSync(path.join(root, "docs/production-sim/PRODUCTION_EQUIPMENT_MANIFEST.md"), eq.join("\n") + "\n");
 
 const rec = ["# Mission test records (headless replay)", "", `_Generated ${new Date().toISOString().slice(0, 10)} by \`node scripts/generate-production-docs.mjs\` — every stage is played through the public game transitions (carry, plug, configure, tests, cues, faults, sign-off)._`, "", "| Stage | Result | Score | Grade | Evidence items | Faults recovered | Cues |", "|---|---|---|---|---|---|---|"];
 for (const id of Object.keys(SCENARIOS).filter((x) => SCENARIOS[x].stage)) {
@@ -53,5 +53,5 @@ for (const id of Object.keys(SCENARIOS).filter((x) => SCENARIOS[x].stage)) {
   const score = stageScore(s);
   rec.push(`| ${s.sim.stageId} | ${s.completed ? "COMPLETED" : "FAILED"} | ${score?.score ?? "—"} | ${score?.grade ?? "—"} | ${s.sim.evidence.length} | ${s.sim.recovered.join(", ") || "—"} | ${s.sim.cueIndex}/${SCENARIOS[id].stage.cues.length} |`);
 }
-fs.writeFileSync(path.join(root, "docs/PRODUCTION_TEST_RECORDS.md"), rec.join("\n") + "\n");
+fs.writeFileSync(path.join(root, "docs/production-sim/PRODUCTION_TEST_RECORDS.md"), rec.join("\n") + "\n");
 console.log("docs written");

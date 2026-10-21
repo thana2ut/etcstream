@@ -43,10 +43,10 @@ export function databaseDiagnostic() {
     for (const name of schemaContract.objects) if (!objects.has(name)) missing.push(name);
     if (names.has("schema_version")) schemaVersion = Number(connection.prepare("SELECT MAX(version) AS v FROM schema_version").get()?.v || 0);
     const state: DatabaseState = schemaVersion >= 3 && !missing.length ? "READY" : "MIGRATION_REQUIRED";
-    return { state, schemaVersion, requiredVersion: 3, missing, message: state === "READY" ? "เชื่อมต่อฐานข้อมูลร่วมและพบโครงสร้างที่ต้องใช้แล้ว" : "ต้องให้เจ้าของสำรองข้อมูลและใช้ขั้นตอนอัปเกรด V6/V9", action: state === "READY" ? null : "docs/ONLINE_RANKED_SETUP_TH.md" };
+    return { state, schemaVersion, requiredVersion: 3, missing, message: state === "READY" ? "เชื่อมต่อฐานข้อมูลร่วมและพบโครงสร้างที่ต้องใช้แล้ว" : "ต้องให้เจ้าของสำรองข้อมูลและใช้ขั้นตอนอัปเกรด V6/V9", action: state === "READY" ? null : "docs/online-arena/ONLINE_RANKED_SETUP_TH.md" };
   } catch (error) {
     const state: DatabaseState = error instanceof ArenaError && error.code === "DB_NOT_CONFIGURED" ? "NOT_CONFIGURED" : "CONNECTIVITY_ERROR";
-    return { state, schemaVersion, requiredVersion: 3, missing, message: state === "NOT_CONFIGURED" ? "ยังไม่ได้ตั้งฐานข้อมูลส่วนกลางบนเซิร์ฟเวอร์" : "ไม่สามารถเชื่อมต่อหรืออ่านฐานข้อมูลออนไลน์ได้", action: "docs/ONLINE_RANKED_SETUP_TH.md" };
+    return { state, schemaVersion, requiredVersion: 3, missing, message: state === "NOT_CONFIGURED" ? "ยังไม่ได้ตั้งฐานข้อมูลส่วนกลางบนเซิร์ฟเวอร์" : "ไม่สามารถเชื่อมต่อหรืออ่านฐานข้อมูลออนไลน์ได้", action: "docs/online-arena/ONLINE_RANKED_SETUP_TH.md" };
   }
 }
 export function onlineSchemaReady() {

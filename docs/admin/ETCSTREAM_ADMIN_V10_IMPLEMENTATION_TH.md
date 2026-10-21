@@ -27,7 +27,7 @@
 - `app/api/admin/[...path]/route.ts`: ทุกเครื่องมือใช้สิทธิ์หลัก ยุติเงื่อนไขรหัสแยก
 - `components/ui/mission-hall.tsx`: เพิ่มรูปแบบย่อเฉพาะแอดมินที่ฝังในหน้ารวม ข้อมูลและหน้ารายละเอียดเดิมยังอยู่
 - `app/admin/admin.css`: จัดพื้นที่และการ์ด 3+2 แบบตอบสนองขนาดจอเฉพาะแอดมิน
-- `SECURITY.md`, `docs/ARENA_ONLINE_DEPLOY_TH.md`: ระบุข้อกำหนดล่าสุดแทนประตูแข่งขันแยก
+- `SECURITY.md`, `docs/online-arena/ARENA_ONLINE_DEPLOY_TH.md`: ระบุข้อกำหนดล่าสุดแทนประตูแข่งขันแยก
 
 ไฟล์ใหม่: รายงานนี้ และ `docs/references/v10/recording-contact-sheet.jpg` ซึ่งสกัดภาพอ้างอิงจากวิดีโอเดิม ไม่ใช่ภาพผลลัพธ์หลังแก้ ไม่พบไฟล์ภาพชื่อ `image(20261020-082909).png` ในโฟลเดอร์ Pictures/Downloads/Videos และ references ที่ค้น จึงอ้างอิงภาพจากวิดีโอที่พบเป็นหลัก
 

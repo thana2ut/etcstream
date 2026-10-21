@@ -28,11 +28,11 @@ app/missions/admin/page.tsx
 app/page.tsx
 app/play/page.tsx
 app/xianxia-theme.css
-docs/01_MASTER_EXACT_HARDWARE_REGISTER_TH.md
-docs/02_ALL_25_STAGE_BOM_AND_SIGNAL_GRAPH_TH.md
-docs/ADMIN_ONLY_AUTO_CABLE_LOADOUT_TH.md
-docs/MISSION_25_OWNER_MANUAL_TEST_CHECKLIST_TH.md
-docs/MISSION_25_PLAYER_CONNECTION_GUIDE_TH.md
+docs/hardware-3d/01_MASTER_EXACT_HARDWARE_REGISTER_TH.md
+docs/hardware-3d/02_ALL_25_STAGE_BOM_AND_SIGNAL_GRAPH_TH.md
+docs/admin/ADMIN_ONLY_AUTO_CABLE_LOADOUT_TH.md
+docs/missions/MISSION_25_OWNER_MANUAL_TEST_CHECKLIST_TH.md
+docs/missions/MISSION_25_PLAYER_CONNECTION_GUIDE_TH.md
 docs/generated/MODEL_UNION_GENERATED_TH.md
 docs/generated/STAGE_GRAPHS_GENERATED_TH.md
 docs/generated/hardware-audit.json

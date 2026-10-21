@@ -30,7 +30,7 @@ Mapping lives in `game/content/mission-catalog.ts` (`venueId`) and `app/play/pag
 
 Each venue has 5 levels with the same learning progression:
 1 Video Path · 2 Audio Path · 3 Switching / Routing / Monitoring · 4 Ports + Troubleshooting · 5 Full Production.
-Total: **25 scenarios**, ids `xs-1 … xl-5`. Full detail: `docs/VENUE_SCENARIO_MATRIX.md`.
+Total: **25 scenarios**, ids `xs-1 … xl-5`. Full detail: `docs/venues/VENUE_SCENARIO_MATRIX.md`.
 
 ## Architecture
 
@@ -57,7 +57,7 @@ Total: **25 scenarios**, ids `xs-1 … xl-5`. Full detail: `docs/VENUE_SCENARIO_
 
 ## Equipment evidence
 
-See `docs/EQUIPMENT_INVENTORY.md`. Summary:
+See `docs/hardware-3d/EQUIPMENT_INVENTORY.md`. Summary:
 - CONFIRMED: DeviceWell HDS7105 (S switcher), PMX-402D-USB chassis (S mixer).
 - PROVISIONAL: S studio cameras (model + HDMI/SDI transport), S wireless system (photo suggests COMICA CVM-WM100 PLUS
   family; instructor said Saramonic), HP notebook SKU.
@@ -78,14 +78,14 @@ See `docs/EQUIPMENT_INVENTORY.md`. Summary:
 ## Mission Hall — 5 chapters × 5 levels restored (2026-10-12, mission-only)
 
 - คืนหน้าหอภารกิจแบบเดิม (การ์ด 5 บท + ระดับ 1–5 ต่อบท) และทางเล่น first-person เดิม; ยกเลิกแคมเปญ 5 ด่านแบบแบนที่ทำไว้ก่อนหน้า (ลบไฟล์ `game/mission-hall/*`, `components/mission-hall/*` ซึ่งยังไม่เคย commit)
-- `game/training/venue-scenarios.ts` เขียนกราฟ 25 ด่านใหม่ตามงานวิจัย 5 สถานที่ (รายละเอียด `docs/MISSION_HALL_5_CHAPTERS_25_LEVELS.md`)
+- `game/training/venue-scenarios.ts` เขียนกราฟ 25 ด่านใหม่ตามงานวิจัย 5 สถานที่ (รายละเอียด `docs/missions/MISSION_HALL_5_CHAPTERS_25_LEVELS.md`)
 - `VENUE_SCENE_ONLY = false` — ฉากภารกิจแสดงอุปกรณ์/พอร์ต/สายอีกครั้ง; จอในฉากแสดงตามสายที่เสียบจริง
 - ความรู้อุปกรณ์ภารกิจ: `game/content/mission-equipment-info.ts` (หน้าดูอุปกรณ์ใช้เฉพาะเมื่อ scenario มี venueScale)
 - ห้องฝึกอิสระ (`studio-full`, `hdmi-basic`, Studio Room 01) ไม่ได้แก้ · NOT TESTED / NOT PLAYTESTED
 
 ## Mission Hall — research-locked, enlarged mission venues (2026-10-12, mission-only)
 
-- ขยายฉากภารกิจ 4 ห้องด้วย `VENUE_SCALE` (ห้องเรียน 1.45, หอประชุม 1.35, ภายนอก 1.35, สนามกีฬา 1.3) — ผังและเปลือกฉากขยายตามกัน; เป็นค่าออกแบบเกม ไม่ใช่ขนาดจริง (`docs/MISSION_HALL_VENUE_LAYOUTS.md`)
+- ขยายฉากภารกิจ 4 ห้องด้วย `VENUE_SCALE` (ห้องเรียน 1.45, หอประชุม 1.35, ภายนอก 1.35, สนามกีฬา 1.3) — ผังและเปลือกฉากขยายตามกัน; เป็นค่าออกแบบเกม ไม่ใช่ขนาดจริง (`docs/missions/MISSION_HALL_VENUE_LAYOUTS.md`)
 - สตูดิโอภารกิจใช้ผังใหม่ `studioMission` + ฉาก `venue/studio.tsx` (แยกจาก Studio Room 01 ที่ไม่ได้แตะ)
 - บท 03 ใช้ไมค์ตามงานวิจัย: Podium + Handheld ไร้สาย ×2 + Lav ×2 (RX แยกเครื่อง)
 - การ์ดความรู้ในภารกิจเป็นการ์ดเล็กข้างจอ (ห้องฝึกอิสระยังเป็นหน้าดูอุปกรณ์เต็มจอเหมือนเดิม)

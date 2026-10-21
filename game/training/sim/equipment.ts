@@ -513,7 +513,7 @@ const ATEM_MINI_PRO: EquipmentDefinition = {
   notes: [...ATEM_MINI_PRO_ISO.notes, "ค่าเริ่มต้นของ HDMI OUT คือ MULTIVIEW ต้องกด VIDEO OUT เลือกภาพออกอากาศเพื่อส่งขึ้นจอห้องเรียน (คู่มือ ATEM Mini)", "MIC 1/2 ตั้งเป็น Microphone หรือ Line ได้ในแท็บ Audio ของ ATEM Software Control"],
 };
 
-/* ---- Verified bindings, 2026-10-20 (docs/09_HARDWARE_PROPOSAL_TABLE_TH.md). Controls copy the generic profile they
+/* ---- Verified bindings, 2026-10-20 (docs/hardware-3d/09_HARDWARE_PROPOSAL_TABLE_TH.md). Controls copy the generic profile they
  * replace so every mission configuration stays valid; ports follow the official tech specs (unused real ports kept). ---- */
 const BMD_STUDIO_CAM = "https://www.blackmagicdesign.com/products/blackmagicstudiocamera/techspecs";
 const STUDIO_CAM_PLUS_G2: EquipmentDefinition = {

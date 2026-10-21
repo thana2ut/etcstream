@@ -49,7 +49,7 @@ V5 จัดองค์ประกอบเป็นสามชั้น: ฉ
 
 ## 5. ไฟล์ที่สร้างรอบนี้
 
-- `docs/ETCSTREAM_ARENA_V5_IMPLEMENTATION_TH.md` — รายงานฉบับนี้
+- `docs/online-arena/ETCSTREAM_ARENA_V5_IMPLEMENTATION_TH.md` — รายงานฉบับนี้
 - `docs/references/arena-v5/video-reference-1.jpg`
 - `docs/references/arena-v5/video-reference-2.jpg`
 - `docs/references/arena-v5/video-reference-3.jpg`

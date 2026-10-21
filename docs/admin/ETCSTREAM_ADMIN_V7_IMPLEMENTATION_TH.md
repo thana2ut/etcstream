@@ -55,7 +55,7 @@
 - `server/arena/auth.ts`: ส่งเวลาเซสชันจริงแก่ผู้เรียกฝั่งเซิร์ฟเวอร์
 - `app/api/admin/[...path]/route.ts`: metadata เซสชันและข้อมูลฝึกแบบอ่านอย่างเดียว
 - `app/play/page.tsx`: ปลายทางกลับ `/admin` และไม่ให้การเล่นตรวจของแอดมินบันทึกผ่านด่าน/บุญผู้เล่น
-- `SECURITY.md`, `docs/ARENA_ONLINE_DEPLOY_TH.md`: ข้อกำหนดเส้นทาง V7 ปัจจุบัน
+- `SECURITY.md`, `docs/online-arena/ARENA_ONLINE_DEPLOY_TH.md`: ข้อกำหนดเส้นทาง V7 ปัจจุบัน
 
 ## ไฟล์เพิ่ม
 
@@ -63,7 +63,7 @@
 - `components/arena/admin-training.tsx`
 - `server/arena/training-status.ts`
 - `app/admin/admin.css`
-- `docs/ETCSTREAM_ADMIN_V7_IMPLEMENTATION_TH.md` (ฉบับนี้)
+- `docs/admin/ETCSTREAM_ADMIN_V7_IMPLEMENTATION_TH.md` (ฉบับนี้)
 
 หลายไฟล์ในรายการมีอยู่แล้วแต่ยัง untracked จากงานก่อนหน้า ไม่ได้หมายความว่างาน V7 สร้างระบบ Arena ทั้งหมดใหม่ และยังมีงานค้างอื่นจำนวนมากใน working tree ซึ่งเก็บไว้
 

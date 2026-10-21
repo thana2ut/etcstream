@@ -50,7 +50,7 @@ ARENA_VERIFIED_SLICE_ENABLED และ ARENA_DEMO_ENABLED เริ่มเป�
 - app/arena/[section]/page.tsx — own scope ใน route เดิม
 - app/arena/arena.css — demo panel ไม่เปลี่ยน artwork
 - .env.example — feature flags เริ่มปิด ไม่มีรหัสลับ
-- SECURITY.md และ docs/ARENA_ONLINE_DEPLOY_TH.md — ข้อกำหนด V9
+- SECURITY.md และ docs/online-arena/ARENA_ONLINE_DEPLOY_TH.md — ข้อกำหนด V9
 
 ไฟล์เพิ่ม:
 
@@ -62,9 +62,9 @@ ARENA_VERIFIED_SLICE_ENABLED และ ARENA_DEMO_ENABLED เริ่มเป�
 - game/training/competition-commands.ts
 - components/arena/database-admin.tsx
 - components/arena/demo-roster.tsx
-- docs/ONLINE_RANKED_SETUP_TH.md
-- docs/ONLINE_RANKED_MANUAL_CHECKLIST_TH.md
-- docs/ONLINE_RANKED_V9_IMPLEMENTATION_TH.md
+- docs/online-arena/ONLINE_RANKED_SETUP_TH.md
+- docs/online-arena/ONLINE_RANKED_MANUAL_CHECKLIST_TH.md
+- docs/online-arena/ONLINE_RANKED_V9_IMPLEMENTATION_TH.md
 
 ## NOT TESTED
 

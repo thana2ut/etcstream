@@ -68,4 +68,4 @@
 
 ---
 ## อัปเดต: ผลตรวจขั้นสุดท้าย
-ดู `docs/12_ST_HARDWARE_VERIFICATION_TH.md`: ProFX12v3 (SW1278 Rev. F), HS5 และเส้นทาง L/R ผ่าน แต่ **ยังไม่ผูก** เพราะยังไม่มีระดับขาเข้าสูงสุดของ ATEM Mini Extreme ISO G2 และวิธีควบคุม phantom แยกช่องในเอกสารทางการ
+ดู `docs/hardware-3d/12_ST_HARDWARE_VERIFICATION_TH.md`: ProFX12v3 (SW1278 Rev. F), HS5 และเส้นทาง L/R ผ่าน แต่ **ยังไม่ผูก** เพราะยังไม่มีระดับขาเข้าสูงสุดของ ATEM Mini Extreme ISO G2 และวิธีควบคุม phantom แยกช่องในเอกสารทางการ

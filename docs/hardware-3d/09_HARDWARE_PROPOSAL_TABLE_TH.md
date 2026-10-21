@@ -105,6 +105,6 @@
 - **`generic-4ch-mixer` (ST):** เสนอ **Mackie ProFX12v3** (คู่มือทางการ https://mackie.com/img/file_resources/ProFXv3_Series_OM2024July.pdf)
   - Main L/R เป็น XLR สมดุลแยกซ้าย/ขวา → ATEM Mini Extreme ISO G2 combo 1/2 (ตั้ง line) เป็น 2 edge ไม่ใช้ Y
   - Mon Send 1/4" TRS (pre-fader) → HS5
-  - ยังไม่ผูก รอการอนุมัติและ spec sheet ระดับสัญญาณ รายละเอียดใน `docs/11_ST_MIXER_CANDIDATE_TH.md`
+  - ยังไม่ผูก รอการอนุมัติและ spec sheet ระดับสัญญาณ รายละเอียดใน `docs/hardware-3d/11_ST_MIXER_CANDIDATE_TH.md`
 - **ผู้สมัครที่ไม่ผ่าน:** ProFX10v3 / 6v3 ไม่ผ่าน (ไม่มี Mon Send หรือไมค์ไม่พอ)
 - **XS ยังใช้ `generic-4ch-mixer`:** ห้องเรียนต่อ AUX สเตอริโอ → ATEM Mini Pro MIC 1 (3.5 mm สเตอริโอไม่สมดุล ตั้ง LINE) ถูกต้องอยู่แล้ว จึงไม่ต้องใช้รุ่นนี้

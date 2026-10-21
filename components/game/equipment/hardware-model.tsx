@@ -119,7 +119,7 @@ function ShapedPart({ part }: { part: Extract<Part, { t: "lathe" | "tube" }> }) 
     SHAPES.set(part, geometry);
   }
   return <mesh geometry={geometry} material={partMaterial(part)} position={part.t === "lathe" ? part.p : undefined}
-    quaternion={part.t === "lathe" ? face(part.n, Y) : undefined} castShadow receiveShadow dispose={null} />;
+    quaternion={part.t === "lathe" ? face(part.n, Y) : undefined} castShadow={part.t === "lathe"} receiveShadow={part.t === "lathe"} dispose={null} />;
 }
 
 const FacePattern = memo(function FacePattern({ part }: { part: Extract<Part, { t: "pattern" }> }) {
@@ -135,22 +135,29 @@ const FacePattern = memo(function FacePattern({ part }: { part: Extract<Part, { 
 
 function Parts({ geo, deviceId, modelId, detail }: { geo: ModelGeometry; deviceId: string; modelId: string; detail: boolean }) {
   const { powered, cfg } = useDevice(deviceId, modelId);
+  // Performance: beyond label range, small trim (keys, knobs, screws, LEDs) is skipped — a console is hundreds of
+  // meshes — and only parts larger than 5 cm cast shadows (every caster is drawn again in each shadow pass).
   return <>{(geo.parts ?? []).map((part, i) => {
     switch (part.t) {
-      case "box": return part.round
-        ? <mesh key={i} position={part.p} geometry={roundedHardwareBox(part.s)} castShadow receiveShadow material={partMaterial(part)} dispose={null} />
-        : <mesh key={i} geometry={UNIT_BOX} material={partMaterial(part)} position={part.p} scale={part.s} castShadow receiveShadow />;
+      case "box": {
+        const big = Math.max(...part.s) >= 0.05;
+        if (!detail && Math.max(...part.s) < 0.02) return null;
+        return part.round
+          ? <mesh key={i} position={part.p} geometry={roundedHardwareBox(part.s)} castShadow={big} receiveShadow={big} material={partMaterial(part)} dispose={null} />
+          : <mesh key={i} geometry={UNIT_BOX} material={partMaterial(part)} position={part.p} scale={part.s} castShadow={big} receiveShadow={big} />;
+      }
       case "prism": return <Prism key={i} part={part} />;
       case "loft": return <mesh key={i} geometry={photoLoftGeometry(part)} material={partMaterial(part)} castShadow receiveShadow dispose={null} />;
-      case "cyl": return <mesh key={i} geometry={UNIT_CYL} material={partMaterial(part)} position={part.p} quaternion={face(part.n, Y)} scale={[part.r, part.h, part.r]} />;
+      case "cyl": return !detail && part.r < 0.01 ? null : <mesh key={i} geometry={UNIT_CYL} material={partMaterial(part)} position={part.p} quaternion={face(part.n, Y)} scale={[part.r, part.h, part.r]} />;
       case "lathe": case "tube": return <ShapedPart key={i} part={part} />;
       case "pattern": return detail ? <FacePattern key={i} part={part} /> : null;
-      case "knob": return <group key={i} position={part.p} quaternion={face(part.n)}>
+      case "knob": return !detail ? null : <group key={i} position={part.p} quaternion={face(part.n)}>
         <mesh geometry={CONTROL_KNOB} material={DARK} scale={[part.r, part.r, part.r]} dispose={null} />
       </group>;
       case "key": {
         const color = powered ? part.lit?.find((l) => cfg(l.key) === l.eq)?.color : undefined;
         const [w, h] = part.s;
+        if (!detail && !color) return null; // lit keys (PGM / REC / tally) stay readable from across the room
         return <group key={i} position={part.p} quaternion={face(part.n)}>
           <mesh geometry={roundedHardwareBox([w,h,0.0022],Math.min(0.0007,w*0.1,h*0.1))} material={mat(color ?? part.c ?? "#2c3036", { rough: 0.5, glow: color ? 0.9 : 0 })} position={[0, 0, 0.0011]} dispose={null} />
           {/* Pressable keys get a slightly larger invisible hit box; the visible key keeps its real size. */}
@@ -168,7 +175,7 @@ function Parts({ geo, deviceId, modelId, detail }: { geo: ModelGeometry; deviceI
 }
 
 /** Printed labels only render within this distance (m): a 6-camera stadium otherwise carries ~200 SDF text meshes. */
-const LABEL_RANGE = 3;
+const LABEL_RANGE = 2;
 const WORLD = new Vector3();
 /** Drawn at its own origin (bottom centre of the real body), already scaled to display size. */
 export function HardwareModel({ geo, deviceId, modelId }: { geo: ModelGeometry; deviceId: string; modelId: string }) {
@@ -183,8 +190,8 @@ export function HardwareModel({ geo, deviceId, modelId }: { geo: ModelGeometry; 
   });
   return <group ref={ref} scale={geo.displayScale}>
     <Parts geo={geo} deviceId={deviceId} modelId={modelId} detail={near} />
-    {Object.entries(geo.ports).map(([k, p]) => <HardwareSocket key={k} kind={p.kind ?? kindOf(model?.ports.find((x) => x.key === k)?.connector)} at={p.at} n={p.normal} />)}
-    {geo.inert.map((p) => p.kind && <HardwareSocket key={p.name} kind={p.kind} at={p.at} n={p.normal ?? [0, 0, -1]} />)}
+    {near && Object.entries(geo.ports).map(([k, p]) => <HardwareSocket key={k} kind={p.kind ?? kindOf(model?.ports.find((x) => x.key === k)?.connector)} at={p.at} n={p.normal} />)}
+    {near && geo.inert.map((p) => p.kind && <HardwareSocket key={p.name} kind={p.kind} at={p.at} n={p.normal ?? [0, 0, -1]} />)}
   </group>;
 }
 

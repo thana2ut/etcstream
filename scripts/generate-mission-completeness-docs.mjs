@@ -52,7 +52,7 @@ for (const s of scenarios) {
   matrix += table(["ID", "Layer", "Predicate label", "Critical"], stage.objectives.map((o) => [o.id, o.stage, o.label, Boolean(o.critical)]));
   matrix += `\nPreinstalled leads: ${s.initialConnections.map((e) => `${e.cableId}: ${e.from} → ${e.to}`).join("; ") || "None"}. Faults: ${(stage.faults ?? []).map((f) => f.id).join(", ") || "None"}.\n\nSuccess requires live objectives, deliberate sequential system tests, quiz and sign-off; no minimum cable-count bypass. Saved files/cue history are historical evidence, while current signal predicates remain live.\n`;
 }
-fs.writeFileSync(path.join(root, "docs/MISSION_25_EQUIPMENT_PORT_CABLE_MATRIX.md"), matrix);
+fs.writeFileSync(path.join(root, "docs/missions/MISSION_25_EQUIPMENT_PORT_CABLE_MATRIX.md"), matrix);
 let zones = "# Scene work zones and interaction anchors\n\nGenerated from the mission scenario/layout data; Manifest export only — results in MISSION_25_ADMIN_AND_CODE_AUDIT_TH.md. Coordinates and proportional shells are training design, not measured hardware or campuses. Free-practice studio data is not modified.\n\n";
 for (const scale of ["xs", "s", "m", "l", "xl"]) {
   const s = scenarios.find((s) => s.venueScale === scale && s.level === 5);
@@ -64,7 +64,7 @@ for (const scale of ["xs", "s", "m", "l", "xl"]) {
   }));
 }
 zones += `\n## Contract and limitations\n\n- Keep device ID, port ID, transform and outward normal stable when replacing procedural shells with GLBs. Port sockets/interaction/cable tips read the same anchors. Portable anchors transform with placed/rotated gear.\n- Panel groups use per-panel indices, avoiding overlaps between front input and rear output rows. Generic shells reserve room for independent targets. Camera/laptop/display anchors use existing visual adapters.\n- Service candidates are 0.8–1.55 m outward from anchors, within room bounds, with 0.28 m collider clearance. This checks a point, NOT the complete path, line of sight, body sweep, step height or reach. Missing candidates remain explicit above.\n- Existing furniture, lighting, fantasy art and collision geometry are retained. No global camera teleport, room resizing or collision bypass was added.\n- Walk every mandatory port and storage shelf in later human QA. A candidate must never be treated as proof of physical accessibility.\n`;
-fs.writeFileSync(path.join(root, "docs/SCENE_WORK_ZONES_AND_INTERACTION_ANCHORS.md"), zones);
+fs.writeFileSync(path.join(root, "docs/venues/SCENE_WORK_ZONES_AND_INTERACTION_ANCHORS.md"), zones);
 const edgeReferences = (scenario, edge) => {
   const device = edge.from.split(":")[0];
   const model = MODELS[scenario.simDevices[device].model];
@@ -110,7 +110,7 @@ const materials = scenarios.map((s) => ({
   logicalActions: s.stage.solutionConfig, initialFaults: s.stage.faults?.map((f) => ({ id: f.id, label: f.label, config: f.config, unplug: f.unplug, repatch: f.repatch })) ?? [],
   completionPredicates: s.stage.objectives.map(({ id, label, stage, critical }) => ({ id, label, stage, critical })),
 }));
-fs.writeFileSync(path.join(root, "docs/MISSION_25_BILL_OF_MATERIALS.json"), `${JSON.stringify(materials, null, 2)}\n`);
+fs.writeFileSync(path.join(root, "docs/missions/MISSION_25_BILL_OF_MATERIALS.json"), `${JSON.stringify(materials, null, 2)}\n`);
 let sources = "# Mission signal-flow source matrix\n\nReconciled against the original Appendix A and 2026-10-20 handoff in `docs/references/`. References establish example capabilities/educational topology, never campus ownership. Original stage definitions are retained as `ORIGINAL_STAGES`; active manifests use the reference reconciliation layer. Manifest export only — results in MISSION_25_ADMIN_AND_CODE_AUDIT_TH.md.\n\n";
 for (const s of scenarios) {
   sources += `## ${s.stage.id}\n\n${pending[s.venueScale]}\n\n`;
@@ -120,14 +120,14 @@ for (const s of scenarios) {
     return [`${edge.from} → ${edge.to}`, cable.ends.join(" ↔ "), cable.signalClass, edgeReferences(s, edge).join(", "), ["FIBER", "CONTROL"].includes(cable.ends[0]) ? "Role-level training only; exact connector/protocol UNKNOWN" : s.referenceStatus];
   }));
 }
-fs.writeFileSync(path.join(root, "docs/MISSION_SIGNAL_FLOW_SOURCE_MATRIX.md"), sources);
+fs.writeFileSync(path.join(root, "docs/missions/MISSION_SIGNAL_FLOW_SOURCE_MATRIX.md"), sources);
 let overview = "# หอจารึกแห่งภารกิจ — 5 สถานที่ × 5 ระดับ\n\nข้อมูลปัจจุบันสร้างจากกราฟที่เกมใช้จริง เทียบ Appendix A และเอกสารส่งมอบวันที่ 20 ตุลาคม 2026 แล้วในระดับแบบระบบฝึก ไม่ใช่การยืนยันอุปกรณ์จริงของสถานที่\n\n**ไฟล์นี้เป็นข้อมูลนิยาม ไม่ใช่ผลทดลองเล่น ดูผลตรวจล่าสุดใน MISSION_25_ADMIN_AND_CODE_AUDIT_TH.md** นิยามเก่าคงอยู่ใน `ORIGINAL_STAGES` และ `ROOMS`; ชุดที่ใช้ใน Mission Hall อ่าน `STAGES` และ `MISSION_ROOMS` ห้องฝึกอิสระไม่ได้ใช้ชั้นปรับนี้\n\n";
 overview += table(["ด่าน", "ภารกิจ", "อุปกรณ์", "พอร์ต", "สายบังคับ", "สถานะอ้างอิง"], scenarios.map((s) => [s.stage.id, s.stage.ticket, s.devices.length, Object.keys(s.ports).length, s.canonical.length, s.referenceStatus]));
 overview += "\nรายละเอียดรายอุปกรณ์ พอร์ต สายทั้งสองปลาย จำนวน ชั้นจัดเก็บ ตำแหน่งติดตั้ง และเงื่อนไขผ่านทุกด่าน: [ตารางครบ 25 ด่าน](MISSION_25_EQUIPMENT_PORT_CABLE_MATRIX.md), [ข้อมูลสำหรับเครื่อง](MISSION_25_BILL_OF_MATERIALS.json), [โซนและพอร์ต](SCENE_WORK_ZONES_AND_INTERACTION_ANCHORS.md)\n\n";
 overview += "อุปกรณ์พกพาต้องนำจากคลังไปวางที่จุดใช้งาน ส่วนกล้อง ฐานรับ เราเตอร์ คอนโซล จอ PA และตู้ส่งที่ติดตั้งประจำต้องต่อและตั้งค่าเอง ไม่ให้ถือทั้งตู้ งานอนาล็อกเลือก Stagebox/Multicore อย่างชัดเจน ไม่อ้างว่า Ethernet เป็น Dante\n\n";
 overview += "S ยังรอรุ่นกล้อง/พอร์ต HDS7105/การแยกช่อง RX และหัว USB ฝั่ง Capture จริง ส่วน Optical และ Replay ใช้จุดต่อแบบฝึกที่ระบุความไม่แน่นอน ไม่อ้างชนิดขั้วต่อ ความยาวคลื่น หรือโปรโตคอลผู้ผลิต ข้อมูล Tally/Intercom/PTZ-control จริงยังรอยืนยันจึงไม่เพิ่มพอร์ตสมมติ\n\nXL แยกสายภาพและเกตเวย์สองเส้นทาง แต่แหล่งผลิตและไฟเลี้ยงยังร่วมกัน จึงเป็นการสำรองบางส่วน ห้ามอ้างว่าสำรองสมบูรณ์\n";
-fs.writeFileSync(path.join(root, "docs/MISSION_HALL_5_CHAPTERS_25_LEVELS.md"), overview);
-fs.writeFileSync(path.join(root, "docs/MISSION_HALL_EQUIPMENT_PLACEMENT_AND_STOCK.md"), `${overview}\n\n## การวางอุปกรณ์และสต็อกตามกราฟ\n\n${zones}`);
+fs.writeFileSync(path.join(root, "docs/missions/MISSION_HALL_5_CHAPTERS_25_LEVELS.md"), overview);
+fs.writeFileSync(path.join(root, "docs/missions/MISSION_HALL_EQUIPMENT_PLACEMENT_AND_STOCK.md"), `${overview}\n\n## การวางอุปกรณ์และสต็อกตามกราฟ\n\n${zones}`);
 let inventory = "# Equipment inventory — selected training profiles\n\nCurrent inventory reconciled against original Appendix A and handoff. Not campus ownership, not verified rear-panel replicas. Manifest export only — results in MISSION_25_ADMIN_AND_CODE_AUDIT_TH.md. Counts/ports and selected optional branches are per-stage in `MISSION_25_EQUIPMENT_PORT_CABLE_MATRIX.md` and `MISSION_25_BILL_OF_MATERIALS.json`.\n\n";
 for (const scale of ["xs", "s", "m", "l", "xl"]) {
   const levels = scenarios.filter((s) => s.venueScale === scale);
@@ -140,5 +140,5 @@ for (const scale of ["xs", "s", "m", "l", "xl"]) {
     return [d.id, d.label, model.modelId, model.role, d.status, levels.filter((s) => s.simDevices[d.id]).map((s) => s.level).join(", ")];
   }));
 }
-fs.writeFileSync(path.join(root, "docs/EQUIPMENT_INVENTORY.md"), inventory);
+fs.writeFileSync(path.join(root, "docs/hardware-3d/EQUIPMENT_INVENTORY.md"), inventory);
 console.log("Exported 25 authored manifests and five venue zone tables; no gameplay or tests executed.");

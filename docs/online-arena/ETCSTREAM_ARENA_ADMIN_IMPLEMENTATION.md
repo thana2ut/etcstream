@@ -98,7 +98,7 @@ Result invalidation/reinstatement changes eligibility with a reason/audit, not p
 
 ## Supplied artwork traceability
 
-All copied runtime PNGs are byte-identical to the supplied ZIP. Landscape files are 1672×941, nine icons 418×418 with non-opaque alpha verified by Sharp. The original icon sheet, original Welcome screenshot and welcome alternative are reference-only and were NOT copied into runtime public assets. Nineteen existing `public/images` files were hashed before/after: zero changed. `docs/ARENA_V3_ASSET_TRACEABILITY.json` contains per-file SHA-256 and consumers.
+All copied runtime PNGs are byte-identical to the supplied ZIP. Landscape files are 1672×941, nine icons 418×418 with non-opaque alpha verified by Sharp. The original icon sheet, original Welcome screenshot and welcome alternative are reference-only and were NOT copied into runtime public assets. Nineteen existing `public/images` files were hashed before/after: zero changed. `docs/online-arena/ARENA_V3_ASSET_TRACEABILITY.json` contains per-file SHA-256 and consumers.
 
 | Supplied filename | Runtime destination | Actual consumer | Verification |
 |---|---|---|---|

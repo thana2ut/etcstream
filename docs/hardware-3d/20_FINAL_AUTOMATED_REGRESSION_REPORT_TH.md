@@ -34,7 +34,7 @@
 ## Arena: 3 ข้อล้มเหลว (ไม่ใช่ regression จากงานนี้)
 | เทสต์ | ข้อความ | สาเหตุ |
 |---|---|---|
-| distinct server identities do not merge duplicate nicknames | "ชื่อนี้มีผู้ใช้แล้ว…" (409) | Arena V9 เพิ่มกฎห้ามตั้งชื่อใหม่ซ้ำ (`docs/ONLINE_RANKED_V9_IMPLEMENTATION_TH.md` แก้ 15:58) แต่เทสต์ (แก้ 08:44) ยังคาดว่าตั้งชื่อซ้ำได้ |
+| distinct server identities do not merge duplicate nicknames | "ชื่อนี้มีผู้ใช้แล้ว…" (409) | Arena V9 เพิ่มกฎห้ามตั้งชื่อใหม่ซ้ำ (`docs/online-arena/ONLINE_RANKED_V9_IMPLEMENTATION_TH.md` แก้ 15:58) แต่เทสต์ (แก้ 08:44) ยังคาดว่าตั้งชื่อซ้ำได้ |
 | forged finish stays unranked… | "กรุณายืนยันชุดสายก่อนเริ่มจับเวลา" (400) | V9 บังคับยืนยันชุดสายก่อนจับเวลา แต่เทสต์ยังไม่ทำขั้นนี้ |
 | authorized admin search… | `Cannot read properties of undefined (reading 'id')` | ต่อเนื่องจากข้อแรก (สร้างผู้เล่นชื่อซ้ำไม่สำเร็จ) |
 

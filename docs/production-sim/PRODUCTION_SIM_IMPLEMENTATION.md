@@ -35,7 +35,7 @@ UI: `components/game/operator-console.tsx` (press **C**): Job (ticket, call shee
 2. Distinct classes: HDMI, SDI (format-carrying), MIC, LINE_BAL, LINE_UNBAL, SPEAKER, HEADPHONE, USB_UVC/UAC/STORAGE/POWER, ETHERNET (control vs stream by device), WAN.
 3. Reason-coded feedback for every listed fault (power, direction, SDI rate, format mismatch, missing source, embedded audio, mic/line, clipping, mute, routing, uplink, upload, stream key, storage, sync).
 4. End-to-end evidence: program/multiview/confidence pictures, meters, recorder files (closed cleanly), mock remote viewer — all local, credentials redacted.
-5. Manifest fields present; see `docs/PRODUCTION_EQUIPMENT_MANIFEST.md`.
+5. Manifest fields present; see `docs/production-sim/PRODUCTION_EQUIPMENT_MANIFEST.md`.
 6. Guided → partial → scenario → disruption → certification; L5 has no route checklist, no prewiring, masked failure reasons and a deterministic per-attempt surprise fault.
 7. Deterministic error counting, review loop, scalable console text, text+icon status (✓/✗/★), keyboard (C, Esc), unplug-to-undo.
 
@@ -43,7 +43,7 @@ UI: `components/game/operator-console.tsx` (press **C**): Job (ticket, call shee
 - `npm test` — **162/162 pass** (25 end-to-end stage replays, every L5 surprise fault recovered, all room acceptance/trap tests T1–T6, ST 1–6, AU, OUT, SP 1–7, review loop, trace, English-only content).
 - `npx tsc --noEmit`, `npx eslint .`, `npm run build` — clean.
 - Browser: Mission Hall, level picker, cable lobby, SP-05 (stadium) and CL-01 (classroom) loaded; console tabs, controls, tests and flow diagram exercised.
-- Records: `docs/PRODUCTION_TEST_RECORDS.md`; wiring diagrams per stage: `docs/PRODUCTION_STAGES.md`. Regenerate with `node scripts/generate-production-docs.mjs`.
+- Records: `docs/production-sim/PRODUCTION_TEST_RECORDS.md`; wiring diagrams per stage: `docs/production-sim/PRODUCTION_STAGES.md`. Regenerate with `node scripts/generate-production-docs.mjs`.
 
 ## E. Manufacturer spot-check (2026-10-16)
 Fetched: ATEM TVS HD8 ISO (8 SDI in, 12 SDI out incl. PGM/aux, 1 HDMI multiview, 2 XLR analog — also 2 RCA, not modelled; USB-C can also be a webcam, modelled as record only), Roland V-160HD (HDMI 1–8, SDI 1–8, HDMI OUT 1–3, SDI OUT 1–3, USB STREAM, LAN CONTROL, AUDIO IN 1–2 combo — matches), Constellation HD (20 in / 12 out / 2 MV / USB webcam / Ethernet control — matches; **the page fetched did not state the analog-input connector type**, so the two balanced 1/4-inch LINE inputs follow the room spec and are flagged here). Other models follow the cited pages as stated in the specs and were not re-fetched.

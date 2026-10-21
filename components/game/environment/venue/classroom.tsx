@@ -19,7 +19,7 @@ import { venueScreenFeed, venueScreenLive } from "@/game/training/monitor-feed";
 
 /**
  * Mission classroom (บทที่ 01) — modern media-training classroom, built to the reference concept
- * (art/reference/venues/classroom-01/02, docs/VENUE_VISUAL_REFERENCES.md):
+ * (art/reference/venues/classroom-01/02, docs/venues/VENUE_VISUAL_REFERENCES.md):
  *  front: wood-slat feature wall, centred projector screen over the teacher desk, grey acoustic panels, corner speakers,
  *         track lights, mobile whiteboard (left), classroom TV on a stand (right, layout furniture)
  *  left:  large windows with blinds, camera on tripod (scenario device) beside a softbox, AV cart with wireless gear
