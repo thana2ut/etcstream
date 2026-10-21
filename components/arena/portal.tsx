@@ -12,7 +12,7 @@ import {DuelArena,HallOfImmortals,OnlineLeaderboard,RankedPage,MySeasonCapsule,O
 import {useArenaResource} from "./use-arena-resource";
 import { CloudLobby } from "./cloud-lobby";
 import { RankBadge } from "./rank-badge";
-import { CelestialMarket, FriendPortrait, MyIdentityArt, QiankunBag, useFriendAppearance } from "./economy";
+import { CelestialMarket, FriendPortrait, MyIdentityArt, QiankunBag, useEconomySummary, useFriendAppearance } from "./economy";
 import { ChallengeSender, ChallengesPanel, FriendSearch, PlayerProfilePage, ProfileHub } from "./social";
 
 const scales = { classroom: "xs", studio: "s", auditorium: "m", outdoor: "l", stadium: "xl" };
@@ -53,7 +53,10 @@ export function ArenaPortal({ section = "home",initialScope="all",initialSeason,
   }, [profile]);
   const join = async (e: FormEvent) => { e.preventDefault(); if (joiningRef.current) return; joiningRef.current = true; setJoining(true); try { await api("register", { name: name || localName }); await reload(); } catch (e) { setError((e as Error).message); } finally { joiningRef.current = false; setJoining(false); } };
   const title = section === "home" ? "หอประลองเซียน" : section === "profile" ? "บันทึกวิถีเซียน" : section === "ranked" ? "จัดอันดับฤดูกาล" : section === "market" ? "ตลาดสวรรค์" : section === "player" ? "โปรไฟล์ผู้ฝึก" : section === "bag" ? "ถุงเฉียนคุน" : modes.find((m) => m[0] === section)?.[1] || "หอประลองเซียน";
-  return <ArenaShell player={profile?.player} rank={season.stale ? null : season.data?.mine} rankState={season.error?"stale":season.loading?"loading":"ready"} connection={connection}>{section !== "home" && <ArenaBackButton section={section} />}<ArenaBanner file={section === "home" ? "hero-celestial-gate" : section === "friends" ? "banner-friends" : section === "profile" ? "card-friends" : section === "ranked" ? "card-leaderboard" : modes.find((m) => m[0] === section)?.[3] || "hero-celestial-gate"} title={title} panorama={false}><p>{subtitles[section]}</p></ArenaBanner>
+  // Hold the loading veil until identity AND wallet/equipped look are known, so nothing renders in a placeholder state.
+  const bootEconomy = useEconomySummary(Boolean(profile));
+  const booting = loading || (Boolean(profile) && bootEconomy.loading);
+  return <ArenaShell booting={booting} player={profile?.player} rank={season.stale ? null : season.data?.mine} rankState={season.error?"stale":season.loading?"loading":"ready"} connection={connection}>{section !== "home" && <ArenaBackButton section={section} />}<ArenaBanner file={section === "home" ? "hero-celestial-gate" : section === "friends" ? "banner-friends" : section === "profile" ? "card-friends" : section === "ranked" ? "card-leaderboard" : modes.find((m) => m[0] === section)?.[3] || "hero-celestial-gate"} title={title} panorama={false}><p>{subtitles[section]}</p></ArenaBanner>
     {loading && <div className="arena-panel arena-skeleton" role="status" aria-live="polite">กำลังเชื่อมต่อข้อมูลผู้ฝึก…</div>}
     {error && <div className="arena-error" role="alert"><span>{error}</span><button className="arena-button-secondary" onClick={() => void reload()}>ลองอีกครั้ง</button></div>}
     {register && <form className="arena-panel arena-join" onSubmit={join}><ArenaIcon name="profile" /><h2>เข้าร่วมหอประลอง</h2><p>ตัวตนเฉพาะเบราว์เซอร์นี้ ชื่อซ้ำไม่ใช่บัญชีเดียวกัน และคะแนนฝึกเดิมไม่ถูกนำมาจัดอันดับ</p><label>ชื่อผู้ฝึก<input required minLength={2} maxLength={20} value={name || localName || ""} onChange={(e) => setName(e.target.value)} /></label><p className="arena-note">เริ่มต้นไม่เปิดเผยรายชื่อหรือสถานะออนไลน์ ตั้งค่าเพิ่มเติมได้ภายหลัง</p><button type="submit" disabled={joining}>{joining ? "กำลังสร้างตัวตน…" : "สร้างตัวตนผู้ฝึก"}</button></form>}

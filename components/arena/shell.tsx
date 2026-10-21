@@ -19,7 +19,7 @@ export const arenaDestinations = [
   ["friends", "/arena/friends", "สหาย"], ["profile", "/arena/profile", "โปรไฟล์"],
 ] as const;
 export function ArenaIcon({ name }: { name: string }) { return <Image src={arenaAsset(`icon-${name}`)} alt="" width={44} height={44} className="arena-icon" />; }
-export function ArenaShell({ children, admin = false, adminHeader, player,rank,connection,rankState }: { children: React.ReactNode; admin?: boolean; adminHeader?: React.ReactNode; player?: PlayerView;rank?:{tier:string;score:number}|null;connection?:"connecting"|"connected"|"disconnected";rankState?:"loading"|"stale"|"ready" }) {
+export function ArenaShell({ children, admin = false, adminHeader, player,rank,connection,rankState,booting = false }: { children: React.ReactNode; admin?: boolean; adminHeader?: React.ReactNode; booting?: boolean; player?: PlayerView;rank?:{tier:string;score:number}|null;connection?:"connecting"|"connected"|"disconnected";rankState?:"loading"|"stale"|"ready" }) {
   const pathname = usePathname();
   const current = arenaDestinations.find(([, href]) => href !== "/arena" && pathname.startsWith(href))?.[0] ?? "home";
   const [menuOpen, setMenuOpen] = useState(false);
@@ -27,7 +27,8 @@ export function ArenaShell({ children, admin = false, adminHeader, player,rank,c
   // Live identity art and inbox count (polled only while visible; no fake presence).
   const chip = useArenaResource<ChipEquipped>(player && !admin ? "economy" : null, 60000), inbox = useArenaResource<Inbox>(player && !admin ? "social/me" : null, 30000);
   const unread = (inbox.data?.pendingIn ?? 0) + (inbox.data?.challengesIn ?? 0), eq = chip.data?.equipped ?? {};
-  return <main className={`arena-shell${admin ? " is-admin" : " arena-public"}`} data-arena-scene={admin ? undefined : current}>
+  return <main className={`arena-shell${admin ? " is-admin" : " arena-public"}${booting ? " is-booting" : ""}`} data-arena-scene={admin ? undefined : current} aria-busy={booting || undefined}>
+    {!admin && <ArenaBootScreen active={booting} />}
     <Image src={arenaAsset(admin ? "bg-admin-command-hall" : "bg-arena-hub")} alt="" fill sizes="100vw" className="arena-backdrop" />
     <div className="arena-scrim" />
     <div className="arena-content">
@@ -85,5 +86,16 @@ export function ArenaConfirmDialog({ open, title, children, busy = false, onCanc
       if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
       else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     }}><h2 id={labelId}>{title}</h2><p id={descriptionId}>{children}</p><div className="arena-actions"><button ref={cancel} type="button" disabled={busy} className="arena-button-secondary" onClick={onCancel}>กลับไปก่อน</button><button type="button" className="arena-button-danger" disabled={busy} onClick={onConfirm}>{busy ? "กำลังดำเนินการ…" : "ยืนยัน"}</button></div></div>
+  </div>;
+}
+
+/** Game-style loading veil: covers the page until real data is in, then fades out (no half-built "draft" frame). */
+function ArenaBootScreen({ active }: { active: boolean }) {
+  return <div className={`arena-boot${active ? "" : " is-done"}`} role="status" aria-live="polite" aria-hidden={!active}>
+    <div className="arena-boot-core">
+      <span className="arena-boot-ring" aria-hidden="true"><Image src={arenaAsset("icon-arena")} alt="" width={72} height={72} priority /></span>
+      <strong>หอประลองเซียน</strong>
+      <small>กำลังเปิดประตูหอประลอง…</small>
+    </div>
   </div>;
 }
