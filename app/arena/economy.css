@@ -378,3 +378,10 @@
     -webkit-mask-image: radial-gradient(ellipse 80% 88% at 42% 50%, #000 58%, transparent 100%);
     mask-image: radial-gradient(ellipse 80% 88% at 42% 50%, #000 58%, transparent 100%); }
 }
+
+/* Friends banner: full-width panorama art behind the title. */
+.arena-public .arena-banner.is-panorama { position: relative; overflow: hidden; min-height: 240px; border-radius: 16px; border: 1px solid #cda86c55; }
+.arena-public .arena-banner.is-panorama > .arena-banner-panorama { width: 100% !important; left: 0 !important; opacity: 1 !important; object-fit: cover; object-position: center 40%; -webkit-mask-image: none; mask-image: none; z-index: 0; }
+.arena-public .arena-banner.is-panorama::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(90deg, rgba(8, 14, 30, .82) 0%, rgba(8, 14, 30, .55) 32%, rgba(8, 14, 30, .12) 60%, rgba(8, 14, 30, 0) 80%); }
+.arena-public .arena-banner.is-panorama > div { position: relative; z-index: 2; }
+.arena-public .arena-banner.is-panorama h1, .arena-public .arena-banner.is-panorama p { text-shadow: 0 2px 4px #000c, 0 0 18px #000a; }

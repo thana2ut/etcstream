@@ -46,9 +46,11 @@ export function ArenaShell({ children, admin = false, adminHeader, player,rank,c
     </div>
   </main>;
 }
-export function ArenaBanner({ file, title, children }: { file: string; title: string; children?: React.ReactNode }) {
-  const isHub = file === "hero-celestial-gate";
-  return <section className={`arena-banner${isHub ? " is-hub" : ""}`}>{!isHub && <Image src={arenaAsset(file)} alt="" fill sizes="(max-width: 700px) 55vw, 480px" />}<div><p className="arena-eyebrow">สำนักวิถีแห่งสายสัญญาณ · หอประลอง</p><h1>{title}</h1>{children}</div></section>;
+/** Full-width panorama art for specific banners (art spans the whole banner, title over a soft left fade). */
+const bannerPanoramas: Record<string, string> = { "card-friends": "/assets/arena/banner-friends-panorama.webp" };
+export function ArenaBanner({ file, title, children, panorama = false }: { file: string; title: string; children?: React.ReactNode; panorama?: boolean }) {
+  const isHub = file === "hero-celestial-gate", wide = panorama ? bannerPanoramas[file] : undefined;
+  return <section className={`arena-banner${isHub ? " is-hub" : ""}${wide ? " is-panorama" : ""}`}>{wide ? <Image className="arena-banner-panorama" src={wide} alt="" fill priority sizes="100vw" /> : !isHub && <Image src={arenaAsset(file)} alt="" fill sizes="(max-width: 700px) 55vw, 480px" />}<div><p className="arena-eyebrow">สำนักวิถีแห่งสายสัญญาณ · หอประลอง</p><h1>{title}</h1>{children}</div></section>;
 }
 export function ArenaEmptyState({ icon = "trophy", title, children, href, action }: { icon?: string; title: string; children?: React.ReactNode; href?: string; action?: string }) {
   return <div className="arena-empty"><ArenaIcon name={icon} /><div><h3>{title}</h3>{children && <p>{children}</p>}{href && <Link className="arena-text-link" href={href}>{action} →</Link>}</div></div>;
