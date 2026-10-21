@@ -401,7 +401,7 @@
 }
 /* One source of truth for the open centre between the hands; the prompt pill is sized from it. */
 /* Inner edge of each hand from screen centre. --fp-hand-asym pulls the right (gripping) hand in a touch further so the pose is not robotically mirrored. */
-:root { --fp-hand-gap: max(40px, 2.3vw); --fp-hand-asym: 10px; }
+:root { --fp-hand-gap: max(100px, 5.8vw); --fp-hand-asym: 10px; }
 .fp-hand {
   position: absolute;
   bottom: calc(var(--hand-size) * -0.26);
