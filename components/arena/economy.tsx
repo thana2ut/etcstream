@@ -88,7 +88,7 @@ type PurchaseReceipt = { sku: string; name: string; asset: string; price: number
 type PurchaseResult = { status: string; retry: boolean; sku: string; price: number; balance: number; ledgerId: string };
 export function CelestialMarket() {
   const [data, setData] = useState<{ items: EconomyItem[]; balance: number } | null>(null), [error, setError] = useState(""), [loading, setLoading] = useState(true);
-  const [category, setCategory] = useState<CosmeticSlot | "all" | "legacy">("all"), [selected, setSelected] = useState<string | null>(null);
+  const [category, setCategory] = useState<CosmeticSlot | "all">("all"), [selected, setSelected] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false), [busy, setBusy] = useState(false), [message, setMessage] = useState(""), [receipt, setReceipt] = useState<PurchaseReceipt | null>(null);
   const pending = useRef(false), purchaseKey = useRef<{ sku: string; key: string } | null>(null);
   const load = useCallback(async () => {
@@ -97,9 +97,7 @@ export function CelestialMarket() {
   }, []);
   useEffect(() => { const t = window.setTimeout(() => { const cached = readCache<{ items: EconomyItem[]; balance: number }>("market"); if (cached) { setData(cached); setLoading(false); } void load(); }, 0); return () => clearTimeout(t); }, [load]);
   useEconomyChanged(load);
-  // Legacy (closed) V19 items appear only for their owners, under their own category.
-  const hasLegacy = Boolean(data?.items.some((i) => i.legacy && i.owned));
-  const items = useMemo(() => (data?.items || []).filter((i) => !i.starter).filter((i) => category === "all" ? !i.legacy : category === "legacy" ? i.legacy : i.slot === category && !i.legacy), [data, category]);
+  const items = useMemo(() => (data?.items || []).filter((i) => !i.starter && !i.legacy && (category === "all" || i.slot === category)), [data, category]);
   const item = items.find((i) => i.sku === selected) || items[0];
   const balance = data?.balance ?? 0;
   const buy = async () => {
@@ -137,7 +135,7 @@ export function CelestialMarket() {
       <WalletBadge summary={data ? { balance, earned: 0, spent: 0, equipped: {}, ownedCount: 0, claims: 0 } : undefined} state={loading ? "loading" : error && !data ? "error" : "ready"} />
     </div>
     {error && <div className="arena-error" role="alert"><span>{error}</span><button className="arena-button-secondary" onClick={() => void load()}>ลองอีกครั้ง</button></div>}
-    <div className="econ-tabs" role="group" aria-label="หมวดสินค้า">{categories.map((c) => <button type="button" key={c} aria-pressed={category === c} onClick={() => { setCategory(c); setSelected(null); }}>{c === "all" ? "ทั้งหมด" : SLOT_LABELS[c]}</button>)}{hasLegacy && <button type="button" aria-pressed={category === "legacy"} onClick={() => { setCategory("legacy"); setSelected(null); }}>ของสะสมรุ่นก่อน</button>}</div>
+    <div className="econ-tabs" role="group" aria-label="หมวดสินค้า">{categories.map((c) => <button type="button" key={c} aria-pressed={category === c} onClick={() => { setCategory(c); setSelected(null); }}>{c === "all" ? "ทั้งหมด" : SLOT_LABELS[c]}</button>)}</div>
     <p role="status" aria-live="polite" className="econ-message">{message}</p>
     {loading ? <p className="arena-panel arena-skeleton" role="status">กำลังเปิดแผงสินค้า…</p> : !data || data.items.length === 0 ? <ArenaEmptyState icon="trophy" title="ตลาดยังไม่มีสินค้าเปิดขาย">เมื่อผู้ดูแลเปิดรายการ สินค้าจริงจะแสดงที่นี่</ArenaEmptyState> :
     <div className="econ-market-body">

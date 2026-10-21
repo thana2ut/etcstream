@@ -568,7 +568,7 @@
 .econ-detail .econ-owned-state + .arena-text-link, .econ-detail button + .arena-text-link { margin-left: 14px; }
 
 /* Bag cards: reserve equal space for Thai names and keep every action on the same baseline. */
-.econ-slot li { display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; }
+.econ-slot li { display: flex; flex-direction: column; align-items: center; align-self: stretch; gap: 8px; height: auto; }
 .econ-slot li img { width: 100% !important; height: 92px !important; object-fit: contain; border-radius: 10px; }
 .econ-slot .econ-cover-list li img { height: 44px !important; }
 .econ-slot li strong { min-height: 3.9em; font-size: 13px !important; line-height: 1.3; word-break: normal; overflow-wrap: normal; text-wrap: balance; }
