@@ -320,3 +320,8 @@
 }
 .profile-cover .profile-hub-identity > .arena-eyebrow { display: flex; align-items: center; gap: 10px; }
 .profile-cover .profile-hub-identity > .arena-eyebrow::after { content: ""; flex: 0 0 120px; height: 1px; background: linear-gradient(90deg, #f0d79acc, transparent); }
+
+/* V23.5: with a cover equipped, the cover art IS the card - no rectangular panel, border or shadow around it. */
+.arena-public .profile-cover.has-cover.arena-panel { padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; overflow: visible; }
+.profile-cover.has-cover .profile-cover-art { filter: drop-shadow(0 14px 30px #02091480); }
+.profile-cover.has-cover .profile-cover-tools { left: 3%; bottom: 2%; display: flex; gap: 8px; }
