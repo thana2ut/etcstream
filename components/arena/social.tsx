@@ -158,7 +158,7 @@ export function ProfileHub({ profile, standing }: { profile: Profile; standing: 
     </ProfileCover>
     <div className="profile-hub-grid">
       <Showcase equipped={eq as Equipped} own />
-      <section className="arena-panel"><span className="arena-eyebrow">สหายและการแจ้งเตือน</span><h3>ความเคลื่อนไหว</h3>
+      <section className="arena-panel profile-activity"><span className="arena-eyebrow">สหายและการแจ้งเตือน</span><h3>ความเคลื่อนไหว</h3>
         {me.loading ? <p role="status">กำลังโหลด…</p> : me.error && !me.data ? <p className="arena-error">{me.error} <button onClick={me.retry}>ลองอีกครั้ง</button></p> : me.data && <>
           <p>คำขอเป็นสหายที่รอเจ้าตอบ: <strong>{me.data.pendingIn}</strong> · คำท้าทำเวลาที่รอตอบ: <strong>{me.data.challengesIn}</strong></p>
           <Link className="arena-text-link" href="/arena/friends">เปิดหน้าสหายเพื่อตอบรับหรือปฏิเสธ →</Link>

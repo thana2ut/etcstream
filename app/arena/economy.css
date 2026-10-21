@@ -236,3 +236,14 @@
 .cover-picker-list button[aria-pressed="true"] { border-color: #6fe0c8 !important; box-shadow: 0 0 0 2px #6fe0c855; }
 .cover-thumb { width: 100%; aspect-ratio: 3 / 1; object-fit: contain; border-radius: 6px; display: block; }
 .cover-thumb.is-default { background: linear-gradient(135deg, #1b2b43, #132237); }
+
+/* Profile: showcase and activity as two full-width bands, activity below the showcase. */
+.profile-hub-grid { grid-template-columns: 1fr !important; }
+.profile-activity { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px 32px; align-items: start; }
+.profile-activity > .arena-eyebrow, .profile-activity > h3 { grid-column: 1; }
+.profile-activity > p, .profile-activity > .arena-text-link { grid-column: 1; margin: 6px 0; }
+.profile-activity > .arena-privacy { grid-column: 2; grid-row: 1 / span 5; margin: 0; padding-left: 28px; border-left: 1px solid #cda86c33; }
+@media (max-width: 760px) {
+  .profile-activity { grid-template-columns: 1fr; }
+  .profile-activity > .arena-privacy { grid-column: 1; grid-row: auto; padding-left: 0; border-left: 0; border-top: 1px solid #cda86c33; padding-top: 14px; }
+}
