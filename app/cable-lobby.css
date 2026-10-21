@@ -597,9 +597,27 @@
 .cl-v3 .cl-steps li.is-done b { background: rgba(201, 162, 92, .22); color: var(--v3-gold-hi); }
 .cl-v3 .cl-steps li.is-now b { box-shadow: none; }
 
-/* cards: cable fully inside the card with even side margins; names wrap only between words */
-.cl-v3 .is-grid .cl-slot-3d { inset: 18px 20px 74px; }
-.cl-screen.cl-v3 .cl-slot-name { text-wrap: balance; overflow-wrap: normal; word-break: keep-all; hyphens: none; }
+/* Every category shares compact, equal-height cards; the image and copy have separate rows. */
+.cl-screen.cl-v3 .cl-catalog.is-grid { grid-auto-rows: 252px; }
+.cl-screen.cl-v3 .is-grid .cl-slot { aspect-ratio: auto; height: 100%; min-height: 0; }
+.cl-screen.cl-v3 .is-grid .cl-slot-hit {
+  display: grid; grid-template-rows: 88px auto; align-content: center; aspect-ratio: auto;
+  gap: 6px; height: 100%; min-height: 0; padding: 12px 10px 14px;
+}
+.cl-screen.cl-v3 .is-grid .cl-slot-3d {
+  position: relative; inset: auto; display: block;
+  width: 100%; height: 88px; min-height: 88px;
+}
+.cl-screen.cl-v3 .is-grid .cl-slot-text {
+  align-self: center; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  width: 100%; min-width: 0; padding: 0 4px; gap: 7px;
+}
+.cl-screen.cl-v3 .is-grid .cl-slot-name,
+.cl-screen.cl-v3 .is-grid .cl-slot-ends { display: block; min-height: 0; max-width: 100%; }
+.cl-screen.cl-v3 .cl-slot-name { text-wrap: balance; overflow-wrap: anywhere; word-break: normal; hyphens: none; }
+@media (max-width: 1000px) {
+  .cl-screen.cl-v3 .cl-catalog.is-grid { grid-auto-rows: 278px; }
+}
 
 /* quantity stepper: three equal cells, same colour for − and + */
 .cl-screen.cl-v3 .cl-stepper { display: grid; grid-template-columns: 44px 44px 44px; flex: none; }
@@ -731,3 +749,14 @@
 .cl-bag-button.cl-console-button { top: auto; bottom: 86px; }
 .cl-bag-button.is-touch { top: max(134px, calc(env(safe-area-inset-top) + 134px)); bottom: auto; right: max(14px, env(safe-area-inset-right)); padding: 6px 14px; }
 .cl-bag-button.cl-console-button.is-touch { top: max(182px, calc(env(safe-area-inset-top) + 182px)); bottom: auto; }
+
+/* Centred, balanced cable cards in every room/level/mode: one centred column, cable then name then ends. */
+.cl-screen.cl-v3 .cl-catalog.is-grid { grid-auto-rows: 212px; }
+.cl-screen.cl-v3 .is-grid .cl-slot-hit {
+  grid-template-columns: minmax(0, 1fr); grid-template-rows: 84px auto; grid-auto-flow: row;
+  justify-items: center; align-content: center; text-align: center; padding: 14px 12px;
+}
+.cl-screen.cl-v3 .is-grid .cl-slot-hit > * { grid-column: 1; margin-inline: auto; }
+.cl-screen.cl-v3 .is-grid .cl-slot-3d { width: 86%; max-width: 190px; height: 84px; min-height: 84px; }
+.cl-screen.cl-v3 .is-grid .cl-slot-text { width: 100%; align-items: center; text-align: center; padding: 0 6px; gap: 6px; }
+@media (max-width: 1000px) { .cl-screen.cl-v3 .cl-catalog.is-grid { grid-auto-rows: 226px; } }
