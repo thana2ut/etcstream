@@ -341,3 +341,12 @@
 .arena-public .profile-hub-identity .arena-friend-code > button { min-height: 30px !important; height: 30px; padding: 0 12px !important; margin-bottom: 2px; font-size: 13px; font-weight: 600; border-radius: 999px; border: 1px solid #f0d79a99 !important; background: rgba(10, 8, 20, .35) !important; color: #fbe6ae; box-shadow: none !important; backdrop-filter: blur(2px); }
 .arena-public .profile-hub-identity .arena-friend-code > button:hover { background: rgba(10, 8, 20, .55) !important; border-color: #f4d69c !important; }
 .profile-hub-identity .arena-friend-code > .arena-note { flex-basis: 100%; }
+
+/* V23.8: cover tools = their own menu bar BELOW the cover (space reserved so nothing overlaps). */
+.profile-cover.has-cover { margin-bottom: 76px; }
+.profile-cover.has-cover .profile-cover-tools { position: absolute; top: calc(100% + 14px); left: 0; right: 0; z-index: 3; margin: 0; display: flex; flex-wrap: wrap; gap: 10px; padding: 8px 12px; border: 1px solid #cda86c55; border-radius: 14px; background: linear-gradient(135deg, #1b2e46f2, #101c2ef2); }
+.profile-cover.has-cover .profile-cover-tools .profile-cover-change { flex: 0 1 auto; }
+@media (max-width: 1099px) {
+  .profile-cover.has-cover { margin-bottom: 0; }
+  .profile-cover.has-cover .profile-cover-tools { position: static; margin: 12px 0 0; }
+}
