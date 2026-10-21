@@ -1249,3 +1249,16 @@ html[data-overlay] .cloud-layer { transition: none; }
 .fantasy-viewport:not(.game-screen) > .academy-main-header.is-autohide { padding-top: calc(6px + env(safe-area-inset-top, 0px)); }
 .arena-public .arena-header { margin-top: env(safe-area-inset-top, 0px); }
 .game-pause-btn { top: calc(14px + env(safe-area-inset-top, 0px)); }
+
+/* Touch (iPad) controls: larger targets; the mission panel stops above the move pad and below the status bar. */
+.touch-move-pad { width: 184px; height: 184px; }
+.touch-move-pad .touch-control-button { width: 60px; height: 60px; min-width: 60px; min-height: 60px; font-size: 1.25rem; }
+.touch-up { left: 62px; top: 0; }
+.touch-left { left: 0; top: 62px; }
+.touch-down { left: 62px; top: 124px; }
+.touch-right { left: 124px; top: 62px; }
+.touch-move-pad::after { width: 44px; height: 44px; }
+.touch-action-buttons .touch-control-button, .touch-pick-buttons .touch-control-button { min-width: 64px; min-height: 64px; font-size: 1.05rem; }
+.game-screen:has(.touch-controls) .hud-objective-panel { top: calc(14px + env(safe-area-inset-top, 0px)); max-height: calc(100dvh - env(safe-area-inset-top, 0px) - 14px - 184px - max(18px, env(safe-area-inset-bottom, 0px)) - 20px) !important; }
+.game-screen:has(.touch-controls) .hud-objective-mini-pill { top: calc(14px + env(safe-area-inset-top, 0px)); }
+@media (max-width: 760px) { .touch-move-pad { transform: scale(.82); transform-origin: left bottom; } }
