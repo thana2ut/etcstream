@@ -60,7 +60,7 @@ function CloudOrnament() {
 }
 function ShareProfile({ code }: { code: string }) {
   const [msg, setMsg] = useState("");
-  return <><button type="button" className="arena-button-secondary" onClick={async () => { try { await navigator.clipboard.writeText(`${window.location.origin}/arena/players/${code}`); setMsg("คัดลอกลิงก์แล้ว ส่งให้สหายเปิดดูได้"); } catch { setMsg("คัดลอกไม่ได้ กรุณาคัดลอกจากหน้าโปรไฟล์สาธารณะ"); } }}><HubIcon name="link" />คัดลอกลิงก์โปรไฟล์</button><span role="status" className="arena-note">{msg}</span></>;
+  return <><button type="button" className="arena-button-secondary" onClick={async () => { try { await navigator.clipboard.writeText(`${window.location.origin}/arena/players/${code}`); setMsg("คัดลอกลิงก์แล้ว ส่งให้สหายเปิดดูได้"); } catch { setMsg("คัดลอกไม่ได้ กรุณาคัดลอกจากหน้าโปรไฟล์สาธารณะ"); } }}><HubIcon name="link" />คัดลอกลิงก์</button><span role="status" className="arena-note">{msg}</span></>;
 }
 
 const avatarOf = (e: Equipped) => (e.profileAvatar ?? e.portraitOutfit)?.asset;
@@ -169,9 +169,9 @@ export function ProfileHub({ profile, standing }: { profile: Profile; standing: 
     <nav className="profile-hub-actions profile-hub-menu" aria-label="ทางลัดโปรไฟล์">
         <Link className="arena-action" href="/arena/market"><HubIcon name="market" />ตลาดสวรรค์</Link>
         <Link className="arena-action econ-secondary" href="/arena/bag"><HubIcon name="bag" />ถุงเฉียนคุน{economy.data ? ` · ${economy.data.ownedCount}` : ""}</Link>
-        <Link className="arena-action econ-secondary" href="/arena/friends"><HubIcon name="friends" />สหาย{me.data && me.data.pendingIn > 0 ? ` · คำขอใหม่ ${me.data.pendingIn}` : ""}</Link>
+        <Link className="arena-action econ-secondary" href="/arena/friends"><HubIcon name="friends" />สหาย{me.data && me.data.pendingIn > 0 ? ` · ${me.data.pendingIn}` : ""}</Link>
         <Link className="arena-action econ-secondary" href="/arena/ranked"><HubIcon name="trophy" />อันดับ</Link>
-        <Link className="arena-action econ-secondary" href={`/arena/players/${profile.player.friendCode}`}><HubIcon name="eye" />ดูโปรไฟล์แบบที่ผู้อื่นเห็น</Link>
+        <Link className="arena-action econ-secondary" href={`/arena/players/${profile.player.friendCode}`}><HubIcon name="eye" />มุมมองผู้อื่น</Link>
         <ShareProfile code={profile.player.friendCode} />
       </nav>
     <ProfileCover cover={eq.profileCover?.asset} className="arena-panel profile-hub-card" bodyClassName="profile-hub-header" tools={economy.data ? <><ChangeCoverButton onChanged={economy.retry} /><ChangeCoverButton slot="profileNameplate" onChanged={economy.retry} /></> : null}>

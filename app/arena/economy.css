@@ -524,3 +524,11 @@
 .profile-cover.has-cover .profile-hub-stats dt { color: #f6e3bd !important; font-weight: 600; }
 .profile-cover.has-cover .profile-hub-stats dd { color: #fff0c4 !important; font-weight: 800; }
 .profile-cover.has-cover .profile-hub-stats.has-icons, .profile-cover.has-cover .profile-hub-stats.has-icons > div { border-color: rgba(255, 233, 190, .38) !important; }
+
+/* V23.22: profile menu - six equal, aligned, single-line buttons. */
+.profile-hub-menu { display: grid !important; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+.profile-hub-menu > .arena-action, .profile-hub-menu > button { min-width: 0; height: 52px; min-height: 52px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; justify-content: center; }
+.profile-hub-menu > .arena-note { grid-column: 1 / -1; }
+.profile-hub-menu > .arena-note:empty { display: none; }
+@media (max-width: 1000px) { .profile-hub-menu { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .profile-hub-menu { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
