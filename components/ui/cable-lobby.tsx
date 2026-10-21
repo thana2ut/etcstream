@@ -102,12 +102,16 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
       const slot = grid.firstElementChild as HTMLElement | null;
       if (!slot) return;
       // Base row height comes from CSS; rows stretch a little so N whole rows fill the panel with no leftover gap.
-      const gap = parseFloat(getComputedStyle(grid).rowGap) || 0, base = slot.offsetHeight;
+      const styles = getComputedStyle(grid);
+      const gap = parseFloat(styles.rowGap) || 0, base = slot.offsetHeight;
+      const columns = Math.max(1, styles.gridTemplateColumns.split(/\s+/).length);
+      const requiredRows = Math.ceil(grid.children.length / columns);
       const pads = parseFloat(getComputedStyle(el).paddingTop) + parseFloat(getComputedStyle(el).paddingBottom);
       const pad = parseFloat(getComputedStyle(panel).paddingBottom) || 0;
       const avail = panel.getBoundingClientRect().bottom - pad - el.getBoundingClientRect().top - pads;
-      const rows = Math.max(1, Math.floor((avail + gap) / (base + gap)));
-      const rowH = Math.min(base * 1.35, (avail - gap * (rows - 1)) / rows);
+      // Fit at least the rows represented by the bag slots; otherwise a short panel hides half the empty bag.
+      const rows = Math.max(requiredRows, Math.floor((avail + gap) / (base + gap)));
+      const rowH = Math.max(1, Math.min(base * 1.35, (avail - gap * (rows - 1)) / rows));
       grid.style.gridAutoRows = `${rowH}px`;
       el.style.height = `${rows * rowH + gap * (rows - 1) + pads}px`;
     };
@@ -118,7 +122,7 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
     ro.observe(panel.closest(".cl-screen") ?? panel);
     window.addEventListener("resize", fit);
     return () => { ro.disconnect(); window.removeEventListener("resize", fit); };
-  }, []);
+  }, [bagEntries.length, slots]);
 
   return <main className="cl-screen cl-v3">
     <div className="cl-bg" aria-hidden="true"><div className="cl-bg-art" /><div className="cl-bg-shade" /></div>

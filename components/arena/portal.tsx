@@ -200,7 +200,7 @@ function PinPanel() {
   };
   return <section className="arena-panel arena-pin-panel"><h2>PIN เข้าบัญชี</h2>
     <p>{status.data?.hasPin ? "ตั้ง PIN แล้ว · เปลี่ยน PIN ใหม่ได้ด้านล่าง" : "ยังไม่ได้ตั้ง PIN · ตั้งไว้เพื่อกลับเข้าบัญชีเดิมด้วยชื่อและ PIN จากเครื่องไหนก็ได้"}</p>
-    <form className="arena-actions" onSubmit={save}><label>PIN 4 หลัก<input required type="password" inputMode="numeric" autoComplete="off" pattern="[0-9]{4}" minLength={4} maxLength={4} value={pin} onChange={(e) => setPin(e.target.value.replace(/[^0-9]/g, "").slice(0, 4))} /></label><button disabled={busy || pin.length !== 4}>{busy ? "กำลังบันทึก…" : "บันทึก PIN"}</button></form>
+    <form className="arena-actions arena-pin-form" onSubmit={save}><label>PIN 4 หลัก<input required type="password" inputMode="numeric" autoComplete="off" pattern="[0-9]{4}" minLength={4} maxLength={4} value={pin} onChange={(e) => setPin(e.target.value.replace(/[^0-9]/g, "").slice(0, 4))} /></label><button disabled={busy || pin.length !== 4}>{busy ? "กำลังบันทึก…" : "บันทึก PIN"}</button></form>
     {message && <p role="status">{message}</p>}
   </section>;
 }

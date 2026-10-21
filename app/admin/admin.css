@@ -75,6 +75,12 @@
 .admin-player-id { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
 .admin-player-id code { overflow-wrap: anywhere; font-size: .85rem; }
 .admin-unified .admin-player-id button { min-height: 36px; padding: 5px 10px; white-space: nowrap; }
+.admin-player-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; width: min(100%, 420px); }
+.admin-unified .admin-player-actions > button { box-sizing: border-box; width: 100%; min-width: 0; min-height: 48px; padding: 8px 10px; line-height: 1.4; white-space: normal; text-wrap: balance; }
+@media (max-width: 720px) {
+ .admin-player-actions { width: min(100%, 360px); gap: 6px; }
+ .admin-unified .admin-player-actions > button { min-height: 46px; padding: 7px 8px; font-size: .88rem; }
+}
 .is-admin .admin-unified .mission-hall-embedded { position: relative; inset: auto; box-sizing: border-box; width: 100%; max-width: 100%; min-width: 0; height: auto; max-height: none; min-height: 0; overflow: visible; padding: 0; background: transparent; }
 .admin-unified .mission-hall-embedded .mission-hall-content { box-sizing: border-box; padding: 0; width: 100%; max-width: 100%; min-width: 0; }
 @media (max-width: 900px) {
@@ -178,6 +184,58 @@
  .admin-unified .mission-hall-compact-admin .mission-board-grid { grid-template-columns: minmax(0,1fr); }
  .admin-unified .mission-hall-compact-admin button.mission-plaque:last-child { grid-column: auto; width: 100%; }
  .admin-unified .mission-hall-compact-admin .mission-hall-heading h1 { font-size: 1.4rem; }
+}
+
+/* Admin mission hall: restore the illustrated, framed chapter cards locally. */
+.admin-unified .mission-hall-compact-admin .mission-board-grid {
+ grid-template-columns: repeat(6, minmax(0, 1fr));
+ align-items: stretch;
+}
+.admin-unified .mission-hall-compact-admin .mission-board-grid > button.mission-plaque {
+ grid-column: span 2;
+ min-height: clamp(280px, 34vh, 360px);
+ padding: 58px 18px 16px;
+ overflow: hidden;
+ border: 1px solid #cfa969;
+ border-radius: 14px;
+ background: linear-gradient(180deg, #07101922 0%, #07101966 38%, #071019e8 100%), var(--plaque-art) center / cover no-repeat, #101a28;
+ box-shadow: inset 0 0 0 1px #f0d29735, 0 10px 24px #0006;
+}
+.admin-unified .mission-hall-compact-admin .mission-board-grid > button.mission-plaque:nth-child(4) { grid-column: 2 / span 2; }
+.admin-unified .mission-hall-compact-admin .mission-board-grid > button.mission-plaque:nth-child(5) { grid-column: 4 / span 2; }
+.admin-unified .mission-hall-compact-admin .mission-board-grid > button.mission-plaque::before {
+ content: "" !important;
+ display: block !important;
+ position: absolute;
+ inset: 5px;
+ z-index: 1;
+ border-radius: 9px;
+ pointer-events: none;
+ background:
+  linear-gradient(#e6c582, #e6c582) left top / 15px 1px no-repeat,
+  linear-gradient(#e6c582, #e6c582) left top / 1px 15px no-repeat,
+  linear-gradient(#e6c582, #e6c582) right top / 15px 1px no-repeat,
+  linear-gradient(#e6c582, #e6c582) right top / 1px 15px no-repeat,
+  linear-gradient(#e6c582, #e6c582) left bottom / 15px 1px no-repeat,
+  linear-gradient(#e6c582, #e6c582) left bottom / 1px 15px no-repeat,
+  linear-gradient(#e6c582, #e6c582) right bottom / 15px 1px no-repeat,
+  linear-gradient(#e6c582, #e6c582) right bottom / 1px 15px no-repeat;
+}
+.admin-unified .mission-hall-compact-admin .mission-board-grid > button.mission-plaque .admin-chapter-art { display: none; }
+.admin-unified .mission-hall-compact-admin .mission-board-grid > button.mission-plaque .mission-plaque-number { top: 14px; left: 14px; z-index: 2; }
+.admin-unified .mission-hall-compact-admin .mission-board-grid > button.mission-plaque .mission-plaque-sigil { top: 14px; right: 16px; z-index: 2; }
+.admin-unified .mission-hall-compact-admin .mission-board-grid > button.mission-plaque > :not(.admin-chapter-art) { position: relative; z-index: 2; }
+.admin-unified .mission-hall-compact-admin .mission-board-grid > button.mission-plaque strong { font-size: clamp(1.1rem, 1.45vw, 1.35rem); }
+.admin-unified .mission-hall-compact-admin .mission-board-grid > button.mission-plaque .mission-plaque-description { text-shadow: 0 1px 3px #000; }
+@media (max-width: 1000px), (max-height: 620px) {
+ .admin-unified .mission-hall-compact-admin .mission-board-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+ .admin-unified .mission-hall-compact-admin .mission-board-grid > button.mission-plaque:nth-child(n) { grid-column: auto; width: auto; }
+ .admin-unified .mission-hall-compact-admin .mission-board-grid > button.mission-plaque:last-child { grid-column: 1 / -1; width: calc(50% - 6px); justify-self: center; }
+}
+@media (max-width: 650px) {
+ .admin-unified .mission-hall-compact-admin .mission-board-grid { grid-template-columns: minmax(0, 1fr); }
+ .admin-unified .mission-hall-compact-admin .mission-board-grid > button.mission-plaque:last-child { grid-column: auto; width: 100%; }
+ .admin-unified .mission-hall-compact-admin .mission-board-grid > button.mission-plaque { min-height: 250px; }
 }
 
 /* V27 control center: sidebar + scrolling content, drawer on mobile */

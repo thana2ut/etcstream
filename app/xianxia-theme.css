@@ -1375,3 +1375,26 @@ html[data-overlay] .cloud-layer { transition: none; }
 /* Arena time attack only: the objective panel starts below the competition bar instead of under it. */
 .game-screen:has(> .arena-game-bar) .hud-objective-panel { top: 116px; max-height: calc(var(--guide-top, 100dvh) - 116px - 16px); }
 .game-screen:has(> .arena-game-bar) .hud-objective-mini-pill { top: 116px; }
+
+/* Remove the decorative corner brackets across the interface while keeping each panel's normal border. */
+.glass-card::before,
+.with-corner-runes::before,
+.with-corner-runes::after { content: none !important; display: none !important; }
+:is(.inspector-panel, .inspector-compact, .hud-objective-panel, .instructions-modal-container, .result-modal-container,
+  .play-intro-wrapper, .mission-choice-panel, .mission-draw, .run-resume, .exit-confirm-modal, .audio-popover).glass-card {
+  background-image: linear-gradient(160deg, rgba(20, 27, 38, 0.9), rgba(9, 13, 20, 0.95));
+}
+
+/* The academy instructions guide keeps its original fully opaque frame. */
+.instructions-modal-container.glass-card {
+  background-color: #090d14;
+  background-image: linear-gradient(160deg, #141b26 0%, #090d14 100%);
+}
+
+/* Keep the pre-play briefing frame opaque over the decorative side artwork. */
+.play-intro-wrapper.briefing-frame.glass-card {
+  background-color: #090d14;
+  background-image: linear-gradient(160deg, #141b26 0%, #090d14 100%);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}

@@ -376,6 +376,15 @@
 .arena-public .arena-profile-panels .arena-panel { background: linear-gradient(120deg,#192a42e0,#122237cc); }
 .arena-profile-panels form { display: flex; flex-direction: column; }
 .arena-profile-panels form > button { align-self: stretch; margin-top: 4px; }
+.arena-public .arena-pin-form { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: end; gap: 12px; }
+.arena-public .arena-pin-form > label { min-width: 0; margin: 0; }
+.arena-public .arena-pin-form > button { min-height: 46px; margin: 0; align-self: end; }
+.arena-public .arena-join label:has(> .arena-note) { row-gap: 12px; }
+.arena-public .arena-join label > .arena-note { display: block; margin-top: 2px; line-height: 1.75; }
+@media(max-width:600px) {
+  .arena-public .arena-pin-form { grid-template-columns: 1fr; }
+  .arena-public .arena-pin-form > button { width: 100%; }
+}
 .arena-public .arena-privacy { min-width: 0; padding: 0; margin: 8px 0 16px; border: 0; border-top: 1px solid var(--arena-border); border-radius: 0; }
 .arena-privacy legend { padding: 0 12px 0 0; font-size: 14px; }
 .arena-public .arena-error { background: #3b2533ed; }
