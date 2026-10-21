@@ -75,7 +75,8 @@ export function MissionHall({ admin = false, embedded = false, active = true, on
     const all = missionChapters.map((m, i) => ({ m, i }));
     let pool = all.filter(({ m }) => clearedOf(m.slug) < 5 && !(reroll && m.slug === drawn));
     if (!pool.length) pool = all.filter(({ m }) => !(reroll && m.slug === drawn));
-    const target = pool[Math.floor(cryptoRandom() * pool.length)];
+    const live = tester ? all.find(({ m }) => m.venueId === "stadium") : undefined;
+    const target = live ?? pool[Math.floor(cryptoRandom() * pool.length)];
     const n = missionChapters.length, laps = 4;
     const steps = n * laps + ((target.i - (n * laps) % n) + n) % n;
     const rerolls = reroll ? rerollsUsed + 1 : 0;
@@ -123,7 +124,7 @@ export function MissionHall({ admin = false, embedded = false, active = true, on
       finally { setLaunching(false); }
       return;
     }
-    if (!selectMission(slug, level, admin || tester)) {
+    if (!selectMission(slug, level, admin)) {
       setError("เริ่มภารกิจไม่ได้ โปรดตรวจการตั้งค่าเบราว์เซอร์แล้วลองอีกครั้ง");
       return;
     }
@@ -216,7 +217,7 @@ export function MissionHall({ admin = false, embedded = false, active = true, on
             <div className="mission-difficulty-grid" role="group" aria-label="เลือกระดับบทเรียน">
               {selectedMission.difficulties.map((item) => {
                 // Admin hall: every level is open so each room can be played and adjusted directly.
-                const unlocked = admin || tester || isDifficultyUnlocked(progress, selectedMission.slug, item.level);
+                const unlocked = admin || isDifficultyUnlocked(progress, selectedMission.slug, item.level);
                 const completed = progress.completed[selectedMission.slug]?.includes(item.level);
                 return (
                   <button
