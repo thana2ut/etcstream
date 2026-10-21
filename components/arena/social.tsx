@@ -8,7 +8,8 @@ import { useArenaResource } from "./use-arena-resource";
 import { ProfileAvatar } from "./profile-avatar";
 import { ChangeCoverButton, ProfileCover } from "./profile-cover";
 import { RankBadge } from "./rank-badge";
-import { SpiritStones, useEconomySummary, type EconomySummary } from "./economy";
+import { useEconomySummary, type EconomySummary } from "./economy";
+import { stones } from "@/game/content/economy-catalog";
 import { selectedMission } from "./portal";
 import { missionChapters } from "@/game/content/mission-catalog";
 
@@ -28,9 +29,26 @@ export function Showcase({ equipped, own = false }: { equipped: Equipped; own?: 
     {own && <Link className="arena-text-link" href="/arena/bag">จัดของในถุงเฉียนคุน →</Link>}
   </section>;
 }
+
+/** Small line icons for the profile card (decorative; labels carry the meaning). */
+const HUB_ICON_PATHS: Record<string, string> = {
+  market: "M3 10h18l-1.5-5h-15L3 10Zm1 0v9h16v-9M8 19v-5h4v5M5 10c0 1.4 1.1 2.5 2.5 2.5S10 11.4 10 10m0 0c0 1.4.9 2.5 2 2.5s2-1.1 2-2.5m0 0c0 1.4 1.1 2.5 2.5 2.5S19 11.4 19 10",
+  bag: "M9 4h6l-1 3h-4L9 4Zm1 3c-3 2-5 5-5 8a5 5 0 0 0 5 5h4a5 5 0 0 0 5-5c0-3-2-6-5-8m-2 5v6m-2-4c0-1 1-2 2-2s2 .6 2 1.5S10 13 10 14s1 1.5 2 1.5 2-.7 2-1.5",
+  friends: "M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-6 9c0-3.3 2.7-6 6-6s6 2.7 6 6M16 11a2.5 2.5 0 1 0 0-5M17.5 14c2 .6 3.5 2.6 3.5 5",
+  trophy: "M8 4h8v5a4 4 0 0 1-8 0V4Zm0 2H5c0 3 1.3 4.5 3 5m8-5h3c0 3-1.3 4.5-3 5m-4 2v4m-4 3h8l-1-3H9l-1 3Z",
+  eye: "M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12Zm10 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z",
+  link: "M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1",
+  hourglass: "M7 3h10M7 21h10M8 3c0 5 8 5 8 9s-8 4-8 9M16 3c0 5-8 5-8 9s8 4 8 9",
+};
+function HubIcon({ name }: { name: keyof typeof HUB_ICON_PATHS }) {
+  return <svg className="hub-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d={HUB_ICON_PATHS[name]} fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+}
+function CloudOrnament() {
+  return <svg className="hub-cloud" viewBox="0 0 64 20" width="64" height="20" aria-hidden="true" focusable="false"><path d="M2 12h14c2 0 3-2 2-3.5S14 7 13.5 9M18 12c1-4 6-5 8-2 1-3 6-3 7 0 3-1 5 1 4 3s-4 1-4-1M37 12h25" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>;
+}
 function ShareProfile({ code }: { code: string }) {
   const [msg, setMsg] = useState("");
-  return <><button type="button" className="arena-button-secondary" onClick={async () => { try { await navigator.clipboard.writeText(`${window.location.origin}/arena/players/${code}`); setMsg("คัดลอกลิงก์แล้ว ส่งให้สหายเปิดดูได้"); } catch { setMsg("คัดลอกไม่ได้ กรุณาคัดลอกจากหน้าโปรไฟล์สาธารณะ"); } }}>คัดลอกลิงก์โปรไฟล์</button><span role="status" className="arena-note">{msg}</span></>;
+  return <><button type="button" className="arena-button-secondary" onClick={async () => { try { await navigator.clipboard.writeText(`${window.location.origin}/arena/players/${code}`); setMsg("คัดลอกลิงก์แล้ว ส่งให้สหายเปิดดูได้"); } catch { setMsg("คัดลอกไม่ได้ กรุณาคัดลอกจากหน้าโปรไฟล์สาธารณะ"); } }}><HubIcon name="link" />คัดลอกลิงก์โปรไฟล์</button><span role="status" className="arena-note">{msg}</span></>;
 }
 
 const avatarOf = (e: Equipped) => (e.profileAvatar ?? e.portraitOutfit)?.asset;
@@ -142,17 +160,21 @@ export function ProfileHub({ profile, standing }: { profile: Profile; standing: 
         {eq.profileCompanion && <Image className="profile-hub-pet" src={eq.profileCompanion.asset} alt={eq.profileCompanion.name} width={96} height={96} />}
       </div>
       <div className="profile-hub-identity">
-        <span className="arena-eyebrow">ข้อมูลเซียน</span><h2>{name}</h2>
+        <span className="arena-eyebrow">ข้อมูลเซียน</span><h2>{name}<CloudOrnament /></h2>
         <ArenaFriendCode code={profile.player.friendCode} />
         <div className="profile-hub-rank">{standing ? <><RankBadge tier={standing.tier} size={48} current /><span><strong>{standing.tier}</strong> · {standing.score} คะแนนฤดูกาล</span></> : <span className="arena-note">ยังไม่จัดอันดับ (ต้องมีผลที่เซิร์ฟเวอร์รับรอง)</span>}</div>
-        <dl className="profile-hub-stats"><div><dt>ผลที่รับรอง</dt><dd>{profile.stats.verified ?? "—"}</dd></div><div><dt>เวลารับรองดีที่สุด</dt><dd>{timeText(profile.stats.bestMs)}</dd></div><div><dt>หินวิญญาณ</dt><dd>{economy.data ? <SpiritStones amount={economy.data.balance} /> : economy.error ? "โหลดไม่ได้" : "…"}</dd></div></dl>
+        <dl className="profile-hub-stats has-icons">
+          <div><span className="stat-icon">{standing ? <RankBadge tier={standing.tier} size={34} decorative /> : <Image src="/assets/arena/ranks/rank-01-novice.png" alt="" width={34} height={34} />}</span><span><dt>ผลที่รับรอง</dt><dd>{profile.stats.verified ?? "—"}</dd></span></div>
+          <div><span className="stat-icon"><HubIcon name="hourglass" /></span><span><dt>เวลารับรองดีที่สุด</dt><dd>{timeText(profile.stats.bestMs)}</dd></span></div>
+          <div><span className="stat-icon"><Image src="/arena/economy/currencies/spirit-stone.png" alt="" width={34} height={34} /></span><span><dt>หินวิญญาณ</dt><dd>{economy.data ? stones(economy.data.balance) : economy.error ? "โหลดไม่ได้" : "…"}</dd></span></div>
+        </dl>
       </div>
       <nav className="profile-hub-actions" aria-label="ทางลัดโปรไฟล์">
-        <Link className="arena-action" href="/arena/market">ตลาดสวรรค์</Link>
-        <Link className="arena-action econ-secondary" href="/arena/bag">ถุงเฉียนคุน{economy.data ? ` · ${economy.data.ownedCount}` : ""}</Link>
-        <Link className="arena-action econ-secondary" href="/arena/friends">สหาย{me.data && me.data.pendingIn > 0 ? ` · คำขอใหม่ ${me.data.pendingIn}` : ""}</Link>
-        <Link className="arena-action econ-secondary" href="/arena/ranked">อันดับ</Link>
-        <Link className="arena-action econ-secondary" href={`/arena/players/${profile.player.friendCode}`}>ดูโปรไฟล์แบบที่ผู้อื่นเห็น</Link>
+        <Link className="arena-action" href="/arena/market"><HubIcon name="market" />ตลาดสวรรค์</Link>
+        <Link className="arena-action econ-secondary" href="/arena/bag"><HubIcon name="bag" />ถุงเฉียนคุน{economy.data ? ` · ${economy.data.ownedCount}` : ""}</Link>
+        <Link className="arena-action econ-secondary" href="/arena/friends"><HubIcon name="friends" />สหาย{me.data && me.data.pendingIn > 0 ? ` · คำขอใหม่ ${me.data.pendingIn}` : ""}</Link>
+        <Link className="arena-action econ-secondary" href="/arena/ranked"><HubIcon name="trophy" />อันดับ</Link>
+        <Link className="arena-action econ-secondary" href={`/arena/players/${profile.player.friendCode}`}><HubIcon name="eye" />ดูโปรไฟล์แบบที่ผู้อื่นเห็น</Link>
         <ShareProfile code={profile.player.friendCode} />
       </nav>
     </ProfileCover>

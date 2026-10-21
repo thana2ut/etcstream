@@ -282,3 +282,24 @@
 .econ-nameplate-mock { max-width: 100%; }
 .cover-thumb.is-nameplate, .cover-picker-preview.is-nameplate { aspect-ratio: 939 / 165; }
 .profile-cover-tools { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* V23.2: profile card on the cover, matching the owner's mock: art fully visible, content laid on it. */
+.hub-icon { flex: none; }
+.hub-cloud { margin-left: 12px; vertical-align: middle; color: #e9c98a; opacity: .9; }
+.profile-hub-stats.has-icons { display: flex; flex-wrap: wrap; gap: 0; margin-top: 12px; padding-top: 12px; border-top: 1px solid #f4d69c55; }
+.profile-hub-stats.has-icons > div { display: flex; align-items: center; gap: 10px; padding: 0 18px; border-left: 1px solid #f4d69c55; }
+.profile-hub-stats.has-icons > div:first-child { padding-left: 0; border-left: 0; }
+.profile-hub-stats.has-icons .stat-icon { display: inline-grid; place-items: center; width: 34px; height: 34px; color: #f0d79a; }
+.profile-hub-stats.has-icons .stat-icon img { object-fit: contain; filter: drop-shadow(0 2px 4px #0008); }
+.profile-hub-actions > .arena-action, .profile-hub-actions > button { gap: 10px; }
+@media (min-width: 1360px) {
+  .profile-cover.has-cover .profile-cover-body { inset: 13% 9% 15% 9%; padding: 8px 18px; background: linear-gradient(90deg, rgba(20, 10, 22, .55) 0%, rgba(20, 10, 22, .32) 45%, rgba(20, 10, 22, 0) 62%); backdrop-filter: none; border-radius: 18px; }
+  .profile-cover .profile-hub-identity, .profile-cover .profile-hub-identity .arena-eyebrow, .profile-cover .profile-hub-stats dt { text-shadow: 0 1px 2px #000c, 0 0 10px #000a; }
+  .profile-cover .profile-hub-identity h2 { display: flex; align-items: center; color: #fbe6ae; text-shadow: 0 2px 4px #000d, 0 0 18px #6a2a1a88; }
+  .profile-cover .profile-hub-identity .arena-friend-code code { color: #f6e2a8; font-size: 18px; letter-spacing: .04em; }
+  .profile-cover .profile-hub-actions { width: clamp(340px, 27vw, 460px); gap: 12px 14px; }
+  .profile-cover .profile-hub-actions > .arena-action, .profile-cover .profile-hub-actions > button { justify-content: flex-start; min-height: 48px !important; padding: 8px 16px !important; font-size: 15px; border: 1.5px solid #e4c47e !important; border-radius: 10px; box-shadow: inset 0 1px 0 #fff3, 0 4px 14px #0007; backdrop-filter: blur(3px); }
+  .profile-cover .profile-hub-actions > .arena-action:not(.econ-secondary) { background: linear-gradient(#9a7440ee, #6e4f27ee) !important; }
+  .profile-cover .profile-hub-actions > .econ-secondary, .profile-cover .profile-hub-actions > button { background: linear-gradient(#1f5552e6, #123a3ae6) !important; }
+  .profile-cover .profile-hub-actions .hub-icon { width: 24px; height: 24px; color: #f0d79a; }
+}
