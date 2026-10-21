@@ -819,3 +819,6 @@ html, body { overscroll-behavior: none; }
 body { text-wrap: pretty; overflow-wrap: break-word; line-height: 1.6; }
 h1, h2, h3, h4, h5, h6, button, label, summary, th, .training-feedback, .hud-panel-title, .hud-check-item span,
 .prompt-action-pill, .cl-slot-name, .cl-bag-pick strong, .mission-plaque strong { text-wrap: balance; }
+
+/* iPad/iPhone: a solid strip behind the status bar, so the system does not show page art blurred underneath it. */
+body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top, 0px); background: #070b1e; z-index: 2147483600; pointer-events: none; }
