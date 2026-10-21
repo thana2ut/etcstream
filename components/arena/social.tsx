@@ -205,6 +205,6 @@ export function PlayerProfilePage({ code }: { code: string }) {
       <p>{card.online ? "ออนไลน์ (ผู้ฝึกยินยอมแสดง)" : "ไม่ได้แสดงสถานะออนไลน์"}</p>
       {card.stats ? <dl className="profile-hub-stats"><div><dt>ด่านที่รับรองแล้ว</dt><dd>{card.stats.verifiedStages}</dd></div><div><dt>เวลารับรองดีที่สุด</dt><dd>{timeText(card.stats.bestMs)}</dd></div></dl> : <p className="arena-note">ผู้ฝึกท่านนี้ไม่ได้เปิดเผยสถิติ</p>}
     </div>
-    <div className="profile-hub-actions">{card.isMe ? <Link className="arena-action" href="/arena/profile">กลับโปรไฟล์ของข้า</Link> : <><RelationButton card={card} onChange={() => void load()} />{card.relation === "friend" && <ChallengeSender code={card.friendCode} name={card.name} />}</>}<Link className="arena-text-link" href="/arena/friends">กลับหน้าสหาย →</Link></div>
+    <div className="profile-hub-actions">{card.isMe ? null : <><RelationButton card={card} onChange={() => void load()} />{card.relation === "friend" && <ChallengeSender code={card.friendCode} name={card.name} />}</>}{!card.isMe && <Link className="arena-text-link" href="/arena/friends">กลับหน้าสหาย →</Link>}</div>
   </ProfileCover><Showcase equipped={eq} own={card.isMe} /></div>;
 }

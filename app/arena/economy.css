@@ -368,3 +368,13 @@
 
 /* V23.10: cover tools without the long bar - just the two buttons under the cover. */
 .profile-cover.has-cover .profile-cover-tools { padding: 0; border: 0; border-radius: 0; background: none; right: auto; }
+
+/* V23.11: one smooth shade across the whole frame interior (dark near the portrait, fading right),
+   replacing the per-block halos that showed a box edge. */
+.profile-cover.has-cover .profile-hub-identity::before, .profile-cover.has-cover .profile-hub-portrait::before { content: none; }
+@media (min-width: 1360px) {
+  .profile-cover.has-cover::before { inset: 7% 4.5% 8% 4.5%; border-radius: 24px;
+    background: linear-gradient(90deg, rgba(20, 8, 20, .74) 0%, rgba(20, 8, 20, .66) 30%, rgba(20, 8, 20, .42) 55%, rgba(20, 8, 20, .14) 78%, rgba(20, 8, 20, 0) 100%);
+    -webkit-mask-image: radial-gradient(ellipse 80% 88% at 42% 50%, #000 58%, transparent 100%);
+    mask-image: radial-gradient(ellipse 80% 88% at 42% 50%, #000 58%, transparent 100%); }
+}
