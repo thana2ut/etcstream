@@ -129,13 +129,11 @@ export function FirstPersonController({ active, fallbackLook, touch, onExitFallb
       if ([BINDINGS.forward, BINDINGS.back, BINDINGS.left, BINDINGS.right].includes(event.code as typeof BINDINGS.forward)) keys.current.add(event.code);
       if (event.repeat) return;
       if (event.code === BINDINGS.interact) beginInteract();
-      // R turns a held device; without one, the play page keeps R for the cable bag.
+      // R only turns a held device; C belongs to the play page's cable bag.
       if ((event.code === "KeyR" || event.code === "KeyT") && useTrainingStore.getState().heldItem) {
         event.preventDefault();
         useTrainingStore.getState().turnHeld();
       }
-      // C cycles what the next E takes from a cable: whole lead → head only → tail only → whole lead.
-      if (event.code === "KeyC") useTrainingStore.getState().cyclePickMode();
       if (event.code === BINDINGS.drop) useTrainingStore.getState().drop(dropPoint(camera, layout), angles.current.yaw);
     };
     const onKeyUp = (event: KeyboardEvent) => {

@@ -134,7 +134,7 @@ export function ArenaPlay({ id }: { id: string }) {
       if (confirmAbandon || !bag || attempt?.status !== "RUNNING" || Date.now() + clockOffset.current < Number(attempt.start) || e.repeat) return;
       const target = e.target as HTMLElement;
       if (["INPUT","SELECT","TEXTAREA"].includes(target.tagName)) return;
-      if (e.code === "KeyR" && !useTrainingStore.getState().heldItem) { if (document.pointerLockElement) document.exitPointerLock(); setBagOpen((v) => !v); }
+      if (e.code === "KeyC") { if (document.pointerLockElement) document.exitPointerLock(); setBagOpen((v) => !v); }
     }; window.addEventListener("keydown", onKey); return () => window.removeEventListener("keydown", onKey);
   }, [bag, attempt?.status, attempt?.start, confirmAbandon]);
   useEffect(() => useTrainingStore.subscribe((state) => {

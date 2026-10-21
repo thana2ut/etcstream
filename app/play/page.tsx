@@ -97,16 +97,16 @@ function PlayExperience() {
   const trainingFailed = useTrainingStore((state) => state.failed);
   // Leads still inside the bag (badge on the 🎒 button).
   const bagCount = useTrainingStore((state) => state.bagged?.length ?? 0);
-  // R opens the bag only with empty hands; while holding equipment it rotates 45°.
+  // C opens the cable bag; R is kept for turning a held device.
   const bagUsable = Boolean(bag) && !introOpen && !showResultModal && !showExitConfirm;
   useEffect(() => {
     if (!bagUsable) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.code !== "KeyR" || e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.code !== "KeyC" || e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
       const t = e.target as HTMLElement | null;
       if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
       const st = useTrainingStore.getState();
-      if (st.inspecting || st.heldItem) return;
+      if (st.inspecting) return;
       e.preventDefault();
       setBagOpen((open) => {
         if (!open && document.pointerLockElement) document.exitPointerLock();

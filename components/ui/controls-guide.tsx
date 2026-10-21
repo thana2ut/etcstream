@@ -46,7 +46,7 @@ export function ControlsGuide() {
 
       <div className="control-item">
         <span className="control-key">C</span>
-        <span className="control-desc">สลับหยิบ: ทั้งเส้น / หัวสาย / ปลายสาย</span>
+        <span className="control-desc">เปิดกระเป๋า</span>
       </div>
 
       <div className="control-item">
@@ -56,7 +56,7 @@ export function ControlsGuide() {
 
       <div className="control-item">
         <span className="control-key">R</span>
-        <span className="control-desc">ถืออุปกรณ์: หมุน 45° · มือว่าง: เปิดกระเป๋า</span>
+        <span className="control-desc">หมุนอุปกรณ์ที่ถือ 45°</span>
       </div>
 
       <div className="control-item">

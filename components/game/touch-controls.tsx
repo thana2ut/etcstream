@@ -63,8 +63,6 @@ function MoveStick() {
 }
 
 export function TouchControls() {
-  const pickMode = useTrainingStore((state) => state.pickMode);
-  const cyclePickMode = useTrainingStore((state) => state.cyclePickMode);
   const look = useRef<{ id: number; x: number; y: number } | null>(null);
 
   const startLook = (event: ReactPointerEvent<HTMLDivElement>) => {
@@ -98,9 +96,6 @@ export function TouchControls() {
     <MoveStick />
 
 
-    <div className="touch-pick-buttons" aria-label="สลับหยิบทั้งเส้น หัวสาย หรือปลายสาย">
-      <button type="button" className={`touch-control-button${pickMode !== "whole" ? " is-active" : ""}`} aria-pressed={pickMode !== "whole"} aria-label={`C สลับหยิบ ตอนนี้: ${pickMode === "a" ? "หัวสาย" : pickMode === "b" ? "ปลายสาย" : "ทั้งเส้น"}`} onClick={() => cyclePickMode()}>{pickMode === "a" ? "หัว" : pickMode === "b" ? "ปลาย" : "C"}</button>
-    </div>
 
     <div className="touch-action-buttons">
       <button

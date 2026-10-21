@@ -81,7 +81,7 @@ export function AdminPreview({ context, onExit }: { context: AdminPreviewContext
     const key = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
       if (target?.closest("input,textarea,select,[contenteditable=true]") || e.repeat) return;
-      if (e.code === "KeyR" && !inspecting && !paused && !useTrainingStore.getState().heldItem) { e.preventDefault(); escapePointer(); setBagOpen((v) => !v); }
+      if (e.code === "KeyC" && !inspecting && !paused) { e.preventDefault(); escapePointer(); setBagOpen((v) => !v); }
       if (e.key === "Escape" && !inspecting && !bagOpen) setPaused(true);
     };
     window.addEventListener("keydown", key);
