@@ -321,7 +321,7 @@
 .profile-hub-menu > .arena-action, .profile-hub-menu > button { flex: 1 1 170px; justify-content: center; gap: 8px; min-height: 44px !important; padding: 6px 14px !important; font-size: 15px; }
 .profile-hub-menu > .arena-note { flex-basis: 100%; margin: 0; }
 .profile-hub-menu .hub-icon { color: #f0d79a; }
-.profile-hub-cover-tools { position: relative; z-index: 4; display: flex; flex-wrap: wrap; gap: 10px; margin: -20px 0; }
+.profile-hub-cover-tools { position: relative; z-index: 4; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 0; }
 .profile-cover .profile-hub-header { grid-template-columns: auto minmax(0, 1fr) !important; }
 @media (min-width: 1360px) {
   .profile-cover.has-cover .profile-cover-body { inset: 13% 9% 15% 9%; padding: 14px 26px; background: linear-gradient(90deg, rgba(14, 10, 26, .82) 0%, rgba(14, 10, 26, .7) 40%, rgba(14, 10, 26, .25) 62%, rgba(14, 10, 26, 0) 75%) !important; }
