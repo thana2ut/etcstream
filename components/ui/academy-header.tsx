@@ -10,7 +10,7 @@ import { AudioControls } from "@/components/audio/audio-controls";
 import { validateNickname } from "@/game/security/nickname-validation";
 import { ProfileAvatar } from "@/components/arena/profile-avatar";
 
-type Equipped = Partial<Record<"profileAvatar" | "profileFrame" | "portraitOutfit", { asset: string }>>;
+type Equipped = Partial<Record<"profileAvatar" | "profileFrame" | "portraitOutfit" | "profileNameplate", { asset: string }>>;
 /** Account control: opens the real profile hub; shows the server-equipped avatar when signed in online. */
 function HeaderProfileButton({ name }: { name: string }) {
   const [equipped, setEquipped] = useState<Equipped>({});
@@ -20,7 +20,7 @@ function HeaderProfileButton({ name }: { name: string }) {
       .then((r) => (r.ok ? r.json() : null)).then((v) => { if (v?.equipped) setEquipped(v.equipped); }).catch(() => {});
     return () => controller.abort();
   }, []);
-  return <Link href="/arena/profile" className="header-trainee-pill header-profile-button" title={`เปิดโปรไฟล์ของ ${name}`} aria-label={`เปิดโปรไฟล์ของ ${name}`}>
+  return <Link href="/arena/profile" className={`header-trainee-pill header-profile-button${equipped.profileNameplate ? " has-nameplate" : ""}`} style={equipped.profileNameplate ? ({ "--nameplate": `url("${equipped.profileNameplate.asset}")` } as React.CSSProperties) : undefined} title={`เปิดโปรไฟล์ของ ${name}`} aria-label={`เปิดโปรไฟล์ของ ${name}`}>
     <ProfileAvatar avatar={(equipped.profileAvatar ?? equipped.portraitOutfit)?.asset} frame={equipped.profileFrame?.asset} size={28} />
     <span className="trainee-name"><strong>โปรไฟล์</strong></span>
   </Link>;

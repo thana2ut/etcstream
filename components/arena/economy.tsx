@@ -5,9 +5,9 @@ import Link from "next/link";
 import { api, type AttemptView } from "./client-api";
 import { ArenaEmptyState } from "./shell";
 import { useArenaResource } from "./use-arena-resource";
-import { COSMETIC_SLOTS, ECONOMY_ASSETS, MARKET_SLOTS, STARTER_LABELS, MEDAL_LABELS, SLOT_CONTEXT, SLOT_LABELS, stones, type CosmeticSlot, type Medal } from "@/game/content/economy-catalog";
+import { COSMETIC_SLOTS, ECONOMY_ASSETS, MARKET_SLOTS, STARTER_LABELS, MEDAL_LABELS, SLOT_CONTEXT, SLOT_LABELS, stones, type CosmeticSlot, type Medal, BANNER_SLOTS, DEFAULT_NAMEPLATE_LABEL } from "@/game/content/economy-catalog";
 import { ProfileAvatar } from "./profile-avatar";
-import { ProfileCover } from "./profile-cover";
+import { NameplatePill, ProfileCover } from "./profile-cover";
 
 export type EconomyItem = { sku: string; name: string; slot: CosmeticSlot; price: number; asset: string; enabled: boolean; legacy?: boolean; starter?: boolean; owned: boolean; equipped: boolean };
 export type EconomySummary = { balance: number; earned: number; spent: number; equipped: Partial<Record<CosmeticSlot, EconomyItem>>; ownedCount: number; claims: number };
@@ -142,16 +142,16 @@ export function CelestialMarket() {
     {loading ? <p className="arena-panel arena-skeleton" role="status">กำลังเปิดแผงสินค้า…</p> : !data || data.items.length === 0 ? <ArenaEmptyState icon="trophy" title="ตลาดยังไม่มีสินค้าเปิดขาย">เมื่อผู้ดูแลเปิดรายการ สินค้าจริงจะแสดงที่นี่</ArenaEmptyState> :
     <div className="econ-market-body">
       <ul className="econ-grid" aria-label="รายการสินค้า">{items.map((i) => <li key={i.sku}><button type="button" className={`econ-item${i.owned ? " is-owned" : ""}`} aria-pressed={item?.sku === i.sku} onClick={() => setSelected(i.sku)}>
-        {i.slot === "profileCover" ? <Image className="econ-cover-thumb" src={i.asset} alt="" width={360} height={120} sizes="360px" loading="lazy" /> : <Image src={i.asset} alt="" width={120} height={120} sizes="160px" loading="lazy" />}
+        {i.slot === "profileNameplate" ? <Image className="econ-nameplate-thumb" src={i.asset} alt="" width={380} height={67} sizes="380px" loading="lazy" /> : i.slot === "profileCover" ? <Image className="econ-cover-thumb" src={i.asset} alt="" width={360} height={120} sizes="360px" loading="lazy" /> : <Image src={i.asset} alt="" width={120} height={120} sizes="160px" loading="lazy" />}
         <strong>{i.name}</strong><small>{SLOT_LABELS[i.slot]} · {i.sku}</small>
         {i.owned ? <span className="econ-tag">{i.equipped ? "สวมใส่อยู่" : "มีแล้ว"}</span> : <SpiritStones amount={i.price} size={18} />}
       </button></li>)}</ul>
       {item && <aside className="arena-panel econ-detail" aria-label={`รายละเอียด ${item.name}`}>
-        {item.slot === "profileCover" ? <CoverPreview cover={item.asset} name={item.name} /> : <div className="econ-detail-art"><Image src={item.asset} alt={item.name} fill sizes="(max-width:900px) 70vw, 320px" /></div>}
+        {item.slot === "profileNameplate" ? <NameplatePreview plate={item.asset} name={item.name} /> : item.slot === "profileCover" ? <CoverPreview cover={item.asset} name={item.name} /> : <div className="econ-detail-art"><Image src={item.asset} alt={item.name} fill sizes="(max-width:900px) 70vw, 320px" /></div>}
         <span className="arena-eyebrow">{SLOT_LABELS[item.slot]} · {item.sku}</span><h3>{item.name}</h3>
         <p className="arena-note">ใช้งานจริงที่: {SLOT_CONTEXT[item.slot]}</p>
         <dl className="econ-price"><div><dt>ราคา</dt><dd><SpiritStones amount={item.price} /></dd></div><div><dt>หินวิญญาณของเจ้า</dt><dd><SpiritStones amount={balance} /></dd></div><div><dt>สต็อก</dt><dd>ไม่จำกัด</dd></div></dl>
-        {item.owned ? item.equipped ? <p className="econ-tag econ-owned-state">{item.slot === "profileCover" ? "กำลังใช้งาน" : "สวมใส่อยู่"}</p> : <><p className="econ-tag econ-owned-state">มีแล้ว · อยู่ในถุงเฉียนคุน</p><button disabled={busy} onClick={() => void equip(item.sku)}>{item.slot === "profileCover" ? "ใช้เป็นปกโปรไฟล์" : "สวมใส่"}</button></>
+        {item.owned ? item.equipped ? <p className="econ-tag econ-owned-state">{item.slot === "profileCover" ? "กำลังใช้งาน" : item.slot === "profileNameplate" ? "กำลังใช้" : "สวมใส่อยู่"}</p> : <><p className="econ-tag econ-owned-state">มีแล้ว · อยู่ในถุงเฉียนคุน</p><button disabled={busy} onClick={() => void equip(item.sku)}>{item.slot === "profileCover" ? "ใช้เป็นปกโปรไฟล์" : "สวมใส่"}</button></>
           : <button disabled={busy || !item.enabled || balance < item.price} onClick={() => setConfirming(true)}>{busy ? "กำลังแลก…" : balance < item.price ? `หินวิญญาณไม่เพียงพอ (ขาด ${stones(item.price - balance)})` : "แลกด้วยหินวิญญาณ"}</button>}
         {item.owned && <Link className="arena-text-link" href="/arena/bag">ไปที่ถุงเฉียนคุน →</Link>}
       </aside>}
@@ -236,9 +236,9 @@ export function QiankunBag({ name }: { name: string }) {
           : owned.length === 0 ? <ArenaEmptyState icon="trophy" title="ถุงเฉียนคุนยังว่าง" href="/arena/market" action="ไปตลาดสวรรค์">ของที่แลกจากตลาดจะเก็บไว้ที่นี่ และสวมใส่ได้ทันที</ArenaEmptyState>
           : COSMETIC_SLOTS.map((slot) => { const list = owned.filter((i) => i.slot === slot); if (!list.length) return null;
             return <fieldset key={slot} className="econ-slot"><legend>{SLOT_LABELS[slot]} <small>{SLOT_CONTEXT[slot]}</small></legend>
-              {slot === "profileCover" && <p className="econ-cover-default">{list.some((i) => i.equipped) ? <button className="arena-button-secondary" disabled={busy} onClick={() => void act("economy/unequip", { slot }, "กลับไปใช้ปกเริ่มต้นแล้ว (ฟรี)")}>ใช้ปกเริ่มต้น (ฟรี)</button> : <span className="econ-tag">ปกเริ่มต้น (ฟรี) · กำลังใช้งาน</span>}</p>}
-              <ul className={slot === "profileCover" ? "econ-cover-list" : undefined}>{list.map((i) => <li key={i.sku} className={i.equipped ? "is-equipped" : undefined}>{slot === "profileCover" ? <Image className="econ-cover-thumb" src={i.asset} alt="" width={300} height={100} loading="lazy" /> : <Image src={i.asset} alt="" width={72} height={72} loading="lazy" />}<strong>{i.name}</strong>{i.starter && <small className="econ-starter-note">{STARTER_LABELS.availability}{i.equipped ? ` · ${STARTER_LABELS.equipped}` : ""}</small>}
-                {slot === "profileCover" ? i.equipped ? <span className="econ-tag">กำลังใช้งาน</span> : <button disabled={busy} onClick={() => void act("economy/equip", { sku: i.sku }, `ใช้${i.name}เป็นปกโปรไฟล์แล้ว`)}>ใช้เป็นปกโปรไฟล์</button>
+              {BANNER_SLOTS.includes(slot) && (() => { const free = slot === "profileCover" ? "ปกเริ่มต้น (ฟรี)" : DEFAULT_NAMEPLATE_LABEL; return <p className="econ-cover-default">{list.some((i) => i.equipped) ? <button className="arena-button-secondary" disabled={busy} onClick={() => void act("economy/unequip", { slot }, `กลับไปใช้${free}แล้ว`)}>ใช้{free}</button> : <span className="econ-tag">{free} · กำลังใช้งาน</span>}</p>; })()}
+              <ul className={BANNER_SLOTS.includes(slot) ? "econ-cover-list" : undefined}>{list.map((i) => <li key={i.sku} className={i.equipped ? "is-equipped" : undefined}>{slot === "profileNameplate" ? <Image className="econ-nameplate-thumb" src={i.asset} alt="" width={300} height={53} loading="lazy" /> : slot === "profileCover" ? <Image className="econ-cover-thumb" src={i.asset} alt="" width={300} height={100} loading="lazy" /> : <Image src={i.asset} alt="" width={72} height={72} loading="lazy" />}<strong>{i.name}</strong>{i.starter && <small className="econ-starter-note">{STARTER_LABELS.availability}{i.equipped ? ` · ${STARTER_LABELS.equipped}` : ""}</small>}
+                {BANNER_SLOTS.includes(slot) ? i.equipped ? <span className="econ-tag">{slot === "profileNameplate" ? "กำลังใช้" : "กำลังใช้งาน"}</span> : <button disabled={busy} onClick={() => void act("economy/equip", { sku: i.sku }, `ใช้${i.name}แล้ว`)}>{slot === "profileNameplate" ? "สวมใส่" : "ใช้เป็นปกโปรไฟล์"}</button>
                   : i.equipped ? <button className="arena-button-secondary" disabled={busy} onClick={() => void act("economy/unequip", { slot }, `ถอด${i.name}แล้ว`)}>ถอดออก</button> : <button disabled={busy} onClick={() => void act("economy/equip", { sku: i.sku }, `สวมใส่${i.name}แล้ว`)}>สวมใส่</button>}</li>)}</ul></fieldset>; })}
       </section>
     </div>
@@ -292,5 +292,15 @@ function CoverPreview({ cover, name }: { cover: string; name: string }) {
       <ProfileAvatar avatar={(eq.profileAvatar ?? eq.portraitOutfit)?.asset} frame={eq.profileFrame?.asset} size={56} />
       <span><strong>โปรไฟล์ของเจ้า</strong><small>ชื่อ · อันดับ · สถิติ</small></span>
     </ProfileCover>
+  </div>;
+}
+
+/** Market preview of a nameplate: the full strip plus the header pill as it will look with the real avatar/frame. */
+function NameplatePreview({ plate, name }: { plate: string; name: string }) {
+  const summary = useEconomySummary(true), eq = summary.data?.equipped ?? {};
+  return <div className="econ-cover-preview">
+    <Image className="econ-nameplate-thumb" src={plate} alt={name} width={760} height={134} sizes="(max-width:900px) 90vw, 340px" />
+    <span className="arena-note">ตัวอย่างแถบโปรไฟล์ด้านบนเกม</span>
+    <NameplatePill plate={plate} className="econ-nameplate-mock"><ProfileAvatar avatar={(eq.profileAvatar ?? eq.portraitOutfit)?.asset} frame={eq.profileFrame?.asset} size={40} /><span>โปรไฟล์<small>ชื่อของเจ้า · ออนไลน์</small></span></NameplatePill>
   </div>;
 }

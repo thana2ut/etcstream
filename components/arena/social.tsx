@@ -136,7 +136,7 @@ export function ProfileHub({ profile, standing }: { profile: Profile; standing: 
   const eq = (economy.data?.equipped || {}) as EconomySummary["equipped"];
   const name = profile.player.name;
   return <section className="profile-hub" aria-label="โปรไฟล์ของข้า">
-    <ProfileCover cover={eq.profileCover?.asset} className="arena-panel profile-hub-card" bodyClassName="profile-hub-header" tools={economy.data ? <ChangeCoverButton onChanged={economy.retry} /> : null}>
+    <ProfileCover cover={eq.profileCover?.asset} className="arena-panel profile-hub-card" bodyClassName="profile-hub-header" tools={economy.data ? <><ChangeCoverButton onChanged={economy.retry} /><ChangeCoverButton slot="profileNameplate" onChanged={economy.retry} /></> : null}>
       <div className="profile-hub-portrait">
         <ProfileAvatar avatar={(eq.profileAvatar ?? eq.portraitOutfit)?.asset} frame={eq.profileFrame?.asset} name={name} size={168} />
         {eq.profileCompanion && <Image className="profile-hub-pet" src={eq.profileCompanion.asset} alt={eq.profileCompanion.name} width={96} height={96} />}

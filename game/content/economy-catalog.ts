@@ -1,5 +1,6 @@
 import registry from "./asset-registry-v20.json";
 import coverRegistry from "./profile-cover-registry-v23.json";
+import nameplateRegistry from "./nameplate-registry-v24.json";
 
 // V19/V20 Celestial Spirit Economy — presentation map only.
 // Prices, enabled flags and ownership are authoritative in Supabase (etc_catalog / etc_economy RPC);
@@ -22,7 +23,7 @@ export const ECONOMY_ASSETS = {
 export const STARTER_ASSETS = { avatar: "/arena/profile/default-player-avatar.png", frame: "/arena/profile/default-player-frame.png" } as const;
 export const STARTER_LABELS = { avatar: "โปรไฟล์ผู้ฝึกเริ่มต้น", frame: "กรอบผู้ฝึกเริ่มต้น", availability: "ได้รับฟรีเมื่อเริ่มเล่น", equipped: "กำลังใช้งาน" } as const;
 
-export type CosmeticSlot = "profileAvatar" | "swordSkin" | "profileFrame" | "profileCompanion" | "residenceDecor" | "portraitOutfit" | "profileCover";
+export type CosmeticSlot = "profileAvatar" | "swordSkin" | "profileFrame" | "profileCompanion" | "residenceDecor" | "portraitOutfit" | "profileCover" | "profileNameplate";
 export const SLOT_LABELS: Record<CosmeticSlot, string> = {
   swordSkin: "กระบี่",
   profileAvatar: "โปรไฟล์เซียน",
@@ -31,6 +32,7 @@ export const SLOT_LABELS: Record<CosmeticSlot, string> = {
   residenceDecor: "ของประดับและตำหนัก",
   portraitOutfit: "ของสะสมรุ่นก่อน (อาภรณ์)",
   profileCover: "ปกโปรไฟล์เซียน",
+  profileNameplate: "ปกแถบชื่อเซียน",
 };
 // Honest description of where each slot is actually rendered today (no 3D claims).
 export const SLOT_CONTEXT: Record<CosmeticSlot, string> = {
@@ -41,9 +43,10 @@ export const SLOT_CONTEXT: Record<CosmeticSlot, string> = {
   residenceDecor: "จัดแสดงในแผงตำหนักบนหน้าโปรไฟล์ (ยังไม่มีการวางในฉาก 3 มิติ)",
   portraitOutfit: "ของรุ่น V19 ที่เคยซื้อไว้ ยังเก็บและสวมได้ แต่ปิดขายแล้ว",
   profileCover: "ภาพพื้นหลังการ์ดโปรไฟล์ใบใหญ่ (หน้าโปรไฟล์ของข้าและที่สหายเข้าชม) ไม่ใช่กรอบรูปวงกลม",
+  profileNameplate: "พื้นหลังแถบชื่อเล็กที่ปุ่มโปรไฟล์ด้านบนเกม (รูปวงกลมและกรอบยังเป็นของเดิม)",
 };
 /** Market categories for NEW sales (V20). portraitOutfit is legacy-only and shown just to its owners. */
-export const MARKET_SLOTS: CosmeticSlot[] = ["swordSkin", "profileAvatar", "profileFrame", "profileCover", "profileCompanion", "residenceDecor"];
+export const MARKET_SLOTS: CosmeticSlot[] = ["swordSkin", "profileAvatar", "profileFrame", "profileCover", "profileNameplate", "profileCompanion", "residenceDecor"];
 export const COSMETIC_SLOTS = [...MARKET_SLOTS, "portraitOutfit"] as CosmeticSlot[];
 
 // V20 catalog generated from the owner's checked registry (SHA-256 verified on intake; see tests/economy-v20-assets.test.mjs).
@@ -62,6 +65,14 @@ export const DEFAULT_COVER_LABEL = "ปกเริ่มต้น (ฟรี)";
 export const COVER_SEED: CatalogSeed[] = coverRegistry.mapping.map((c) => ({
   sku: c.id, name: c.name_th, slot: "profileCover" as CosmeticSlot, price: c.price_spirit_stones, asset: c.recommended_web_path, sha256: c.sha256,
 }));
+
+/** V24 compact nameplates (~939x165) for the header profile pill. Empty slot = free default background. */
+export const DEFAULT_NAMEPLATE_LABEL = "พื้นหลังปกติ (ฟรี)";
+export const NAMEPLATE_SEED: CatalogSeed[] = nameplateRegistry.items.map((n) => ({
+  sku: n.id, name: n.name_th, slot: "profileNameplate" as CosmeticSlot, price: n.price, asset: n.web_path, sha256: n.sha256,
+}));
+/** Wide banner cosmetics get wide thumbnails and a free "default" choice instead of an unequip button. */
+export const BANNER_SLOTS: CosmeticSlot[] = ["profileCover", "profileNameplate"];
 
 // Reward design (mirrors etc_reward_rules seed). Level = stage suffix 1..5 of canonical id xs|s|m|l|xl-N.
 export const FIRST_CLEAR_REWARD = [50, 75, 100, 150, 200] as const;

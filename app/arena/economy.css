@@ -275,3 +275,10 @@
   .profile-cover.has-cover .profile-cover-art { position: static; height: auto; }
   .profile-cover.has-cover .profile-cover-body { position: relative; inset: auto; border-radius: 0; backdrop-filter: none; overflow: visible; padding: 18px; background: linear-gradient(180deg, rgba(9, 16, 30, .78), rgba(9, 16, 30, .9)); }
 }
+
+/* V24 nameplate thumbnails keep the strip's native ~5.7:1 ratio. */
+.econ-nameplate-thumb { width: 100% !important; height: auto !important; aspect-ratio: 939 / 165; object-fit: contain; border-radius: 8px; background: #0a1322; }
+.econ-item:has(.econ-nameplate-thumb) { grid-column: span 2; }
+.econ-nameplate-mock { max-width: 100%; }
+.cover-thumb.is-nameplate, .cover-picker-preview.is-nameplate { aspect-ratio: 939 / 165; }
+.profile-cover-tools { display: flex; gap: 8px; flex-wrap: wrap; }
