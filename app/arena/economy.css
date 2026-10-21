@@ -325,3 +325,12 @@
 .arena-public .profile-cover.has-cover.arena-panel { padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; overflow: visible; }
 .profile-cover.has-cover .profile-cover-art { filter: drop-shadow(0 14px 30px #02091480); }
 .profile-cover.has-cover .profile-cover-tools { left: 3%; bottom: 2%; display: flex; gap: 8px; }
+
+/* V23.6: seamless dark vignette painted across the whole cover (fades out before every edge),
+   and the change-cover buttons sit below the cover instead of on the art. */
+@media (min-width: 1360px) {
+  .profile-cover.has-cover .profile-cover-body { background: none !important; z-index: 2; }
+  .profile-cover.has-cover::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background: radial-gradient(ellipse 46% 62% at 33% 52%, rgba(16, 8, 18, .8) 0%, rgba(16, 8, 18, .62) 38%, rgba(16, 8, 18, .3) 64%, rgba(16, 8, 18, 0) 100%); }
+}
+.profile-cover.has-cover .profile-cover-tools { position: static; display: flex; gap: 10px; justify-content: flex-start; margin: 14px 0 0 3%; }
