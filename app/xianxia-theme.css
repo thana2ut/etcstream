@@ -1266,3 +1266,13 @@ html[data-overlay] .cloud-layer { transition: none; }
 /* Prompts never sit under the hands: narrower centre column that wraps, drawn above the hands layer. */
 .game-screen .interaction-prompt-center { z-index: 5; width: min(460px, calc(100vw - 32px)); }
 .game-screen .interaction-prompt-center .prompt-holding-pill { max-width: 100%; white-space: normal; text-wrap: balance; text-align: center; font-size: .8rem; line-height: 1.5; padding: 5px 14px; }
+
+/* Briefing signal-flow card: schematic fills the art area, centred; equal-height nodes with aligned rows; balanced caption. */
+.briefing-frame .preview-artwork-wrap { min-height: 0; padding: 0; display: grid; }
+.briefing-frame .lesson-schematic { height: 100%; min-height: 240px; padding: 32px 20px; align-items: stretch; align-content: center; gap: 10px; }
+.briefing-frame .schematic-link { align-self: center; line-height: 1; }
+.briefing-frame .schematic-node { min-height: 132px; justify-content: flex-start; gap: 4px; padding: 18px 10px 16px; }
+.briefing-frame .schematic-node span { line-height: 1.4; }
+.briefing-frame .preview-caption-bar { gap: 12px; padding: 14px 20px; text-align: center; }
+.briefing-frame .preview-caption-bar > span:not(.sparkle) { flex: 1 1 auto; min-width: 0; text-wrap: balance; }
+.briefing-frame .preview-caption-bar .sparkle { flex: none; }
