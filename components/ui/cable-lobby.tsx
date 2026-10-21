@@ -313,9 +313,9 @@ export function BagOverlay({ bag, usage, ready, holding, onTake, onStow, onClose
   const entries = Object.entries(bag).map(([id, n]) => ({ c: catalogById(id)!, n, u: usage[id] ?? 0, r: ready[id] ?? 0 }));
   return <div className="cl-overlay" role="dialog" aria-modal="true" aria-labelledby="cl-bag-title" onClick={onClose}>
     <div className="cl-overlay-card" onClick={(e) => e.stopPropagation()}>
-      <div className="cl-bag-head"><strong id="cl-bag-title">🎒 กระเป๋าสาย</strong><button type="button" className="cl-link" onClick={onClose}>ปิด ✕</button></div>
+      <div className="cl-bag-head"><strong id="cl-bag-title">กระเป๋าสายสัญญาณ</strong><button type="button" className="cl-link" onClick={onClose}>ปิด ✕</button></div>
       {holding && (() => { const c = catalogById(holding.id); return <button type="button" className="cl-bag-pick cl-holding" onClick={onStow}>
-        {c ? <CableThumbnail className="bag-cable-thumbnail" cable={c} /> : <span />}
+        {c ? <CableThumbnail className="bag-cable-thumbnail" cable={c} /> : <span className="bag-info-icon" aria-hidden="true">↯</span>}
         <div><strong>ถืออยู่: {c?.name ?? holding.label}</strong><small>หยิบผิดเส้น? เก็บคืนแล้วเลือกใหม่</small></div>
         <span className="cl-pick-state is-on"><b>เก็บคืนกระเป๋า</b></span>
       </button>; })()}

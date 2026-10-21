@@ -210,12 +210,12 @@ export function PlayerProfilePage({ code }: { code: string }) {
   if (loading) return <p className="arena-panel arena-skeleton" role="status">กำลังเปิดโปรไฟล์…</p>;
   if (error || !card) return <div className="arena-panel"><ArenaEmptyState icon="profile" title="เปิดโปรไฟล์นี้ไม่ได้" href="/arena/friends" action="กลับหน้าสหาย">{error || "ผู้ฝึกท่านนี้ไม่ได้เปิดเผยโปรไฟล์ หรือไม่พบรหัสนี้"}</ArenaEmptyState></div>;
   const eq = card.equipped;
-  return <div className="profile-hub"><ProfileCover cover={eq.profileCover?.asset} className="arena-panel profile-hub-card" bodyClassName="profile-hub-header is-public">
+  // Action buttons sit above the cover, separate from the artwork.
+  return <div className="profile-hub"><div className="profile-hub-actions is-above-cover">{card.isMe ? null : <><RelationButton card={card} onChange={() => void load()} />{card.relation === "friend" && <ChallengeSender code={card.friendCode} name={card.name} />}</>}{!card.isMe && <Link className="arena-text-link" href="/arena/friends">กลับหน้าสหาย →</Link>}</div><ProfileCover cover={eq.profileCover?.asset} className="arena-panel profile-hub-card" bodyClassName="profile-hub-header is-public">
     <div className="profile-hub-portrait"><ProfileAvatar avatar={avatarOf(eq)} frame={eq.profileFrame?.asset} name={card.name} size={168} />{eq.profileCompanion && <Image className="profile-hub-pet" src={eq.profileCompanion.asset} alt={eq.profileCompanion.name} width={96} height={96} />}</div>
     <div className="profile-hub-identity"><span className="arena-eyebrow">{card.isMe ? "โปรไฟล์ของเจ้า (มุมมองผู้อื่น)" : card.relation === "friend" ? "สหายร่วมสำนัก" : "ผู้ฝึกในหอประลอง"}</span><h2>{card.name}</h2><code>@{card.friendCode}</code>
       <p>{card.online ? "ออนไลน์ (ผู้ฝึกยินยอมแสดง)" : "ไม่ได้แสดงสถานะออนไลน์"}</p>
       {card.stats ? <dl className="profile-hub-stats"><div><dt>ด่านที่รับรองแล้ว</dt><dd>{card.stats.verifiedStages}</dd></div><div><dt>เวลารับรองดีที่สุด</dt><dd>{timeText(card.stats.bestMs)}</dd></div></dl> : <p className="arena-note">ผู้ฝึกท่านนี้ไม่ได้เปิดเผยสถิติ</p>}
     </div>
-    <div className="profile-hub-actions">{card.isMe ? null : <><RelationButton card={card} onChange={() => void load()} />{card.relation === "friend" && <ChallengeSender code={card.friendCode} name={card.name} />}</>}{!card.isMe && <Link className="arena-text-link" href="/arena/friends">กลับหน้าสหาย →</Link>}</div>
   </ProfileCover><Showcase equipped={eq} own={card.isMe} /></div>;
 }

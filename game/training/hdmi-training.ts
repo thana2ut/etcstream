@@ -6,6 +6,7 @@ import { SCENARIOS, type Connector, type PlaceableItemId, type PortDef, type Poi
 import { canConnect, evaluate, modelOf, portOf, scoreOf, testRoute, validateLevel } from "./sim/engine";
 import type { ConceptId, ControlValue, EvalContext, FaultScenario, SimRuntime, TestStage } from "./sim/types";
 import { CONCEPTS } from "./sim/library";
+import { catalogIdFor } from "@/game/content/cable-catalog";
 
 /**
  * Signal-flow training engine (pure state transitions, unit-tested).
@@ -48,6 +49,8 @@ export interface TrainingState {
   programSource?: string;
   completed: boolean;
   notice: TrainingNotice | null;
+  /** Transient marker: one deliberate cable-to-port attempt rejected by the existing validator. */
+  invalidConnectionAttempt?: boolean;
   /** Mission cable-prep: leads the trainee did not pack (not rendered, cannot be used). */
   hiddenCables?: string[];
   /** Leads currently inside the trainee's bag (packed, not in the room yet): not rendered, taken out one at a time. */
@@ -104,6 +107,10 @@ function cloneCables(cables: TrainingState["cables"]): TrainingState["cables"] {
 
 function notice(title: string, detail: string, tone: TrainingNotice["tone"]): TrainingNotice {
   return { title, detail, tone };
+}
+
+function rejectConnection(state: TrainingState, title: string, detail: string): TrainingState {
+  return { ...state, invalidConnectionAttempt: true, notice: notice(title, detail, "error") };
 }
 
 function occupiedEnd(state: TrainingState, portId: PortId): HeldEnd | null {
@@ -191,13 +198,15 @@ function itemZone(state: TrainingState, itemId: PlaceableItemId): Point3 {
   return scenarioOf(state).placeables.find((item) => item.id === itemId)!.zone;
 }
 
-/** Studio-style scenarios: on the work surface. Venue layouts: at the item's own operating position. */
+/** A venue item is installed where the player actually places it, within its work area. */
 export function isItemPlaced(state: TrainingState, itemId: PlaceableItemId): boolean {
   const at = state.items[itemId].position;
   if (state.heldItem === itemId) return false;
   if (!usesVenueLayout(state)) return onWorkSurface(state, at);
   const zone = itemZone(state, itemId);
-  return Math.hypot(at[0] - zone[0], at[2] - zone[2]) <= 0.5;
+  const work = layoutOf(state).work;
+  if (onSurface(work, zone[0], zone[2])) return onSurface(work, at[0], at[2]) && Math.abs(at[1] - work.center[1]) < 0.2;
+  return Math.hypot(at[0] - zone[0], at[2] - zone[2]) <= 1.6 && Math.abs(at[1] - zone[1]) < 0.2;
 }
 const itemPlaced = isItemPlaced;
 function usesVenueLayout(state: Pick<TrainingState, "scenarioId">): boolean {
@@ -237,21 +246,46 @@ export function portAvailable(state: TrainingState, portId: PortId): boolean {
   return Boolean(port) && (!port.requiresItem || itemPlaced(state, port.requiresItem));
 }
 
+/**
+ * Mission stages (console removed): every required physical route of the level's canonical graph, each wired by a
+ * lead of the same cable kind with BOTH ends on the route's two ports. Logical replay control is not a cable.
+ */
+export function missionRoutes(state: Pick<TrainingState, "scenarioId" | "cables">, cables: TrainingState["cables"] = state.cables) {
+  const scenario = scenarioOf(state);
+  return (scenario.canonical ?? []).flatMap((route) => {
+    const def = scenario.cables.find((c) => c.id === route.cableId);
+    if (!def || catalogIdFor(def) === "CTRL-REPLAY") return [];
+    const kind = catalogIdFor(def);
+    const done = scenario.cables.some((c) => {
+      const lead = cables[c.id];
+      if (!lead || catalogIdFor(c) !== kind) return false;
+      const ends = [lead.a.portId, lead.b.portId];
+      return ends.includes(route.from as PortId) && ends.includes(route.to as PortId);
+    });
+    const from = scenario.ports[route.from]?.label ?? route.from, to = scenario.ports[route.to]?.label ?? route.to;
+    return [{ id: `${route.from}>${route.to}`, label: `${from} → ${to}`, done }];
+  });
+}
+export const missionWired = (state: Pick<TrainingState, "scenarioId" | "cables">, cables: TrainingState["cables"] = state.cables) => {
+  const routes = missionRoutes(state, cables);
+  return routes.length > 0 && routes.every((x) => x.done);
+};
+
 function isComplete(state: TrainingState, cables: TrainingState["cables"], actionsDone: Record<string, boolean>): boolean {
   const scenario = scenarioOf(state);
-  if (scenario.stage) return Boolean(state.sim?.signedOff);
+  if (scenario.stage) return missionWired(state, cables);
   return scenario.requirements.every((req) => requirementDone(state, req, cables)) && scenario.actions.every((action) => actionsDone[action.id]);
 }
 
 export function trainingProgress(state: TrainingState): number {
   const scenario = scenarioOf(state);
-  if (scenario.stage) { const ctx = simContext(state); return ctx ? validateLevel(ctx).filter((r) => r.result.ok).length : 0; }
+  if (scenario.stage) return missionRoutes(state).filter((x) => x.done).length;
   return scenario.requirements.filter((req) => requirementDone(state, req)).length + scenario.actions.filter((action) => state.actionsDone[action.id]).length;
 }
 
 export function trainingTotal(state: Pick<TrainingState, "scenarioId">): number {
   const scenario = scenarioOf(state);
-  if (scenario.stage) return scenario.stage.objectives.length;
+  if (scenario.stage) return missionRoutes({ scenarioId: state.scenarioId, cables: {} }).length;
   return scenario.requirements.length + scenario.actions.length;
 }
 
@@ -275,7 +309,14 @@ function withCables(state: TrainingState, cables: TrainingState["cables"], extra
   const actionsDone = settleActions(state, cables, state.actionsDone);
   const programSource = state.programSource && actionsDone[`select-${state.programSource}`] ? state.programSource : undefined;
   const next = { ...state, ...extra, cables, actionsDone, programSource };
-  if (next.sim) return settleSim({ ...next, completed: Boolean(next.sim.signedOff) });
+  if (next.sim) {
+    // ✓ the moment a required route becomes fully wired (both ends on the right ports).
+    const before = new Set(missionRoutes(state).filter((x) => x.done).map((x) => x.id));
+    const fresh = missionRoutes(next, cables).find((x) => x.done && !before.has(x.id));
+    const wired = missionWired(next, cables);
+    const shown = fresh ? { notice: wired ? notice("✓ ต่อสายครบทุกเส้นทาง", "ผ่านด่านแล้ว", "success") : notice(`✓ ${fresh.label}`, "ต่อสายสำเร็จ", "success") } : {};
+    return settleSim({ ...next, ...shown, completed: wired });
+  }
   return { ...next, completed: isComplete(state, cables, actionsDone) };
 }
 
@@ -398,17 +439,17 @@ export function interactWithTarget(state: TrainingState, target: TrainingTarget 
     cables[occupied.cableId][occupied.end].portId = null;
     return withCables(state, cables, { held: occupied, notice: notice(feedbackCopy.training.disconnected.title, feedbackCopy.training.disconnected.detail, "info") });
   }
-  if (occupied) return { ...state, notice: notice(feedbackCopy.connection.portOccupied.title, feedbackCopy.connection.portOccupied.detail, "error") };
+  if (occupied) return rejectConnection(state, feedbackCopy.connection.portOccupied.title, feedbackCopy.connection.portOccupied.detail);
   if (state.sim?.paused) return { ...state, notice: notice("พักภารกิจอยู่", "ตอบคำถามทบทวนให้ผ่านเพื่อกลับไปฝึกต่อ", "error") };
   if (state.sim && state.sim.weatherNow === "lightning") return { ...state, notice: notice("หยุดงานเนื่องจากฟ้าผ่า", "บันทึกการหยุดงานและรอยืนยันว่าปลอดภัยก่อนติดตั้งต่อ", "error") };
   const connector = endConnector(state, state.held);
   const lead = cableDef(state, state.held.cableId);
-  if (port.signalType && lead.signalType && port.signalType !== lead.signalType) return { ...state, notice: notice("ชนิดสัญญาณไม่ตรงกัน", "หัวต่อที่เสียบได้อาจส่งสัญญาณคนละชนิด โปรดตรวจเส้นทางอีกครั้ง", "error") };
-  if (target.portId === SOCKET + state.held.cableId) return { ...state, notice: notice("เสียบเข้าตัวเองไม่ได้", "เสียบหัวแปลงเข้าพอร์ตของอุปกรณ์", "error") };
+  if (port.signalType && lead.signalType && port.signalType !== lead.signalType) return rejectConnection(state, "ชนิดสัญญาณไม่ตรงกัน", "หัวต่อที่เสียบได้อาจส่งสัญญาณคนละชนิด โปรดตรวจเส้นทางอีกครั้ง");
+  if (target.portId === SOCKET + state.held.cableId) return rejectConnection(state, "เสียบเข้าตัวเองไม่ได้", "เสียบหัวแปลงเข้าพอร์ตของอุปกรณ์");
   if (!plugFits(connector, port)) {
     const need = port.connector === "XLR" ? (port.direction === "INPUT" ? "XLR ตัวผู้ (M)" : "XLR ตัวเมีย (F)") : port.connector;
     const detail = `ปลายสายนี้เป็น ${connector} แต่พอร์ต ${port.label} ต้องใช้ ${need}`;
-    return state.sim ? registerError(state, "connector", detail, "WRONG_CONNECTOR") : { ...state, notice: notice("หัวสายไม่ตรงกับพอร์ต", detail, "error") };
+    return rejectConnection(state, "หัวสายไม่ตรงกับพอร์ต", detail);
   }
   const otherEnd: CableEnd = state.held.end === "a" ? "b" : "a";
   const otherPort = cables[state.held.cableId][otherEnd].portId;
@@ -417,11 +458,11 @@ export function interactWithTarget(state: TrainingState, target: TrainingTarget 
     const other = getPort(state, otherReal)!, here = getPort(state, targetReal)!;
     if (scenario.simDevices && state.sim) {
       const v = canConnect(scenario.simDevices, otherReal, targetReal);
-      if (!v.ok) return registerError(state, v.concept, `${v.title}: ${v.detail}`, v.code);
+      if (!v.ok) return rejectConnection(state, v.title, v.detail);
     } else {
-    if (other.direction === here.direction) return { ...state, notice: notice(feedbackCopy.connection.invalidDirection.title, feedbackCopy.connection.invalidDirection.technical, "error") };
-    if (other.signalType && here.signalType && other.signalType !== here.signalType) return { ...state, notice: notice("ชนิดสัญญาณไม่ตรงกัน", "ต้องใช้อุปกรณ์แปลงสัญญาณที่ถูกต้อง", "error") };
-    if (!scenario.requirements.some((req) => linksRequirement(req, otherReal, targetReal))) return { ...state, notice: notice(feedbackCopy.connection.invalidRoute.title, feedbackCopy.connection.invalidRoute.detail, "error") };
+    if (other.direction === here.direction) return rejectConnection(state, feedbackCopy.connection.invalidDirection.title, feedbackCopy.connection.invalidDirection.technical);
+    if (other.signalType && here.signalType && other.signalType !== here.signalType) return rejectConnection(state, "ชนิดสัญญาณไม่ตรงกัน", "ต้องใช้อุปกรณ์แปลงสัญญาณที่ถูกต้อง");
+    if (!scenario.requirements.some((req) => linksRequirement(req, otherReal, targetReal))) return rejectConnection(state, feedbackCopy.connection.invalidRoute.title, feedbackCopy.connection.invalidRoute.detail);
     }
   }
   cables[state.held.cableId][state.held.end].portId = target.portId;
@@ -518,11 +559,13 @@ export function placeHeldOnCenterTable(state: TrainingState, position: Point3, t
   const kind = state.held ? "cable" : "equipment";
   // Venues: an item aimed at its own operating position is installed there, even when storage is close by.
   const heldDef = state.heldItem ? scenarioOf(state).placeables.find((p) => p.id === state.heldItem) : undefined;
-  const atOwnZone = usesVenueLayout(state) && heldDef && Math.hypot(position[0] - heldDef.zone[0], position[2] - heldDef.zone[2]) <= 1.6;
+  const work = layoutOf(state).work;
+  const atOwnZone = usesVenueLayout(state) && heldDef && (onSurface(work, heldDef.zone[0], heldDef.zone[2])
+    ? onSurface(work, position[0], position[2], 0.1)
+    : Math.hypot(position[0] - heldDef.zone[0], position[2] - heldDef.zone[2]) <= 1.6);
   const returned = atOwnZone ? null : returnToSideTable(state, position);
   if (returned) return returned;
   const legacy = !usesVenueLayout(state);
-  const work = layoutOf(state).work;
   if (!legacy) {
     // Venue workflow: cable ends can be set down anywhere; equipment goes to its real operating position.
     if (state.held) {
@@ -531,7 +574,8 @@ export function placeHeldOnCenterTable(state: TrainingState, position: Point3, t
       return dropHeldEnd(state, onWork ? [at[0], at[1] + 0.06, at[2]] : at);
     }
     const def = scenarioOf(state).placeables.find((p) => p.id === state.heldItem)!;
-    if (Math.hypot(position[0] - def.zone[0], position[2] - def.zone[2]) > 1.6) {
+    const workStation = onSurface(work, def.zone[0], def.zone[2]);
+    if (workStation ? !onSurface(work, position[0], position[2], 0.1) : Math.hypot(position[0] - def.zone[0], position[2] - def.zone[2]) > 1.6) {
       return { ...state, notice: notice("ยังไม่ใช่ตำแหน่งใช้งาน", `นำ ${def.label} ไปที่: ${def.zoneLabel ?? "ตำแหน่งใช้งานของอุปกรณ์"} แล้วกด F`, "error") };
     }
   } else if (!nearestTablePlacement(position[0], position[2], kind)) {
@@ -539,9 +583,13 @@ export function placeHeldOnCenterTable(state: TrainingState, position: Point3, t
   }
   if (state.held) return dropHeldEnd(state, cablePlacement(state, state.held.cableId, state.held.end));
   const itemId = state.heldItem as PlaceableItemId;
-  // Studio: free placement where the player aims on the round table. Venues: snap to the operating position.
-  const spot: Point3 = legacy ? clampToSurface(work, position[0], position[2], 0.35) : [...itemZone(state, itemId)];
-  const placed: TrainingState = { ...state, items: { ...state.items, [itemId]: { ...state.items[itemId], position: spot, turn: legacy ? turn : 0 } } };
+  // Keep the chosen position and rotation in both modes; ports follow itemPoint.
+  const zone = itemZone(state, itemId);
+  const onWorkStation = onSurface(work, zone[0], zone[2]);
+  const spot: Point3 = legacy || onWorkStation
+    ? clampToSurface(work, position[0], position[2], 0.2)
+    : [position[0], zone[1], position[2]];
+  const placed: TrainingState = { ...state, items: { ...state.items, [itemId]: { ...state.items[itemId], position: spot, turn } } };
   return {
     ...placed,
     heldItem: null,
@@ -710,7 +758,7 @@ function settleSim(state: TrainingState): TrainingState {
     for (const t of order.slice(invalid)) if (testsPassed[t]) delete testsPassed[t];
     sim = { ...sim, testsPassed, signedOff: false };
   }
-  return { ...state, sim, completed: sim.signedOff };
+  return { ...state, sim, completed: missionWired(state) };
 }
 
 /** A meaningful error: counted deterministically; three → Mission Paused → targeted review. */

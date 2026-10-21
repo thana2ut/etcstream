@@ -6,7 +6,7 @@ import { FirstPersonHands } from "@/components/game/first-person-hands";
 import { EquipmentInspector, InspectHoldRing } from "@/components/game/equipment-inspector";
 import { BagPanel } from "@/components/game/bag-panel";
 import { catalogIdFor } from "@/game/content/cable-catalog";
-import { OperatorConsole, ReviewOverlay } from "@/components/game/operator-console";
+import { ReviewOverlay } from "@/components/game/operator-console";
 import { TouchControls } from "@/components/game/touch-controls";
 import { useTrainingStore } from "@/game/stores/training-store";
 import { SCENARIOS } from "@/game/training/scenarios";
@@ -18,9 +18,8 @@ import { api } from "./client-api";
 export function AdminPreview({ context, onExit }: { context: AdminPreviewContext; onExit: () => void }) {
   const [ready, setReady] = useState(false), [error, setError] = useState("");
   const [bagOpen, setBagOpen] = useState(false), [paused, setPaused] = useState(false);
-  const [fallbackLook, setFallbackLook] = useState(false), [touch, setTouch] = useState(false);
+  const [fallbackLook, setFallbackLook] = useState(false), [touch, setTouch] = useState(false), [pointerLocked, setPointerLocked] = useState(false);
   const [replay, setReplay] = useState(0), [confirmed, setConfirmed] = useState(false);
-  const consoleOpen = useTrainingStore((s) => s.consoleOpen);
   const failed = useTrainingStore((s) => s.failed);
   const completed = useTrainingStore((s) => s.completed);
   const bagged = useTrainingStore((s) => s.bagged?.length ?? 0);
@@ -73,17 +72,21 @@ export function AdminPreview({ context, onExit }: { context: AdminPreviewContext
     return () => query.removeEventListener("change", update);
   }, []);
   useEffect(() => {
+    const update = () => setPointerLocked(Boolean(document.pointerLockElement));
+    document.addEventListener("pointerlockchange", update);
+    return () => document.removeEventListener("pointerlockchange", update);
+  }, []);
+  useEffect(() => {
     if (!ready) return;
     const key = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
       if (target?.closest("input,textarea,select,[contenteditable=true]") || e.repeat) return;
-      if (e.code === "KeyR" && !inspecting && !paused && !consoleOpen) { e.preventDefault(); escapePointer(); setBagOpen((v) => !v); }
-      if (e.code === "KeyC" && scenario.stage && !inspecting) { e.preventDefault(); escapePointer(); useTrainingStore.getState().setConsoleOpen(!useTrainingStore.getState().consoleOpen); }
-      if (e.key === "Escape" && !inspecting && !bagOpen && !consoleOpen) setPaused(true);
+      if (e.code === "KeyR" && !inspecting && !paused && !useTrainingStore.getState().heldItem) { e.preventDefault(); escapePointer(); setBagOpen((v) => !v); }
+      if (e.key === "Escape" && !inspecting && !bagOpen) setPaused(true);
     };
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
-  }, [ready, inspecting, paused, consoleOpen, bagOpen, scenario.stage, escapePointer]);
+  }, [ready, inspecting, paused, bagOpen, escapePointer]);
   useEffect(() => { if (paused || failed || completed) escapePointer(); }, [paused, failed, completed, escapePointer]);
   useEffect(() => {
     if (!paused && !failed) return;
@@ -91,15 +94,16 @@ export function AdminPreview({ context, onExit }: { context: AdminPreviewContext
     pausePanel.current?.querySelector<HTMLButtonElement>("button")?.focus();
     return () => previous?.focus();
   }, [paused, failed]);
-  const active = ready && confirmed && !error && !paused && !bagOpen && !consoleOpen && !failed && !simPaused;
+  const active = ready && confirmed && !error && !paused && !bagOpen && !failed && !simPaused;
   useEffect(() => { setPlayPhase(active ? "gameplay" : "intro"); return () => setPlayPhase("intro"); }, [active, setPlayPhase]);
   if (error) return <section className="admin-preview-status" role="alert"><h2>ปิดการเล่นตรวจ</h2><p>{error}</p><button onClick={onExit}>กลับตำหนักบัญชาการ</button></section>;
   if (!ready || !confirmed) return <section className="admin-preview-status" role="status"><p>กำลังตรวจสิทธิ์และเตรียมสายเฉพาะด่าน…</p><button onClick={onExit}>กลับตำหนักบัญชาการ</button></section>;
   return <section className="fantasy-viewport game-screen play-page admin-playable-preview" aria-label="การเล่นตรวจของผู้ดูแล">
     <div className="game-viewport" style={{ position: "absolute", inset: 0 }}><GameCanvas key={`${context.id}-${replay}`} venue={context.venue} active={active} fallbackLook={fallbackLook} touch={touch} onExitFallback={exitFallback} onPointerLockError={enableFallback} /></div>
+    {active && !touch && !pointerLocked && !fallbackLook && <p role="status" style={{ position: "absolute", zIndex: 5, left: "50%", top: "48%", transform: "translate(-50%, -50%)", pointerEvents: "none", padding: "0.8rem 1.2rem", border: "1px solid #c8a967", borderRadius: 12, background: "#081325df", color: "#fff1d0", textAlign: "center" }}>คลิกในห้องเพื่อควบคุมเมาส์ แล้วใช้ W A S D เดิน</p>}
     <div className="admin-preview-badge">โหมดผู้ดูแล / ไม่บันทึกผล · {context.title}</div>
     <button className="admin-preview-pause" onClick={() => { escapePointer(); setPaused(true); }}>พัก / กลับตำหนัก</button>
-    {!paused && <><FirstPersonHands /><InspectHoldRing /><EquipmentInspector /><TrainingHud title={context.title} objective="ตรวจการจัดวาง ต่อสาย ตั้งค่า และตรวจสัญญาณด้วยตนเอง · ไม่มีคะแนนหรือการปลดล็อก" touch={touch} /><div className="game-center-reticle" aria-hidden="true" /><button className="cl-bag-button" onClick={() => { escapePointer(); setBagOpen(true); }}>🎒 กระเป๋า <b>{bagged}</b></button>{bagOpen && <BagPanel bag={context.loadout.bag} onClose={() => setBagOpen(false)} />}{scenario.stage && <button className="admin-preview-console" onClick={() => { escapePointer(); useTrainingStore.getState().setConsoleOpen(true); }}>คอนโซล (C)</button>}<OperatorConsole /><ReviewOverlay />{touch && active && <TouchControls />}</>}
+    {!paused && <><FirstPersonHands /><InspectHoldRing /><EquipmentInspector /><TrainingHud title={context.title} objective="ตรวจการจัดวางและต่อสายด้วยตนเอง · ไม่มีคะแนนหรือการปลดล็อก" touch={touch} /><div className="game-center-reticle" aria-hidden="true" /><button className="cl-bag-button" onClick={() => { escapePointer(); setBagOpen(true); }}>🎒 กระเป๋า <b>{bagged}</b></button>{bagOpen && <BagPanel bag={context.loadout.bag} onClose={() => setBagOpen(false)} />}<ReviewOverlay />{touch && active && <TouchControls />}</>}
     {(paused || failed) && <div ref={pausePanel} className="admin-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="admin-preview-pause-title" onKeyDown={(e) => {
       if (e.key !== "Tab") return;
       const controls = pausePanel.current?.querySelectorAll<HTMLButtonElement>("button:not(:disabled)");

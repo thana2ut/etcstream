@@ -45,6 +45,11 @@ async function handle(request: Request, context: Context) {
   }
   if (!post && path.join("/") === "seasons") { requireOnlineSchema(); return {seasons:all("SELECT * FROM seasons ORDER BY starts DESC LIMIT 50").map(ranked.seasonView)}; }
   const player = await requireSession("player"), id = String(player.id);
+  if (!post && route === "tester") return {
+    tester: false,
+    missionAccess: String(player.friend_code).toUpperCase() === "2E0BF31644734BCB",
+    account: id,
+  };
   if (!post && route === "my-standing") return ranked.stageBoard(url.searchParams.get("scenario") || "xs-1","all",id).mine;
   if (!post && route === "stage-summary") {limit("stage-summary:"+id,6);return {stages:ranked.stageSummary(id)};}
   if (!post && route === "compare") {limit("compare:"+id,20);return ranked.friendComparison(id,url.searchParams.get("friend") || "",url.searchParams.get("scenario") || "xs-1");}

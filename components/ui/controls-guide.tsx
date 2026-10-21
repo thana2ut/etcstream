@@ -58,12 +58,7 @@ export function ControlsGuide() {
 
       <div className="control-item">
         <span className="control-key">R</span>
-        <span className="control-desc">เปิด / ปิดกระเป๋า</span>
-      </div>
-
-      <div className="control-item">
-        <span className="control-key">T</span>
-        <span className="control-desc">หมุนอุปกรณ์ที่ถือ 45°</span>
+        <span className="control-desc">ถืออุปกรณ์: หมุน 45° · มือว่าง: เปิดกระเป๋า</span>
       </div>
 
       <div className="control-item">

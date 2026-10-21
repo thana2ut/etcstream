@@ -130,9 +130,10 @@ export function leaderboard(id: string, scope: string, viewer?: string, offset =
 }
 export function moderate(actor: string, body: Record<string, unknown>) {
   const id = String(body.id || ""), action = String(body.action), reason = String(body.reason || "").trim();
-  if (reason.length < 5 || reason.length > 500 || body.confirm !== id) throw new ArenaError(400, "กรอกเหตุผลอย่างน้อย 5 ตัวอักษรและยืนยันรหัสเป้าหมายให้ตรงกัน");
+  if (reason.length < 5 || reason.length > 500) throw new ArenaError(400, "กรอกเหตุผลอย่างน้อย 5 ตัวอักษรและยืนยันรหัสเป้าหมายให้ตรงกัน");
   return transaction(() => {
     if (["invalidate", "reinstate"].includes(action)) {
+      if (body.confirm !== id) throw new ArenaError(400, "รหัสรอบที่ยืนยันไม่ตรงกับรอบเป้าหมาย");
       const a = one("SELECT * FROM attempts WHERE id=?", id);
       if (!a) throw new ArenaError(404, "ไม่พบผลการแข่งขัน");
       run("UPDATE attempts SET invalid=?,reason=? WHERE id=?", action === "invalidate" ? 1 : 0, reason, id);
@@ -140,6 +141,7 @@ export function moderate(actor: string, body: Record<string, unknown>) {
     }
     const p = one("SELECT * FROM players WHERE id=?", id);
     if (!p) throw new ArenaError(404, "ไม่พบผู้เล่น");
+    if (body.confirm !== p.friend_code) throw new ArenaError(400, "รหัสสหายที่ยืนยันไม่ตรงกับบัญชีเป้าหมาย");
     if (action === "rename") run("UPDATE players SET name=?,name_locked=1 WHERE id=?", name(body.name), id);
     else if (action === "clear") run("UPDATE players SET name='',name_locked=1 WHERE id=?", id);
     else if (action === "hide") run("UPDATE players SET hidden=1,public=0,presence=0 WHERE id=?", id);

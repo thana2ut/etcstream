@@ -1,10 +1,11 @@
 "use client";
 
 import { useTrainingStore } from "@/game/stores/training-store";
-import { requirementDone, scenarioOf, targetInstruction, trainingProgress, trainingTotal } from "@/game/training/hdmi-training";
+import { missionRoutes, requirementDone, scenarioOf, targetInstruction } from "@/game/training/hdmi-training";
 import type { FlowGroup } from "@/game/training/scenarios";
 import { ControlsGuide } from "@/components/ui/controls-guide";
 import { MAX_WRONG_STREAK } from "@/game/content/cable-catalog";
+import { MAX_MISSION_CONNECTION_MISTAKES } from "@/game/stores/training-store";
 import { playerEquipmentText } from "@/game/content/sim-thai";
 
 import { useEffect, useState } from "react";
@@ -32,10 +33,14 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
     return () => window.clearTimeout(t);
   }, [notice, clearNotice]);
   const pickMode = state.pickMode;
-  const progress = trainingProgress(state);
-
   const scenario = scenarioOf(state);
-  const total = trainingTotal(state);
+  const [showFinalWarning, setShowFinalWarning] = useState(false);
+  useEffect(() => {
+    if (!scenario.stage || state.wrongStreak !== MAX_MISSION_CONNECTION_MISTAKES || state.failed) return;
+    const show = window.setTimeout(() => setShowFinalWarning(true), 0);
+    const hide = window.setTimeout(() => setShowFinalWarning(false), 3200);
+    return () => { window.clearTimeout(show); window.clearTimeout(hide); };
+  }, [scenario.stage, state.wrongStreak, state.failed]);
   // Checklist in signal-flow order: each group lists its cable routes, then its procedural steps.
   const GROUPS: { id: FlowGroup; title: string }[] = [
     { id: "video", title: "สัญญาณภาพ" },
@@ -43,13 +48,20 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
     { id: "capture", title: "รับภาพและบันทึก" },
     { id: "monitor", title: "ตรวจสัญญาณ" },
   ];
-  const rows = GROUPS.map((group) => ({
+  const connectionRows = GROUPS.map((group) => ({
     ...group,
     items: [
       ...scenario.requirements.filter((r) => r.group === group.id).map((r) => ({ id: r.id, label: r.label, done: requirementDone(state, r) })),
       ...scenario.actions.filter((a) => a.group === group.id).map((a) => ({ id: a.id, label: a.label, done: Boolean(state.actionsDone[a.id]) })),
     ],
   })).filter((group) => group.items.length > 0);
+  // Mission stages: one line per required cable route; ✓ as soon as both ends sit on the right ports.
+  const rows = scenario.stage && scenario.requirements.length === 0
+    ? [{ id: "routes", title: "สายที่ต้องต่อ", items: missionRoutes(state).map((route) => ({ id: route.id, label: route.done ? `${route.label} · ต่อสายสำเร็จ` : route.label, done: route.done })) }]
+    : connectionRows;
+  const extraCheck = scenario.id === "hdmi-basic" ? 1 : 0;
+  const total = rows.reduce((sum, group) => sum + group.items.length, extraCheck);
+  const progress = rows.reduce((sum, group) => sum + group.items.filter((item) => item.done).length, scenario.id === "hdmi-basic" && state.completed ? 1 : 0);
   const heldCable = state.held ? scenario.cables.find((c) => c.id === state.held!.cableId) : null;
 
   // Interaction prompt text
@@ -97,11 +109,10 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
           })()}
           <div className="hud-panel-sub">
             <span>◈</span>
-            <span>ความคืบหน้า: {progress}/{total} ขั้น</span>
+            <span>{scenario.stage && scenario.requirements.length > 0 ? "ต่อสายถูกต้อง" : "ความคืบหน้า"}: {progress}/{total} ขั้น</span>
           </div>
-          {scenario.venueScale && !state.completed && (state.sim
-            ? <p className="hud-panel-sub" role="status" style={{ color: state.sim.errors >= 2 ? "var(--danger)" : undefined }}>ผิดพลาดก่อนทบทวน: {state.sim.errors}/3 · กด C เปิดคอนโซลควบคุม</p>
-            : <p className="hud-panel-sub" role="status" style={{ color: state.wrongStreak >= 3 ? "var(--danger)" : undefined }}>ต่อผิดติดต่อกัน: {state.wrongStreak}/{MAX_WRONG_STREAK}</p>)}
+          {scenario.stage && !state.completed && !state.failed && <p className="hud-panel-sub mission-mistake-count" role="status">ความผิดพลาด {state.wrongStreak}/{MAX_MISSION_CONNECTION_MISTAKES}</p>}
+          {scenario.venueScale && !scenario.stage && !state.completed && <p className="hud-panel-sub" role="status">ต่อผิดติดต่อกัน: {state.wrongStreak}/{MAX_WRONG_STREAK}</p>}
           {scenario.venueScale && state.completed && <p className="hud-panel-sub" role="status" style={{ color: "var(--success)", fontWeight: 700 }}>✓ ผ่านด่านแล้ว — ครบทุกเงื่อนไข</p>}
 
           <div className="hud-checklist">
@@ -128,6 +139,7 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
       )}
 
       {/* Bottom-Left Controls Guide (REF 09) */}
+      {showFinalWarning && !state.failed && <div className="mission-final-warning" role="alert"><strong>คำเตือนครั้งสุดท้าย</strong><span>ท่านผิดพลาดครบ 3 ครั้งแล้ว หากต่อสายผิดอีกครั้ง ภารกิจจะล้มเหลวทันที</span></div>}
       {!touch && <ControlsGuide />}
 
       {/* Center Bottom Interaction Prompt (REF 09) */}

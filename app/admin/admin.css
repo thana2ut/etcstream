@@ -122,8 +122,7 @@
 .admin-playable-preview { position: fixed !important; inset: 0 !important; width: 100vw; height: 100dvh; z-index: 10000; background: #050d1a; font-family: var(--font-thai); }
 .admin-preview-status { position: fixed; inset: 0; z-index: 10001; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; background: #091322; color: #f4d59d; text-align: center; }
 .admin-preview-badge { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 45; max-width: 65%; padding: 8px 16px; border-radius: 10px; background: #081321dc; border: 1px solid #d6b77c88; color: #f4d59d; font-size: .85rem; text-align: center; }
-.admin-preview-pause,.admin-preview-console { position: absolute; z-index: 46; top: 70px; right: 18px; min-height: 44px; padding: 9px 16px; color: #f4d59d; background: #102637ee; border: 1px solid #d6b77c; border-radius: 8px; }
-.admin-preview-console { top: auto; bottom: 92px; }
+.admin-preview-pause { position: absolute; z-index: 46; top: 70px; right: 18px; min-height: 44px; padding: 9px 16px; color: #f4d59d; background: #102637ee; border: 1px solid #d6b77c; border-radius: 8px; }
 .admin-preview-dialog { position: absolute; inset: 0; z-index: 80; display: grid; place-items: center; padding: 20px; background: #030914b3; }
 .admin-preview-dialog > section { width: min(520px,100%); padding: 28px; color: #eadeca; background: #0d1d30; display: grid; gap: 18px; }
 .admin-playable-preview button,.admin-preview-status button { cursor: pointer; min-height: 44px; }

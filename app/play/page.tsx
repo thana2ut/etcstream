@@ -1,6 +1,6 @@
 "use client";
 import { buildAdminLoadout } from "@/game/content/admin-loadout";
-import { useTester } from "@/components/game/use-tester";
+import { useMissionAccess, useTester } from "@/components/game/use-tester";
 
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -21,7 +21,7 @@ import { useGameAudio } from "@/components/audio/audio-provider";
 import { ActionButton } from "@/components/ui/action-buttons";
 import { TouchControls } from "@/components/game/touch-controls";
 import { BackButton } from "@/components/ui/back-button";
-import { MissionResultModal } from "@/components/ui/mission-result-modal";
+import { MissionOutcomeModal, MissionResultModal } from "@/components/ui/mission-result-modal";
 import { clearedCount, meritFor, rankFor } from "@/game/content/mission-ranks";
 import { soundEngine } from "@/game/audio/sound-engine";
 import { getSafePlayParams } from "@/game/security/route-validation";
@@ -31,8 +31,8 @@ import { deleteRun, loadRun, type LoadResult, type RunKey } from "@/game/persist
 import { ResumeRunDialog, SaveStatusPill, useRunAutosave } from "@/components/game/run-persistence";
 import { missionBriefing } from "@/game/content/mission-briefing";
 import { BagPanel } from "@/components/game/bag-panel";
-import { OperatorConsole, ReviewOverlay } from "@/components/game/operator-console";
-import { hiddenCablesFor, MAX_WRONG_STREAK, packableCatalogIds, packedLeadsFor } from "@/game/content/cable-catalog";
+import { ReviewOverlay } from "@/components/game/operator-console";
+import { hiddenCablesFor, packableCatalogIds, packedLeadsFor } from "@/game/content/cable-catalog";
 
 /** Test accounts only: applies the level's canonical cable bag once, then the mission starts. */
 function AutoPack({ run }: { run: () => void }) {
@@ -68,7 +68,7 @@ function PlayExperience() {
   const { setPlayPhase } = useGameAudio();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { hydrated, player, progress, progressError, selectedMissionId, hydrate, startMission, completeMission } = useAcademyStore();
+  const { hydrated, player, progress, progressError, selectedMissionId, hydrate, startMission, completeMission, selectMission } = useAcademyStore();
   const safeParams = getSafePlayParams(searchParams, progress?.selected ?? null);
   const routeMode = safeParams.mode;
   const mission = safeParams.mission;
@@ -78,6 +78,8 @@ function PlayExperience() {
   const trainingCompleted = useTrainingStore((state) => state.completed);
   const loadedScenarioId = useTrainingStore((state) => state.scenarioId);
   const connectedRoutes = useTrainingStore(trainingProgress);
+  const mistakeCount = useTrainingStore((state) => state.wrongStreak);
+  const settledAttemptRef = useRef<string | null>(null);
 
   const [introOpen, setIntroOpen] = useState(true);
   const [locked, setLocked] = useState(false);
@@ -90,11 +92,12 @@ function PlayExperience() {
   // Mission Hall: cable bag packed in the prep lobby before every attempt (null = still in the lobby).
   const [bag, setBag] = useState<Record<string, number> | null>(null);
   const tester = useTester();
+  const missionAccess = useMissionAccess();
   const [bagOpen, setBagOpen] = useState(false);
   const trainingFailed = useTrainingStore((state) => state.failed);
   // Leads still inside the bag (badge on the 🎒 button).
   const bagCount = useTrainingStore((state) => state.bagged?.length ?? 0);
-  // R opens / closes the bag while playing (T rotates a held device, in the first-person controller).
+  // R opens the bag only with empty hands; while holding equipment it rotates 45°.
   const bagUsable = Boolean(bag) && !introOpen && !showResultModal && !showExitConfirm;
   useEffect(() => {
     if (!bagUsable) return;
@@ -103,7 +106,7 @@ function PlayExperience() {
       const t = e.target as HTMLElement | null;
       if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
       const st = useTrainingStore.getState();
-      if (st.inspecting) return;
+      if (st.inspecting || st.heldItem) return;
       e.preventDefault();
       setBagOpen((open) => {
         if (!open && document.pointerLockElement) document.exitPointerLock();
@@ -114,28 +117,11 @@ function PlayExperience() {
     return () => window.removeEventListener("keydown", onKey);
   }, [bagUsable]);
 
-  // C opens / closes the Operator Console on production stages.
-  const consoleOpen = useTrainingStore((state) => state.consoleOpen);
   const simPaused = useTrainingStore((state) => Boolean(state.sim?.paused));
-  const hasStage = Boolean(SCENARIOS[loadedScenarioId]?.stage);
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.code !== "KeyC" || e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
-      const t = e.target as HTMLElement | null;
-      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable)) return;
-      const st = useTrainingStore.getState();
-      if (introOpen || bag === null || st.inspecting || !SCENARIOS[st.scenarioId]?.stage) return;
-      e.preventDefault();
-      if (!st.consoleOpen && document.pointerLockElement) document.exitPointerLock();
-      st.setConsoleOpen(!st.consoleOpen);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [introOpen, bag]);
 
   useEffect(() => {
-    setPlayPhase(showResultModal ? "result" : introOpen || bag === null ? "intro" : "gameplay");
-  }, [introOpen, bag, showResultModal, setPlayPhase]);
+    setPlayPhase(showResultModal || (routeMode === "mission" && trainingFailed) ? "result" : introOpen || bag === null ? "intro" : "gameplay");
+  }, [introOpen, bag, showResultModal, routeMode, trainingFailed, setPlayPhase]);
 
   useEffect(() => () => setPlayPhase("intro"), [setPlayPhase]);
 
@@ -193,13 +179,21 @@ function PlayExperience() {
   const { status: saveStatus, flush: flushRun, discard: discardRun } = useRunAutosave(runKey, inRoom, bag);
 
   useEffect(() => {
+    if (routeMode === "mission" && (trainingCompleted || trainingFailed) && document.pointerLockElement) document.exitPointerLock();
+  }, [routeMode, trainingCompleted, trainingFailed]);
+
+  useEffect(() => {
     if (introOpen || bag === null || loadedScenarioId !== scenarioId) return;
+    if (routeMode === "mission" && trainingFailed) return;
+    if (routeMode === "mission" && trainingCompleted && settledAttemptRef.current === scenarioId) return;
     if (trainingCompleted && progress?.selected?.admin) {
       // Administrator inspection must not grant player progression, merit or rank.
+      settledAttemptRef.current = scenarioId;
       const timer = setTimeout(() => { setReward(null); setShowResultModal(true); }, 1400);
       return () => clearTimeout(timer);
     }
     if (trainingCompleted) {
+      if (routeMode === "mission") settledAttemptRef.current = scenarioId;
       // Rank / merit are derived from cleared levels: compare before and after this completion.
       const before = useAcademyStore.getState().progress;
       const selected = before?.selected;
@@ -217,7 +211,7 @@ function PlayExperience() {
     } else {
       startMission();
     }
-  }, [introOpen, bag, trainingCompleted, loadedScenarioId, scenarioId, completeMission, startMission, progress?.selected?.admin]);
+  }, [introOpen, bag, trainingCompleted, trainingFailed, loadedScenarioId, scenarioId, routeMode, completeMission, startMission, progress?.selected?.admin]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -349,9 +343,25 @@ function PlayExperience() {
     discardRun();
     if (runKey) deleteRun(runKey);
     resetTraining(scenarioId);
+    settledAttemptRef.current = null;
+    setReward(null);
     // Every new attempt returns to briefing, followed by cable preparation.
     if (routeMode === "mission" || validClassroom) { setBag(null); setIntroOpen(true); }
     setShowResultModal(false);
+  };
+
+  const handleNextMission = () => {
+    if (!mission || difficultyLevel >= 5 || !trainingCompleted || trainingFailed) return;
+    const nextLevel = difficultyLevel + 1;
+    if (!selectMission(mission.slug, nextLevel, Boolean(progress?.selected?.admin))) return;
+    discardRun();
+    if (runKey) deleteRun(runKey);
+    settledAttemptRef.current = null;
+    setReward(null);
+    setBag(null);
+    setIntroOpen(true);
+    setShowResultModal(false);
+    router.push(`/play?mode=mission&mission=${mission.slug}&difficulty=${nextLevel}`);
   };
 
   const continueSavedRun = () => {
@@ -363,7 +373,7 @@ function PlayExperience() {
     // Saves taken before venue stock was staged lack those units: keep their fresh table positions.
     const fresh = useTrainingStore.getState();
     useTrainingStore.setState({ ...t, items: { ...fresh.items, ...t.items }, notice: null, wrongStreak: snap.wrongStreak, failed: snap.failed, heldTurn: snap.heldTurn,
-      focusedTarget: null, inspecting: null, consoleOpen: false, inspectHoldStart: null, pickMode: "whole" });
+      focusedTarget: null, inspecting: null, inspectHoldStart: null, pickMode: "whole" });
     setResumeOffer(null);
     setBag(snap.lobbyBag);
     setIntroOpen(false);
@@ -379,8 +389,8 @@ function PlayExperience() {
 
   // Entry order: briefing first, cable preparation next, then immediate gameplay. The classroom offers exactly the leads laid out on its table.
   if (((routeMode === "mission" && validMission) || validClassroom) && !introOpen && bag === null) {
-    // Test accounts (admin1-admin3) only: skip cable selection; the level's exact required leads go into the bag.
-    const testerPack = tester ? buildAdminLoadout(activeScenario) : null;
+    // Owner Admin and the dedicated test accounts skip cable selection and receive the level's canonical loadout.
+    const testerPack = tester || missionAccess ? buildAdminLoadout(activeScenario) : null;
     if (testerPack?.ok) return <AutoPack key={scenarioId} run={() => {
       setBag(testerPack.bag);
       resetTraining(scenarioId, hiddenCablesFor(activeScenario, testerPack.bag), packedLeadsFor(activeScenario, testerPack.bag));
@@ -414,7 +424,7 @@ function PlayExperience() {
         <GameCanvas
           key={scenarioId}
           venue={routeMode === "mission" ? mission?.venueId : "studio"}
-          active={!introOpen && !showResultModal && !showExitConfirm && !bagOpen && !trainingFailed && !consoleOpen && !simPaused}
+          active={!introOpen && !showResultModal && !showExitConfirm && !bagOpen && !trainingFailed && !(routeMode === "mission" && trainingCompleted) && !simPaused}
           fallbackLook={fallbackLook}
           touch={touch}
           onExitFallback={exitFallback}
@@ -437,19 +447,19 @@ function PlayExperience() {
         breadcrumb={difficultyLabel ? `${mission?.title} > ${difficultyLabel}` : "ห้องฝึกปราณสัญญาณ"}
       />
       {/* While playing the top bar is gone; this small pause button is the way out (opens the exit confirmation). */}
-      {!introOpen && !showResultModal && !showExitConfirm && (
+      {!introOpen && !showResultModal && !showExitConfirm && !trainingFailed && (
         <button type="button" className="game-pause-btn" onClick={handleTriggerGameplayBack} aria-label="หยุดเกม / ออกจากด่าน" title="หยุดเกม / ออกจากด่าน">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg>
         </button>
       )}
 
       {/* Reticle for aiming */}
-      {!introOpen && !showResultModal && !showExitConfirm && (
+      {!introOpen && !showResultModal && !showExitConfirm && !trainingFailed && (
         <div className="game-center-reticle" aria-hidden="true" />
       )}
 
       {/* REF 09: GAMEPLAY HUD */}
-      {!introOpen && !showResultModal && (
+      {!introOpen && !showResultModal && !trainingFailed && (
         <>
           <FirstPersonHands />
           <InspectHoldRing />
@@ -457,8 +467,6 @@ function PlayExperience() {
           <TrainingHud title={currentTitle} difficultyLabel={difficultyLabel ?? undefined} objective={difficulty?.objective} touch={touch} />
           {(routeMode === "mission" || validClassroom) && bag && <button type="button" className={`cl-bag-button${touch ? " is-touch" : ""}`} onClick={() => { if (document.pointerLockElement) document.exitPointerLock(); setBagOpen(true); }} title="เปิดกระเป๋า (R)">🎒 กระเป๋า <b className="cl-bag-badge">{bagCount}</b></button>}
           {bagOpen && bag && <BagPanel bag={bag} onClose={() => setBagOpen(false)} />}
-          {hasStage && <button type="button" className={`cl-bag-button cl-console-button${touch ? " is-touch" : ""}`} onClick={() => { if (document.pointerLockElement) document.exitPointerLock(); useTrainingStore.getState().setConsoleOpen(true); }} title="คอนโซลควบคุม (C)">🎛 คอนโซล (C)</button>}
-          <OperatorConsole />
           <ReviewOverlay />
           {touch && !showExitConfirm && <TouchControls />}
 
@@ -515,7 +523,7 @@ function PlayExperience() {
         />
       )}
 
-      {inRoom && <SaveStatusPill status={saveStatus} onRetry={() => flushRun(true)} />}
+      {inRoom && !trainingFailed && <SaveStatusPill status={saveStatus} onRetry={() => flushRun(true)} />}
 
       {introOpen && (
         <div className="instructions-modal-backdrop briefing-backdrop">
@@ -599,22 +607,22 @@ function PlayExperience() {
         </div>
       )}
 
-      {/* REF 10: RESULT MODAL (เมื่อสำเร็จภารกิจ) */}
-      {/* Mission: too many wrong connections in a row = level not passed. */}
+      {/* Mission Hall result states use the level's real evaluator, never a cable-count shortcut. */}
       {routeMode === "mission" && trainingFailed && !showResultModal && (
-        <div className="exit-confirm-backdrop" role="dialog" aria-modal="true" aria-labelledby="fail-title">
-          <div className="exit-confirm-modal glass-card dialog-panel gold-border-frame with-corner-runes">
-            <h2 id="fail-title" className="exit-confirm-title">ไม่ผ่านด่าน</h2>
-            <p className="exit-confirm-desc">ต่อสายผิดติดต่อกัน {MAX_WRONG_STREAK} ครั้ง — ตรวจทิศทาง OUTPUT → INPUT ชนิดสัญญาณ และสายที่เลือกมาแล้วลองใหม่</p>
-            <div className="exit-confirm-actions">
-              <ActionButton variant="glass" size="md" arrow={false} onClick={() => router.push("/missions")}>กลับหอภารกิจ</ActionButton>
-              <ActionButton variant="gold" size="md" onClick={handleRetry}>กลับห้องเตรียมสาย</ActionButton>
-            </div>
-          </div>
-        </div>
+        <MissionOutcomeModal status="failed" missionTitle={currentTitle} venue={mission?.venue ?? "ห้องภารกิจ"} level={difficultyLevel}
+          completed={connectedRoutes} total={trainingTotal({ scenarioId })} mistakes={mistakeCount}
+          onRetry={handleRetry} onReturn={() => router.push("/missions")} />
       )}
 
-      {showResultModal && (
+      {routeMode === "mission" && showResultModal && trainingCompleted && !trainingFailed && (
+        <MissionOutcomeModal status="success" missionTitle={currentTitle} venue={mission?.venue ?? "ห้องภารกิจ"} level={difficultyLevel}
+          completed={connectedRoutes} total={trainingTotal({ scenarioId })} mistakes={mistakeCount}
+          reward={activeScenario.stage?.reward} merit={reward?.merit} rankUp={reward?.rankUp} progressError={progressError}
+          onNext={difficultyLevel < 5 && (Boolean(progress?.selected?.admin) || Boolean(progress?.completed[mission?.slug ?? ""]?.includes(difficultyLevel))) ? handleNextMission : undefined}
+          onRetry={handleRetry} onReturn={() => router.push("/missions")} />
+      )}
+
+      {routeMode !== "mission" && showResultModal && (
         <MissionResultModal
           playerName={player.nickname}
           missionTitle={currentTitle}

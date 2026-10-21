@@ -558,3 +558,9 @@
 .arena-records-scroll::-webkit-scrollbar { width: 6px; }
 .arena-records-scroll::-webkit-scrollbar-thumb { background: #c99a4a; border-radius: 3px; }
 .arena-records-scroll:focus-visible { outline: 2px solid #94ecdc; outline-offset: 2px; }
+
+/* Banner titles: room for Thai upper vowels/tone marks and descenders so the eyebrow, title and subtitle never touch. */
+.arena-public .arena-banner > div { gap: 6px; }
+.arena-public .arena-banner .arena-eyebrow { margin: 0 0 4px; line-height: 1.6; }
+.arena-public .arena-banner h1 { margin: 0; padding: .28em 0 .18em; line-height: 1.75; overflow: visible; }
+.arena-public .arena-banner h1 + p, .arena-public .arena-banner h1 ~ p { margin-top: 6px; line-height: 1.7; }

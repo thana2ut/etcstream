@@ -10,11 +10,16 @@ import { answerQuiz, answerReview, markTrace, requestAllClear, runTest, scenario
 import type { ControlValue, TestStage } from "@/game/training/sim/types";
 import { MAX_WRONG_STREAK } from "@/game/content/cable-catalog";
 
+export const MAX_MISSION_CONNECTION_MISTAKES = 3;
+const DUPLICATE_REJECTION_MS = 400;
+let lastRejectedConnection = "";
+let lastRejectedAt = 0;
+
 interface TrainingStore extends TrainingState {
   focusedTarget: TrainingTarget | null;
   /** `hiddenCables`: leads not packed in the cable-prep lobby. `bagged`: packed leads that start inside the bag. */
   reset: (scenarioId?: ScenarioId, hiddenCables?: string[], bagged?: string[]) => void;
-  /** Mission only: consecutive wrong connection attempts (5 = level failed). */
+  /** Mission only: deliberate rejected connection attempts in this run (fourth = failed). */
   wrongStreak: number;
   failed: boolean;
   /** Bag: take one lead out of the bag straight into the hands (it leaves the bag until stowed again). */
@@ -39,8 +44,6 @@ interface TrainingStore extends TrainingState {
   setInspectHold: (start: number | null) => void;
   turnHeld: () => void;
   /** Operator Console overlay (mission stages): device controls, tests, trace, run-of-show, sign-off. */
-  consoleOpen: boolean;
-  setConsoleOpen: (open: boolean) => void;
   control: (device: string, key: string, value: ControlValue) => void;
   test: (stage: TestStage) => void;
   trace: (dest: string) => void;
@@ -77,19 +80,35 @@ export const useTrainingStore = create<TrainingStore>((set, get) => ({
     set({ held: { cableId, end: "a" }, bagged: state.bagged.filter((id) => id !== cableId), notice: { title: "หยิบสายจากกระเป๋าแล้ว", detail: `${label} · เล็งพอร์ตแล้วกด E เพื่อเสียบ`, tone: "info" } });
     return true;
   },
-  reset: (scenarioId, hiddenCables, bagged) => set((state) => ({ ...initialTrainingState(scenarioId ?? state.scenarioId, hiddenCables ?? [], bagged ?? []), wrongStreak: 0, failed: false, focusedTarget: null, heldTurn: 0, inspecting: null, consoleOpen: false, inspectHoldStart: null, pickMode: "whole" })),
+  reset: (scenarioId, hiddenCables, bagged) => {
+    lastRejectedConnection = "";
+    lastRejectedAt = 0;
+    set((state) => ({ ...initialTrainingState(scenarioId ?? state.scenarioId, hiddenCables ?? [], bagged ?? []), wrongStreak: 0, failed: false, focusedTarget: null, heldTurn: 0, inspecting: null, inspectHoldStart: null, pickMode: "whole" }));
+  },
   focus: (target) => {
     if (targetKey(get().focusedTarget) !== targetKey(target)) set({ focusedTarget: target });
   },
   interact: () =>
     set((state) => {
-      if (state.failed) return state;
-      const next = { ...interactWithTarget(state, state.focusedTarget, state.pickMode), pickMode: state.focusedTarget?.kind === "end" ? "whole" as const : state.pickMode };
-      // Legacy mission levels: MAX wrong connections in a row fails the level. Production stages use the
-      // simulation's three-error review loop (Mission Paused → targeted review → mini check) instead.
-      if (scenarioOf(state).venueScale && !scenarioOf(state).stage && state.held && state.focusedTarget?.kind === "port") {
+      if (state.failed || (scenarioOf(state).stage && state.completed)) return state;
+      const outcome = interactWithTarget(state, state.focusedTarget, state.pickMode);
+      const next = { ...state, ...outcome, invalidConnectionAttempt: false, pickMode: state.focusedTarget?.kind === "end" ? "whole" as const : state.pickMode };
+      if (scenarioOf(state).stage && state.held && state.focusedTarget?.kind === "port") {
+        if (outcome.invalidConnectionAttempt) {
+          const key = `${state.scenarioId}:${state.held.cableId}:${state.held.end}:${state.focusedTarget.portId}`;
+          const now = Date.now();
+          if (key !== lastRejectedConnection || now - lastRejectedAt > DUPLICATE_REJECTION_MS) {
+            lastRejectedConnection = key;
+            lastRejectedAt = now;
+            next.wrongStreak = state.wrongStreak + 1;
+            next.failed = next.wrongStreak > MAX_MISSION_CONNECTION_MISTAKES;
+            if (next.wrongStreak === MAX_MISSION_CONNECTION_MISTAKES) next.notice = { title: "คำเตือนครั้งสุดท้าย", detail: "ท่านผิดพลาดครบ 3 ครั้งแล้ว หากต่อสายผิดอีกครั้ง ภารกิจจะล้มเหลวทันที", tone: "error" };
+          }
+        }
+      } else if (scenarioOf(state).venueScale && !scenarioOf(state).stage && state.held && state.focusedTarget?.kind === "port") {
         const streak = next.notice?.tone === "error" ? state.wrongStreak + 1 : 0;
-        Object.assign(next, { wrongStreak: streak, failed: streak >= MAX_WRONG_STREAK });
+        next.wrongStreak = streak;
+        next.failed = streak >= MAX_WRONG_STREAK;
       }
       if (next.notice?.tone === "success") {
         soundEngine.play("connection_success");
@@ -99,15 +118,13 @@ export const useTrainingStore = create<TrainingStore>((set, get) => ({
       return next;
     }),
   pickMode: "whole",
-  setPickMode: (mode) => set((state) => ({ pickMode: state.pickMode === mode ? "whole" : mode })),
+  setPickMode: (mode) => set((state) => state.failed || (scenarioOf(state).stage && state.completed) ? state : ({ pickMode: state.pickMode === mode ? "whole" : mode })),
   heldTurn: 0,
   inspecting: null,
   inspectHoldStart: null,
   setInspecting: (id) => set({ inspecting: id, inspectHoldStart: null }),
   setInspectHold: (start) => set({ inspectHoldStart: start }),
   turnHeld: () => set((state) => ({ heldTurn: state.heldItem ? (state.heldTurn + Math.PI / 4) % (Math.PI * 2) : 0 })),
-  consoleOpen: false,
-  setConsoleOpen: (open) => set({ consoleOpen: open }),
   control: (device, key, value) => set((state) => { const next = setControl(state, device, key, value); if (next.notice?.tone === "error") soundEngine.play("connection_error"); return next; }),
   test: (stage) => set((state) => runTest(state, stage)),
   trace: (dest) => set((state) => markTrace(state, dest)),
@@ -125,6 +142,7 @@ for (const method of ["interact", "drop", "takeCable", "stowHeld", "control", "t
   const original = useTrainingStore.getState()[method] as unknown as (...args: unknown[]) => unknown;
   useTrainingStore.setState({ [method]: (...args: unknown[]) => {
     const before = useTrainingStore.getState();
+    if (before.failed || (scenarioOf(before).stage && before.completed)) return method === "takeCable" ? false : undefined;
     const evidence = method === "interact" ? [before.focusedTarget, before.pickMode] : method === "drop" ? [args[0], args[1] ?? 0, before.heldTurn] : ["stowHeld", "allClear", "signOff"].includes(method) ? [] : method === "control" ? args.slice(0,3) : args.slice(0,1);
     const result = original(...args);
     if (hasCompetitionCommandListeners()) emitCompetitionCommand({ method, args: JSON.parse(JSON.stringify(evidence)) });

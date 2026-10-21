@@ -30,7 +30,8 @@ test("distinct server identities do not merge duplicate nicknames; clear keeps I
   assert.throws(() => arena.createPlayer("FixtureSame"));
   assert.notEqual(a.id, b.id); assert.notEqual(a.friend_code, b.friend_code);
   const attempt = arena.createAttempt(a.id, "xs-1");
-  arena.moderate("fixture-owner", { id: a.id, action: "clear", confirm: a.id, reason: "isolated clear-name test" });
+  assert.throws(() => arena.moderate("fixture-owner", { id: a.id, action: "clear", confirm: b.friend_code, reason: "isolated wrong-code test" }), /รหัสสหาย/);
+  arena.moderate("fixture-owner", { id: a.id, action: "clear", confirm: a.friend_code, reason: "isolated clear-name test" });
   const cleared = storage.one("SELECT * FROM players WHERE id=?", a.id);
   assert.equal(arena.displayName(cleared), arena.anonymous); assert.equal(cleared.friend_code, a.friend_code);
   assert.equal(arena.ownedAttempt(a.id, attempt.id).player, a.id);
@@ -86,7 +87,7 @@ test("name privacy, presence expiry and moderation never fabricate online state 
   storage.run("UPDATE sessions SET seen=? WHERE principal=?", Date.now() - 100000, p.id);
   assert.equal(arena.playerView(current).online, false);
   const a = arena.createAttempt(p.id, "xl-5");
-  arena.moderate("fixture-owner", { id: p.id, confirm: p.id, action: "anonymize", reason: "isolated anonymization test" });
+  arena.moderate("fixture-owner", { id: p.id, confirm: p.friend_code, action: "anonymize", reason: "isolated anonymization test" });
   current = storage.one("SELECT * FROM players WHERE id=?", p.id);
   assert.equal(arena.displayName(current), arena.anonymous); assert.equal(current.deleted, 1);
   assert.equal(arena.ownedAttempt(p.id, a.id).id, a.id);

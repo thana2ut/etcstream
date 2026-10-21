@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { loadSceneFont } from "@/game/rendering/scene-font";
 import { Canvas } from "@react-three/fiber";
 import { PerformanceMonitor } from "@react-three/drei";
@@ -14,7 +14,7 @@ import { useTrainingStore } from "@/game/stores/training-store";
 import { scenarioOf } from "@/game/training/hdmi-training";
 import { environmentViews } from "@/game/training/environment-review";
 
-export function GameCanvas({ venue, active, fallbackLook, touch, onExitFallback, onPointerLockError }: { active: boolean; fallbackLook: boolean; touch: boolean; onExitFallback: () => void; onPointerLockError: () => void; venue?: VenueId }) {
+export const GameCanvas = memo(function GameCanvas({ venue, active, fallbackLook, touch, onExitFallback, onPointerLockError }: { active: boolean; fallbackLook: boolean; touch: boolean; onExitFallback: () => void; onPointerLockError: () => void; venue?: VenueId }) {
   // Adaptive resolution: start sharp, step down on slow GPUs, back up when there is headroom — keeps motion smooth.
   const [dpr, setDpr] = useState(1);
   const [fontStatus, setFontStatus] = useState<"loading" | "ready" | "error">("loading");
@@ -65,4 +65,4 @@ export function GameCanvas({ venue, active, fallbackLook, touch, onExitFallback,
     <ShaderWarmup active={active} />
     <Physics gravity={[0, -9.81, 0]}><TrainingRoom venue={venue} /><FirstPersonController venue={layout} active={active && !reviewView} reviewView={reviewView} reviewTelemetry={reviewEnabled} fallbackLook={fallbackLook} touch={touch} onExitFallback={onExitFallback} /></Physics>
   </Canvas></>;
-}
+});

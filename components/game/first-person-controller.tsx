@@ -23,6 +23,9 @@ const dropDirection = new Vector3();
 const targetPosition = new Vector3();
 const raycaster = new Raycaster();
 const look = new Euler();
+const MOUSE_SENSITIVITY = 0.0018;
+const TOUCH_SENSITIVITY = 0.004;
+const MAX_PITCH = 1.3;
 raycaster.far = 2.65;
 
 /** Where the player looks on the work-surface plane (free device placement); falls back to 0.9 m ahead. */
@@ -53,11 +56,31 @@ export function FirstPersonController({ active, fallbackLook, touch, onExitFallb
   const frame = useRef(0);
   const telemetryFrame = useRef(0);
   const inspectTarget = useRef<TrainingTarget | null>(null);
+  const controls = useRef({ active, fallbackLook, touch, onExitFallback });
+  const skipLockedMove = useRef(true);
+  const fallbackDragging = useRef(false);
+  const targetListDirty = useRef(true);
+
+  useEffect(() => { controls.current = { active, fallbackLook, touch, onExitFallback }; }, [active, fallbackLook, touch, onExitFallback]);
+
+  useEffect(() => {
+    if (active) return;
+    keys.current.clear();
+    inspectTarget.current = null;
+    fallbackDragging.current = false;
+    useTrainingStore.getState().setInspectHold(null);
+    useTrainingStore.getState().focus(null);
+    if (document.pointerLockElement === gl.domElement) document.exitPointerLock();
+  }, [active, gl]);
+
+  useEffect(() => useTrainingStore.subscribe((state, previous) => {
+    if (state.scenarioId !== previous.scenarioId || state.items !== previous.items || state.cables !== previous.cables || state.held !== previous.held || state.heldItem !== previous.heldItem) targetListDirty.current = true;
+  }), []);
 
   useEffect(() => {
     const element = gl.domElement;
     const pressedKeys = keys.current;
-    const canControl = () => active && (touch || document.pointerLockElement === element || fallbackLook);
+    const canControl = () => controls.current.active && (controls.current.touch || document.pointerLockElement === element || controls.current.fallbackLook);
     const beginInteract = () => {
       const store = useTrainingStore.getState();
       const target = store.focusedTarget;
@@ -69,30 +92,43 @@ export function FirstPersonController({ active, fallbackLook, touch, onExitFallb
     };
     const endInteract = () => {
       const store = useTrainingStore.getState();
-      if (scenarioOf(store).stage && (!canControl() || store.inspecting || store.consoleOpen || JSON.stringify(inspectTarget.current) !== JSON.stringify(store.focusedTarget))) {
+      if (scenarioOf(store).stage && (!canControl() || store.inspecting || JSON.stringify(inspectTarget.current) !== JSON.stringify(store.focusedTarget))) {
         store.setInspectHold(null);
         inspectTarget.current = null;
         return;
       }
-      if (store.inspectHoldStart !== null) { store.setInspectHold(null); store.interact(); }
+      if (store.inspectHoldStart !== null) { store.setInspectHold(null); if (canControl()) store.interact(); }
       inspectTarget.current = null;
     };
     const onMove = (event: MouseEvent) => {
-      if (!active) return;
+      if (!controls.current.active || document.hidden) return;
       const locked = document.pointerLockElement === element;
-      if (!locked && !(fallbackLook && event.buttons === 1 && event.target === element)) return;
-      angles.current.yaw -= event.movementX * 0.0018;
-      angles.current.pitch = MathUtils.clamp(angles.current.pitch - event.movementY * 0.0018, -1.25, 1.25);
+      if (locked) {
+        if (skipLockedMove.current) { skipLockedMove.current = false; return; }
+      } else {
+        if (!controls.current.fallbackLook || event.buttons !== 1 || event.target !== element) { fallbackDragging.current = false; return; }
+        if (!fallbackDragging.current) { fallbackDragging.current = true; return; }
+      }
+      if (!Number.isFinite(event.movementX) || !Number.isFinite(event.movementY)) return;
+      // A relock/OS-focus glitch can report a screen-sized synthetic delta; ordinary fast turns are untouched.
+      if (Math.abs(event.movementX) > Math.max(2000, window.innerWidth * 1.5) || Math.abs(event.movementY) > Math.max(2000, window.innerHeight * 1.5)) return;
+      angles.current.yaw -= event.movementX * MOUSE_SENSITIVITY;
+      angles.current.pitch = MathUtils.clamp(angles.current.pitch - event.movementY * MOUSE_SENSITIVITY, -MAX_PITCH, MAX_PITCH);
     };
     const onKeyDown = (event: KeyboardEvent) => {
-      if (!canControl() || useTrainingStore.getState().inspecting || useTrainingStore.getState().consoleOpen) return;
-      if (event.code === "Escape" && fallbackLook) { onExitFallback(); return; }
+      if (!canControl() || useTrainingStore.getState().inspecting) return;
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("input, textarea, select, [contenteditable]")) return;
+      if (event.code === "Escape" && controls.current.fallbackLook) { controls.current.onExitFallback(); return; }
       if (Object.values(BINDINGS).includes(event.code as typeof BINDINGS[keyof typeof BINDINGS])) event.preventDefault();
       if ([BINDINGS.forward, BINDINGS.back, BINDINGS.left, BINDINGS.right].includes(event.code as typeof BINDINGS.forward)) keys.current.add(event.code);
       if (event.repeat) return;
       if (event.code === BINDINGS.interact) beginInteract();
-      // T turns the held device 45° (R opens the bag, handled by the play page).
-      if (event.code === "KeyT") useTrainingStore.getState().turnHeld();
+      // R turns a held device; without one, the play page keeps R for the cable bag.
+      if ((event.code === "KeyR" || event.code === "KeyT") && useTrainingStore.getState().heldItem) {
+        event.preventDefault();
+        useTrainingStore.getState().turnHeld();
+      }
       // 1 / 2: arm "take head only" / "take tail only" for the next E on a cable (press again to cancel).
       if (event.code === "Digit1" || event.code === "Numpad1") useTrainingStore.getState().setPickMode("a");
       if (event.code === "Digit2" || event.code === "Numpad2") useTrainingStore.getState().setPickMode("b");
@@ -104,15 +140,15 @@ export function FirstPersonController({ active, fallbackLook, touch, onExitFallb
       endInteract();
     };
     const onTouchInput = (event: Event) => {
-      if (!canControl() || useTrainingStore.getState().inspecting || useTrainingStore.getState().consoleOpen) return;
+      if (!canControl() || useTrainingStore.getState().inspecting) return;
       const detail = (event as CustomEvent<TrainingInputDetail>).detail;
       if (detail.type === "move") {
         if (detail.pressed) keys.current.add(detail.code);
         else keys.current.delete(detail.code);
       }
       if (detail.type === "look") {
-        angles.current.yaw -= detail.dx * 0.004;
-        angles.current.pitch = MathUtils.clamp(angles.current.pitch - detail.dy * 0.004, -1.25, 1.25);
+        angles.current.yaw -= detail.dx * TOUCH_SENSITIVITY;
+        angles.current.pitch = MathUtils.clamp(angles.current.pitch - detail.dy * TOUCH_SENSITIVITY, -MAX_PITCH, MAX_PITCH);
       }
       if (detail.type === "interact") {
         if (detail.pressed) beginInteract();
@@ -121,12 +157,15 @@ export function FirstPersonController({ active, fallbackLook, touch, onExitFallb
       if (detail.type === "drop") useTrainingStore.getState().drop(dropPoint(camera, layout), angles.current.yaw);
       if (detail.type === "turn") useTrainingStore.getState().turnHeld();
     };
-    const clear = () => { keys.current.clear(); useTrainingStore.getState().setInspectHold(null); useTrainingStore.getState().focus(null); };
+    const clear = () => { keys.current.clear(); skipLockedMove.current = true; fallbackDragging.current = false; inspectTarget.current = null; useTrainingStore.getState().setInspectHold(null); useTrainingStore.getState().focus(null); };
+    const endDrag = () => { fallbackDragging.current = false; };
     document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", endDrag);
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("keyup", onKeyUp);
     window.addEventListener(TRAINING_INPUT_EVENT, onTouchInput);
     document.addEventListener("pointerlockchange", clear);
+    document.addEventListener("visibilitychange", clear);
     window.addEventListener("blur", clear);
     return () => {
       if (scenarioOf(useTrainingStore.getState()).stage) {
@@ -136,13 +175,15 @@ export function FirstPersonController({ active, fallbackLook, touch, onExitFallb
         useTrainingStore.getState().focus(null);
       }
       document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", endDrag);
       document.removeEventListener("keydown", onKeyDown);
       document.removeEventListener("keyup", onKeyUp);
       window.removeEventListener(TRAINING_INPUT_EVENT, onTouchInput);
       document.removeEventListener("pointerlockchange", clear);
+      document.removeEventListener("visibilitychange", clear);
       window.removeEventListener("blur", clear);
     };
-  }, [active, camera, gl, fallbackLook, touch, onExitFallback, layout]);
+  }, [camera, gl, layout]);
 
   useBeforePhysicsStep(() => {
     const rigidBody = body.current;
@@ -150,7 +191,7 @@ export function FirstPersonController({ active, fallbackLook, touch, onExitFallb
     const velocity = rigidBody.linvel();
     movement.set(0, 0, 0);
     const store = useTrainingStore.getState();
-    const blocked = Boolean(scenarioOf(store).stage && (store.inspecting || store.consoleOpen));
+    const blocked = Boolean(scenarioOf(store).stage && (store.inspecting));
     if (blocked) keys.current.clear();
     if (active && !blocked && (touch || document.pointerLockElement === gl.domElement || fallbackLook)) {
       const yaw = angles.current.yaw;
@@ -188,7 +229,7 @@ export function FirstPersonController({ active, fallbackLook, touch, onExitFallb
     if (!active || (!touch && document.pointerLockElement !== gl.domElement && !fallbackLook)) return;
     const store = useTrainingStore.getState();
     if (scenarioOf(store).stage) {
-      if (store.inspecting || store.consoleOpen) { keys.current.clear(); store.focus(null); return; }
+      if (store.inspecting) { keys.current.clear(); store.focus(null); return; }
       if (store.inspectHoldStart !== null && JSON.stringify(inspectTarget.current) !== JSON.stringify(store.focusedTarget)) {
         store.setInspectHold(null);
         inspectTarget.current = null;
@@ -201,8 +242,9 @@ export function FirstPersonController({ active, fallbackLook, touch, onExitFallb
       if (document.pointerLockElement) document.exitPointerLock();
       return;
     }
-    // Walking the whole scene graph is expensive in large venues: refresh the target list ~6×/s, raycast every frame.
-    if (++frame.current % 10 === 1 || targets.current.length === 0) {
+    // Rebuild on inventory/scenario changes, with a slow safety refresh for late-mounted scene objects.
+    if (targetListDirty.current || ++frame.current % 120 === 1 || targets.current.length === 0) {
+      targetListDirty.current = false;
       targets.current = [];
       occluders.current = [];
       const mission = Boolean(scenarioOf(store).stage);

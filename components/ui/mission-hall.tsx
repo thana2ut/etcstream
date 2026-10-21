@@ -26,11 +26,16 @@ export function MissionHall({ admin = false, embedded = false, active = true, on
   const tester = useTester();
   // Which signed-in account owns the draw (undefined while asking; null when not signed in online).
   const [account, setAccount] = useState<string | null | undefined>(undefined);
+  const [fullMissionAccess, setFullMissionAccess] = useState(false);
   useEffect(() => {
     let alive = true;
     fetch("/api/arena/tester", { credentials: "same-origin", cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : null)).then((v) => { if (alive) setAccount(typeof v?.account === "string" ? v.account : null); })
-      .catch(() => { if (alive) setAccount(null); });
+      .then((r) => (r.ok ? r.json() : null)).then((v) => {
+        if (!alive) return;
+        setAccount(typeof v?.account === "string" ? v.account : null);
+        setFullMissionAccess(v?.missionAccess === true);
+      })
+      .catch(() => { if (alive) { setAccount(null); setFullMissionAccess(false); } });
     return () => { alive = false; };
   }, []);
   const Container = embedded ? "section" : "main";
@@ -124,7 +129,7 @@ export function MissionHall({ admin = false, embedded = false, active = true, on
     timers.current.push(window.setTimeout(() => { if (!scheduled) { scheduled = true; schedule(0); } }, 250));
   };
 
-  const selectable = (slug: string) => admin || (!rolling && drawn === slug);
+  const selectable = (slug: string) => admin || fullMissionAccess || (!rolling && drawn === slug);
   const selectedMission = selectedSlug && selectable(selectedSlug) ? getMissionBySlug(selectedSlug) : null;
   const difficulty = selectedMission ? getDifficultyMeta(selectedMission, selectedLevel) : null;
 
@@ -136,7 +141,7 @@ export function MissionHall({ admin = false, embedded = false, active = true, on
       finally { setLaunching(false); }
       return;
     }
-    if (!selectMission(slug, level, admin)) {
+    if (!selectMission(slug, level, admin || fullMissionAccess)) {
       setError("เริ่มภารกิจไม่ได้ โปรดตรวจการตั้งค่าเบราว์เซอร์แล้วลองอีกครั้ง");
       return;
     }
@@ -163,10 +168,12 @@ export function MissionHall({ admin = false, embedded = false, active = true, on
           <h1>{admin ? "หอจารึกแห่งภารกิจ" : "วันนี้เจ้าอยากรับภารกิจใด"}</h1>
           <p>{admin
             ? <>โหมดผู้ดูแล: เปิดตรวจได้ครบ 5 สถานที่ 25 ระดับ · ไม่ปลดล็อกหรือบันทึกผลให้ผู้เล่น</>
+            : fullMissionAccess
+              ? <>บัญชีทดสอบผู้ดูแล: เปิดครบ 5 สถานที่ 25 ระดับ · ยังต้องเลือกสายใส่กระเป๋าก่อนเข้าทุกด่าน</>
             : <>กดรับภารกิจ แล้วหอจารึกจะสุ่มมอบสถานที่ให้เจ้าหนึ่งแห่ง<br />ผ่านครบ 5 ระดับของสถานที่นั้นจึงรับภารกิจใหม่ได้</>}</p>
         </header>
 
-        {!admin && <MissionDrawPanel
+        {!admin && !fullMissionAccess && <MissionDrawPanel
           rolling={rolling} canDraw={canDraw} canReroll={canReroll} rerollsUsed={rerollsUsed} maxRerolls={MAX_REROLLS}
           drawnTitle={drawn ? getMissionBySlug(drawn)?.title ?? null : null} drawnCleared={drawn ? clearedOf(drawn) : 0}
           onRoll={() => void spin(false)} onReroll={() => void spin(true)}
@@ -178,7 +185,7 @@ export function MissionHall({ admin = false, embedded = false, active = true, on
             const cleared = clearedOf(mission.slug);
             const open = selectable(mission.slug);
             const lit = rolling && rollIndex === index;
-            const isDrawn = !admin && open;
+            const isDrawn = !admin && !fullMissionAccess && open;
             return (
               <button
                 key={mission.id}
@@ -197,7 +204,7 @@ export function MissionHall({ admin = false, embedded = false, active = true, on
                 <span className="mission-plaque-place">{!(admin && embedded) && "สถานที่: "}{mission.venue}{!(admin && embedded) && <><br />ลักษณะงาน: {mission.venueConcept}</>}</span>
                 <span className="mission-plaque-description">{admin && embedded ? ["ฝึกภาพและเสียงสำหรับห้องเรียนไฮบริด", "ฝึกหลายกล้องและเสียงในงานสตูดิโอ", "ฝึกควบคุมภาพและเสียงสำหรับหอประชุม", "ฝึกจัดระบบภาพและเสียงงานกลางแจ้ง", "ฝึกระบบถ่ายทอดสดการแข่งขันกีฬา"][index] : mission.description}</span>
                 <span className="mission-plaque-footer">
-                  <span>{previewOnly ? "5 ระดับ · ไม่บันทึกผล" : cleared >= 5 ? "ผ่านครบ 5/5 ระดับ ✓" : `ผ่านแล้ว ${cleared}/5 ระดับ`}</span>
+                  <span>{previewOnly ? "5 ระดับ · ไม่บันทึกผล" : fullMissionAccess ? "5 ระดับ · เปิดสำหรับทดสอบ" : cleared >= 5 ? "ผ่านครบ 5/5 ระดับ ✓" : `ผ่านแล้ว ${cleared}/5 ระดับ`}</span>
                   <span>{open ? admin && embedded ? "เลือกบท →" : "เลือกภารกิจ →" : cleared >= 5 ? "สำเร็จแล้ว" : "รอสุ่มภารกิจ"}</span>
                 </span>
               </button>
@@ -229,7 +236,7 @@ export function MissionHall({ admin = false, embedded = false, active = true, on
             <div className="mission-difficulty-grid" role="group" aria-label="เลือกระดับบทเรียน">
               {selectedMission.difficulties.map((item) => {
                 // Admin hall: every level is open so each room can be played and adjusted directly.
-                const unlocked = admin || isDifficultyUnlocked(progress, selectedMission.slug, item.level);
+                const unlocked = admin || fullMissionAccess || isDifficultyUnlocked(progress, selectedMission.slug, item.level);
                 const completed = progress.completed[selectedMission.slug]?.includes(item.level);
                 return (
                   <button

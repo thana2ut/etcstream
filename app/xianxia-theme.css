@@ -1147,3 +1147,39 @@ html[data-overlay] .cloud-layer { transition: none; }
   background-repeat: no-repeat;
   background-attachment: scroll;
 }
+
+/* Mission Hall result states share one restrained celestial frame; the room remains visible behind it. */
+.mission-outcome-overlay { position: fixed; inset: 0; z-index: 110; display: grid; place-items: center; padding: 16px; overflow: hidden; background: rgba(3, 8, 20, .84); backdrop-filter: blur(8px); color: #f8ecd2; }
+.mission-outcome-overlay.is-failed { background: rgba(9, 5, 15, .88); }
+.mission-outcome-mist { position: absolute; inset: -20%; pointer-events: none; opacity: .5; background: radial-gradient(ellipse at 22% 70%, rgba(44, 137, 180, .22), transparent 43%), radial-gradient(ellipse at 78% 24%, rgba(219, 170, 83, .13), transparent 42%); animation: mission-mist 9s ease-in-out infinite alternate; }
+.is-failed .mission-outcome-mist { background: radial-gradient(ellipse at 20% 72%, rgba(125, 34, 46, .22), transparent 44%), radial-gradient(ellipse at 80% 18%, rgba(128, 87, 49, .12), transparent 45%); }
+.mission-outcome-panel { position: relative; width: min(720px, 100%); max-height: calc(100dvh - 32px); overflow-y: auto; padding: clamp(18px, 4vw, 38px); border: 1px solid rgba(226, 188, 113, .72); border-radius: 16px; background: linear-gradient(155deg, rgba(22, 37, 61, .98), rgba(8, 14, 29, .98) 72%); box-shadow: 0 24px 80px rgba(0, 0, 0, .55), inset 0 0 42px rgba(89, 154, 197, .1); text-align: center; animation: mission-outcome-enter .48s ease-out both; }
+.is-failed .mission-outcome-panel { border-color: rgba(166, 94, 79, .75); background: linear-gradient(155deg, rgba(35, 23, 34, .98), rgba(8, 11, 23, .98) 72%); }
+.mission-outcome-emblem { position: relative; display: grid; place-items: center; width: 96px; height: 96px; margin: 0 auto 8px; border: 1px solid rgba(225, 190, 119, .6); border-radius: 50%; background: radial-gradient(circle, rgba(221, 179, 92, .18), rgba(11, 23, 42, .16) 68%); box-shadow: 0 0 34px rgba(225, 190, 119, .14); }
+.mission-outcome-emblem img { position: relative; z-index: 1; object-fit: contain; filter: drop-shadow(0 0 12px rgba(228, 195, 123, .42)); }
+.mission-outcome-blade { position: absolute; width: 3px; height: 76px; border-radius: 4px; background: linear-gradient(#ecdcaf, #77aace 68%, #eacb88); transform: rotate(43deg); box-shadow: 0 0 12px rgba(119, 187, 223, .55); }
+.mission-outcome-blade::after { content: ""; position: absolute; left: -11px; bottom: 18px; width: 25px; height: 3px; background: #d0a765; }
+.is-broken .mission-outcome-blade { height: 32px; transform: translate(-11px, -18px) rotate(35deg); background: #ab776c; }
+.is-broken .mission-outcome-blade::before { content: ""; position: absolute; top: 43px; left: 13px; width: 3px; height: 33px; background: #ab776c; transform: rotate(-13deg); }
+.is-broken img { opacity: .55; filter: grayscale(.6) sepia(.3); }
+.mission-outcome-kicker { margin: 0 0 5px; color: #d9bd81; font-size: .82rem; letter-spacing: .08em; }
+.mission-outcome-panel h1 { margin: 0; color: #ffe7a9; font-size: clamp(1.8rem, 5vw, 2.7rem); line-height: 1.25; }
+.is-failed .mission-outcome-panel h1 { color: #e9a6a0; }
+.mission-outcome-subtitle { margin: 10px auto 18px; max-width: 34rem; color: #d9e3ee; line-height: 1.65; }
+.mission-outcome-info { display: grid; gap: 4px; padding: 12px; border-block: 1px solid rgba(220, 185, 116, .35); line-height: 1.5; }
+.mission-outcome-info strong { font-size: 1.08rem; }
+.mission-outcome-info span { color: #adbfce; }
+.mission-outcome-stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 16px 0; }
+.mission-outcome-stats span { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border: 1px solid rgba(200, 171, 112, .27); border-radius: 999px; background: rgba(5, 13, 27, .55); color: #d2dce6; font-size: .87rem; }
+.mission-outcome-stats strong { color: #f7da9e; }
+.mission-outcome-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 18px; }
+.mission-outcome-actions button { min-width: 150px; min-height: 44px; }
+.mission-mistake-count { color: #e7b7a8; font-weight: 700; }
+.mission-final-warning { position: fixed; z-index: 75; top: 46%; left: 50%; transform: translate(-50%, -50%); display: grid; gap: 6px; width: min(460px, calc(100vw - 32px)); padding: 15px 20px; border: 1px solid #aa665d; border-radius: 12px; background: rgba(38, 12, 20, .94); box-shadow: 0 0 30px rgba(156, 54, 58, .4); color: #f8e7e2; text-align: center; pointer-events: none; animation: mission-warning-enter .25s ease-out both; }
+.mission-final-warning strong { color: #ffd0bb; font-size: 1.12rem; }
+.mission-final-warning span { line-height: 1.5; }
+@keyframes mission-outcome-enter { from { opacity: 0; transform: translateY(18px) scale(.98); } to { opacity: 1; transform: none; } }
+@keyframes mission-mist { to { transform: translate3d(3%, -2%, 0); } }
+@keyframes mission-warning-enter { from { opacity: 0; transform: translate(-50%, -45%); } to { opacity: 1; transform: translate(-50%, -50%); } }
+@media (max-width: 560px) { .mission-outcome-panel { padding: 16px; } .mission-outcome-emblem { width: 70px; height: 70px; } .mission-outcome-emblem img { width: 62px; height: 54px; } .mission-outcome-actions { display: grid; grid-template-columns: 1fr; } .mission-outcome-actions button { width: 100%; } }
+@media (prefers-reduced-motion: reduce) { .mission-outcome-panel, .mission-outcome-mist, .mission-final-warning { animation: none; } }

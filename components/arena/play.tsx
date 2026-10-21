@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import { useProgress } from "@react-three/drei";
 import Link from "next/link";
 import { useTrainingStore } from "@/game/stores/training-store";
@@ -10,11 +10,12 @@ import { missionChapters } from "@/game/content/mission-catalog";
 import { loadSceneFont } from "@/game/rendering/scene-font";
 import { GameCanvas } from "@/components/game/game-canvas";
 import { TrainingHud } from "@/components/game/training-hud";
-import { OperatorConsole, ReviewOverlay } from "@/components/game/operator-console";
+import { ReviewOverlay } from "@/components/game/operator-console";
 import { EquipmentInspector, InspectHoldRing } from "@/components/game/equipment-inspector";
 import { BagPanel } from "@/components/game/bag-panel";
 import { CableLobby } from "@/components/ui/cable-lobby";
 import { TouchControls } from "@/components/game/touch-controls";
+import { FirstPersonHands } from "@/components/game/first-person-hands";
 import { ArenaBanner, ArenaConfirmDialog, ArenaEmptyState, ArenaIcon, ArenaShell } from "./shell";
 import { api, statusText, timeText, type AttemptView } from "./client-api";
 import { RewardReceipt } from "./economy";
@@ -30,13 +31,26 @@ function AssetGate({ onReady }: { onReady: () => void }) {
   }, [progress.active, progress.loaded, progress.total, onReady]);
   return null;
 }
+/** The fast clock owns its own renders; the 3D room never rerenders for each tick. */
+function ArenaClock({ start, epoch, phase }: { start: number; epoch: RefObject<number>; phase: "briefing" | "game" }) {
+  const [now, setNow] = useState(() => performance.now() + epoch.current);
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(performance.now() + epoch.current), 100);
+    return () => window.clearInterval(timer);
+  }, [epoch]);
+  return <>{now < start
+    ? phase === "briefing" ? `เริ่มใน ${Math.ceil((start - now) / 1000)} วินาที` : `เริ่มใน ${Math.max(1, Math.ceil((start - now) / 1000))}`
+    : timeText(Math.max(0, now - start))}</>;
+}
 export function ArenaPlay({ id }: { id: string }) {
-  const [attempt, setAttempt] = useState<AttemptView | null>(null), [error, setError] = useState(""), [now, setNow] = useState(0), [bag, setBag] = useState<Record<string,number> | null>(null);
+  const [attempt, setAttempt] = useState<AttemptView | null>(null), [error, setError] = useState(""), [bag, setBag] = useState<Record<string,number> | null>(null);
   const [briefing, setBriefing] = useState(true), [assetsReady, setAssetsReady] = useState(false), [bagOpen, setBagOpen] = useState(false), [fallback, setFallback] = useState(false), [busy, setBusy] = useState(false), [touch, setTouch] = useState(false);
   const [confirmAbandon, setConfirmAbandon] = useState(false);
+  const [started, setStarted] = useState(false), [pointerLocked, setPointerLocked] = useState(false);
   const actionPending = useRef(false);
-  const clockOffset = useRef(0), seq = useRef(0), queue = useRef(Promise.resolve());
-  const complete = useTrainingStore((s) => s.completed), consoleOpen = useTrainingStore((s) => s.consoleOpen), simPaused = useTrainingStore((s) => Boolean(s.sim?.paused));
+  const clockOffset = useRef(0), clockEpoch = useRef(0), seq = useRef(0), queue = useRef(Promise.resolve());
+  const complete = useTrainingStore((s) => s.completed), simPaused = useTrainingStore((s) => Boolean(s.sim?.paused));
+  const bagCount = useTrainingStore((s) => s.bagged?.length ?? 0);
   const previousErrors = useRef(0);
   const commands = useRef<{ seq: number; command: CompetitionCommand }[]>([]);
   const commandSequence = useRef(0), inFlight = useRef<Promise<void> | null>(null);
@@ -63,6 +77,27 @@ export function ArenaPlay({ id }: { id: string }) {
     void drain();
   }), [attempt?.status, attempt?.protocol, attempt?.start, drain]);
   const markAssetsReady = useCallback(() => setAssetsReady(true), []);
+  const exitFallback = useCallback(() => setFallback(false), []);
+  const enterFallback = useCallback(() => setFallback(true), []);
+  useEffect(() => {
+    const update = () => setPointerLocked(Boolean(document.pointerLockElement));
+    document.addEventListener("pointerlockchange", update);
+    return () => document.removeEventListener("pointerlockchange", update);
+  }, []);
+  useEffect(() => {
+    const resync = () => { clockEpoch.current = Date.now() + clockOffset.current - performance.now(); };
+    document.addEventListener("visibilitychange", resync);
+    window.addEventListener("focus", resync);
+    return () => { document.removeEventListener("visibilitychange", resync); window.removeEventListener("focus", resync); };
+  }, []);
+  useEffect(() => {
+    if (attempt?.status !== "RUNNING" || attempt.start === null) return;
+    const remaining = Number(attempt.start) - (performance.now() + clockEpoch.current);
+    if (remaining <= 0) { setStarted(true); return; }
+    setStarted(false);
+    const timer = window.setTimeout(() => setStarted(true), remaining);
+    return () => window.clearTimeout(timer);
+  }, [attempt?.status, attempt?.start]);
   useEffect(() => {
     if (!attempt?.id) return;
     let live = true;
@@ -78,6 +113,7 @@ export function ArenaPlay({ id }: { id: string }) {
     api<AttemptView>(`attempts/${id}`).then((a) => {
       if (!live) return;
       clockOffset.current = (a.serverNow || Date.now()) - Date.now();
+      clockEpoch.current = (a.serverNow || Date.now()) - performance.now();
       seq.current=a.eventSeq || 0;
       commandSequence.current = a.replay?.seq || 0;
       setAttempt(a.replay ? { ...a, protocol: a.replay.protocol, commandSeq: a.replay.seq } : a);
@@ -91,16 +127,14 @@ export function ArenaPlay({ id }: { id: string }) {
       }
       setTouch(window.matchMedia("(pointer: coarse)").matches);
     }).catch((e) => { if (live) setError(e.message); });
-    const timer = setInterval(() => setNow(Date.now() + clockOffset.current), 50);
-    return () => { live = false; clearInterval(timer); if (document.pointerLockElement) document.exitPointerLock(); useTrainingStore.setState(saved, true); };
+    return () => { live = false; if (document.pointerLockElement) document.exitPointerLock(); useTrainingStore.setState(saved, true); };
   }, [id]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (confirmAbandon || !bag || attempt?.status !== "RUNNING" || Date.now() + clockOffset.current < Number(attempt.start) || e.repeat) return;
       const target = e.target as HTMLElement;
       if (["INPUT","SELECT","TEXTAREA"].includes(target.tagName)) return;
-      if (e.code === "KeyC") { if (document.pointerLockElement) document.exitPointerLock(); const s = useTrainingStore.getState(); s.setConsoleOpen(!s.consoleOpen); }
-      if (e.code === "KeyR") { if (document.pointerLockElement) document.exitPointerLock(); setBagOpen((v) => !v); }
+      if (e.code === "KeyR" && !useTrainingStore.getState().heldItem) { if (document.pointerLockElement) document.exitPointerLock(); setBagOpen((v) => !v); }
     }; window.addEventListener("keydown", onKey); return () => window.removeEventListener("keydown", onKey);
   }, [bag, attempt?.status, attempt?.start, confirmAbandon]);
   useEffect(() => useTrainingStore.subscribe((state) => {
@@ -122,7 +156,9 @@ export function ArenaPlay({ id }: { id: string }) {
       if (commands.current.length) throw new Error("ยังมีคำสั่งที่ส่งไม่ครบ กรุณาเชื่อมต่อและส่งซ้ำก่อนส่งผล");
       const s = useTrainingStore.getState();
       const a = await api<AttemptView>(`attempts/${id}`, { action, ...(action === "ready" ? { bag } : {}), ...(action === "finish" && attempt?.protocol !== "server-command-v1" ? { state: { cables: s.cables, items: s.items, sim: s.sim } } : {}) });
-      clockOffset.current = (a.serverNow || Date.now()) - Date.now(); setAttempt(a); setError("");
+      clockOffset.current = (a.serverNow || Date.now()) - Date.now();
+      clockEpoch.current = (a.serverNow || Date.now()) - performance.now();
+      setAttempt(a); setError("");
     } catch (e) { setError((e as Error).message); } finally { actionPending.current = false; setBusy(false); }
   };
   if (!attempt) return <ArenaShell><ArenaBanner title="ภารกิจจับเวลา" file="card-time-attack" /><section className="arena-panel">{error ? <ArenaEmptyState icon="time-attack" title="ยังเปิดรอบนี้ไม่ได้" href="/arena/time-attack" action="กลับไปเลือกภารกิจ"><span role="alert">{error}</span></ArenaEmptyState> : <p role="status" className="arena-skeleton">กำลังเปิดใบภารกิจ…</p>}</section></ArenaShell>;
@@ -153,7 +189,7 @@ export function ArenaPlay({ id }: { id: string }) {
     <ArenaBanner title="ใบงานก่อนเข้าฝึก" file="card-time-attack"><p>{venueLabel} · {scenario.stage.title}</p></ArenaBanner>
     <div className="arena-split arena-round-brief">
       <section className="arena-panel">
-        <div className="arena-round-status"><span className="arena-status">{statusText(attempt.status)}</span><strong>{attempt.status !== "RUNNING" ? "ยังไม่เริ่มจับเวลา" : !now ? "กำลังเทียบเวลาเซิร์ฟเวอร์…" : now < Number(attempt.start) ? `เริ่มใน ${Math.ceil((Number(attempt.start) - now) / 1000)} วินาที` : timeText(Math.max(0, now - Number(attempt.start)))}</strong></div>
+        <div className="arena-round-status"><span className="arena-status">{statusText(attempt.status)}</span><strong>{attempt.status !== "RUNNING" ? "ยังไม่เริ่มจับเวลา" : <ArenaClock start={Number(attempt.start)} epoch={clockEpoch} phase="briefing" />}</strong></div>
         <span className="arena-eyebrow">{scenario.stage.id} · {venueLabel}</span>
         <h2>เป้าหมายของรอบนี้</h2><p>{scenario.stage.ticket}</p>
         <ol className="arena-connection-steps">{scenario.stage.briefing.map((line, index) => <li key={line}><span>{index + 1}</span><span>{line}</span></li>)}</ol>
@@ -171,12 +207,15 @@ export function ArenaPlay({ id }: { id: string }) {
     useTrainingStore.getState().reset(attempt.scenario as ScenarioId, hiddenCablesFor(scenario, packed), packedLeadsFor(scenario, packed));
     useTrainingStore.setState({ sim: initSim(scenario, attempt.seed || 1) }); previousErrors.current = 0; setBag(packed);
   }} />;
-  const running = attempt.status === "RUNNING" && now >= Number(attempt.start), counting = attempt.status === "RUNNING" && !running;
-  return <main className="game-screen" style={{ position: "fixed", inset: 0, background: "#081325" }}><GameCanvas venue={venue} active={running && !syncError && !busy && !confirmAbandon && !bagOpen && !consoleOpen && !simPaused} fallbackLook={fallback} touch={touch} onExitFallback={() => setFallback(false)} onPointerLockError={() => setFallback(true)} />
+  const running = attempt.status === "RUNNING" && started;
+  return <main className="fantasy-viewport game-screen play-page" style={{ position: "fixed", inset: 0, background: "#081325" }}>
+    <div className="game-viewport" style={{ position: "absolute", inset: 0, zIndex: 0 }}><GameCanvas key={scenario.id} venue={venue} active={running && !confirmAbandon && !bagOpen && !simPaused} fallbackLook={fallback} touch={touch} onExitFallback={exitFallback} onPointerLockError={enterFallback} /></div>
     <AssetGate onReady={markAssetsReady} />
-    <div className="arena-game-bar"><strong>{scenario.stage.id}</strong><span className="arena-live">{counting ? `เริ่มใน ${Math.max(1, Math.ceil((Number(attempt.start) - now) / 1000))}` : running ? timeText(Math.max(0, now - Number(attempt.start))) : "รอเริ่ม"}</span><span>บทลงโทษ {timeText(attempt.penaltyMs)} · {attempt.protocol === "server-command-v1" && attempt.scenario === "xs-1" && attempt.verificationEnabled ? "ตรวจคำสั่งบนเซิร์ฟเวอร์" : "ผลระดับนี้ยังรอตรวจ"}</span>
+    {running && !confirmAbandon && <><FirstPersonHands /><div className="game-center-reticle" aria-hidden="true" /></>}
+    {running && !touch && !pointerLocked && !fallback && !bagOpen && !confirmAbandon && <p role="status" style={{ position: "absolute", zIndex: 5, left: "50%", top: "48%", transform: "translate(-50%, -50%)", pointerEvents: "none", padding: "0.8rem 1.2rem", border: "1px solid #c8a967", borderRadius: 12, background: "#081325df", color: "#fff1d0", textAlign: "center" }}>คลิกในห้องเพื่อควบคุมเมาส์ แล้วใช้ W A S D เดิน</p>}
+    <div className="arena-game-bar"><strong>{scenario.stage.id}</strong><span className="arena-live">{attempt.status === "RUNNING" ? <ArenaClock start={Number(attempt.start)} epoch={clockEpoch} phase="game" /> : "รอเริ่ม"}</span><span>บทลงโทษ {timeText(attempt.penaltyMs)} · {attempt.protocol === "server-command-v1" && attempt.scenario === "xs-1" && attempt.verificationEnabled ? "ตรวจคำสั่งบนเซิร์ฟเวอร์" : "ผลระดับนี้ยังรอตรวจ"}</span>
       {attempt.status === "PENDING" && <button className="arena-game-primary" disabled={!assetsReady || busy} onClick={() => void act("ready")}>{assetsReady ? "พร้อม เริ่มนับถอยหลัง" : "กำลังโหลดฉากและฟอนต์…"}</button>}
-      <button disabled={!running} onClick={() => { if (document.pointerLockElement) document.exitPointerLock(); setBagOpen(true); }}>กระเป๋า (R)</button><button disabled={!running} onClick={() => { if (document.pointerLockElement) document.exitPointerLock(); useTrainingStore.getState().setConsoleOpen(true); }}>คอนโซล (C)</button>
+      <button disabled={!running} onClick={() => { if (document.pointerLockElement) document.exitPointerLock(); setBagOpen(true); }}>กระเป๋า (R) <b className="cl-bag-badge">{bagCount}</b></button>
       <button className="arena-game-primary" disabled={!complete || !running || busy || Boolean(syncError)} onClick={() => void act("finish")}>ส่งผลเพื่อตรวจ</button><button className="arena-game-danger" disabled={busy} onClick={() => { if (document.pointerLockElement) document.exitPointerLock(); setConfirmAbandon(true); }}>ยุติรอบ</button>{error && <span role="alert">{error}</span>}{syncError && <span role="alert">{syncError} <button onClick={() => void drain()}>ส่งคำสั่งที่ค้างซ้ำ</button></span>}
-    </div><TrainingHud title={scenario.stage.title} touch={touch} />{bagOpen && <BagPanel bag={bag} onClose={() => setBagOpen(false)} />}<OperatorConsole /><ReviewOverlay /><EquipmentInspector /><InspectHoldRing />{touch && running && !confirmAbandon && <TouchControls />}<div className="arena-public arena-game-dialog">{abandonDialog}</div></main>;
+    </div><TrainingHud title={scenario.stage.title} touch={touch} />{bagOpen && <BagPanel bag={bag} onClose={() => setBagOpen(false)} />}<ReviewOverlay /><EquipmentInspector /><InspectHoldRing />{touch && running && !confirmAbandon && <TouchControls />}<div className="arena-public arena-game-dialog">{abandonDialog}</div></main>;
 }

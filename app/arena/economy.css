@@ -637,3 +637,19 @@
   .arena-public .social-search .arena-form-row { grid-template-columns: 1fr; }
   .social-relation { grid-auto-flow: row; width: 100%; }
 }
+
+/* Public player profile: buttons in their own row above the cover (not inside the artwork). */
+.profile-hub-actions.is-above-cover { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 12px; margin: 0 0 12px; position: static; }
+
+/* Friend list card: avatar + frame shown whole, companion as a small badge on the avatar's lower-right corner;
+   the name is never underlined. */
+.friend-card .econ-friend-portrait { position: relative; display: grid; place-items: center; width: 84px; height: 84px; flex: none; overflow: visible; }
+.friend-card .econ-friend-portrait > :first-child { position: relative; z-index: 1; }
+.friend-card .econ-friend-portrait > img { position: absolute; z-index: 2; right: -6px; bottom: -4px; width: 36px; height: 36px; margin: 0; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .6)); }
+.friend-card, .friend-card strong, .friend-card:hover strong, .friend-card:focus-visible strong { text-decoration: none; }
+.friend-card:hover strong, .friend-card:focus-visible strong { color: #fff3cf; }
+.friend-card { align-items: center; gap: 16px; }
+/* Friend list: no companion pet; the framed avatar sits centred in its own box. */
+.friend-card .econ-friend-portrait > img { display: none; }
+.friend-card .econ-friend-portrait { width: 88px; height: 88px; display: grid; place-items: center; align-self: center; }
+.friend-card .econ-friend-portrait > :first-child { margin: 0 auto; }

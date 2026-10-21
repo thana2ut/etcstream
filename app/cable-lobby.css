@@ -655,6 +655,9 @@
 .cl-screen.cl-v3 .cl-bag-scroll { flex: none; }
 .cl-screen.cl-v3 .cl-bag-scroll { scroll-snap-type: none; }
 .cl-screen.cl-v3 .cl-bag-slot { height: auto; }
+.cl-screen.cl-v3 .cl-bag { border-color: #d8ad6288; background: radial-gradient(circle at 50% 0, #15324a66, transparent 36%), linear-gradient(180deg, #101c31f2, #091225f2); box-shadow: inset 0 1px 0 #fff1, 0 16px 34px #0005; }
+.cl-screen.cl-v3 .cl-bag-head { padding-bottom: 10px; border-bottom: 1px solid #d8ad6233; }
+.cl-screen.cl-v3 .cl-bag-empty { min-height: 2.6em; padding: 7px 10px; border-radius: 9px; background: #07112699; color: #aebbd3; }
 /* card + button: glyph centred in the circle */
 .cl-screen.cl-v3 .cl-slot-add { display: grid; place-items: center; padding: 0; line-height: 0; font-size: 1.25rem; }
 .cl-screen.cl-v3 .cl-slot-add svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; fill: none; }
@@ -664,25 +667,45 @@
 
 /* ───── In-room bag (BagPanel): real inventory with per-type status ───── */
 .cl-bag-badge { display: inline-grid; place-items: center; min-width: 22px; height: 22px; margin-left: 4px; padding: 0 6px; border-radius: 9999px; background: #ffe3a3; color: #2a1a06; font-size: .78rem; font-weight: 800; }
-.bag-card { width: min(560px, 94vw); max-height: min(78vh, 720px); display: flex; flex-direction: column; gap: 12px; }
-.bag-head { display: flex; align-items: center; justify-content: space-between; }
-.bag-head strong { font-size: 1.15rem; color: #ffe3a3; }
-.bag-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-.bag-summary span { display: grid; justify-items: center; gap: 2px; padding: 8px 4px; border-radius: 10px; border: 1px solid rgba(140, 160, 210, .22); background: rgba(4, 8, 24, .55); font-size: .78rem; color: #93a3c4; }
-.bag-summary b { font-size: 1.35rem; line-height: 1.1; color: #fff; }
+.bag-card { width: min(760px, calc(100vw - 32px)); max-height: min(86dvh, 820px); display: flex; flex-direction: column; gap: 14px; padding: 0; overflow: hidden; border-color: rgba(231, 194, 124, .72); background: linear-gradient(145deg, rgba(18, 29, 53, .98), rgba(5, 11, 27, .98)); box-shadow: 0 28px 80px #000c, inset 0 1px 0 #fff1; }
+.bag-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 20px 22px 16px; border-bottom: 1px solid rgba(231, 194, 124, .25); background: radial-gradient(circle at 12% 0, rgba(79, 216, 255, .12), transparent 36%), rgba(5, 10, 24, .6); }
+.bag-head > div { min-width: 0; display: grid; gap: 2px; }
+.bag-head strong { display: block; font-size: clamp(1.15rem, 2.8vw, 1.5rem); line-height: 1.45; color: #ffe3a3; }
+.bag-eyebrow { color: #7de7ff; font-size: .74rem; font-weight: 700; letter-spacing: .04em; }
+.bag-head .cl-link { flex: none; min-height: 40px; padding: 7px 12px; border: 1px solid #e7c27c66; border-radius: 10px; background: #10192dcc; }
+.bag-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding: 0 20px; }
+.bag-summary span { display: grid; justify-items: center; align-content: center; min-width: 0; min-height: 72px; gap: 4px; padding: 8px 6px; border-radius: 12px; border: 1px solid rgba(140, 160, 210, .22); background: linear-gradient(180deg, rgba(18, 30, 57, .86), rgba(5, 10, 25, .72)); font-size: .78rem; line-height: 1.35; text-align: center; color: #aebbd3; }
+.bag-summary b { font-size: 1.45rem; line-height: 1; color: #fff; }
 .bag-summary span:first-child b { color: #4fd8ff; }
-.bag-hand { display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(231, 194, 124, .6); background: linear-gradient(90deg, rgba(60, 44, 20, .55), rgba(10, 16, 40, .9)); }
+.bag-hand { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; align-items: center; gap: 12px; margin: 0 20px; padding: 12px 14px; border-radius: 14px; border: 1px solid rgba(231, 194, 124, .6); background: linear-gradient(100deg, rgba(73, 51, 17, .62), rgba(12, 25, 52, .95)); }
 .bag-hand .cl-icon { width: 44px; height: 44px; }
-.bag-hand strong { display: block; color: #ffe3a3; font-size: .95rem; }
+.bag-hand-icon, .bag-info-icon { display: grid; place-items: center; width: 42px; height: 42px; border: 1px solid #58d9f299; border-radius: 12px; background: #0b3850aa; color: #8eeaff; font-size: 1.25rem; box-shadow: inset 0 0 16px #49d8f222; }
+.bag-hand-copy { min-width: 0; display: grid; gap: 1px; }
+.bag-hand-copy > span { color: #f1c96f; font-size: .72rem; font-weight: 700; }
+.bag-hand strong { display: block; color: #fff3d5; font-size: 1rem; overflow-wrap: anywhere; }
 .bag-hand small { color: #b7c4de; font-size: .76rem; }
-.bag-list { list-style: none; margin: 0; padding: 0 4px 0 0; display: grid; gap: 8px; overflow-y: auto; min-height: 0; }
-.bag-row { display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(79, 216, 255, .35); background: rgba(10, 18, 44, .92); }
+.bag-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 0 20px; }
+.bag-tabs .bag-btn { width: 100%; min-width: 0; min-height: 44px; }
+.bag-tabs .bag-btn[aria-pressed="true"] { border-color: #8eeaff; background: linear-gradient(180deg, #18759a, #0c526f); box-shadow: 0 0 0 1px #8eeaff44, 0 6px 18px #02141f66; }
+.bag-search { display: grid; grid-template-columns: max-content minmax(0, 1fr); align-items: center; gap: 12px; padding: 0 20px; color: #e8d6aa; font-size: .9rem; font-weight: 700; }
+.bag-search input { width: 100%; min-width: 0; height: 44px; padding: 0 14px; border: 1px solid #7183a766; border-radius: 10px; background: #f7f8fb; color: #111827; font: inherit; }
+.bag-search input:focus-visible { outline: 3px solid #67def0; outline-offset: 2px; }
+.bag-list { list-style: none; margin: 0; padding: 0 20px 4px; display: grid; gap: 8px; overflow-y: auto; min-height: 0; scrollbar-gutter: stable; }
+.bag-row { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; border: 1px solid rgba(79, 216, 255, .32); background: linear-gradient(100deg, rgba(12, 27, 58, .96), rgba(7, 14, 34, .92)); }
 .bag-row.is-out { border-color: rgba(140, 160, 210, .18); background: rgba(8, 12, 30, .85); }
 .bag-row.is-out .bag-row-main strong { color: #b7c4de; }
 .bag-row .cl-icon { width: 44px; height: 44px; }
 .bag-row-main { min-width: 0; display: grid; gap: 2px; }
 .bag-row-main strong { color: #fff; font-size: .95rem; line-height: 1.3; }
 .bag-row-main small { color: #93a3c4; font-size: .76rem; }
+.bag-info-list { grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: start; }
+.bag-info-row { min-width: 0; display: grid; grid-template-columns: 42px minmax(0, 1fr); align-items: start; gap: 12px; padding: 13px; border: 1px solid #53688966; border-radius: 14px; background: #09152ccb; }
+.bag-info-row > div { min-width: 0; }
+.bag-info-row strong { display: block; color: #fff2d3; line-height: 1.45; }
+.bag-info-row p { margin: 4px 0; color: #d6e0f0; font-size: .82rem; line-height: 1.55; overflow-wrap: anywhere; }
+.bag-info-row small { display: block; color: #91a3c0; line-height: 1.5; }
+.bag-info-icon.is-route { color: #9be6b4; border-color: #65c98a88; background: #123c2aaa; }
+.bag-empty { margin: 0 20px; padding: 24px; border: 1px dashed #64779588; border-radius: 14px; text-align: center; color: #aebbd3; }
 .bag-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
 .bag-chips em { font-style: normal; font-size: .72rem; font-weight: 600; padding: 2px 8px; border-radius: 9999px; border: 1px solid; }
 .chip-bag { color: #4fd8ff; border-color: rgba(79, 216, 255, .5); background: rgba(10, 60, 90, .35); }
@@ -696,8 +719,29 @@
 .bag-count small { font-size: .78rem; color: #93a3c4; font-weight: 600; }
 .bag-btn { min-width: 72px; padding: 7px 14px; border-radius: 9999px; border: 1.5px solid #4fd8ff; background: rgba(12, 74, 104, .9); color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
 .bag-btn:hover:not(:disabled) { background: rgba(18, 96, 132, .95); }
+.bag-btn:focus-visible, .bag-head .cl-link:focus-visible { outline: 3px solid #9cecff; outline-offset: 2px; }
 .bag-btn:disabled { opacity: .35; cursor: not-allowed; border-color: rgba(140, 160, 210, .35); background: rgba(8, 12, 30, .8); }
 .bag-btn.is-stow { border-color: #e7c27c; background: rgba(90, 64, 24, .85); }
+.bag-card > .cl-note { margin: 0 20px 16px; }
+@media (max-width: 620px) {
+  .bag-card { width: calc(100vw - 16px); max-height: calc(100dvh - 16px); gap: 10px; }
+  .bag-head { padding: 14px; }
+  .bag-summary, .bag-tabs { padding-inline: 12px; }
+  .bag-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bag-summary span { min-height: 58px; }
+  .bag-tabs { grid-template-columns: 1fr; gap: 6px; }
+  .bag-tabs .bag-btn { min-height: 40px; }
+  .bag-hand { grid-template-columns: 42px minmax(0, 1fr); margin-inline: 12px; }
+  .bag-hand .bag-btn { grid-column: 1 / -1; width: 100%; }
+  .bag-search { grid-template-columns: 1fr; gap: 6px; padding-inline: 12px; }
+  .bag-list { padding-inline: 12px; }
+  .bag-row { grid-template-columns: 48px minmax(0, 1fr); }
+  .bag-row > .bag-btn, .bag-row-side { grid-column: 1 / -1; width: 100%; }
+  .bag-row-side { grid-template-columns: auto minmax(0, 1fr); align-items: center; }
+  .bag-row-side .bag-btn { width: 100%; }
+  .bag-info-list { grid-template-columns: 1fr; }
+  .bag-card > .cl-note { margin-inline: 12px; }
+}
 /* Sidebar: tabs stack from the top with even spacing (a short list must not spread over the whole column). */
 .cl-screen.cl-v3 .cl-tabs { grid-auto-rows: minmax(52px, 68px); align-content: start; }
 .cl-screen.cl-v3 .cl-tabs button { height: auto; max-height: none; min-height: 0; }
@@ -744,11 +788,9 @@
 @keyframes cl-warn-pop { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .cl-warn-veil, .cl-warn { animation: none; } }
 
-/* In-room HUD: console sits above the bag; on touch layouts both move to the top-right column (below pause) so they
-   never cover the touch pick/action buttons or the centred interaction prompt. */
-.cl-bag-button.cl-console-button { top: auto; bottom: 86px; }
+/* In-room HUD: on touch layouts the bag moves to the top-right column (below pause) so it never covers the
+   touch pick/action buttons or the centred interaction prompt. */
 .cl-bag-button.is-touch { top: max(134px, calc(env(safe-area-inset-top) + 134px)); bottom: auto; right: max(14px, env(safe-area-inset-right)); padding: 6px 14px; }
-.cl-bag-button.cl-console-button.is-touch { top: max(182px, calc(env(safe-area-inset-top) + 182px)); bottom: auto; }
 
 /* Centred, balanced cable cards in every room/level/mode: one centred column, cable then name then ends. */
 .cl-screen.cl-v3 .cl-catalog.is-grid { grid-auto-rows: 212px; }

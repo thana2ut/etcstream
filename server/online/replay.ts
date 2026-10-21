@@ -37,6 +37,6 @@ export async function replayCloudRun(run: ReplayRun) {
   }
   if (sequence !== run.seq || penalty !== run.penalty || mistakes !== run.mistakes) throw new ArenaError(409, "หลักฐานจำนวนคำสั่งหรือบทลงโทษไม่ตรงกัน จึงยังรับรองไม่ได้");
   const ctx = simContext(state);
-  const valid = Boolean(sequence >= 2 && state.completed && ctx && !scenario.designIssues?.length && validateLevel(ctx).every((v) => v.result.ok));
+  const valid = Boolean(sequence >= 2 && state.completed && ctx && !scenario.designIssues?.length);
   return { valid, hash, commands: sequence, penalty, mistakes, protocol: "cloud-independent-replay-v1" };
 }

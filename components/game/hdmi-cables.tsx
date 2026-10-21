@@ -115,8 +115,12 @@ function Cable({ id }: { id: CableId }) {
     if (!carrying && !def.locked && last.current.a.equals(a) && last.current.b.equals(b)) return;
     last.current.a.copy(a); last.current.b.copy(b);
     const tabletop = a.y >= 0.79 && b.y >= 0.79;
-    const sag = Math.min(0.24, 0.09 + a.distanceTo(b) * 0.035);
-    const floorRoute = scenario.layout && scenario.layout !== "studio" && !carrying && cable.a.portId && cable.b.portId && !def.locked && a.distanceTo(b) > 2
+    const sag = Math.min(0.32, 0.12 + a.distanceTo(b) * 0.045);
+    // Route a partly connected lead over the nearest worktop edge too: a straight
+    // port-to-loose-end chord otherwise looks like a rigid bar through the equipment.
+    const partlyConnected = Boolean(cable.a.portId) !== Boolean(cable.b.portId);
+    const floorRoute = scenario.layout && scenario.layout !== "studio" && !carrying && !def.locked &&
+      (partlyConnected || (cable.a.portId && cable.b.portId && a.distanceTo(b) > 2))
       ? classroomCableRoute(a.toArray() as Point3, b.toArray() as Point3, scenario.layout) : null;
     for (let index = 0; index < segmentCount; index++) {
       const mesh = segments.current[index];
@@ -154,11 +158,11 @@ function Cable({ id }: { id: CableId }) {
       </group>
     </group>)}
     {!adapter && scenario.stage && <instancedMesh ref={missionSegments} args={[undefined, undefined, segmentCount]} frustumCulled={false} castShadow>
-      <cylinderGeometry args={[def.short ? 0.009 : 0.012, def.short ? 0.009 : 0.012, 1, 7]} />
+      <cylinderGeometry args={[def.short ? 0.0045 : 0.006, def.short ? 0.0045 : 0.006, 1, 8]} />
       {logical ? <meshBasicMaterial color="#b98cff" transparent opacity={0.35} depthWrite={false} /> : <meshStandardMaterial color={color} roughness={0.7} metalness={0.15} />}
     </instancedMesh>}
     {!adapter && !scenario.stage && Array.from({ length: segmentCount }, (_, index) => <mesh key={index} ref={(node) => { segments.current[index] = node; }} castShadow>
-      <cylinderGeometry args={[def.short ? 0.009 : 0.012, def.short ? 0.009 : 0.012, 1, 7]} />
+      <cylinderGeometry args={[def.short ? 0.0045 : 0.006, def.short ? 0.0045 : 0.006, 1, 8]} />
       {logical ? <meshBasicMaterial color="#b98cff" transparent opacity={0.35} depthWrite={false} /> : <meshStandardMaterial color={color} roughness={0.7} metalness={0.15} />}
     </mesh>)}
   </group>;

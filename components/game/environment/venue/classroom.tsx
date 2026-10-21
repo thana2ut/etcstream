@@ -22,7 +22,7 @@ import { venueScreenFeed, venueScreenLive } from "@/game/training/monitor-feed";
  * (art/reference/venues/classroom-01/02, docs/venues/VENUE_VISUAL_REFERENCES.md):
  *  front: wood-slat feature wall, centred projector screen over the teacher desk, grey acoustic panels, corner speakers,
  *         track lights, mobile whiteboard (left), classroom TV on a stand (right, layout furniture)
- *  left:  large windows with blinds, camera on tripod (scenario device) beside a softbox, AV cart with wireless gear
+ *  left:  large windows with blinds and a softbox; camera on tripod in the centre aisle (scenario device)
  *  right: tall metal shelving over the portable-gear cabinet, blue / grey acoustic panels, door
  *  ceiling: suspended grid with LED panels, AC vents, downlights, ceiling projector · floor: polished grey tile.
  * Gameplay furniture (desks, cabinet, cable shelf, TV stand) comes from the layout so colliders and surfaces match.
@@ -135,7 +135,7 @@ function Plant({ p, s = 1 }: { p: V3; s?: number }) {
     </group>)}
   </group>;
 }
-/** Softbox on a light stand beside the camera, aimed at the teaching area. */
+/** Softbox on a light stand, aimed at the teaching area. */
 function Softbox({ p, intensity = 8 }: { p: V3; intensity?: number }) {
   const target = useMemo(() => {
     const t = new Object3D(); t.position.set(0.1, 1.2, k(-3.72)); return t;
@@ -334,7 +334,7 @@ export function Classroom() {
     <TeacherDeskDressing x={0} z={k(-3.0)} />
     <MobileWhiteboard p={[k(-3.1), 0, BACK + 0.95]} yaw={0.18} />
 
-    {/* left wall: large windows with blinds, acoustic panel near the front, softbox beside the camera, AV cart */}
+    {/* left wall: large windows with blinds, acoustic panel near the front, softbox and AV cart */}
     {[-2.75, 0, 2.75].map((z) => <Window key={z} z={k(z)} />)}
     <AcousticPanel p={[L + 0.08, 1.9, BACK + 0.9]} rot={[0, Math.PI / 2, 0]} s={[1.0, 1.6]} c="#5d78a8" />
     <InstalledClassroomCamera />

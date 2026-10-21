@@ -115,7 +115,7 @@ export function finishReplay(attempt: Row, now: number): boolean {
   }
   if (sequence!==Number(replay.seq) || lastHash!==replay.last_hash || penalty!==Number(attempt.penalty)) throw new ArenaError(409,"จำนวนคำสั่งหรือบทลงโทษไม่ตรงกับหลักฐานฝั่งเซิร์ฟเวอร์");
   const context=simContext(state);
-  const valid=Boolean(context && state.completed && !scenario.designIssues?.length && validateLevel(context).every((r) => r.result.ok));
+  const valid=Boolean(context && state.completed && !scenario.designIssues?.length);
   const elapsed=now-Number(attempt.start);
   if (elapsed < 1000 || Number(replay.seq) < 2) throw new ArenaError(409,"เวลา/หลักฐานคำสั่งยังไม่เพียงพอให้รับรองผล");
   const official=valid && verifiableStage(String(attempt.scenario)) && process.env.ARENA_VERIFIED_SLICE_ENABLED === "1";

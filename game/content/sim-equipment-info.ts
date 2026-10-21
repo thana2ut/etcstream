@@ -16,7 +16,7 @@ export function simEquipmentInfo(scenario: Scenario, id: string) {
     role: m.generic ? "อุปกรณ์จำลองเพื่อฝึก" : simThai(m.manufacturer),
     summary: playerEquipmentNote(m.notes[0] ?? "") ?? `${inst.label} ใช้เชื่อมต่อสัญญาณตามหน้าที่ของอุปกรณ์ในห้องฝึก`,
     facts: [...m.verifiedPorts.map((p) => `พอร์ต: ${p}`).filter((p) => playerEquipmentNote(p) !== null), ...m.notes.slice(1).map(playerEquipmentNote).filter((note): note is string => Boolean(note))],
-    inThisRoom: `${inst.label}${station ? ` — จุดติดตั้ง: ${station}` : ""} เปิดแผงควบคุม (C) เพื่อดูสถานะ พอร์ต และการตั้งค่า`,
+    inThisRoom: `${inst.label}${station ? ` — จุดติดตั้ง: ${station}` : ""} กด E ค้างเพื่อดูพอร์ต แล้วต่อสายให้ตรงพอร์ต`,
     unverified: scenario.stage?.unresolvedHardware ?? [],
   };
 }

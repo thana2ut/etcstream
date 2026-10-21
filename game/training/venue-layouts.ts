@@ -86,7 +86,7 @@ const studio: VenueLayout = {
 
 /* ════════ XS · Classroom (reference: art/reference/venues/classroom-01/02) ════════
  *  Front wall: projector screen centred over the teacher desk · mobile whiteboard front-left · classroom TV front-right
- *  Two blocks of 2-seat student tables with a centre aisle · camera on a tripod by the left windows (with softbox)
+ *  Two blocks of 2-seat student tables with a centre aisle · camera on a tripod centred behind the student tables
  *  โต๊ะควบคุม AV rear-right · metal storage shelving (portable gear) on the right wall. */
 const xsDesk = furn("xs-operator", "operatorDesk", 3.5, 2.9, 2.4, 0.76, 0.8, "โต๊ะควบคุม AV");
 const xsPrep = furn("xs-equipment-prep", "equipmentPrep", 5.15, 0.15, 1.1, 0.78, 3.2, "โต๊ะเตรียมอุปกรณ์ · ภาพ / ควบคุม / เสียง");
@@ -102,7 +102,8 @@ const classroom: VenueLayout = {
   id: "classroom",
   job: "เตรียมระบบนำเสนอและถ่ายทอดในห้องเรียน",
   bounds: { minX: -5.75, maxX: 5.75, minZ: -4.4, maxZ: 4.4 },
-  spawn: [5.1, 0.84, 1.95], spawnYaw: yawToward([5.1, 0, 1.95], [0, 0, -2.4]),
+  // The 0.28 m player capsule needs clearance from both the prep table and AV desk.
+  spawn: [5.1, 0.84, 2.25], spawnYaw: yawToward([5.1, 0, 2.25], [0, 0, -2.4]),
   work: top(xsTeacher),
   equipment: top(xsPrep),
   cables: top(xsCableShelf, -1),
@@ -115,11 +116,11 @@ const classroom: VenueLayout = {
     slides: at(0.05, 0.76, -3.2, Math.PI, "โต๊ะผู้สอน — โน้ตบุ๊กหันหน้าจอเข้าผู้สอน"),
     tx1: at(0.5, 0.76, -2.7, 0, "โต๊ะผู้สอน — ไมค์ผู้สอน"), lav1: at(0.85, 0.76, -2.7, 0),
     monitor: at(4.2, 0.98, -3.15, 0, "TV ห้องเรียน — เว้นทางบริการหลังจอ"),
-    cam1: cam(-3.8, -2.2, [0.1, -3.72], "กล้องผู้สอนริมหน้าต่าง"),
+    cam1: cam(0, 2.8, [0, -3.72], "กล้องผู้สอนกลางทางเดินหลังห้อง"),
   },
   furniture: [xsDesk, xsPrep, xsCableShelf, xsTeacher, furn("xs-tv", "tvStand", 4.2, -3.2, 1.2, 0.95, 0.45), ...XS_STUDENT],
   obstacles: [],
-  zones: ["หน้าห้อง: จอโปรเจกเตอร์กลาง โต๊ะผู้สอน ไวท์บอร์ด (ซ้าย) TV (ขวา)", "กลางห้อง: โต๊ะนักเรียนคู่ 2 ฝั่ง ทางเดินกลาง", "ริมหน้าต่าง: กล้องบนขาตั้ง + ไฟ Softbox", "หน้าห้อง: โต๊ะผู้สอนและจุดควบคุมหลัก", "ผนังขวา: โต๊ะเตรียมอุปกรณ์ แบ่งหมวดภาพ / ควบคุม / เสียง", "หลังห้อง: ชั้นเก็บสาย"],
+  zones: ["หน้าห้อง: จอโปรเจกเตอร์กลาง โต๊ะผู้สอน ไวท์บอร์ด (ซ้าย) TV (ขวา)", "กลางห้อง: โต๊ะนักเรียนคู่ 2 ฝั่ง ทางเดินกลาง", "กลางทางเดินหลังห้อง: กล้องบนขาตั้ง · ริมหน้าต่างมีไฟ Softbox", "หน้าห้อง: โต๊ะผู้สอนและจุดควบคุมหลัก", "ผนังขวา: โต๊ะเตรียมอุปกรณ์ แบ่งหมวดภาพ / ควบคุม / เสียง", "หลังห้อง: ชั้นเก็บสาย"],
 };
 
 /* ════════ M · Auditorium / activity hall ════════

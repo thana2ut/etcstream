@@ -27,7 +27,7 @@ export function useRunAutosave(key: RunKey | null, active: boolean, lobbyBag: Re
     if (!k || !bag || suppressed.current) return true;
     const st = useTrainingStore.getState();
     if (st.scenarioId !== k.scenarioId) return true;
-    if (st.completed) { deleteRun(k); last.current = ""; setStatus({ state: "idle" }); return true; }
+    if (st.completed || (k.mode !== "free-practice" && st.failed)) { deleteRun(k); last.current = ""; setStatus({ state: "idle" }); return true; }
     const training = pickTraining(st);
     const body = JSON.stringify([training, st.wrongStreak, st.failed, st.heldTurn, bag]);
     if (!force && body === last.current) return true;

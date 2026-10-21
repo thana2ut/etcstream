@@ -175,3 +175,55 @@ export function MissionResultModal({
     </div>
   );
 }
+
+/** Mission Hall only; Free Practice keeps its existing result screen. */
+export function MissionOutcomeModal({ status, missionTitle, venue, level, completed, total, mistakes, reward, merit, rankUp, progressError, onNext, onRetry, onReturn }: {
+  status: "success" | "failed";
+  missionTitle: string;
+  venue: string;
+  level: number;
+  completed: number;
+  total: number;
+  mistakes: number;
+  reward?: string;
+  merit?: number;
+  rankUp?: string;
+  progressError?: string;
+  onNext?: () => void;
+  onRetry: () => void;
+  onReturn: () => void;
+}) {
+  const success = status === "success";
+  return <div className={`mission-outcome-overlay is-${status}`} role="dialog" aria-modal="true" aria-labelledby="mission-outcome-title">
+    <div className="mission-outcome-mist" aria-hidden="true" />
+    <section className="mission-outcome-panel gold-border-frame">
+      <div className={`mission-outcome-emblem${success ? "" : " is-broken"}`} aria-hidden="true">
+        <span className="mission-outcome-blade" />
+        <Image src="/images/xianxia/emblem.webp" alt="" width={86} height={74} />
+      </div>
+      <p className="mission-outcome-kicker">{success ? "✦ ผลแห่งวิถีกระบี่ ✦" : "✦ บททดสอบยังไม่สิ้นสุด ✦"}</p>
+      <h1 id="mission-outcome-title">{success ? "ภารกิจสำเร็จ" : "ภารกิจล้มเหลว"}</h1>
+      <p className="mission-outcome-subtitle">{success ? "ท่านฝ่าบททดสอบแห่งวิถีกระบี่ได้สำเร็จ" : "วิถีกระบี่ยังไม่สมบูรณ์ จงกลับไปฝึกฝนและเริ่มต้นใหม่อีกครั้ง"}</p>
+      <div className="mission-outcome-info">
+        <strong>{missionTitle}</strong>
+        <span>{venue} · ระดับ {level}</span>
+      </div>
+      {success ? <div className="mission-outcome-stats">
+        <span>เงื่อนไขสำเร็จ <strong>{completed}/{total}</strong></span>
+        <span>ความผิดพลาด <strong>{mistakes}</strong> ครั้ง</span>
+        {reward && <span>รางวัล <strong>{reward}</strong></span>}
+        {merit !== undefined && <span>เกียรติภูมิ <strong>+{merit}</strong></span>}
+        {rankUp && <span>เลื่อนขั้น <strong>{rankUp}</strong></span>}
+      </div> : <div className="mission-outcome-stats">
+        <span>จำนวนครั้งที่ผิดพลาด: <strong>{mistakes}</strong></span>
+        <span>จำนวนครั้งที่อนุญาต: <strong>3</strong></span>
+      </div>}
+      {progressError && <p className="form-error" role="alert">{progressError}</p>}
+      <div className="mission-outcome-actions">
+        {success && onNext && <button type="button" className="cultivation-btn btn-gold btn-md" onClick={onNext} autoFocus>ด่านถัดไป</button>}
+        <button type="button" className="cultivation-btn btn-gold-subtle btn-md" onClick={onRetry} autoFocus={!onNext}> {success ? "เล่นอีกครั้ง" : "ลองใหม่อีกครั้ง"}</button>
+        <button type="button" className="cultivation-btn btn-glass btn-md" onClick={onReturn}>กลับหน้าภารกิจ</button>
+      </div>
+    </section>
+  </div>;
+}

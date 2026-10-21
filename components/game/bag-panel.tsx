@@ -49,7 +49,7 @@ export function BagPanel({ bag, onClose }: { bag: Record<string, number>; onClos
   return <div className="cl-overlay" role="dialog" aria-modal="true" aria-labelledby="bag-title" onClick={onClose}>
     <div className="cl-overlay-card bag-card" onClick={(e) => e.stopPropagation()}>
       <div className="bag-head">
-        <strong id="bag-title">🎒 กระเป๋าสาย</strong>
+        <div><span className="bag-eyebrow">คลังพกพาระหว่างฝึก</span><strong id="bag-title">กระเป๋าสายสัญญาณ</strong></div>
         <button type="button" className="cl-link" onClick={onClose}>ปิด ✕</button>
       </div>
       <div className="bag-summary" aria-live="polite">
@@ -60,8 +60,8 @@ export function BagPanel({ bag, onClose }: { bag: Record<string, number>; onClos
       </div>
 
       {held && heldDef && !heldDef.fixedA && <div className="bag-hand">
-        {heldCat ? <CableThumbnail className="bag-cable-thumbnail" cable={heldCat} /> : <span />}
-        <div><strong>ถืออยู่: {heldCat?.name ?? heldDef.label}</strong><small>หยิบผิดเส้น? เก็บกลับเข้ากระเป๋าได้</small></div>
+        <div className="bag-hand-icon" aria-hidden="true">↯</div>
+        <div className="bag-hand-copy"><span>กำลังถือ</span><strong>{heldCat?.name ?? heldDef.label}</strong><small>หยิบผิดเส้น? เก็บกลับเข้ากระเป๋าได้</small></div>
         <button type="button" className="bag-btn is-stow" onClick={() => stowHeld()}>เก็บเข้ากระเป๋า</button>
       </div>}
 
@@ -134,22 +134,22 @@ function MissionStockPanel({ onClose }: { onClose: () => void }) {
   const filtered = rows.filter(({ def }) => `${def.id} ${def.label} ${def.ends.join(" ")}`.toLowerCase().includes(query.trim().toLowerCase()));
   return <div className="cl-overlay" role="dialog" aria-modal="true" aria-labelledby="mission-stock-title" onClick={onClose}>
     <div className="cl-overlay-card bag-card" ref={panel} onClick={(e) => e.stopPropagation()}>
-      <div className="bag-head"><strong id="mission-stock-title">🎒 กระเป๋าและคลังประจำด่าน</strong><button type="button" className="cl-link" onClick={onClose}>ปิด ✕</button></div>
+      <div className="bag-head"><div><span className="bag-eyebrow">คลังภารกิจ · ตรวจสถานะตามเวลาจริง</span><strong id="mission-stock-title">กระเป๋าและอุปกรณ์ประจำด่าน</strong></div><button type="button" className="cl-link" onClick={onClose}>ปิด ✕</button></div>
       <div className="bag-summary" aria-live="polite">
         <span><b>{rows.length}</b>ทั้งหมด</span><span><b>{rows.filter((r) => !r.attached && !r.held).length}</b>ยังว่าง</span>
         <span><b>{rows.filter((r) => r.held).length}</b>กำลังถือ</span><span><b>{installed.length}</b>ต่อครบสองปลาย</span>
       </div>
-      <nav aria-label="รายการประจำด่าน" className="bag-chips">
+      <nav aria-label="รายการประจำด่าน" className="bag-tabs">
         {([["cables", "สายสัญญาณ"], ["equipment", "อุปกรณ์"], ["routes", "เส้นทางที่ต่อแล้ว"]] as const).map(([id, label]) => <button type="button" className="bag-btn" key={id} aria-pressed={tab === id} onClick={() => setTab(id)}>{label}</button>)}
       </nav>
-      {state.held && <div className="bag-hand"><div><strong>กำลังถือ {state.held.cableId}</strong><small>{rows.find((r) => r.held)?.attached ? "ปลายแรกติดแล้ว นำปลายที่เหลือไปต่อ" : "เลือกพอร์ตสำหรับปลายแรก"}</small></div><button type="button" className="bag-btn is-stow" onClick={state.stowHeld}>ยกเลิกและเก็บคืน</button></div>}
+      {state.held && <div className="bag-hand"><div className="bag-hand-icon" aria-hidden="true">↯</div><div className="bag-hand-copy"><span>กำลังถือ</span><strong>{state.held.cableId}</strong><small>{rows.find((r) => r.held)?.attached ? "ปลายแรกติดแล้ว นำปลายที่เหลือไปต่อ" : "เลือกพอร์ตสำหรับปลายแรก"}</small></div><button type="button" className="bag-btn is-stow" onClick={state.stowHeld}>ยกเลิกและเก็บคืน</button></div>}
       {tab === "cables" && <>
-        <label>ค้นหาสายหรือหัวต่อ <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="รหัสสาย ชื่อ หรือหัวต่อ" /></label>
+        <label className="bag-search"><span>ค้นหาสายหรือหัวต่อ</span><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="พิมพ์รหัสสาย ชื่อ หรือชนิดหัวต่อ" /></label>
         <ul className="bag-list">{filtered.map(({ def, attached, held, bagged }) => {
           const category = catalogById(catalogIdFor(def));
           const stockRole = def.stockRole === "spare" ? "สายสำรอง" : def.stockRole === "distractor" ? "สายตัวเลือกฝึกวิเคราะห์" : "สายสำหรับงาน";
           return <li key={def.id} className="bag-row">
-            {category && <CableThumbnail className="bag-cable-thumbnail" cable={category} />}
+            {category ? <CableThumbnail className="bag-cable-thumbnail" cable={category} /> : <span className="bag-info-icon" aria-hidden="true">↯</span>}
             <div className="bag-row-main"><strong>{def.id} · {def.label}</strong><small>ปลาย A: {def.ends[0]} ↔ ปลาย B: {def.ends[1]}</small>
               <span className="bag-chips"><em>{stockRole}</em><em>{held ? "กำลังถือ" : attached === 2 ? "ต่อครบสองปลาย" : attached === 1 ? "ต่ออยู่หนึ่งปลาย" : bagged ? "ในกระเป๋า" : "จุดเก็บสายในห้อง"}</em></span>
               {scenario.cableMeta?.[def.id] && <small>ความยาว {scenario.cableMeta[def.id].lengthM} ม. · สัญญาณ {def.signalClass ?? "ตรวจชนิดจากพอร์ต"}</small>}
@@ -160,11 +160,11 @@ function MissionStockPanel({ onClose }: { onClose: () => void }) {
         {filtered.length === 0 && <p>ไม่พบสายที่ค้นหา</p>}
         <p className="cl-note">สายที่ยังอยู่ในห้องหยิบด้วย E ที่จุดเก็บสาย · ต่อครบสองปลายไม่ได้แปลว่ามีสัญญาณ ต้องตั้งค่าและทดสอบระบบ</p>
       </>}
-      {tab === "equipment" && <ul className="bag-list">{scenario.devices.map((d) => {
+      {tab === "equipment" && <ul className="bag-list bag-info-list">{scenario.devices.map((d) => {
         const portable = scenario.placeables.find((p) => p.id === d.id);
-        return <li key={d.id}><strong>{playerEquipmentText(d.label)}</strong><p>{portable ? state.heldItem === d.id ? "กำลังถือ" : isItemPlaced(state, d.id) ? "วางที่จุดใช้งานแล้ว" : "นำไปวางที่จุดใช้งาน" : "อุปกรณ์ติดตั้งประจำ"} · {portable?.zoneLabel ?? d.zoneLabel ?? "ตรวจป้ายประจำจุด"}</p><small>พอร์ต {Object.values(scenario.ports).filter((p) => p.device === d.id).length} ช่อง · {d.generic ? "อุปกรณ์ฝึกจำลอง" : "ตรวจชื่อและหน้าที่พอร์ตก่อนต่อ"}</small></li>;
+        return <li key={d.id} className="bag-info-row"><span className="bag-info-icon" aria-hidden="true">▣</span><div><strong>{playerEquipmentText(d.label)}</strong><p>{portable ? state.heldItem === d.id ? "กำลังถือ" : isItemPlaced(state, d.id) ? "วางที่จุดใช้งานแล้ว" : "นำไปวางที่จุดใช้งาน" : "อุปกรณ์ติดตั้งประจำ"} · {portable?.zoneLabel ?? d.zoneLabel ?? "ตรวจป้ายประจำจุด"}</p><small>พอร์ต {Object.values(scenario.ports).filter((p) => p.device === d.id).length} ช่อง · {d.generic ? "อุปกรณ์ฝึกจำลอง" : "ตรวจชื่อและหน้าที่พอร์ตก่อนต่อ"}</small></div></li>;
       })}</ul>}
-      {tab === "routes" && <><p className="cl-note">แสดงเฉพาะสายที่ต่อเองหรือมีอยู่เมื่อเริ่มงาน ยังไม่ยืนยันการส่งสัญญาณ</p><ul className="bag-list">{installed.map(({ def, lead }) => <li key={def.id}><strong>{def.id}</strong><p>{scenario.ports[lead.a.portId!]?.label} ↔ {scenario.ports[lead.b.portId!]?.label}</p><small>ถอดหรือเปลี่ยนสายด้วย E ที่พอร์ตจริง</small></li>)}</ul>{installed.length === 0 && <p>ยังไม่มีสายที่ต่อครบสองปลาย</p>}</>}
+      {tab === "routes" && <><p className="cl-note">แสดงเฉพาะสายที่ต่อเองหรือมีอยู่เมื่อเริ่มงาน ยังไม่ยืนยันการส่งสัญญาณ</p><ul className="bag-list bag-info-list">{installed.map(({ def, lead }) => <li key={def.id} className="bag-info-row"><span className="bag-info-icon is-route" aria-hidden="true">↔</span><div><strong>{def.id}</strong><p>{scenario.ports[lead.a.portId!]?.label} ↔ {scenario.ports[lead.b.portId!]?.label}</p><small>ถอดหรือเปลี่ยนสายด้วย E ที่พอร์ตจริง</small></div></li>)}</ul>{installed.length === 0 && <p className="bag-empty">ยังไม่มีสายที่ต่อครบสองปลาย</p>}</>}
       <CatalogCanvas />
     </div>
   </div>;
