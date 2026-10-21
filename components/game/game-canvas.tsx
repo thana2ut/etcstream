@@ -56,8 +56,10 @@ export const GameCanvas = memo(function GameCanvas({ venue, active, fallbackLook
   </aside>}<Canvas frameloop={active || reviewView ? "always" : "demand"} shadows={hasShadows ? "percentage" : false} gl={{ antialias: true, powerPreference: "high-performance", stencil: false }} camera={{ fov: 67, near: 0.1, far: 140, position: [0, 1.65, 3] }} dpr={dpr} onPointerDown={(event) => {
     const canvas = event.nativeEvent.target;
     if (active && !reviewView && !fallbackLook && !touch && !document.pointerLockElement && canvas instanceof HTMLCanvasElement) {
-      try { void Promise.resolve(canvas.requestPointerLock()).catch(onPointerLockError); }
-      catch { onPointerLockError(); }
+      // Raw (unaccelerated) deltas give a predictable turn rate; browsers without it fall back to a plain lock.
+      const plain = () => { try { void Promise.resolve(canvas.requestPointerLock()).catch(onPointerLockError); } catch { onPointerLockError(); } };
+      try { void Promise.resolve(canvas.requestPointerLock({ unadjustedMovement: true })).catch(plain); }
+      catch { plain(); }
     }
   }} onCreated={({ gl }) => { gl.toneMappingExposure = 1.35; gl.domElement.setAttribute("aria-label", missionCopy.play.canvasLabel); gl.domElement.tabIndex = 0; }}>
     <PerformanceMonitor bounds={() => [50, 70]} flipflops={4} onIncline={() => setDpr((d) => Math.min(d + 0.1, Math.min(window.devicePixelRatio, 1.25)))} onDecline={() => setDpr((d) => Math.max(d - 0.2, 0.6))} />

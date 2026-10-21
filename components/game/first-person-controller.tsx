@@ -60,6 +60,8 @@ export function FirstPersonController({ active, fallbackLook, touch, onExitFallb
   const skipLockedMove = useRef(true);
   const fallbackDragging = useRef(false);
   const targetListDirty = useRef(true);
+  const relockSettleUntil = useRef(0);
+  const anchor = useRef<Object3D>(null);
 
   useEffect(() => { controls.current = { active, fallbackLook, touch, onExitFallback }; }, [active, fallbackLook, touch, onExitFallback]);
 
@@ -101,9 +103,11 @@ export function FirstPersonController({ active, fallbackLook, touch, onExitFallb
       inspectTarget.current = null;
     };
     const onMove = (event: MouseEvent) => {
-      if (!controls.current.active || document.hidden) return;
+      if (!controls.current.active || document.hidden || useTrainingStore.getState().inspecting) return;
       const locked = document.pointerLockElement === element;
       if (locked) {
+        // Browsers can report stale/accumulated deltas for the first samples after (re)gaining lock.
+        if (performance.now() < relockSettleUntil.current) return;
         if (skipLockedMove.current) { skipLockedMove.current = false; return; }
       } else {
         if (!controls.current.fallbackLook || event.buttons !== 1 || event.target !== element) { fallbackDragging.current = false; return; }
@@ -111,7 +115,8 @@ export function FirstPersonController({ active, fallbackLook, touch, onExitFallb
       }
       if (!Number.isFinite(event.movementX) || !Number.isFinite(event.movementY)) return;
       // A relock/OS-focus glitch can report a screen-sized synthetic delta; ordinary fast turns are untouched.
-      if (Math.abs(event.movementX) > Math.max(2000, window.innerWidth * 1.5) || Math.abs(event.movementY) > Math.max(2000, window.innerHeight * 1.5)) return;
+      // Real hand movement stays far below this per event even on fast flicks; larger samples are snap glitches.
+      if (Math.abs(event.movementX) > Math.max(400, window.innerWidth * 0.35) || Math.abs(event.movementY) > Math.max(300, window.innerHeight * 0.35)) return;
       angles.current.yaw -= event.movementX * MOUSE_SENSITIVITY;
       angles.current.pitch = MathUtils.clamp(angles.current.pitch - event.movementY * MOUSE_SENSITIVITY, -MAX_PITCH, MAX_PITCH);
     };
@@ -157,7 +162,13 @@ export function FirstPersonController({ active, fallbackLook, touch, onExitFallb
       if (detail.type === "drop") useTrainingStore.getState().drop(dropPoint(camera, layout), angles.current.yaw);
       if (detail.type === "turn") useTrainingStore.getState().turnHeld();
     };
-    const clear = () => { keys.current.clear(); skipLockedMove.current = true; fallbackDragging.current = false; inspectTarget.current = null; useTrainingStore.getState().setInspectHold(null); useTrainingStore.getState().focus(null); };
+    const clear = () => {
+      keys.current.clear(); skipLockedMove.current = true; fallbackDragging.current = false; inspectTarget.current = null;
+      relockSettleUntil.current = performance.now() + 60;
+      const store = useTrainingStore.getState();
+      if (store.inspectHoldStart !== null) store.setInspectHold(null);
+      store.focus(null);
+    };
     const endDrag = () => { fallbackDragging.current = false; };
     document.addEventListener("mousemove", onMove);
     document.addEventListener("mouseup", endDrag);
@@ -223,8 +234,10 @@ export function FirstPersonController({ active, fallbackLook, touch, onExitFallb
       }
       return;
     }
-    const translation = body.current?.translation();
-    if (translation) camera.position.set(translation.x, translation.y + 0.84, translation.z);
+    // Follow the interpolated render transform, not the raw fixed-step physics position:
+    // reading translation() makes the camera step at the physics rate and judder on high-refresh displays.
+    if (anchor.current) { anchor.current.getWorldPosition(camera.position); camera.position.y += 0.84; }
+    else { const translation = body.current?.translation(); if (translation) camera.position.set(translation.x, translation.y + 0.84, translation.z); }
     camera.quaternion.setFromEuler(look.set(angles.current.pitch, angles.current.yaw, 0, "YXZ"));
     if (!active || (!touch && document.pointerLockElement !== gl.domElement && !fallbackLook)) return;
     const store = useTrainingStore.getState();
@@ -291,6 +304,7 @@ export function FirstPersonController({ active, fallbackLook, touch, onExitFallb
   return <>
     <RigidBody ref={body} position={layout.spawn} colliders={false} enabledRotations={[false, false, false]} canSleep={false} ccd>
       <CapsuleCollider args={[0.52, 0.28]} friction={0.35} />
+      <object3D ref={anchor} />
     </RigidBody>
   </>;
 }
