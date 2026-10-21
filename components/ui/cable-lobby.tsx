@@ -109,7 +109,8 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
       const avail = panel.getBoundingClientRect().bottom - pad - el.getBoundingClientRect().top - pads;
       // Keep complete rows only; forcing a second row into a short panel flattens every slot.
       const rows = Math.max(1, Math.floor((avail + gap) / (base + gap)));
-      const rowH = Math.min(base * 1.35, (avail - gap * (rows - 1)) / rows);
+      // Never shrink below the CSS slot height, or a short panel clips the slot icons in half.
+      const rowH = Math.max(base, Math.min(base * 1.35, (avail - gap * (rows - 1)) / rows));
       grid.style.gridAutoRows = `${rowH}px`;
       el.style.height = `${rows * rowH + gap * (rows - 1) + pads}px`;
     };
