@@ -380,7 +380,6 @@
 .arena-privacy legend { padding: 0 12px 0 0; font-size: 14px; }
 .arena-public .arena-error { background: #3b2533ed; }
 .arena-skeleton { gap: 12px; min-height: 140px; }
-.arena-skeleton::before { content: ""; width: 20px; height: 20px; flex: none; border: 1px solid #caa66b55; border-top-color: var(--arena-highlight); border-radius: 50%; animation: arena-seal-turn 1.8s linear infinite; }
 .arena-public .arena-join { max-width: 620px; margin-inline: auto; }
 .arena-footer { margin-top: 24px; padding-top: 8px; }
 .arena-footer > a { min-height: 44px; display: inline-flex; align-items: center; }
@@ -397,7 +396,6 @@
 .arena-result .arena-actions { justify-content: center; }
 .arena-public .arena-banner,.arena-public .arena-portal-tile,.arena-public .arena-character-sheet { animation: arena-scene-enter .3s ease both; }
 @keyframes arena-scene-enter { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes arena-seal-turn { to { transform: rotate(360deg); } }
 /* Competition status rail only; keep original TrainingHud and 3D controls intact. */
 .arena-game-bar { gap: 8px 12px; padding: 10px 14px; border-radius: 3px 12px; background: linear-gradient(110deg,#101c30f5,#1a3042f5); border-color: #caa66b88; font-family: var(--font-thai); }
 .arena-game-bar .arena-live { color: #f4dba7; border-inline: 1px solid #caa66b44; padding-inline: 14px; }
