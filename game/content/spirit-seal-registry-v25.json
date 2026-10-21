@@ -1,0 +1,95 @@
+{
+  "version": "V25",
+  "items": [
+    {
+      "id": "SS-001",
+      "name_th": "ผนึกมังกรเพลิงอสูร",
+      "price": 1200,
+      "rarity_th": "ตำนาน",
+      "description_th": "มังกรเพลิงสีชาดโอบแกนเพลิงอัญมณี",
+      "web_path": "/arena/economy/spirit-seals/01_crimson_demon_flame_dragon.png",
+      "sha256": "d041e6f3cdfcb5a9e447a41ea80e3eb9aef5139174e5a1181e312548b2854912"
+    },
+    {
+      "id": "SS-002",
+      "name_th": "ผนึกมังกรเหมันต์ฟ้าคราม",
+      "price": 850,
+      "rarity_th": "มหากาพย์",
+      "description_th": "มังกรน้ำแข็งกางปีก ปกปักผลึกคราม",
+      "web_path": "/arena/economy/spirit-seals/02_azure_frost_winged_dragon.png",
+      "sha256": "05cd1a5d88446215be011231995e855a24f585890d0452b936b0dba80494aff0"
+    },
+    {
+      "id": "SS-003",
+      "name_th": "ผนึกมังกรหยกพฤกษา",
+      "price": 700,
+      "rarity_th": "หายาก",
+      "description_th": "มังกรหยกโอบแก่นพลังแห่งพฤกษา",
+      "web_path": "/arena/economy/spirit-seals/03_emerald_jade_wood_dragon.png",
+      "sha256": "af3a275ce824e04b9e1e1c7dc688c6088f0029b574d90ab79bfea5ba696df6e2"
+    },
+    {
+      "id": "SS-004",
+      "name_th": "ผนึกอสนีม่วงพิฆาต",
+      "price": 1050,
+      "rarity_th": "มหากาพย์",
+      "description_th": "มังกรอสนีสีม่วงเหนือแกนสายฟ้า",
+      "web_path": "/arena/economy/spirit-seals/04_violet_thunder_dragon.png",
+      "sha256": "5efaec1f563b790bbb3c3bb8d52a13580937695b008ed244fd215aa9938b4b17"
+    },
+    {
+      "id": "SS-005",
+      "name_th": "ผนึกสุริยันมังกรสวรรค์",
+      "price": 1800,
+      "rarity_th": "ตำนาน",
+      "description_th": "มังกรทองพิทักษ์แกนสุริยัน",
+      "web_path": "/arena/economy/spirit-seals/05_gold_solar_heaven_dragon.png",
+      "sha256": "99353c99d1de239ca7e0fb4051bb2c201644211916d481e040b32d943578c9e9"
+    },
+    {
+      "id": "SS-006",
+      "name_th": "ผนึกมังกรทมิฬภูเขาไฟ",
+      "price": 1500,
+      "rarity_th": "ตำนาน",
+      "description_th": "มังกรเกล็ดทมิฬมีรอยลาวาโอบแกนภูเขาไฟ",
+      "web_path": "/arena/economy/spirit-seals/06_obsidian_volcanic_demon_dragon.png",
+      "sha256": "acd62faec31cd9c9bc2baaf0a374013b1a7d56f25abf5454572f949989ca153b"
+    },
+    {
+      "id": "SS-007",
+      "name_th": "ผนึกทวิภาคมังกรหยินหยาง",
+      "price": 2400,
+      "rarity_th": "ปฐมตำนาน",
+      "description_th": "มังกรคู่เพลิงและเหมันต์ประชันพลัง",
+      "web_path": "/arena/economy/spirit-seals/07_dual_yinyang_dragon.png",
+      "sha256": "44413ea9d45512b5453ca0fc1ebb37a8a3987b8168c17c5e307f881c1f1b3cde"
+    },
+    {
+      "id": "SS-008",
+      "name_th": "ผนึกหงส์มังกรอัคคี",
+      "price": 2000,
+      "rarity_th": "ตำนาน",
+      "description_th": "มังกรปีกหงส์ครอบครองแกนเพลิง",
+      "web_path": "/arena/economy/spirit-seals/08_phoenix_dragon_flame.png",
+      "sha256": "3d30ffd761f52bfa086a63c219bdda02d2655bf6888e1ced02115d0fb296d3ec"
+    },
+    {
+      "id": "SS-009",
+      "name_th": "ผนึกวารีมุกสมุทร",
+      "price": 950,
+      "rarity_th": "มหากาพย์",
+      "description_th": "มังกรวารีสีครามเหนือแกนไข่มุกและเกลียวคลื่น",
+      "web_path": "/arena/economy/spirit-seals/09_turquoise_ocean_pearl_dragon.png",
+      "sha256": "ccf15578bac3b2cc37c64406f161fa12e4f03a6b4e1aaa5488fe9ad3d45a599a"
+    },
+    {
+      "id": "SS-010",
+      "name_th": "ผนึกจันทราดารามังกร",
+      "price": 1650,
+      "rarity_th": "ตำนาน",
+      "description_th": "มังกรจันทราสีม่วงเงินโอบดวงดาว",
+      "web_path": "/arena/economy/spirit-seals/10_moonlit_astral_guardian_dragon.png",
+      "sha256": "6962cada2188539e8d65aa36827ae495293b704ecb2fafa32dde277c41d023ba"
+    }
+  ]
+}

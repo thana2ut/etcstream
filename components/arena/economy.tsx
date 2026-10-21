@@ -9,7 +9,7 @@ import { COSMETIC_SLOTS, ECONOMY_ASSETS, MARKET_SLOTS, STARTER_LABELS, MEDAL_LAB
 import { ProfileAvatar } from "./profile-avatar";
 import { NameplatePill, ProfileCover } from "./profile-cover";
 
-export type EconomyItem = { sku: string; name: string; slot: CosmeticSlot; price: number; asset: string; enabled: boolean; legacy?: boolean; starter?: boolean; owned: boolean; equipped: boolean };
+export type EconomyItem = { sku: string; name: string; slot: CosmeticSlot; price: number; asset: string; enabled: boolean; legacy?: boolean; starter?: boolean; rarity?: string | null; description?: string | null; owned: boolean; equipped: boolean };
 export type EconomySummary = { balance: number; earned: number; spent: number; equipped: Partial<Record<CosmeticSlot, EconomyItem>>; ownedCount: number; claims: number };
 type Receipt = { entries: { kind: "first_clear" | "medal" | "daily"; amount: number; meta: { stage?: string; tier?: Medal; level?: number; day?: string } }[]; balance: number };
 
@@ -143,15 +143,16 @@ export function CelestialMarket() {
     <div className="econ-market-body">
       <ul className="econ-grid" aria-label="รายการสินค้า">{items.map((i) => <li key={i.sku}><button type="button" className={`econ-item${i.owned ? " is-owned" : ""}`} aria-pressed={item?.sku === i.sku} onClick={() => setSelected(i.sku)}>
         {i.slot === "profileNameplate" ? <Image className="econ-nameplate-thumb" src={i.asset} alt="" width={380} height={67} sizes="380px" loading="lazy" /> : i.slot === "profileCover" ? <Image className="econ-cover-thumb" src={i.asset} alt="" width={360} height={120} sizes="360px" loading="lazy" /> : <Image src={i.asset} alt="" width={120} height={120} sizes="160px" loading="lazy" />}
-        <strong>{i.name}</strong><small>{SLOT_LABELS[i.slot]} · {i.sku}</small>
+        <strong>{i.name}</strong><small>{SLOT_LABELS[i.slot]}{i.rarity ? ` · ${i.rarity}` : ""} · {i.sku}</small>
         {i.owned ? <span className="econ-tag">{i.equipped ? "สวมใส่อยู่" : "มีแล้ว"}</span> : <SpiritStones amount={i.price} size={18} />}
       </button></li>)}</ul>
       {item && <aside className="arena-panel econ-detail" aria-label={`รายละเอียด ${item.name}`}>
         {item.slot === "profileNameplate" ? <NameplatePreview plate={item.asset} name={item.name} /> : item.slot === "profileCover" ? <CoverPreview cover={item.asset} name={item.name} /> : <div className="econ-detail-art"><Image src={item.asset} alt={item.name} fill sizes="(max-width:900px) 70vw, 320px" /></div>}
         <span className="arena-eyebrow">{SLOT_LABELS[item.slot]} · {item.sku}</span><h3>{item.name}</h3>
+        {item.rarity && <p className="econ-rarity">ระดับ {item.rarity} <small>(ระดับความหายากของภาพ ไม่ใช่ค่าพลัง)</small></p>}{item.description && <p>{item.description}</p>}
         <p className="arena-note">ใช้งานจริงที่: {SLOT_CONTEXT[item.slot]}</p>
         <dl className="econ-price"><div><dt>ราคา</dt><dd><SpiritStones amount={item.price} /></dd></div><div><dt>หินวิญญาณของเจ้า</dt><dd><SpiritStones amount={balance} /></dd></div><div><dt>สต็อก</dt><dd>ไม่จำกัด</dd></div></dl>
-        {item.owned ? item.equipped ? <p className="econ-tag econ-owned-state">{item.slot === "profileCover" ? "กำลังใช้งาน" : item.slot === "profileNameplate" ? "กำลังใช้" : "สวมใส่อยู่"}</p> : <><p className="econ-tag econ-owned-state">มีแล้ว · อยู่ในถุงเฉียนคุน</p><button disabled={busy} onClick={() => void equip(item.sku)}>{item.slot === "profileCover" ? "ใช้เป็นปกโปรไฟล์" : "สวมใส่"}</button></>
+        {item.owned ? item.equipped ? <p className="econ-tag econ-owned-state">{item.slot === "profileCover" ? "กำลังใช้งาน" : item.slot === "profileNameplate" || item.slot === "spiritSeal" ? "กำลังใช้" : "สวมใส่อยู่"}</p> : <><p className="econ-tag econ-owned-state">มีแล้ว · อยู่ในถุงเฉียนคุน</p><button disabled={busy} onClick={() => void equip(item.sku)}>{item.slot === "profileCover" ? "ใช้เป็นปกโปรไฟล์" : "สวมใส่"}</button></>
           : <button disabled={busy || !item.enabled || balance < item.price} onClick={() => setConfirming(true)}>{busy ? "กำลังแลก…" : balance < item.price ? `หินวิญญาณไม่เพียงพอ (ขาด ${stones(item.price - balance)})` : "แลกด้วยหินวิญญาณ"}</button>}
         {item.owned && <Link className="arena-text-link" href="/arena/bag">ไปที่ถุงเฉียนคุน →</Link>}
       </aside>}
