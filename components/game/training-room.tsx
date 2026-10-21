@@ -6,7 +6,7 @@ import { SCENE_FONT, sceneText } from "@/game/rendering/scene-font";
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Billboard, Line } from "@react-three/drei";
-import { DoubleSide, type Mesh, type MeshBasicMaterial } from "three";
+import { DoubleSide, type Mesh, MeshBasicMaterial } from "three";
 import { VenueEnvironment } from "./environment/venue-environment";
 import { Studio as MissionStudio } from "./environment/venue/studio";
 import { layoutOf } from "@/game/training/hdmi-training";
@@ -25,6 +25,9 @@ import { SamsungTv } from "./equipment/samsung-tv";
 import { monitorFeed } from "@/game/training/monitor-feed";
 import { CuboidCollider, CylinderCollider, RigidBody } from "@react-three/rapier";
 import * as studioAnchors from "@/game/training/studio-mission-ports.json";
+
+/** Port tag text always draws over the device it labels (troika keeps its own derived material, so pass one). */
+const TAG_TEXT_MATERIAL = new MeshBasicMaterial({ transparent: true, depthTest: false, depthWrite: false, toneMapped: false });
 
 const ROOM_FONT = SCENE_FONT;
 const CONNECTOR_COLOR: Record<string, string> = {
@@ -167,7 +170,7 @@ function Port({ id }: { id: string }) {
       {showTag && <group position={[0, ring + 0.12, 0.05]}>
         <mesh renderOrder={1000}><planeGeometry args={[tagWidth, 0.16]} /><meshBasicMaterial color={fits === true ? "#0d3a22" : "#0b1220"} transparent opacity={0.82} depthTest={false} depthWrite={false} /></mesh>
         <mesh position={[0, -0.092, 0]} renderOrder={1000}><planeGeometry args={[0.003, 0.024]} /><meshBasicMaterial color={color} transparent opacity={0.7} depthTest={false} depthWrite={false} /></mesh>
-        <Text font={ROOM_FONT} position={[0, 0, 0.001]} fontSize={tagSize} lineHeight={1.5} color={fits === true ? "#c8ffd8" : "#f7f1e3"} anchorX="center" anchorY="middle" textAlign="center" renderOrder={1001} material-depthTest={false} material-depthWrite={false} maxWidth={tagWidth - 0.1}>
+        <Text font={ROOM_FONT} position={[0, 0, 0.001]} fontSize={tagSize} lineHeight={1.5} color={fits === true ? "#c8ffd8" : "#f7f1e3"} anchorX="center" anchorY="middle" textAlign="center" renderOrder={1001} material={TAG_TEXT_MATERIAL} maxWidth={tagWidth - 0.1}>
           {sceneText(tag)}
         </Text>
       </group>}
