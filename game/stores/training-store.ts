@@ -6,8 +6,8 @@ import {
 } from "@/game/training/hdmi-training";
 
 import { soundEngine } from "@/game/audio/sound-engine";
-import { answerQuiz, answerReview, markTrace, requestAllClear, runTest, scenarioOf, setControl, signOff, stowHeldCable, streamTest } from "@/game/training/hdmi-training";
-import type { ControlValue, TestStage } from "@/game/training/sim/types";
+import { answerReview, scenarioOf, setControl, stowHeldCable } from "@/game/training/hdmi-training";
+import type { ControlValue } from "@/game/training/sim/types";
 import { MAX_WRONG_STREAK } from "@/game/content/cable-catalog";
 
 export const MAX_MISSION_CONNECTION_MISTAKES = 3;
@@ -43,15 +43,9 @@ interface TrainingStore extends TrainingState {
   setInspecting: (id: string | null) => void;
   setInspectHold: (start: number | null) => void;
   turnHeld: () => void;
-  /** Operator Console overlay (mission stages): device controls, tests, trace, run-of-show, sign-off. */
+  /** In-room device controls (E on a control) and the mistake review overlay. Tests/console were removed. */
   control: (device: string, key: string, value: ControlValue) => void;
-  test: (stage: TestStage) => void;
-  trace: (dest: string) => void;
-  streamCheck: (seconds: number) => void;
-  allClear: () => void;
-  quiz: (choice: number) => void;
   review: (choice: number) => void;
-  signOff: () => void;
 }
 
 function targetKey(target: TrainingTarget | null): string {
@@ -126,24 +120,18 @@ export const useTrainingStore = create<TrainingStore>((set, get) => ({
   setInspectHold: (start) => set({ inspectHoldStart: start }),
   turnHeld: () => set((state) => ({ heldTurn: state.heldItem ? (state.heldTurn + Math.PI / 4) % (Math.PI * 2) : 0 })),
   control: (device, key, value) => set((state) => { const next = setControl(state, device, key, value); if (next.notice?.tone === "error") soundEngine.play("connection_error"); return next; }),
-  test: (stage) => set((state) => runTest(state, stage)),
-  trace: (dest) => set((state) => markTrace(state, dest)),
-  streamCheck: (seconds) => set((state) => streamTest(state, seconds)),
-  allClear: () => set((state) => requestAllClear(state)),
-  quiz: (choice) => set((state) => answerQuiz(state, choice)),
   review: (choice) => set((state) => answerReview(state, choice)),
-  signOff: () => set((state) => { const next = signOff(state); if (next.completed) soundEngine.play("connection_success"); return next; }),
   // Device front faces the player (facing = camera yaw), plus any extra R-key turn.
   drop: (position, facing = 0) => set((state) => ({ ...placeHeldOnCenterTable(state, position, facing + state.heldTurn), heldTurn: state.heldItem ? 0 : state.heldTurn })),
 }));
 
 // Observe original gameplay intents without replacing any simulation/interaction behavior.
-for (const method of ["interact", "drop", "takeCable", "stowHeld", "control", "test", "trace", "streamCheck", "allClear", "quiz", "review", "signOff"] as const) {
+for (const method of ["interact", "drop", "takeCable", "stowHeld", "control", "review"] as const) {
   const original = useTrainingStore.getState()[method] as unknown as (...args: unknown[]) => unknown;
   useTrainingStore.setState({ [method]: (...args: unknown[]) => {
     const before = useTrainingStore.getState();
     if (before.failed || (scenarioOf(before).stage && before.completed)) return method === "takeCable" ? false : undefined;
-    const evidence = method === "interact" ? [before.focusedTarget, before.pickMode] : method === "drop" ? [args[0], args[1] ?? 0, before.heldTurn] : ["stowHeld", "allClear", "signOff"].includes(method) ? [] : method === "control" ? args.slice(0,3) : args.slice(0,1);
+    const evidence = method === "interact" ? [before.focusedTarget, before.pickMode] : method === "drop" ? [args[0], args[1] ?? 0, before.heldTurn] : method === "stowHeld" ? [] : method === "control" ? args.slice(0,3) : args.slice(0,1);
     const result = original(...args);
     if (hasCompetitionCommandListeners()) emitCompetitionCommand({ method, args: JSON.parse(JSON.stringify(evidence)) });
     return result;

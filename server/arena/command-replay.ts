@@ -4,9 +4,8 @@ import { digest } from "./auth";
 import { SCENARIOS, type ScenarioId, type Point3 } from "@/game/training/scenarios";
 import { checkMissionBag } from "@/game/content/mission-bag";
 import { hiddenCablesFor, packedLeadsFor } from "@/game/content/cable-catalog";
-import { initialTrainingState, initSim, interactWithTarget, placeHeldOnCenterTable, stowHeldCable, setControl, runTest, markTrace, streamTest, requestAllClear, answerQuiz, answerReview, signOff, simContext, getPort, type TrainingState, type TrainingTarget } from "@/game/training/hdmi-training";
-import { validateLevel } from "@/game/training/sim/engine";
-import type { ControlValue, TestStage } from "@/game/training/sim/types";
+import { initialTrainingState, initSim, interactWithTarget, placeHeldOnCenterTable, stowHeldCable, setControl, answerReview, simContext, getPort, type TrainingState, type TrainingTarget } from "@/game/training/hdmi-training";
+import type { ControlValue } from "@/game/training/sim/types";
 export const REPLAY_PROTOCOL = "server-command-v1";
 // Start with the real classroom video slice. Other levels retain ordered evidence but remain provisional.
 export const verifiableStage = (id: string) => id === "xs-1";
@@ -56,13 +55,7 @@ export function apply(state: TrainingState, method: string, args: unknown[]): Tr
       if (device !== "site" && !Object.hasOwn(scenario.simDevices || {},device)) throw new ArenaError(400,"ไม่พบอุปกรณ์ควบคุมนี้");
       return setControl(state,device,text(args[1]),value as ControlValue);
     }
-    case "test": { const stage=text(args[0]); if (!["physical","signal","rehearsal","delivery"].includes(stage)) throw new ArenaError(400,"ชนิดการทดสอบไม่ถูกต้อง"); return runTest(state,stage as TestStage); }
-    case "trace": return markTrace(state,text(args[0]));
-    case "streamCheck": return streamTest(state,integer(args[0],3600));
-    case "allClear": return requestAllClear(state);
-    case "quiz": return answerQuiz(state,integer(args[0]));
     case "review": return answerReview(state,integer(args[0]));
-    case "signOff": return signOff(state);
     default: throw new ArenaError(400,"ไม่รองรับคำสั่งเกมนี้");
   }
 }

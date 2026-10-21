@@ -3,7 +3,7 @@ import { nearestTablePlacement, STUDIO } from "./studio-room-layout";
 import { clampToSurface, LAYOUTS, nearStaging, onSurface, type VenueLayout } from "./venue-layouts";
 import { feedbackCopy } from "@/game/content/feedback-copy";
 import { SCENARIOS, type Connector, type PlaceableItemId, type PortDef, type Point3, type Requirement, type Scenario, type ScenarioId } from "./scenarios";
-import { canConnect, evaluate, modelOf, portOf, scoreOf, testRoute, validateLevel } from "./sim/engine";
+import { canConnect, evaluate, modelOf, portOf, scoreOf, validateLevel } from "./sim/engine";
 import type { ConceptId, ControlValue, EvalContext, FaultScenario, SimRuntime, TestStage } from "./sim/types";
 import { CONCEPTS } from "./sim/library";
 import { catalogIdFor } from "@/game/content/cable-catalog";
@@ -476,11 +476,11 @@ export function interactWithTarget(state: TrainingState, target: TrainingTarget 
   const keepOther = !state.held.single && !cables[state.held.cableId][otherSide].portId && !leadDef.socketB && !(otherSide === "a" && leadDef.fixedA);
   const next = withCables(state, cables, { held: keepOther ? { cableId: state.held.cableId, end: otherSide } : null });
   if (next.sim && otherReal && targetReal) {
-    const ctx = simContext(next);
     const [o, i] = getPort(state, otherReal)!.direction === "OUTPUT" ? [otherReal, targetReal] : [targetReal, otherReal];
-    const sig = ctx?.inp[i];
     next.sim = { ...next.sim, log: [...next.sim.log, { t: next.sim.tick, kind: "connect", text: `${o} → [${leadDef.label}] → ${i}` }] };
-    return { ...next, notice: notice("ต่อสายแล้ว ต้องทดสอบระบบ", `${leadDef.label} · ${getPort(state, o)!.label} → ${getPort(state, i)!.label}${sig ? " · ตรวจพบสัญญาณจำลอง" : " · ยังไม่มีสัญญาณ ตรวจไฟเลี้ยง รูปแบบภาพ และการตั้งค่า"}`, "success") };
+    // Wiring alone decides the mission: a right route shows ✓ at once; anything else only reports the connection.
+    if (next.completed || next.notice?.title.startsWith("✓")) return next;
+    return { ...next, notice: notice("ต่อสายแล้ว", `${leadDef.label} · ${getPort(state, o)!.label} → ${getPort(state, i)!.label}`, "info") };
   }
   return {
     ...next,
@@ -832,77 +832,10 @@ function afterTake(state: TrainingState, pvwBefore: string, opt: string): Traini
 }
 
 export const STAGE_ORDER: TestStage[] = ["physical", "signal", "rehearsal", "delivery"];
-/** Physical-layer, signal, operator-rehearsal and stream/record tests, in order. */
-export function runTest(state: TrainingState, test: TestStage): TrainingState {
-  if (!state.sim) return state;
-  if (state.sim.paused) return { ...state, notice: notice("พักภารกิจอยู่", "ผ่านคำถามทบทวนก่อนทดสอบระบบ", "error") };
-  state = settleSim(state);
-  if (!state.sim) return state;
-  const ctx = simContext(state)!;
-  const idx = STAGE_ORDER.indexOf(test);
-  const missing = STAGE_ORDER.slice(0, idx).find((s) => !state.sim!.testsPassed[s]);
-  if (missing) return { ...state, notice: notice("ลำดับการทดสอบ", `ต้องผ่านการทดสอบ${simThai(missing)}ก่อน`, "error") };
-  const routed = testRoute(ctx, test);
-  const results = routed.results.filter((r) => r.id !== "signoff");
-  const pass = results.every((r) => r.result.ok);
-  let sim: SimRuntime = { ...state.sim, tick: state.sim.tick + 1, diagnosed: [...new Set([...state.sim.diagnosed, ...state.sim.activeFaults])], testsPassed: { ...state.sim.testsPassed, [test]: pass } };
-  if (pass && test === "signal" && sim.cueStart === undefined) sim.cueStart = sim.pgmHistory.length;
-  sim.log = [...sim.log, { t: sim.tick, kind: "test", text: `${test} test: ${pass ? "PASS" : `FAIL (${results.filter((r) => !r.result.ok).length})`}` }];
-  let cables = state.cables;
-  let extra = "";
-  const scenario = scenarioOf(state);
-  if (pass && test === "rehearsal" && scenario.stage?.surpriseFaults?.length && !sim.surpriseArmed) {
-    const pool = scenario.stage.surpriseFaults;
-    const f = pool[sim.seed % pool.length];
-    sim = applyFaultConfig({ ...sim, surpriseArmed: true, activeFaults: [...sim.activeFaults, f.id], testsPassed: { ...sim.testsPassed, delivery: false } }, f);
-    if (f.unplug?.length) {
-      cables = cloneCables(cables);
-      for (const [from, to] of f.unplug) for (const c of Object.values(cables)) {
-        const joins = (c.a.portId === from && c.b.portId === to) || (c.a.portId === to && c.b.portId === from);
-        if (!joins) continue;
-        const at = portPosition(state, to);
-        for (const end of CABLE_ENDS) if (c[end].portId === to) { c[end].portId = null; c[end].loosePosition = [+(at[0] + 0.05).toFixed(3), +Math.max(0.03, at[1] - 0.3).toFixed(3), +(at[2] + 0.1).toFixed(3)]; }
-      }
-    }
-    sim.log = [...sim.log, { t: sim.tick, kind: "fault", text: "เกิดปัญหาไม่คาดคิดระหว่างรายการ ต้องตรวจหาสาเหตุ" }];
-    extra = " ⚠ เกิดปัญหาระหว่างออกอากาศ ให้ตรวจหาสาเหตุ";
-  }
-  const cert = scenario.stage?.guidance === "certification";
-  const firstFail = results.find((r) => !r.result.ok);
-  const detail = pass ? `ผ่านครบ ${results.length} รายการ${extra}` : `${firstFail!.label}: ${firstFail!.result.reason ?? ""}${cert ? "" : ` → ${firstFail!.result.fix ?? ""}`}`;
-  return settleSim({ ...state, cables, sim, notice: notice(`ทดสอบ${simThai(test)}: ${pass ? "ผ่าน" : "ไม่ผ่าน"}`, detail, pass ? "success" : "error") });
-}
 
-/** Signal trace requested by the learner: logs the diagnosis of any live fault. */
-export function markTrace(state: TrainingState, dest: string): TrainingState {
-  if (!state.sim) return state;
-  return { ...state, sim: { ...state.sim, diagnosed: [...new Set([...state.sim.diagnosed, ...state.sim.activeFaults])], log: [...state.sim.log, { t: state.sim.tick, kind: "test", text: `ตรวจเส้นทาง → ${dest}` }] } };
-}
 
-/** Timed stream test against the local private ingest (simulated duration). */
-export function streamTest(state: TrainingState, seconds: number): TrainingState {
-  const ctx = simContext(state);
-  if (!ctx || !state.sim) return state;
-  const ingest = Object.keys(ctx.view).find((d) => scenarioOf(state).simDevices?.[d]?.model === "generic-test-ingest");
-  const v = ingest ? ctx.view[ingest] : undefined;
-  if (!v?.live) return { ...state, notice: notice("ทดสอบสตรีมไม่ผ่าน", v?.status ?? "งานนี้ไม่มีจุดรับสตรีม", "error") };
-  const text = `STREAM TEST ${seconds} s · ${v.picture} · audio: ${(v.audio ?? []).join(" + ") || "none"}`;
-  return { ...state, sim: { ...state.sim, evidence: [...state.sim.evidence, text] }, notice: notice("ทดสอบสตรีมผ่าน", text, "success") };
-}
 
-/** Outdoor: hold for the all-clear (only after recording NO-GO). */
-export function requestAllClear(state: TrainingState): TrainingState {
-  if (!state.sim) return state;
-  if (state.sim.config.site?.decision !== "NO-GO (hold)") return { ...state, notice: notice("บันทึกการหยุดงานก่อน", "หยุดงานและรอก่อนขอยืนยันว่าปลอดภัย", "error") };
-  return { ...state, sim: { ...state.sim, weatherNow: "clear", log: [...state.sim.log, { t: state.sim.tick, kind: "config", text: "รอ 30 นาทีในระบบจำลอง: ไม่มีฟ้าผ่าแล้ว" }] }, notice: notice("ยืนยันว่าปลอดภัยแล้ว", "พายุผ่านแล้ว จำลองการรอ 30 นาที ให้ประเมินพื้นที่ใหม่ก่อนอนุมัติเริ่มงาน", "success") };
-}
 
-export function answerQuiz(state: TrainingState, choice: number): TrainingState {
-  const q = scenarioOf(state).stage?.quiz;
-  if (!state.sim || !q) return state;
-  const ok = choice === q.answer;
-  return { ...state, sim: { ...state.sim, quizOk: ok || state.sim.quizOk }, notice: notice(ok ? "ถูกต้อง" : "ยังไม่ถูกต้อง", q.why, ok ? "success" : "error") };
-}
 
 /** Targeted Learning Review → Mini Mastery Check → Resume. */
 export function answerReview(state: TrainingState, choice: number): TrainingState {
@@ -912,24 +845,6 @@ export function answerReview(state: TrainingState, choice: number): TrainingStat
   return { ...state, sim: { ...state.sim, paused: false, errors: 0, log: [...state.sim.log, { t: state.sim.tick, kind: "review", text: `ทบทวนแล้ว: ${c.title}` }] }, notice: notice("กลับไปฝึกต่อได้", `ผ่านการทบทวน: ${c.title}`, "success") };
 }
 
-/** Sign-off: every objective (except sign-off itself) must pass on the CURRENT graph. */
-export function signOff(state: TrainingState): TrainingState {
-  if (!state.sim) return state;
-  if (scenarioOf(state).designIssues?.length) return { ...state, notice: notice("ใบงานยังไม่พร้อมตรวจรับ", "พบข้อมูลอุปกรณ์หรือสายไม่สอดคล้องกัน กรุณาแจ้งผู้ดูแลพร้อมรหัสด่าน", "error") };
-  if (state.sim.paused) return { ...state, notice: notice("พักภารกิจอยู่", "ผ่านคำถามทบทวนก่อนตรวจรับงาน", "error") };
-  state = settleSim(state);
-  if (!state.sim) return state;
-  const ctx = simContext(state)!;
-  const missing = STAGE_ORDER.find((s) => !state.sim!.testsPassed[s]);
-  if (missing) return { ...state, notice: notice("ยังไม่พร้อมตรวจรับงาน", `ทดสอบ${simThai(missing)}ให้ผ่านก่อน`, "error") };
-  const failed = validateLevel(ctx).filter((r) => r.id !== "signoff" && !r.result.ok);
-  if (failed.length) return { ...state, notice: notice("ยังไม่พร้อมตรวจรับงาน", failed.slice(0, 3).map((r) => r.label).join(" · "), "error") };
-  const sim: SimRuntime = { ...state.sim, signedOff: true, log: [...state.sim.log, { t: state.sim.tick, kind: "test", text: "ตรวจรับและเก็บงานเสร็จแล้ว" }] };
-  const signed: TrainingState = { ...state, sim };
-  const score = scoreOf(validateLevel(simContext(signed)!), sim);
-  if (!score.criticalOk || score.score < 70) return { ...state, notice: notice("ทบทวนคำแนะนำแล้วลองใหม่", `คะแนน ${score.score}/100 · เงื่อนไขสำคัญ${score.criticalOk ? "ผ่าน" : "ไม่ผ่าน"}`, "error") };
-  return { ...signed, completed: true, notice: notice(`${simThai(score.grade)} · ${score.score}/100`, `${scenarioOf(state).stage!.reward} — ผลการฝึกในระบบจำลอง`, "success") };
-}
 
 export function stageScore(state: TrainingState) {
   const ctx = simContext(state);
