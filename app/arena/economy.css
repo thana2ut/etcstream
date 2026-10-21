@@ -195,3 +195,13 @@
 .arena-public .arena-history { max-height: min(560px, 62vh); overflow-y: auto; overscroll-behavior: contain; padding-right: 10px; scrollbar-width: thin; scrollbar-color: #cda86c88 transparent; }
 .arena-public .arena-history::-webkit-scrollbar { width: 8px; }
 .arena-public .arena-history::-webkit-scrollbar-thumb { background: #cda86c66; border-radius: 8px; }
+
+/* Balanced identity art in the season bar and the identity sheet (art column sized to its content). */
+.arena-public .arena-my-season { grid-template-columns: auto minmax(0,1fr) auto; gap: 22px; padding: 16px 26px; }
+.arena-my-season > .my-identity-art, .arena-my-season > .arena-rank-badge { align-self: center; }
+.arena-character-sheet .arena-identity { gap: 24px; align-items: center; }
+.arena-character-sheet .my-identity-art { margin: 4px 0; }
+@media (max-width: 600px) {
+  .arena-public .arena-my-season { grid-template-columns: auto minmax(0,1fr); gap: 14px; padding: 14px 16px; }
+  .arena-my-season > .arena-text-link { grid-column: 1 / -1; }
+}
