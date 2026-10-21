@@ -22,7 +22,7 @@ import { DeviceVisual } from "./equipment/device-visual";
 import { PortSocket } from "./equipment/port-socket";
 import { equipmentVisualGeometry } from "@/game/rendering/equipment-visual-profile";
 import { SamsungTv } from "./equipment/samsung-tv";
-import { monitorFeed, venueScreenFeed } from "@/game/training/monitor-feed";
+import { monitorFeed } from "@/game/training/monitor-feed";
 import { CuboidCollider, CylinderCollider, RigidBody } from "@react-three/rapier";
 import * as studioAnchors from "@/game/training/studio-mission-ports.json";
 
@@ -237,26 +237,6 @@ function FixedDevice({ device }: { device: DeviceDef }) {
   </group>;
 }
 
-function ScenarioScreen({ deviceId }: { deviceId: string }) {
-  const device = useTrainingStore((state) => scenarioOf(state).devices.find((d) => d.id === deviceId));
-  const feed = useTrainingStore((state) => venueScreenFeed(state, deviceId));
-  if (!device) return null;
-  const ok = feed.startsWith("PROGRAM") || feed === "MULTIVIEW";
-  return <Billboard position={[device.position[0], device.position[1] + Math.max(device.size[1], 0.3) + 0.35, device.position[2]]}>
-    <mesh><planeGeometry args={[0.8, 0.36]} /><meshBasicMaterial color={ok ? "#084f40" : feed.startsWith("NO") ? "#161c27" : "#5a1a14"} /></mesh>
-    <Text font={ROOM_FONT} position={[0, 0, 0.01]} fontSize={0.045} lineHeight={1.5} maxWidth={0.76} textAlign="center" color="#ffffff">{sceneText(feed)}</Text>
-  </Billboard>;
-}
-
-function ScenarioMonitor() {
-  const ids = useTrainingStore((state) => {
-    const scenario = scenarioOf(state);
-    // Stadium destinations already show evaluated status on their physical screens.
-    return scenario.layout === "stadium" ? "" : scenario.devices.filter((d) => d.id === "monitor" || d.id === "display").map((d) => d.id).join("|");
-  });
-  return <>{ids.split("|").filter(Boolean).map((id) => <ScenarioScreen key={id} deviceId={id} />)}</>;
-}
-
 /** Mission venues show their full interactive equipment, ports and cables (set true only for a scenery-only preview). */
 export const VENUE_SCENE_ONLY = false;
 
@@ -329,7 +309,7 @@ export function TrainingRoom({ venue = "studio" }: { venue?: VenueId }) {
         .map((d) => <CuboidCollider key={d.id} position={[d.position[0], 0.6, d.position[2]]} rotation={[0, d.yaw ?? 0, 0]} args={[d.size[0] / 2 + 0.02, 0.6, d.size[2] / 2 + 0.02]} />)}
     </RigidBody>}
     {scenario.devices.filter((d) => !scenario.placeables.some((p) => p.id === d.id)).map((device) => <FixedDevice key={device.id} device={device} />)}
-    {scenario.venueScale ? <ScenarioMonitor /> : <Monitor />}
+    {!scenario.venueScale && <Monitor />}
     {scenario.venueScale && <ZoneSigns />}
     {["tx1", "tx2"].filter((id) => scenario.placeables.some((p) => p.id === id)).map((id) => <WirelessLink key={id} tx={id} />)}
     {Object.keys(scenario.ports).filter((id) => !scenario.cables.some((cable) => cable.fixedA === id)).map((id) => <Port key={id} id={id} />)}
