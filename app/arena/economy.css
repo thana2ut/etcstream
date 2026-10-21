@@ -654,3 +654,13 @@
 .friend-card .econ-friend-portrait { width: 88px; height: 88px; display: grid; place-items: center; align-self: center; }
 .friend-card .econ-friend-portrait > :first-child { margin: 0 auto; }
 .profile-hub-actions.is-above-cover { justify-content: flex-start; }
+
+/* Challenge row on a friend's profile: tag, stage select, buttons and back link share one bottom edge and height. */
+.profile-hub-actions:has(.social-challenge-form) { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; }
+.social-challenge-form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; margin: 0; }
+.social-challenge-form label { display: grid; gap: 6px; margin: 0; }
+.social-challenge-form select, .social-challenge-form button,
+.profile-hub-actions:has(.social-challenge-form) .social-relation .econ-tag,
+.profile-hub-actions:has(.social-challenge-form) .social-relation button { height: 48px; min-height: 48px; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; }
+.profile-hub-actions:has(.social-challenge-form) .social-relation .econ-tag { padding: 0 18px; border-radius: 9px; }
+.profile-hub-actions:has(.social-challenge-form) .arena-text-link { height: 48px; display: inline-flex; align-items: center; }
