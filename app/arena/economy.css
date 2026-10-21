@@ -562,3 +562,7 @@
   .profile-cover .profile-hub-pet { width: clamp(64px, 6.2vw, 112px) !important; right: -18px; bottom: -4px; }
   .profile-cover .profile-hub-portrait { padding: 0 34px 0 0; }
 }
+
+/* Market detail: breathing room between the owned/equipped tag and the bag link. */
+.econ-detail .econ-owned-state { margin-right: 14px; }
+.econ-detail .econ-owned-state + .arena-text-link, .econ-detail button + .arena-text-link { margin-left: 14px; }
