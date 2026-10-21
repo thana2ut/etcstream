@@ -1243,3 +1243,9 @@ html[data-overlay] .cloud-layer { transition: none; }
 .game-screen .interaction-prompt-center .prompt-action-pill { min-height: 30px; padding: 3px 12px 3px 4px; gap: 8px; font-size: .8rem; line-height: 1.4; border-radius: 11px; }
 .game-screen .interaction-prompt-center .prompt-action-pill.is-info { padding-left: 12px; }
 .game-screen .interaction-prompt-center .prompt-action-key { min-width: 22px; min-height: 0; height: 22px; padding: 0 6px; display: inline-grid; place-items: center; border-radius: 6px; font-size: .7rem; line-height: 1; }
+
+/* iPad/iPhone only (env() is 0 on desktop): top-bar controls step below the status bar; no strip or veil is added. */
+.academy-main-header.is-autohide,
+.fantasy-viewport:not(.game-screen) > .academy-main-header.is-autohide { padding-top: calc(6px + env(safe-area-inset-top, 0px)); }
+.arena-public .arena-header { margin-top: env(safe-area-inset-top, 0px); }
+.game-pause-btn { top: calc(14px + env(safe-area-inset-top, 0px)); }
