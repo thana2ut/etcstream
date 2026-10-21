@@ -27,21 +27,3 @@ export function standingDTO(value: Record<string, unknown> | null) {
   return { ...value, score, tier: tier.name, nextTier: next?.name ?? null, nextThreshold: next?.min ?? null };
 }
 
-/** Owner-awarded display only; never included in verified runs or competitive ranks. */
-export async function loadAdminShowcase(seasonId: string | null, viewerId?: string) {
-  if (!seasonId) return null;
-  const db = trustedClient();
-  const { data: award, error } = await db.from("etc_admin_showcase")
-    .select("player,showcase_score,showcase_stages")
-    .eq("season", seasonId).maybeSingle();
-  if (error) { console.error("Admin showcase lookup failed", error); return null; }
-  if (!award) return null;
-  const { data: profile, error: profileError } = await db.from("etc_profiles")
-    .select("name,friend_code,public,rank_public,hidden,suspended")
-    .eq("id", award.player).maybeSingle();
-  if (profileError) { console.error("Admin showcase profile lookup failed", profileError); return null; }
-  if (!profile?.public || !profile.rank_public || profile.hidden || profile.suspended) return null;
-  return { name: profile.name, friendCode: profile.friend_code,
-    score: award.showcase_score, stages: award.showcase_stages,
-    isMe: viewerId === award.player };
-}

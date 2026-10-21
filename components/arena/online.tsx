@@ -13,8 +13,7 @@ import { MyIdentityArt } from "./economy";
 
 type Season={id:string;name:string;starts:number;ends:number;status:string;scoringVersion:string;revision:number};
 export type SeasonStanding={name:string;friendCode:string;rank:number;globalRank:number;score:number;stages:number;provisional:boolean;tier:string;nextTier:string|null;nextThreshold:number|null;isMe:boolean};
-export type AdminShowcase={name:string;friendCode:string;score:number;stages:number;isMe:boolean};
-export type RankedResponse={season:Season|null;rows:SeasonStanding[];mine:SeasonStanding|null;adminShowcase:AdminShowcase|null;total:number;hasMore:boolean;nextOffset:number|null;enabled?:boolean;serverNow:number};
+export type RankedResponse={season:Season|null;rows:SeasonStanding[];mine:SeasonStanding|null;total:number;hasMore:boolean;nextOffset:number|null;enabled?:boolean;serverNow:number};
 type Mine={validAttempts?:number;rank:number|null;globalRank:number|null;best:AttemptView|null;latest:AttemptView|null;gapMs:number|null;visibility:string};
 type BoardRow=AttemptView&{rank:number;globalRank:number;name:string;friendCode:string;isMe:boolean};
 type Board={friendCount?:number;rows:BoardRow[];mine:Mine;total:number;hasMore:boolean;nextOffset:number|null;enabled:boolean;serverNow:number};
@@ -29,16 +28,6 @@ function ScopeButtons({scope,onChange}:{scope:string;onChange:(scope:string)=>vo
   return <div className="arena-scope-tabs" role="group" aria-label="ขอบเขตอันดับ">{[["all","ทั่วสำนัก"],["me","อันดับของฉัน"],["friends","อันดับสหาย"],["around_me","ใกล้เคียงอันดับฉัน"]].map(([value,label])=><button key={value} type="button" aria-pressed={scope===value} onClick={()=>onChange(value)}>{label}</button>)}</div>;
 }
 function PageButtons({offset,hasMore,onChange}:{offset:number;hasMore:boolean;onChange:(n:number)=>void}) {return offset>0||hasMore?<nav className="arena-actions" aria-label="หน้าผลอันดับ"><button disabled={!offset} onClick={()=>onChange(Math.max(0,offset-25))}>ก่อนหน้า</button><button disabled={!hasMore} onClick={()=>onChange(offset+25)}>ถัดไป</button></nav>:null;}
-
-export function AdminShowcaseCard({showcase}:{showcase:AdminShowcase|null|undefined}) {
-  if (!showcase) return null;
-  return <div className="arena-panel arena-pinned-standing" aria-label="สถิติพิเศษผู้ดูแล">
-    <span className="arena-eyebrow">สถิติพิเศษผู้ดูแล · ไม่อยู่ในการจัดอันดับแข่งขัน</span>
-    <strong>{showcase.name}{showcase.isMe?" · ฉัน":""} · {showcase.score.toLocaleString("th-TH")} คะแนน</strong>
-    <p>{showcase.stages} ด่านสำหรับการแสดงผลของผู้ดูแล · รหัสสหาย {showcase.friendCode}</p>
-    <small>สิทธิ์นี้แยกจากผลเล่นที่เซิร์ฟเวอร์รับรอง ไม่เพิ่มคะแนนหรือเปลี่ยนอันดับของผู้เล่นอื่น</small>
-  </div>;
-}
 
 export function MySeasonCapsule({resource}:{resource:ReturnType<typeof useArenaResource<RankedResponse>>}) {
   const {data,error,stale,loading,retry}=resource;
@@ -72,7 +61,6 @@ export function RankedPage({initialScope="all",initialSeason}:{initialScope?:str
     <MySeasonCapsule resource={resource}/>
     {data?.season&&<p className="arena-note">{date(data.season.starts)} – {date(data.season.ends)} · เวลาไทย · {data.season.scoringVersion} · {data.season.status==="closed"||data.season.status==="archived"?"อันดับที่บันทึกเมื่อปิดฤดูกาล":"อันดับเปลี่ยนตามผลยืนยันและผู้ยินยอมเข้าร่วม"}</p>}
     <div className="arena-split"><section className="arena-panel"><h2>ทำเนียบฤดูกาล</h2><ScopeButtons scope={scope} onChange={(v)=>{setScope(v);setOffset(0);}}/>
-      {scope === "all" && <AdminShowcaseCard showcase={data?.adminShowcase}/>}
       {resource.loading?<p className="arena-skeleton" role="status">กำลังเชื่อมต่อฤดูกาล…</p>:resource.error&&!data?<p className="arena-note">ยังโหลดรายชื่อฤดูกาลไม่ได้ กรุณาลองเชื่อมต่อใหม่</p>:data?.enabled===false?<ArenaEmptyState title="พักการแสดงอันดับฤดูกาลชั่วคราว">ผู้ดูแลปิดการแสดงทำเนียบ ข้อมูลส่วนตัวยังคงอยู่</ArenaEmptyState>:data?.rows.length?<div className="arena-season-rows">{data.rows.map((p)=><article key={p.friendCode} className={`arena-season-row${p.isMe?" is-me":""}`}><strong>#{p.rank}</strong><RankBadge tier={p.tier} size={40} decorative/><div><b>{p.name}{p.isMe?" · ฉัน":""}</b><span>{p.tier} · {p.stages} ด่าน{scope==="friends"?` · อันดับทั้งหมด #${p.globalRank}`:""}</span>{p.provisional&&<small>อันดับชั่วคราว</small>}</div><strong>{p.score}<small>คะแนน</small></strong></article>)}</div>:<ArenaEmptyState title="ยังไม่มีผลการแข่งขันที่ยืนยันแล้ว" href="/arena/time-attack" action="ไปฝึกวิชา">ไม่ให้คะแนนจากการเปิดหน้า การส่งผลที่รอตรวจ หรือการเล่นซ้ำที่ไม่ใช่ผลดีที่สุด</ArenaEmptyState>}
       <PageButtons offset={offset} hasMore={Boolean(data?.hasMore)} onChange={setOffset}/>
     </section><aside className="arena-panel"><h2>เส้นทางวิถีกระบี่</h2><ol className="arena-tier-track">{SEASON_RULES_V1.tiers.map((tier)=><li key={tier.min} aria-current={data?.mine?.tier===tier.name?"step":undefined}><RankBadge tier={tier.name} size={56} current={data?.mine?.tier===tier.name}/><div><strong>{tier.name}</strong><span>{tier.min.toLocaleString("th-TH")} คะแนนขึ้นไป</span></div></li>)}</ol>{data?.mine?.nextTier&&<p className="arena-note">เป้าหมายถัดไป {data.mine.nextTier} ที่ {data.mine.nextThreshold} คะแนน</p>}</aside></div>
@@ -106,7 +94,7 @@ export function PlayerSessionControls({onChange}:{onChange:()=>Promise<void>}) {
   return <div className="arena-actions"><button className="arena-button-secondary" onClick={()=>setConfirm(true)}>ออกจากตัวตนในเบราว์เซอร์นี้</button><ArenaConfirmDialog open={confirm} title="ออกจากตัวตนนี้หรือไม่?" busy={busy} onCancel={()=>setConfirm(false)} onConfirm={async()=>{if(pending.current)return;pending.current=true;setBusy(true);try{await api("logout",{});setConfirm(false);await onChange();}catch(e){setError((e as Error).message);}finally{pending.current=false;setBusy(false);}}}>ประวัติยังเก็บไว้ แต่ต้องมีรหัสกู้คืนที่ยังใช้ได้เพื่อกลับมาใช้ตัวตนเดิม ชื่อเล่นและรหัสสหายใช้เข้าสู่ระบบแทนไม่ได้{error&&<span role="alert">{error}</span>}</ArenaConfirmDialog></div>;
 }
 
-type PublicHall={season:{id:string;name:string;ends:number}|null;top:{name:string;rank:number;score:number;stages:number}[];adminShowcase:AdminShowcase|null;rankedPlayers:number;onlineNow:number;serverNow:number};
+type PublicHall={season:{id:string;name:string;ends:number}|null;top:{name:string;rank:number;score:number;stages:number}[];rankedPlayers:number;onlineNow:number;serverNow:number};
 // ทำเนียบเซียน: every tab renders real server state only.
 export function HallOfImmortals({signedIn,mine}:{signedIn:boolean;mine:ReturnType<typeof useArenaResource<RankedResponse>>}) {
   const [tab,setTab]=useState("all");
@@ -122,7 +110,6 @@ export function HallOfImmortals({signedIn,mine}:{signedIn:boolean;mine:ReturnTyp
   const err=tab==="me"?mine.error:tab==="friends"?friends.error:hall.error, retry=tab==="me"?mine.retry:tab==="friends"?friends.retry:hall.retry;
   return <section className="arena-panel arena-hall" aria-label="ทำเนียบเซียน"><header><ArenaIcon name="leaderboard"/><div><span className="arena-eyebrow">{hall.data?.season?.name || "ฤดูกาลปัจจุบัน"}</span><h2>ทำเนียบเซียน</h2></div><p role="status" className="arena-hall-online">{hall.error?"สถานะออนไลน์: —":hall.loading?"กำลังนับผู้ฝึกออนไลน์…":`ผู้ฝึกที่ยินยอมแสดงออนไลน์ขณะนี้ ${hall.data?.onlineNow} คน`}</p></header>
     <div className="arena-scope-tabs" role="tablist">{tabs.map(([v,l])=><button key={v} type="button" role="tab" aria-selected={tab===v} onClick={()=>setTab(v)}>{l}</button>)}</div>
-    {tab === "all" && <AdminShowcaseCard showcase={hall.data?.adminShowcase}/>}
     {body}<ConnectionNotice error={err} stale={false} retry={retry}/></section>;
 }
 
