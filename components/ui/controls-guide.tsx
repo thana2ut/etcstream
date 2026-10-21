@@ -45,11 +45,8 @@ export function ControlsGuide() {
       </div>
 
       <div className="control-item">
-        <div className="control-key-group">
-          <span className="control-key">1</span>
-          <span className="control-key">2</span>
-        </div>
-        <span className="control-desc">+E หยิบหัวสาย / ปลายสาย</span>
+        <span className="control-key">C</span>
+        <span className="control-desc">สลับหยิบ: ทั้งเส้น / หัวสาย / ปลายสาย</span>
       </div>
 
       <div className="control-item">

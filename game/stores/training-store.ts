@@ -33,6 +33,8 @@ interface TrainingStore extends TrainingState {
   /** Next E on a cable takes the whole lead, or only its head (1) / tail (2). Resets after use. */
   pickMode: PickMode;
   setPickMode: (mode: PickMode) => void;
+  /** C: whole lead → head only → tail only → whole lead. */
+  cyclePickMode: () => void;
   drop: (position: Point3, facing?: number) => void;
   /** Extra yaw (T key, 45° steps) applied to the held device when it is placed. */
   heldTurn: number;
@@ -113,6 +115,7 @@ export const useTrainingStore = create<TrainingStore>((set, get) => ({
     }),
   pickMode: "whole",
   setPickMode: (mode) => set((state) => state.failed || (scenarioOf(state).stage && state.completed) ? state : ({ pickMode: state.pickMode === mode ? "whole" : mode })),
+  cyclePickMode: () => set((state) => state.failed || (scenarioOf(state).stage && state.completed) ? state : ({ pickMode: state.pickMode === "whole" ? "a" : state.pickMode === "a" ? "b" : "whole" })),
   heldTurn: 0,
   inspecting: null,
   inspectHoldStart: null,

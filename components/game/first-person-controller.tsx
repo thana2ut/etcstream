@@ -134,9 +134,8 @@ export function FirstPersonController({ active, fallbackLook, touch, onExitFallb
         event.preventDefault();
         useTrainingStore.getState().turnHeld();
       }
-      // 1 / 2: arm "take head only" / "take tail only" for the next E on a cable (press again to cancel).
-      if (event.code === "Digit1" || event.code === "Numpad1") useTrainingStore.getState().setPickMode("a");
-      if (event.code === "Digit2" || event.code === "Numpad2") useTrainingStore.getState().setPickMode("b");
+      // C cycles what the next E takes from a cable: whole lead → head only → tail only → whole lead.
+      if (event.code === "KeyC") useTrainingStore.getState().cyclePickMode();
       if (event.code === BINDINGS.drop) useTrainingStore.getState().drop(dropPoint(camera, layout), angles.current.yaw);
     };
     const onKeyUp = (event: KeyboardEvent) => {

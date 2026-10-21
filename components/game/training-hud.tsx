@@ -102,7 +102,7 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
           {/* Mission levels keep the panel compact like free practice: title, progress, grouped checklist. */}
           {objective && !scenario.venueScale && <p className="hud-panel-sub">{objective}</p>}
           {scenario.job && !scenario.venueScale && <p className="hud-panel-sub">งาน: {scenario.job}</p>}
-          {pickMode !== "whole" && <p className="hud-pick-mode" role="status">{`โหมด ${pickMode === "a" ? 1 : 2} · ${touch ? "เล็งสายแล้วแตะปุ่มใช้งาน" : "กด E ที่สาย"}เพื่อหยิบเฉพาะ${pickMode === "a" ? "หัวสาย" : "ปลายสาย"}`} ({touch ? "แตะปุ่มเลขเดิมซ้ำ" : "กดเลขซ้ำ"}เพื่อยกเลิก)</p>}
+          {pickMode !== "whole" && <p className="hud-pick-mode" role="status">{`หยิบเฉพาะ${pickMode === "a" ? "หัวสาย" : "ปลายสาย"} · ${touch ? "เล็งสายแล้วแตะปุ่มใช้งาน" : "กด E ที่สาย"}`} ({touch ? "แตะปุ่ม C" : "กด C"}เพื่อสลับต่อ)</p>}
           {scenario.venueScale && state.heldItem && <p className="hud-panel-sub" role="status">กำลังถือ: {playerEquipmentText(scenario.placeables.find((p) => p.id === state.heldItem)?.label ?? "อุปกรณ์")} → นำไปที่ {scenario.placeables.find((p) => p.id === state.heldItem)?.zoneLabel ?? "ตำแหน่งใช้งาน"}</p>}
           {scenario.stage && state.held && (() => {
             const cable = scenario.cables.find((c) => c.id === state.held!.cableId);
