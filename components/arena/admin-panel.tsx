@@ -10,11 +10,21 @@ import type {ComponentProps} from "react";
 export const adminSections = ["overview", "database", "demo", "players", "competitions", "leaderboards", "matches", "friends", "settings", "audit", "seasons", "reviews"];
 export const adminLabels: Record<string, string> = { database: "ฐานข้อมูลและการตั้งค่า", demo: "ตัวอย่างข้อมูล DEMO", overview: "ภาพรวม", players: "จัดการผู้ฝึก", competitions: "รอบแข่งขัน", leaderboards: "ดูแลผลและอันดับ", matches: "ห้องประลอง", friends: "คำขอและการปิดกั้น", missions: "จัดการภารกิจ (25 ด่าน)", settings: "ตั้งค่ากติกา", audit: "ประวัติการดูแล",seasons:"ฤดูกาลและการจัดอันดับ",reviews:"คิวตรวจผล V6" };
 type Data = { players?: Record<string, string | number>[]; attempts?: (AttemptView & { playerId: string })[]; events?: Record<string, string>[]; settings?: Record<string, number>; [key: string]: unknown };
+function playerStatus(player: Record<string, string | number>) {
+  const status: string[] = [];
+  if (player.deleted) status.push("ลบข้อมูลระบุตัวตนแล้ว");
+  else if (!player.name) status.push(player.name_locked ? "ล้างชื่อแล้ว — บัญชียังอยู่" : "ยังไม่มีชื่อแสดงผล");
+  else if (player.name_locked) status.push("ล็อกชื่อแสดงผล");
+  if (player.suspended) status.push("ระงับบัญชี");
+  if (player.hidden) status.push("ซ่อนข้อมูลสาธารณะ");
+  return status.length ? status.join(" · ") : "ปกติ";
+}
 export function AdminPanel({ section }: { section: string }) {
-  const [data, setData] = useState<Data>({}), [error, setError] = useState(""), [loading, setLoading] = useState(true), [target, setTarget] = useState<{ id: string; action: string; label: string } | null>(null);
+  const [data, setData] = useState<Data>({}), [error, setError] = useState(""), [loading, setLoading] = useState(true), [target, setTarget] = useState<{ id: string; action: string; label: string; friendCode?: string } | null>(null);
   const [search, setSearch] = useState(""), [query, setQuery] = useState(""), [offset, setOffset] = useState(0);
   const requestId = useRef(0);
   const [evidenceId, setEvidenceId] = useState<string | null>(null);
+  const [copyStatus, setCopyStatus] = useState<{ id: string; message: string } | null>(null);
   const [reason, setReason] = useState(""), [confirm, setConfirm] = useState(""), [name, setName] = useState("");
   const reload = useCallback(async () => {
     const id = ++requestId.current; setLoading(true);
@@ -23,13 +33,23 @@ export function AdminPanel({ section }: { section: string }) {
     finally { if (id === requestId.current) setLoading(false); }
   }, [section, query, offset]);
   useEffect(() => { const initial = window.setTimeout(() => void reload(), 0); return () => clearTimeout(initial); }, [reload]);
-  const modal = (id: string, action: string, label: string) => { setTarget({ id, action, label }); setReason(""); setConfirm(""); setName(""); };
+  const modal = (id: string, action: string, label: string, friendCode?: string) => { setTarget({ id, action, label, friendCode }); setReason(""); setConfirm(""); setName(""); setError(""); };
+  const copyPlayerCode = async (id: string, friendCode: string) => {
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error("Clipboard unavailable");
+      await navigator.clipboard.writeText(friendCode);
+      setCopyStatus({ id, message: "คัดลอกรหัสสหายแล้ว" });
+    } catch {
+      setCopyStatus({ id, message: "คัดลอกไม่สำเร็จ กรุณาเลือกรหัสแล้วคัดลอกเอง" });
+    }
+  };
+  const expectedConfirm = target?.friendCode ?? target?.id ?? "";
   return <><section className="arena-panel"><h2>{adminLabels[section]}</h2>{["players", "competitions", "leaderboards", "audit"].includes(section) && <form className="arena-form-row" onSubmit={(e) => { e.preventDefault(); setQuery(search); setOffset(0); }}><label>ค้นชื่อ รหัส ด่าน หรือสถานะ <input maxLength={80} value={search} onChange={(e) => setSearch(e.target.value)} /></label><button>ค้นหา/กรอง</button></form>}{loading && <p>กำลังโหลดข้อมูลจริง…</p>}{error && <p className="arena-error" role="alert">{error}</p>}<button onClick={() => void reload()}>โหลดข้อมูลใหม่</button>
     {section === "database" && !loading && !error && <DatabaseAdmin data={data as unknown as DatabaseReport} />}
     {section === "demo" && !loading && !error && <DemoAdmin data={data as unknown as DemoReport} onChange={reload} />}
     {section==="seasons" && !loading && !error && <SeasonManager seasons={(data.seasons || []) as ComponentProps<typeof SeasonManager>["seasons"]} onChange={reload}/>}
     {section==="reviews" && !loading && !error && <ReviewManager reviews={(data.reviews || []) as ComponentProps<typeof ReviewManager>["reviews"]} onChange={reload}/>}
-    {section === "players" && <><p>ล้างชื่อเก็บตัวตนและผลไว้ · ปกปิดชื่อไม่ลบคะแนน · ลบข้อมูลเป็นการทำให้ไม่ระบุตัวตน ไม่ลบประวัติแข่งขันถาวร</p><div className="arena-table-wrap"><table><thead><tr><th>ผู้ฝึก/รหัส</th><th>สถานะ</th><th>ดำเนินการ</th></tr></thead><tbody>{data.players?.map((p) => <tr key={p.id}><td>{p.name || "ผู้ฝึกนิรนาม"}<br />{p.friend_code}<small><br />{p.id}</small></td><td>ประวัติที่คงไว้ {p.attempt_count} รอบ<br />{p.deleted ? "ไม่ระบุตัวตนแล้ว" : p.suspended ? "ระงับ" : p.hidden ? "ซ่อน" : "ปกติ"}</td><td>{[["rename", "เปลี่ยนชื่อ"], ["clear", "ล้างชื่อแสดงผล"], ["hide", "ซ่อนข้อมูลสาธารณะ"], ["suspend", "ระงับบัญชี"], ["restore", "คืนสิทธิ์/ปลดล็อกชื่อ"], ["anonymize", "ลบข้อมูลระบุตัวตน"]].map(([a, l]) => <button key={a} disabled={Boolean(p.deleted) || data.backend === "supabase" && a === "anonymize"} onClick={() => modal(String(p.id), a, l)}>{l}</button>)}</td></tr>)}</tbody></table></div>{data.players?.length === 0 && <p>ยังไม่มีผู้ฝึกในฐานข้อมูลกลาง</p>}</>}
+    {section === "players" && <><p>ล้างชื่อเก็บตัวตนและผลไว้ · ปกปิดชื่อไม่ลบคะแนน · การลบบัญชีถาวรยังไม่เปิดใช้จนกว่าจะตรวจและปรับโครงสร้างข้อมูลที่ผูกกัน</p><div className="arena-table-wrap"><table><thead><tr><th>ผู้ฝึก/รหัส</th><th>สถานะ</th><th>หินวิญญาณ</th><th>ดำเนินการ</th></tr></thead><tbody>{data.players?.map((p) => <tr key={p.id}><td>{p.name || "ไม่มีชื่อแสดงผล"}<div className="admin-player-id"><code>{p.friend_code}</code><button type="button" onClick={() => void copyPlayerCode(String(p.id), String(p.friend_code))} aria-label={`คัดลอกรหัสสหายของ ${p.name || "ผู้ฝึกไม่มีชื่อแสดงผล"}`}>คัดลอกรหัสสหาย</button></div><small>รหัสภายใน: {p.id}</small>{copyStatus?.id === String(p.id) && <small role="status">{copyStatus.message}</small>}</td><td>ประวัติที่คงไว้ {p.attempt_count} รอบ<br />{playerStatus(p)}</td><td><PlayerStones id={String(p.id)} name={String(p.name || "ผู้ฝึกไม่มีชื่อแสดงผล")} initial={Number(p.balance ?? 0)} /></td><td>{[["rename", "เปลี่ยนชื่อ"], ["clear", "ล้างชื่อแสดงผล"], ["hide", "ซ่อนข้อมูลสาธารณะ"], ["suspend", "ระงับบัญชี"], ["restore", "คืนสิทธิ์/ปลดล็อกชื่อ"], ["anonymize", "ลบข้อมูลระบุตัวตน"]].map(([a, l]) => <button key={a} disabled={Boolean(p.deleted) || data.backend === "supabase" && a === "anonymize"} onClick={() => modal(String(p.id), a, l, String(p.friend_code))}>{l}</button>)}</td></tr>)}</tbody></table></div>{data.players?.length === 0 && <p>ยังไม่มีผู้ฝึกในฐานข้อมูลกลาง</p>}</>}
     {["competitions", "leaderboards"].includes(section) && <><p>ผลรอตรวจจะไม่ถูกยืนยันเป็นอันดับด้วยปุ่มผู้ดูแล การรับรองต้องผ่านตัวตรวจคำสั่งฝั่งเซิร์ฟเวอร์และสิทธิ์ของด่าน การคืนผลยกเลิกไม่เปลี่ยนผลรอตรวจให้เป็นผลยืนยัน</p><div className="arena-table-wrap"><table><thead><tr><th>ด่าน/รอบ</th><th>ผล</th><th>เวลารวม</th><th>ดูแล</th></tr></thead><tbody>{data.attempts?.map((a) => <tr key={a.id}><td>{a.scenario}<br />{a.id}<br />ผู้ฝึก {a.playerId}</td><td>{statusText(a.status)}<br />{a.invalid ? "ยกเลิกผลแล้ว" : "ยังไม่ยกเลิก"}<br />กราฟ {a.graphValid ? "ผ่านการตรวจเบื้องต้น" : "ยังไม่ผ่าน"}</td><td>{timeText(a.totalMs)}</td><td><button onClick={() => setEvidenceId(a.id)}>ดูหลักฐานคำสั่ง</button><button disabled={data.backend === "supabase" && a.invalid} onClick={() => modal(a.id, a.invalid ? "reinstate" : "invalidate", a.invalid ? "คืนสถานะผล" : "ยกเลิกผล")}>{a.invalid ? "คืนสถานะผล" : "ยกเลิกผล"}</button></td></tr>)}</tbody></table></div>{data.attempts?.length === 0 && <p>ยังไม่มีรอบแข่งขัน</p>}</>}
     {section === "audit" && <div className="arena-table-wrap"><table><thead><tr><th>เวลา</th><th>ผู้ดำเนินการ/คำสั่ง</th><th>เป้าหมาย/เหตุผล</th></tr></thead><tbody>{data.events?.map((a) => <tr key={a.id}><td>{new Date(Number(a.created)).toLocaleString("th-TH")}</td><td>{a.actor}<br />{a.action}</td><td>{a.target}<br />{a.reason}</td></tr>)}</tbody></table></div>}
     {section === "matches" && <p>ยังไม่เปิดใช้งานประลองออนไลน์ ไม่มีห้องจำลองหรือคู่แข่งสมมติ</p>}
@@ -37,7 +57,21 @@ export function AdminPanel({ section }: { section: string }) {
     {section === "friends" && !loading && !error && <p>คำขอรอรับ {Number((data.requests as { count?: number })?.count || 0)} รายการ · การปิดกั้น {Number((data.blocks as { count?: number })?.count || 0)} รายการ</p>}
     {section === "settings" && data.settings && <RulesForm settings={data.settings} onChange={reload} />}
     {["players", "competitions", "leaderboards", "audit"].includes(section) && <p><button disabled={offset === 0 || loading} onClick={() => setOffset(Math.max(0, offset - 100))}>ก่อนหน้า</button> หน้า {Math.floor(offset / 100) + 1} <button disabled={loading || Math.max(data.players?.length || 0, data.attempts?.length || 0, data.events?.length || 0) < 100} onClick={() => setOffset(offset + 100)}>ถัดไป</button></p>}
-    </section>{evidenceId && <AdminEvidence id={evidenceId} onClose={() => setEvidenceId(null)} />}{target && <div className="arena-modal" role="dialog" aria-modal="true" aria-labelledby="moderation-title"><form className="arena-panel" onSubmit={async (e) => { e.preventDefault(); try { await api("moderate", { ...target, reason, confirm, name }, true); setTarget(null); await reload(); } catch (e) { setError((e as Error).message); } }}><h2 id="moderation-title">ยืนยัน{target.label}</h2><p>เป้าหมาย: {target.id}</p><p>{target.action === "anonymize" ? "จะล้างชื่อ ซ่อนโปรไฟล์ ถอนเซสชัน และเลิกเชื่อมโยงสหาย เก็บประวัติแข่งขันแบบไม่ระบุตัวตน ไม่สามารถกู้ชื่อผ่านหน้าจอนี้" : "การเปลี่ยนชื่อไม่ลบตัวตนหรือประวัติแข่งขัน และมีบันทึกตรวจสอบทุกครั้ง"}</p>{target.action === "rename" && <label>ชื่อใหม่ <input required maxLength={20} value={name} onChange={(e) => setName(e.target.value)} /></label>}<label>เหตุผล <input required minLength={5} maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} /></label><label>พิมพ์รหัสเป้าหมายยืนยัน <input required value={confirm} onChange={(e) => setConfirm(e.target.value)} /></label><button disabled={confirm !== target.id}>ยืนยัน{target.label}</button> <button type="button" onClick={() => setTarget(null)}>ยกเลิก</button>{error && <p role="alert">{error}</p>}</form></div>}</>;
+    </section>
+    {evidenceId && <AdminEvidence id={evidenceId} onClose={() => setEvidenceId(null)} />}
+    {target && <div className="arena-modal" role="dialog" aria-modal="true" aria-labelledby="moderation-title">
+      <form className="arena-panel" onSubmit={async (e) => { e.preventDefault(); try { await api("moderate", { ...target, reason, confirm, name }, true); setTarget(null); await reload(); } catch (e) { setError((e as Error).message); } }}>
+        <h2 id="moderation-title">ยืนยัน{target.label}</h2>
+        <p>{target.friendCode ? "รหัสสหายเป้าหมาย" : "รหัสรอบเป้าหมาย"}: <code>{expectedConfirm}</code> <button type="button" onClick={() => void navigator.clipboard.writeText(expectedConfirm).catch(() => setError("คัดลอกรหัสไม่สำเร็จ กรุณาเลือกและคัดลอกรหัสด้านบน"))}>คัดลอกรหัส</button></p>
+        <p>{target.action === "anonymize" ? "จะล้างชื่อ ซ่อนโปรไฟล์ ถอนเซสชัน และเลิกเชื่อมโยงสหาย เก็บประวัติแข่งขันแบบไม่ระบุตัวตน ไม่สามารถกู้ชื่อผ่านหน้าจอนี้" : "การเปลี่ยนชื่อไม่ลบตัวตนหรือประวัติแข่งขัน และมีบันทึกตรวจสอบทุกครั้ง"}</p>
+        {target.action === "rename" && <label>ชื่อใหม่ <input required maxLength={20} value={name} onChange={(e) => setName(e.target.value)} /></label>}
+        <label>เหตุผล (อย่างน้อย 5 ตัวอักษร) <input required minLength={5} maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} /></label>
+        <label>วาง{target.friendCode ? "รหัสสหาย" : "รหัสรอบ"}เพื่อยืนยัน <input required autoComplete="off" spellCheck={false} value={confirm} onChange={(e) => setConfirm(e.target.value)} /></label>
+        {confirm && confirm !== expectedConfirm && <p className="arena-error" role="status">รหัสยืนยันยังไม่ตรงกับรหัสด้านบน</p>}
+        <button type="submit" disabled={confirm !== expectedConfirm || reason.trim().length < 5}>ยืนยัน{target.label}</button> <button type="button" onClick={() => setTarget(null)}>ยกเลิก</button>
+        {error && <p role="alert">{error}</p>}
+      </form>
+    </div>}</>;
 }
 function RulesForm({ settings, onChange }: { settings: Record<string, number>; onChange: () => Promise<void> }) {
   const [values, setValues] = useState(settings), [reason, setReason] = useState(""), [message, setMessage] = useState("");
@@ -51,4 +85,42 @@ function CompetitionOverview({ data }: { data: Data }) {
   };
   const metrics = [["ผู้ฝึกในระบบกลาง", count("players")], ["บัญชีที่ยังใช้งานได้", count("activePlayers")], ["ผู้เล่นที่มีผลยืนยัน", count("verifiedPlayers")], ["รอบแข่งขันทั้งหมด", count("attempts")], ["ผลรอตรวจ", count("pending")], ["ผลยืนยันพร้อมหลักฐาน", count("verified")], ["ผู้ยินยอมแสดงออนไลน์", count("online")], ["ผู้มีสิทธิ์ร่วมอันดับ", count("eligible")]];
   return <><dl className="admin-kpi-grid">{metrics.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl><div className="admin-season-status"><h3>ฤดูกาลปัจจุบัน</h3><p>{(data.season as { name?: string } | null)?.name || "ยังไม่มีฤดูกาลเปิด"}</p><p>ผลที่รอตรวจยังไม่เป็นอันดับทางการ · การประลองสองเซียนยังไม่เปิดใช้งาน</p><p>สถานะออนไลน์ใช้ความยินยอมและการติดต่อเซิร์ฟเวอร์ล่าสุดตามกติกาเดิม ไม่ใช่การติดตามสดตลอดเวลา</p></div></>;
+}
+
+/** Admin only: a player's current Spirit Stones, a live re-check, and setting a new balance (audited ledger adjustment). */
+function PlayerStones({ id, name, initial }: { id: string; name: string; initial: number }) {
+  const [balance, setBalance] = useState(initial), [busy, setBusy] = useState(false), [message, setMessage] = useState("");
+  const [editing, setEditing] = useState(false), [target, setTarget] = useState(""), [reason, setReason] = useState("");
+  const fresh = async () => (await api<{ balance: number }>(`player-balance?id=${encodeURIComponent(id)}`, undefined, true)).balance;
+  const checkNow = async () => {
+    setBusy(true); setMessage("");
+    try { const b = await fresh(); setBalance(b); setMessage(`ตรวจแล้ว ${new Date().toLocaleTimeString("th-TH")}`); }
+    catch (e) { setMessage((e as Error).message); } finally { setBusy(false); }
+  };
+  const save = async () => {
+    const want = Math.trunc(Number(target));
+    if (!Number.isSafeInteger(want) || want < 0) { setMessage("ใส่จำนวนหินเป็นเลขจำนวนเต็มตั้งแต่ 0 ขึ้นไป"); return; }
+    if (reason.trim().length < 5) { setMessage("ใส่เหตุผลอย่างน้อย 5 ตัวอักษร"); return; }
+    setBusy(true); setMessage("");
+    try {
+      const current = await fresh(), delta = want - current;
+      if (delta === 0) { setBalance(current); setEditing(false); setMessage("ยอดเท่าเดิม ไม่มีการเปลี่ยนแปลง"); return; }
+      const r = await api<{ balance: number }>("economy/adjust", { player: id, confirm: id, amount: delta, reason: reason.trim(), idempotencyKey: crypto.randomUUID() }, true);
+      setBalance(Number(r.balance)); setEditing(false); setTarget(""); setReason("");
+      setMessage(`บันทึกแล้ว (${delta > 0 ? "+" : ""}${delta.toLocaleString("th-TH")})`);
+    } catch (e) { setMessage((e as Error).message); } finally { setBusy(false); }
+  };
+  return <div className="admin-player-stones">
+    <strong>{balance.toLocaleString("th-TH")}</strong>
+    <div className="arena-actions">
+      <button type="button" disabled={busy} onClick={() => void checkNow()}>เช็คหิน</button>
+      <button type="button" disabled={busy} onClick={() => { setEditing(!editing); setTarget(String(balance)); setMessage(""); }}>{editing ? "ยกเลิก" : "แก้หิน"}</button>
+    </div>
+    {editing && <form onSubmit={(e) => { e.preventDefault(); void save(); }} aria-label={`แก้หินวิญญาณของ ${name}`}>
+      <label>ยอดใหม่<input type="number" min={0} step={1} required value={target} onChange={(e) => setTarget(e.target.value)} /></label>
+      <label>เหตุผล<input required minLength={5} maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} /></label>
+      <button disabled={busy}>{busy ? "กำลังบันทึก…" : "บันทึกยอดใหม่"}</button>
+    </form>}
+    {message && <small role="status">{message}</small>}
+  </div>;
 }

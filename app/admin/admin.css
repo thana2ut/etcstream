@@ -72,6 +72,9 @@
 .admin-config-stats dd { margin: 10px 0 0; font-size: 1.6rem; color: #f7dfaa; }
 .admin-unified .arena-panel { overflow-wrap: anywhere; min-width: 0; }
 .admin-unified .arena-table-wrap { max-width: 100%; }
+.admin-player-id { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+.admin-player-id code { overflow-wrap: anywhere; font-size: .85rem; }
+.admin-unified .admin-player-id button { min-height: 36px; padding: 5px 10px; white-space: nowrap; }
 .is-admin .admin-unified .mission-hall-embedded { position: relative; inset: auto; box-sizing: border-box; width: 100%; max-width: 100%; min-width: 0; height: auto; max-height: none; min-height: 0; overflow: visible; padding: 0; background: transparent; }
 .admin-unified .mission-hall-embedded .mission-hall-content { box-sizing: border-box; padding: 0; width: 100%; max-width: 100%; min-width: 0; }
 @media (max-width: 900px) {
@@ -252,3 +255,9 @@
   .admin-market-row { grid-template-columns: 56px minmax(0, 1fr); }
   .admin-market-row > :nth-child(n+3) { grid-column: 1 / -1; }
 }
+
+/* Admin: player Spirit Stones cell (current balance, check, edit). */
+.admin-player-stones { display: grid; gap: 6px; min-width: 190px; }
+.admin-player-stones strong { font-size: 1.15rem; color: #f3dfa6; font-variant-numeric: tabular-nums; }
+.admin-player-stones form { display: grid; gap: 6px; }
+.admin-player-stones input { width: 100%; }

@@ -80,7 +80,7 @@ export async function cloudAdmin(request: Request, path: string[]) {
       if (post && ["adjust", "catalog", "rule", "medal", "medal-clear"].includes(op)) {
         const reason = String(body.reason || "").trim();
         if (reason.length < 5 || reason.length > 500) throw new ArenaError(400, "ต้องระบุเหตุผลอย่างน้อย 5 ตัวอักษรทุกครั้ง");
-        if (op === "adjust" && (!/^[0-9a-f-]{36}$/i.test(String(body.player)) || body.confirm !== body.player || !Number.isSafeInteger(body.amount) || body.amount === 0 || Math.abs(Number(body.amount)) > 100000 || !/^[0-9a-f-]{36}$/i.test(String(body.idempotencyKey)))) throw new ArenaError(400, "กรอกรหัสผู้ฝึก ยืนยันรหัสซ้ำ และจำนวนที่ไม่เป็นศูนย์ (ไม่เกิน ±100,000)");
+        if (op === "adjust" && (!/^[0-9a-f-]{36}$/i.test(String(body.player)) || body.confirm !== body.player || !Number.isSafeInteger(body.amount) || body.amount === 0 || Math.abs(Number(body.amount)) > 1000000000 || !/^[0-9a-f-]{36}$/i.test(String(body.idempotencyKey)))) throw new ArenaError(400, "กรอกรหัสผู้ฝึก ยืนยันรหัสซ้ำ และจำนวนที่ไม่เป็นศูนย์ (ไม่เกิน ±1,000,000,000)");
         if (op === "catalog" && (body.price !== undefined && (!Number.isSafeInteger(body.price) || Number(body.price) < 1 || Number(body.price) > 1000000))) throw new ArenaError(400, "ราคาต้องเป็นจำนวนเต็มบวก");
         if (op === "rule" && (!Number.isSafeInteger(body.amount) || Number(body.amount) < 0 || Number(body.amount) > 100000)) throw new ArenaError(400, "จำนวนรางวัลไม่ถูกต้อง");
         if (op === "medal") {
@@ -119,11 +119,15 @@ export async function cloudAdmin(request: Request, path: string[]) {
     }
     if (post && route === "moderate") {
       const target = String(body.id || ""), reason = String(body.reason || "").trim();
-      if (body.confirm !== target || reason.length < 5 || reason.length > 500 || !/^[0-9a-f-]{36}$/i.test(target)) throw new ArenaError(400, "กรอกรหัสยืนยันและเหตุผลให้ครบก่อนดำเนินการ");
+      if (reason.length < 5 || reason.length > 500 || !/^[0-9a-f-]{36}$/i.test(target)) throw new ArenaError(400, "กรอกรหัสยืนยันและเหตุผลให้ครบก่อนดำเนินการ");
       if (body.action === "invalidate") {
+        if (body.confirm !== target) throw new ArenaError(400, "รหัสรอบที่ยืนยันไม่ตรงกับรอบเป้าหมาย");
         check(await db.rpc("etc_invalidate_run", { run_id: target, why: reason })); return reply({ ok: true });
       }
       if (!["rename", "clear", "hide", "suspend", "restore"].includes(String(body.action))) throw new ArenaError(409, "การลบข้อมูลและแก้ผลอันดับยังไม่เปิดใช้งาน ต้องตรวจนโยบายเก็บรักษาและสำรองข้อมูลก่อน");
+      const profile = check(await db.from("etc_profiles").select("friend_code").eq("id", target).maybeSingle());
+      if (!profile) throw new ArenaError(404, "ไม่พบบัญชีผู้ฝึกเป้าหมาย");
+      if (body.confirm !== profile.friend_code) throw new ArenaError(400, "รหัสสหายที่ยืนยันไม่ตรงกับบัญชีเป้าหมาย");
       check(await db.rpc("etc_moderate", { target_id: target, operation: body.action, new_name: String(body.name || "").normalize("NFC"), reason }));
       return reply({ ok: true });
     }
@@ -138,9 +142,18 @@ export async function cloudAdmin(request: Request, path: string[]) {
       const events = check(await db.from("etc_commands").select("seq,payload,received").eq("run_id", id).order("seq").range(offset, offset + 99)) || [];
       return reply({ attempt: { ...r, created: Date.parse(r.created), totalMs: r.total }, replay: { protocol: "cloud-independent-replay-v1", seq: r.seq, last_hash: r.evidence?.hash || "ยังไม่รับรอง" }, commands: events.map((e) => ({ ...e, payload: JSON.stringify(e.payload), received: Date.parse(e.received) })) });
     }
+    if (route === "player-balance") {
+      const id = url.searchParams.get("id") || "";
+      if (!/^[0-9a-f-]{36}$/i.test(id)) throw new ArenaError(400, "รหัสผู้ฝึกไม่ถูกต้อง");
+      const wallet = check(await db.from("etc_wallets").select("balance").eq("player", id).maybeSingle()) as { balance: number } | null;
+      return reply({ id, balance: Number(wallet?.balance ?? 0), checkedAt: Date.now() });
+    }
     if (route === "players") {
       const players = check(await db.from("etc_profiles").select("*").order("created", { ascending: false }).range(offset, offset + 99)) || [];
-      return reply({ backend: "supabase", players: players.filter((p) => !search || [p.name,p.friend_code,p.id].some((v) => String(v).toLowerCase().includes(search))).map((p) => ({ ...p, created: Date.parse(p.created), deleted: 0, attempt_count: null })) });
+      const ids = players.map((p) => p.id);
+      const wallets = ids.length ? (check(await db.from("etc_wallets").select("player,balance").in("player", ids)) || []) as { player: string; balance: number }[] : [];
+      const balances = new Map(wallets.map((w) => [w.player, Number(w.balance)]));
+      return reply({ backend: "supabase", players: players.filter((p) => !search || [p.name,p.friend_code,p.id].some((v) => String(v).toLowerCase().includes(search))).map((p) => ({ ...p, created: Date.parse(p.created), deleted: 0, attempt_count: null, balance: balances.get(p.id) ?? 0 })) });
     }
     if (["competitions", "leaderboards", "reviews"].includes(route)) {
       let query = db.from("etc_runs").select("id,player,scenario,status,start,created,elapsed,penalty,total,graph_valid,invalid,verified_at,validation_version").order("created", { ascending: false }).range(offset, offset + 99);
