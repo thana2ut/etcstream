@@ -55,7 +55,14 @@
 .econ-slot li { display: grid; justify-items: center; gap: 6px; padding: 10px; border-radius: 10px; background: #0d1828; text-align: center; }
 .econ-slot li.is-equipped { box-shadow: inset 0 0 0 2px #6fe0c8; }
 .econ-slot li img { border-radius: 8px; object-fit: contain; }
-.econ-bag-preview { display: grid; justify-items: center; }
+.econ-bag > .arena-split { grid-template-columns: minmax(280px, .72fr) minmax(0, 1.55fr); align-items: start; gap: 20px; }
+.econ-bag > .arena-split > .arena-panel { border-color: #cda86c66; background: radial-gradient(circle at 50% 0, #21454a55, transparent 34%), linear-gradient(160deg, #14253a, #0b1526); box-shadow: inset 0 1px 0 #fff1, 0 18px 44px #050a1488; }
+.econ-bag-preview { position: sticky; top: 16px; display: grid; justify-items: center; gap: 10px; overflow: hidden; }
+.econ-bag-preview h2 { width: 100%; margin: 0; padding-bottom: 10px; border-bottom: 1px solid #cda86c44; color: #f6e2a8; text-align: center; }
+.econ-bag .econ-slot { padding: 14px; border-color: #cda86c55; background: #08142788; }
+.econ-bag .econ-slot li { min-width: 0; border: 1px solid #50657b55; background: linear-gradient(160deg,#13253a,#0b1728); }
+.econ-bag .econ-slot li.is-equipped { border-color: #6fe0c8; box-shadow: inset 0 0 0 1px #6fe0c8, 0 8px 22px #4fd1b91f; }
+.econ-bag .econ-slot li strong { overflow-wrap: anywhere; line-height: 1.45; }
 .econ-residence { display: grid; justify-items: center; gap: 6px; margin-top: 16px; }
 .econ-residence img { border-radius: 12px; }
 .econ-ledger { margin-top: 20px; }
@@ -79,6 +86,8 @@
   .econ-hub { grid-template-columns: auto 1fr; }
   .econ-gateways { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; min-width: 0; }
   .econ-gateways > * { flex: 1 1 180px; }
+  .econ-bag > .arena-split { grid-template-columns: 1fr; }
+  .econ-bag-preview { position: static; }
 }
 @media (max-width: 520px) {
   .econ-hub { grid-template-columns: 1fr; justify-items: center; }
@@ -615,3 +624,16 @@
 .profile-showcase-grid li, .profile-showcase-grid li * { user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; cursor: default; }
 .profile-showcase-grid img { pointer-events: none; -webkit-user-drag: none; }
 .profile-showcase-grid li:hover .profile-showcase-art img { transform: none !important; }
+
+/* Friends: search row aligned (input and button share one baseline/height) and balanced relation actions. */
+.arena-public .social-search .arena-form-row { grid-template-columns: minmax(0, 1fr) minmax(140px, 220px); align-items: end; }
+.arena-public .social-search .arena-form-row button { min-height: 50px; margin: 0; }
+.social-search > .arena-note { margin-top: 10px; }
+.social-relation { display: inline-grid; grid-auto-flow: column; grid-auto-columns: minmax(0, auto); align-items: stretch; gap: 8px; }
+.social-relation > .econ-tag { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 16px; border-radius: 9px; font-size: 0.95rem; white-space: nowrap; }
+.social-relation > button { min-height: 44px; white-space: nowrap; }
+.social-relation > .arena-error { grid-column: 1 / -1; }
+@media (max-width: 560px) {
+  .arena-public .social-search .arena-form-row { grid-template-columns: 1fr; }
+  .social-relation { grid-auto-flow: row; width: 100%; }
+}
