@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { getDifficultyMeta, getMissionBySlug, missionChapters } from "@/game/content/mission-catalog";
 import { isDifficultyUnlocked } from "@/game/persistence/mission-progress-repository";
+import { useTester } from "@/components/game/use-tester";
 import { missionDrawRepository, MAX_REROLLS } from "@/game/persistence/mission-draw-repository";
 import { cryptoRandom } from "@/game/content/mission-ranks";
 import { useAcademyStore } from "@/game/stores/academy-store";
@@ -22,6 +23,7 @@ import { soundEngine } from "@/game/audio/sound-engine";
  * - `admin` (embedded in /admin): the original hall — every venue can be opened and played.
  */
 export function MissionHall({ admin = false, embedded = false, active = true, onPreview }: { admin?: boolean; embedded?: boolean; active?: boolean; onPreview?: (slug: string, level: number) => Promise<void> }) {
+  const tester = useTester();
   const Container = embedded ? "section" : "main";
   const router = useRouter();
   const previewOnly = admin && Boolean(onPreview);
@@ -121,7 +123,7 @@ export function MissionHall({ admin = false, embedded = false, active = true, on
       finally { setLaunching(false); }
       return;
     }
-    if (!selectMission(slug, level, admin)) {
+    if (!selectMission(slug, level, admin || tester)) {
       setError("เริ่มภารกิจไม่ได้ โปรดตรวจการตั้งค่าเบราว์เซอร์แล้วลองอีกครั้ง");
       return;
     }
@@ -214,7 +216,7 @@ export function MissionHall({ admin = false, embedded = false, active = true, on
             <div className="mission-difficulty-grid" role="group" aria-label="เลือกระดับบทเรียน">
               {selectedMission.difficulties.map((item) => {
                 // Admin hall: every level is open so each room can be played and adjusted directly.
-                const unlocked = admin || isDifficultyUnlocked(progress, selectedMission.slug, item.level);
+                const unlocked = admin || tester || isDifficultyUnlocked(progress, selectedMission.slug, item.level);
                 const completed = progress.completed[selectedMission.slug]?.includes(item.level);
                 return (
                   <button

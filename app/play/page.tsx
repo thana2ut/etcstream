@@ -1,4 +1,6 @@
 "use client";
+import { buildAdminLoadout } from "@/game/content/admin-loadout";
+import { useTester } from "@/components/game/use-tester";
 
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -31,6 +33,13 @@ import { missionBriefing } from "@/game/content/mission-briefing";
 import { BagPanel } from "@/components/game/bag-panel";
 import { OperatorConsole, ReviewOverlay } from "@/components/game/operator-console";
 import { hiddenCablesFor, MAX_WRONG_STREAK, packableCatalogIds, packedLeadsFor } from "@/game/content/cable-catalog";
+
+/** Test accounts only: applies the level's canonical cable bag once, then the mission starts. */
+function AutoPack({ run }: { run: () => void }) {
+  const done = useRef(false);
+  useEffect(() => { if (!done.current) { done.current = true; run(); } }, [run]);
+  return <main className="fantasy-viewport play-page" style={{ justifyContent: "center", alignItems: "center" }}><p role="status">กำลังจัดสายเข้ากระเป๋า…</p></main>;
+}
 
 export default function Play() {
   return (
@@ -80,6 +89,7 @@ function PlayExperience() {
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   // Mission Hall: cable bag packed in the prep lobby before every attempt (null = still in the lobby).
   const [bag, setBag] = useState<Record<string, number> | null>(null);
+  const tester = useTester();
   const [bagOpen, setBagOpen] = useState(false);
   const trainingFailed = useTrainingStore((state) => state.failed);
   // Leads still inside the bag (badge on the 🎒 button).
@@ -369,6 +379,13 @@ function PlayExperience() {
 
   // Entry order: briefing first, cable preparation next, then immediate gameplay. The classroom offers exactly the leads laid out on its table.
   if (((routeMode === "mission" && validMission) || validClassroom) && !introOpen && bag === null) {
+    const testerPack = tester ? buildAdminLoadout(activeScenario) : null;
+    if (testerPack?.ok) return <AutoPack key={scenarioId} run={() => {
+      setBag(testerPack.bag);
+      resetTraining(scenarioId, hiddenCablesFor(activeScenario, testerPack.bag), packedLeadsFor(activeScenario, testerPack.bag));
+      setIntroOpen(false);
+      startMission();
+    }} />;
     return <CableLobby
       key={scenarioId}
       scenario={activeScenario} title={currentTitle}

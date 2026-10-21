@@ -118,6 +118,7 @@ export async function cloudArena(request: Request, path: string[]) {
       return response(checked(await client.rpc("etc_player", { action: "register", body: { name: name.normalize("NFC") } })));
     }
     if (!user) throw new ArenaError(401, "กรุณาเข้าสู่ระบบก่อน");
+    if (route === "tester" && !post) return response({ tester: checked(await trustedClient().rpc("etc_is_test_account", { target: user.id })) === true });
     const player = checked(await client.rpc("etc_player", { action: "get" })) as { id: string; rankPublic: boolean };
     const rpc = async (action: string, value: unknown = {}) => checked(await client.rpc("etc_player", { action, body: json(value) }));
     if (route === "profile" && post) return response(await rpc("profile", body));
