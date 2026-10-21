@@ -24,6 +24,15 @@ import { soundEngine } from "@/game/audio/sound-engine";
  */
 export function MissionHall({ admin = false, embedded = false, active = true, onPreview }: { admin?: boolean; embedded?: boolean; active?: boolean; onPreview?: (slug: string, level: number) => Promise<void> }) {
   const tester = useTester();
+  // Which signed-in account owns the draw (undefined while asking; null when not signed in online).
+  const [account, setAccount] = useState<string | null | undefined>(undefined);
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/arena/tester", { credentials: "same-origin", cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null)).then((v) => { if (alive) setAccount(typeof v?.account === "string" ? v.account : null); })
+      .catch(() => { if (alive) setAccount(null); });
+    return () => { alive = false; };
+  }, []);
   const Container = embedded ? "section" : "main";
   const router = useRouter();
   const previewOnly = admin && Boolean(onPreview);
@@ -61,7 +70,7 @@ export function MissionHall({ admin = false, embedded = false, active = true, on
     return <Container className={embedded ? "arena-panel" : "fantasy-viewport mission-loading"}><p>{hydrated && !player ? "หอภารกิจเดิมต้องใช้โปรไฟล์ฝึกในเบราว์เซอร์นี้ กรุณาสร้างโปรไฟล์ที่หน้าต้อนรับก่อน ระบบจะไม่สร้างผู้เล่นหรือผลภารกิจแทนคุณ" : "กำลังเปิดหอภารกิจ..."}</p>{embedded && hydrated && !player && <Link href="/">ไปหน้าต้อนรับ</Link>}</Container>;
   }
 
-  const record = previewOnly ? null : drawnLocal ?? missionDrawRepository.load(player.playerId);
+  const record = previewOnly || account === undefined ? null : drawnLocal ?? missionDrawRepository.load(player.playerId, account);
   const drawn = record?.slug ?? null;
   const rerollsUsed = record?.rerolls ?? 0;
   const clearedOf = (slug: string) => progress.completed[slug]?.length ?? 0;
@@ -100,7 +109,7 @@ export function MissionHall({ admin = false, embedded = false, active = true, on
             stopSpin.current?.();
             stopSpin.current = null;
             soundEngine.play("draw_result");
-            missionDrawRepository.save(player.playerId, target.m.slug, rerolls);
+            missionDrawRepository.save(player.playerId, account ?? null, target.m.slug, rerolls);
             setDrawnLocal({ slug: target.m.slug, rerolls });
             setRolling(false);
             setSelectedSlug(target.m.slug);

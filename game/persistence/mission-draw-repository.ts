@@ -8,12 +8,12 @@ import { getMissionBySlug } from "@/game/content/mission-catalog";
 export const MAX_REROLLS = 1;
 interface DrawRecord { version: 1; playerId: string; slug: string; rerolls: number }
 export interface MissionDrawState { slug: string; rerolls: number }
-const key = (playerId: string) => `etcstream-mission-draw-v1:${playerId}`;
+const key = (playerId: string, account: string | null) => `etcstream-mission-draw-v2:${playerId}:${account ?? "local"}`;
 
 export const missionDrawRepository = {
-  load(playerId: string): MissionDrawState | null {
+  load(playerId: string, account: string | null): MissionDrawState | null {
     try {
-      const raw = window.localStorage.getItem(key(playerId));
+      const raw = window.localStorage.getItem(key(playerId, account));
       if (!raw) return null;
       const value: unknown = JSON.parse(raw);
       if (!value || typeof value !== "object") return null;
@@ -23,10 +23,10 @@ export const missionDrawRepository = {
       return { slug: record.slug, rerolls };
     } catch { return null; }
   },
-  save(playerId: string, slug: string, rerolls = 0): boolean {
+  save(playerId: string, account: string | null, slug: string, rerolls = 0): boolean {
     if (!getMissionBySlug(slug)) return false;
     const record: DrawRecord = { version: 1, playerId, slug, rerolls: Math.min(Math.max(rerolls, 0), MAX_REROLLS) };
-    try { window.localStorage.setItem(key(playerId), JSON.stringify(record)); return true; }
+    try { window.localStorage.setItem(key(playerId, account), JSON.stringify(record)); return true; }
     catch { return false; }
   },
 };
