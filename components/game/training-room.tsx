@@ -165,9 +165,9 @@ function Port({ id }: { id: string }) {
     <Billboard>
       {/* Port tag floats above the socket and a little toward the player so it never lies on the device face. */}
       {showTag && <group position={[0, ring + 0.12, 0.05]}>
-        <mesh renderOrder={10}><planeGeometry args={[tagWidth, 0.16]} /><meshBasicMaterial color={fits === true ? "#0d3a22" : "#0b1220"} transparent opacity={0.82} depthTest={false} depthWrite={false} /></mesh>
-        <mesh position={[0, -0.092, 0]} renderOrder={10}><planeGeometry args={[0.003, 0.024]} /><meshBasicMaterial color={color} transparent opacity={0.7} depthTest={false} depthWrite={false} /></mesh>
-        <Text font={ROOM_FONT} position={[0, 0, 0.001]} fontSize={tagSize} lineHeight={1.5} color={fits === true ? "#c8ffd8" : "#f7f1e3"} anchorX="center" anchorY="middle" textAlign="center" renderOrder={11} material-depthTest={false} material-depthWrite={false} maxWidth={tagWidth - 0.1}>
+        <mesh renderOrder={1000}><planeGeometry args={[tagWidth, 0.16]} /><meshBasicMaterial color={fits === true ? "#0d3a22" : "#0b1220"} transparent opacity={0.82} depthTest={false} depthWrite={false} /></mesh>
+        <mesh position={[0, -0.092, 0]} renderOrder={1000}><planeGeometry args={[0.003, 0.024]} /><meshBasicMaterial color={color} transparent opacity={0.7} depthTest={false} depthWrite={false} /></mesh>
+        <Text font={ROOM_FONT} position={[0, 0, 0.001]} fontSize={tagSize} lineHeight={1.5} color={fits === true ? "#c8ffd8" : "#f7f1e3"} anchorX="center" anchorY="middle" textAlign="center" renderOrder={1001} material-depthTest={false} material-depthWrite={false} maxWidth={tagWidth - 0.1}>
           {sceneText(tag)}
         </Text>
       </group>}
