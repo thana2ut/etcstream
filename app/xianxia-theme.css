@@ -1285,3 +1285,7 @@ html[data-overlay] .cloud-layer { transition: none; }
 /* Briefing: signal-flow card centred against the cards column; quote lines balanced. */
 .briefing-frame .intro-preview-card { align-self: center; }
 .briefing-scroll-quote { text-wrap: balance; }
+
+/* Prompt pills: slightly see-through backgrounds. */
+.game-screen .interaction-prompt-center .prompt-holding-pill { background: rgba(10, 24, 46, .78); }
+.game-screen .interaction-prompt-center .prompt-action-pill { background: rgba(16, 27, 48, .78); }
