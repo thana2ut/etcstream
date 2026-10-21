@@ -252,6 +252,7 @@ export async function cloudArena(request: Request, path: string[]) {
     if (/RATE_LIMIT/.test(code)) return response({ error: "ทำรายการบ่อยเกินไป กรุณารอสักครู่" }, 429);
     if (/SUSPENDED/.test(code)) return response({ error: "บัญชีถูกระงับ กรุณาติดต่อผู้ดูแล" }, 403);
     if (/REVISION_CONFLICT/.test(code)) return response({ error: "ข้อมูลรอบเปลี่ยนระหว่างส่งคำสั่ง กรุณาลองส่งคำสั่งเดิมอีกครั้ง" }, 409);
+    if (/etc_profiles_active_name/.test(code)) return response({ error: "ชื่อนี้มีผู้ใช้แล้ว กรุณาเลือกชื่ออื่น" }, 409);
     if (/FRIEND_NOT_FOUND|REQUEST_NOT_FOUND|duplicate key/.test(code)) return response({ error: "ไม่พบผู้ฝึกหรือคำขอที่ใช้ได้ หรือมีคำขอ/คำท้าที่รออยู่แล้ว" }, 409);
     if (/INVALID_NAME/.test(code)) return response({ error: "ใช้ชื่อภาษาไทยหรืออังกฤษ 2–20 ตัวอักษร และไม่ใช้ชื่อสงวน" }, 400);
     if (/SELF_REQUEST/.test(code)) return response({ error: "ส่งคำขอถึงตนเองไม่ได้" }, 400);
