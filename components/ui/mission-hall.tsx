@@ -65,8 +65,7 @@ export function MissionHall({ admin = false, embedded = false, active = true, on
   const drawn = record?.slug ?? null;
   const rerollsUsed = record?.rerolls ?? 0;
   const clearedOf = (slug: string) => progress.completed[slug]?.length ?? 0;
-  // Test accounts (admin1-admin3) may open a new mission at any time; everyone else clears all 5 levels first.
-  const canDraw = tester || !drawn || clearedOf(drawn) >= 5;
+  const canDraw = !drawn || clearedOf(drawn) >= 5;
   // A redraw is only possible on a fresh assignment (nothing of it cleared yet) and only MAX_REROLLS times.
   const canReroll = !canDraw && Boolean(drawn) && rerollsUsed < MAX_REROLLS && clearedOf(drawn!) === 0;
 
@@ -76,10 +75,11 @@ export function MissionHall({ admin = false, embedded = false, active = true, on
     const isTester = tester || await checkTester();
     // Equal chance among venues not yet fully cleared (all venues once everything is done); a redraw never repeats.
     const all = missionChapters.map((m, i) => ({ m, i }));
-    let pool = all.filter(({ m }) => clearedOf(m.slug) < 5 && !(reroll && m.slug === drawn));
-    if (!pool.length) pool = all.filter(({ m }) => !(reroll && m.slug === drawn));
-    const live = isTester ? all.find(({ m }) => m.venueId === "stadium") : undefined;
-    const target = live ?? pool[Math.floor(cryptoRandom() * pool.length)];
+    // Test accounts (admin1-admin3) draw like everyone else, except the live-broadcast venue (stadium) is never drawn.
+    const allowed = all.filter(({ m }) => !(isTester && m.venueId === "stadium"));
+    let pool = allowed.filter(({ m }) => clearedOf(m.slug) < 5 && !(reroll && m.slug === drawn));
+    if (!pool.length) pool = allowed.filter(({ m }) => !(reroll && m.slug === drawn));
+    const target = pool[Math.floor(cryptoRandom() * pool.length)];
     const n = missionChapters.length, laps = 4;
     const steps = n * laps + ((target.i - (n * laps) % n) + n) % n;
     const rerolls = reroll ? rerollsUsed + 1 : 0;
