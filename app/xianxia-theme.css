@@ -1288,4 +1288,3 @@ html[data-overlay] .cloud-layer { transition: none; }
 
 /* Prompt pills: slightly see-through backgrounds. */
 .game-screen .interaction-prompt-center .prompt-holding-pill { background: rgba(10, 24, 46, .78); }
-.game-screen .interaction-prompt-center .prompt-action-pill { background: rgba(16, 27, 48, .78); }
