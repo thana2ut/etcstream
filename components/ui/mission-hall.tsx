@@ -65,7 +65,8 @@ export function MissionHall({ admin = false, embedded = false, active = true, on
   const drawn = record?.slug ?? null;
   const rerollsUsed = record?.rerolls ?? 0;
   const clearedOf = (slug: string) => progress.completed[slug]?.length ?? 0;
-  const canDraw = !drawn || clearedOf(drawn) >= 5;
+  // Test accounts (admin1-admin3) may open a new mission at any time; everyone else clears all 5 levels first.
+  const canDraw = tester || !drawn || clearedOf(drawn) >= 5;
   // A redraw is only possible on a fresh assignment (nothing of it cleared yet) and only MAX_REROLLS times.
   const canReroll = !canDraw && Boolean(drawn) && rerollsUsed < MAX_REROLLS && clearedOf(drawn!) === 0;
 
