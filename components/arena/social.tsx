@@ -22,14 +22,13 @@ type Standing = { tier: string; score: number; globalRank?: number } | null | un
 const SHOWCASE = [["swordSkin", "กระบี่ประจำตัว"], ["profileCompanion", "สัตว์วิญญาณ"], ["residenceDecor", "ของประดับตำหนัก"], ["profileAvatar", "ภาพโปรไฟล์"], ["profileFrame", "กรอบโปรไฟล์"]] as const;
 /** Large display of equipped cosmetics (profile art only; not 3D gameplay items). */
 export function Showcase({ equipped, own = false }: { equipped: Equipped; own?: boolean }) {
-  const shown = SHOWCASE.filter(([slot]) => equipped[slot]), seal = equipped.spiritSeal;
+  const seal = equipped.spiritSeal;
   const [sealOpen, setSealOpen] = useState(false);
   return <section className="arena-panel profile-showcase"><span className="arena-eyebrow">ตู้โชว์เซียน</span><h3>ของสะสมที่จัดแสดง</h3>
-    {shown.length === 0 && !seal ? <ArenaEmptyState icon="trophy" title="ยังไม่ได้จัดแสดงของสะสม" href={own ? "/arena/market" : undefined} action={own ? "ไปตลาดสวรรค์" : undefined}>{own ? "ซื้อของในตลาดสวรรค์แล้วสวมใส่ในถุงเฉียนคุน จะแสดงที่นี่ให้สหายเห็น" : "ผู้ฝึกท่านนี้ยังไม่ได้สวมใส่ของสะสม"}</ArenaEmptyState>
-      : <ul className="profile-showcase-grid">{shown.map(([slot, label]) => { const it = equipped[slot]!; return <li key={slot} data-slot={slot}><div className="profile-showcase-art"><Image src={it.asset} alt={it.name} fill sizes="(max-width:560px) 45vw, 220px" /></div><small>{label}</small><strong>{it.name}</strong></li>; })}
-        <li data-slot="spiritSeal" className={seal ? undefined : "is-empty"}><button type="button" className="profile-showcase-seal" onClick={() => setSealOpen(true)} aria-label={seal ? `ดูตราประทับเซียน ${seal.name}` : "ตราประทับเซียน ยังไม่ได้สวม"}>
-          <div className="profile-showcase-art">{seal ? <Image src={seal.asset} alt={seal.name} fill sizes="(max-width:560px) 45vw, 260px" /> : <span className="profile-showcase-empty" aria-hidden="true" />}</div>
-          <small>ตราประทับเซียน{seal?.rarity ? ` · ${seal.rarity}` : ""}</small><strong>{seal ? seal.name : "ยังไม่ได้สวมตราประทับ"}</strong></button></li></ul>}
+    <ul className="profile-showcase-grid">{SHOWCASE.map(([slot, label]) => { const it = equipped[slot]; return <li key={slot} data-slot={slot} className={it ? undefined : "is-empty"}><div className="profile-showcase-art">{it && <Image src={it.asset} alt={it.name} fill sizes="(max-width:560px) 45vw, 220px" />}</div><small>{label}</small><strong>{it?.name ?? "ยังไม่ได้สวมใส่"}</strong></li>; })}
+      <li data-slot="spiritSeal" className={`profile-showcase-seal${seal ? "" : " is-empty"}`} role="button" tabIndex={0} aria-label={seal ? `ดูตราประทับเซียน ${seal.name}` : "ตราประทับเซียน ยังไม่ได้สวม"} onClick={() => setSealOpen(true)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSealOpen(true); } }}>
+        <div className="profile-showcase-art">{seal && <Image src={seal.asset} alt={seal.name} fill sizes="(max-width:560px) 45vw, 260px" />}</div>
+        <small>ตราประทับเซียน{seal?.rarity ? ` · ${seal.rarity}` : ""}</small><strong>{seal ? seal.name : "ยังไม่ได้สวมใส่"}</strong></li></ul>
     {sealOpen && <div className="arena-modal" onClick={(e) => { if (e.target === e.currentTarget) setSealOpen(false); }}>
       <div className="arena-panel seal-detail" role="dialog" aria-modal="true" aria-labelledby="seal-detail-title" tabIndex={-1} ref={(el) => el?.focus()} onKeyDown={(e) => { if (e.key === "Escape") setSealOpen(false); }}>
         <span className="arena-eyebrow">ตราประทับเซียน{seal?.rarity ? ` · ระดับ${seal.rarity}` : ""}</span><h2 id="seal-detail-title">{seal ? seal.name : "ยังไม่ได้สวมตราประทับ"}</h2>

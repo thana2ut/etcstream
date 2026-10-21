@@ -497,12 +497,10 @@
 /* V25 spirit seal: sixth showcase card (same card style), detail dialog; transparent PNG on navy, contain. */
 @media (min-width: 900px) { .profile-showcase-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (min-width: 561px) and (max-width: 899px) { .profile-showcase-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.profile-showcase-grid li[data-slot="spiritSeal"] { padding: 0; }
-.profile-showcase-seal { all: unset; box-sizing: border-box; display: grid; gap: 4px; width: 100%; height: 100%; padding: 12px; cursor: pointer; border-radius: 14px; }
+.profile-showcase-seal { cursor: pointer; }
 .profile-showcase-seal:focus-visible { outline: 2px solid #f6e2a8; outline-offset: 2px; }
-.profile-showcase-seal .profile-showcase-art img { object-fit: contain; padding: 6%; }
-.profile-showcase-grid li.is-empty { border-style: dashed; }
-.profile-showcase-empty { position: absolute; inset: 18%; border-radius: 50%; border: 1px dashed #cda86c66; background: radial-gradient(circle, #1a2c46, #0b1424); }
+.profile-showcase-seal .profile-showcase-art img { object-fit: contain; }
+.profile-showcase-grid li.is-empty strong { color: var(--arena-muted); font-weight: 400; }
 .seal-detail { width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 48px); overflow: auto; }
 .seal-detail-art { position: relative; width: 100%; aspect-ratio: 1; border-radius: 12px; background: radial-gradient(circle at 50% 45%, #1d3550, #0a1322); margin: 10px 0; }
 .seal-detail-art img { object-fit: contain; padding: 4%; }
