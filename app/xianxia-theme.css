@@ -1127,3 +1127,23 @@ html[data-overlay] .cloud-layer { transition: none; }
 .arena-player-chip span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .nameplate-pill { display: inline-flex; align-items: center; gap: 10px; padding: 6px 18px 6px 6px; border-radius: 999px; border: 1px solid rgba(233, 194, 122, .5); background: #142238; color: #f5ead3; }
 .nameplate-pill small { display: block; font-size: 12px; opacity: .85; }
+
+/* Scrolling glass panels: the corner brackets are part of the panel's own background (fixed to its border box),
+   not a pseudo-element that scrolls with the content and ends up mid-panel. */
+:is(.inspector-panel, .inspector-compact, .hud-objective-panel, .instructions-modal-container, .result-modal-container,
+  .play-intro-wrapper, .mission-choice-panel, .mission-draw, .run-resume, .exit-confirm-modal, .audio-popover).glass-card::before { display: none; }
+:is(.inspector-panel, .inspector-compact, .hud-objective-panel, .instructions-modal-container, .result-modal-container,
+  .play-intro-wrapper, .mission-choice-panel, .mission-draw, .run-resume, .exit-confirm-modal, .audio-popover).glass-card {
+  --corner: rgba(233, 194, 122, .75);
+  background-image:
+    linear-gradient(var(--corner), var(--corner)), linear-gradient(var(--corner), var(--corner)),
+    linear-gradient(var(--corner), var(--corner)), linear-gradient(var(--corner), var(--corner)),
+    linear-gradient(var(--corner), var(--corner)), linear-gradient(var(--corner), var(--corner)),
+    linear-gradient(var(--corner), var(--corner)), linear-gradient(var(--corner), var(--corner)),
+    linear-gradient(160deg, rgba(20, 27, 38, 0.9), rgba(9, 13, 20, 0.95));
+  background-size: 16px 1.5px, 1.5px 16px, 16px 1.5px, 1.5px 16px, 16px 1.5px, 1.5px 16px, 16px 1.5px, 1.5px 16px, auto;
+  background-position: top 5px left 5px, top 5px left 5px, top 5px right 5px, top 5px right 5px,
+    bottom 5px left 5px, bottom 5px left 5px, bottom 5px right 5px, bottom 5px right 5px, 0 0;
+  background-repeat: no-repeat;
+  background-attachment: scroll;
+}
