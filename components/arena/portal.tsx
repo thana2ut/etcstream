@@ -7,7 +7,7 @@ import { missionChapters } from "@/game/content/mission-catalog";
 import { useAcademyStore } from "@/game/stores/academy-store";
 import { validateNickname } from "@/game/security/nickname-validation";
 import { ArenaBanner, ArenaConfirmDialog, ArenaEmptyState, ArenaFriendCode, ArenaIcon, ArenaShell, ArenaStatsStrip, arenaAsset } from "./shell";
-import { api, statusText, timeText, type AttemptView, type PlayerView, type Profile } from "./client-api";
+import { api, readCache, statusText, timeText, writeCache, type AttemptView, type PlayerView, type Profile } from "./client-api";
 import {DuelArena,HallOfImmortals,OnlineLeaderboard,RankedPage,MySeasonCapsule,OnlineFriendsSignal,ProfileRecords,PlayerSessionControls,RecoveryPanel,FriendCompare,type RankedResponse,type SeasonStanding} from "./online";
 import {useArenaResource} from "./use-arena-resource";
 import { CloudLobby } from "./cloud-lobby";
@@ -40,11 +40,11 @@ export function ArenaPortal({ section = "home",initialScope="all",initialSeason,
   const season=useArenaResource<RankedResponse>(profile ? "ranked" : null);
   const localName = useAcademyStore((s) => s.player?.nickname);
   const reload = useCallback(async () => {
-    try { const data = await api<Profile>("profile"); setProfile(data); setRegister(false); setError(""); }
+    try { const data = await api<Profile>("profile"); writeCache("profile", data); setProfile(data); setRegister(false); setError(""); }
     catch (e) { const message = (e as Error).message; if (message === "กรุณาเข้าสู่ระบบก่อน") {setProfile(null);setRegister(true);setError("");} else setError(message); }
     finally { setLoading(false); }
   }, []);
-  useEffect(() => { const initial = window.setTimeout(() => void reload(), 0); return () => clearTimeout(initial); }, [reload]);
+  useEffect(() => { const initial = window.setTimeout(() => { const cached = readCache<Profile>("profile"); if (cached) { setProfile(cached); setLoading(false); } void reload(); }, 0); return () => clearTimeout(initial); }, [reload]);
   useEffect(() => {
     if (!profile) return;
     const beat = () => { if (!document.hidden) void api("heartbeat", {}).then(()=>setConnection("connected")).catch(() => setConnection("disconnected")); };
@@ -54,8 +54,8 @@ export function ArenaPortal({ section = "home",initialScope="all",initialSeason,
   const join = async (e: FormEvent) => { e.preventDefault(); if (joiningRef.current) return; joiningRef.current = true; setJoining(true); try { await api("register", { name: name || localName }); await reload(); } catch (e) { setError((e as Error).message); } finally { joiningRef.current = false; setJoining(false); } };
   const title = section === "home" ? "หอประลองเซียน" : section === "profile" ? "บันทึกวิถีเซียน" : section === "ranked" ? "จัดอันดับฤดูกาล" : section === "market" ? "ตลาดสวรรค์" : section === "player" ? "โปรไฟล์ผู้ฝึก" : section === "bag" ? "ถุงเฉียนคุน" : modes.find((m) => m[0] === section)?.[1] || "หอประลองเซียน";
   // Hold the loading veil until identity AND wallet/equipped look are known, so nothing renders in a placeholder state.
-  const bootEconomy = useEconomySummary(Boolean(profile));
-  const booting = loading || (Boolean(profile) && bootEconomy.loading);
+  const bootEconomy = useEconomySummary(true);
+  const booting = loading || (Boolean(profile) && bootEconomy.loading && !bootEconomy.data);
   return <ArenaShell booting={booting} player={profile?.player} rank={season.stale ? null : season.data?.mine} rankState={season.error?"stale":season.loading?"loading":"ready"} connection={connection}>{section !== "home" && <ArenaBackButton section={section} />}<ArenaBanner file={section === "home" ? "hero-celestial-gate" : section === "friends" ? "banner-friends" : section === "profile" ? "card-friends" : section === "ranked" ? "card-leaderboard" : modes.find((m) => m[0] === section)?.[3] || "hero-celestial-gate"} title={title} panorama={false}><p>{subtitles[section]}</p></ArenaBanner>
     {loading && <div className="arena-panel arena-skeleton" role="status" aria-live="polite">กำลังเชื่อมต่อข้อมูลผู้ฝึก…</div>}
     {error && <div className="arena-error" role="alert"><span>{error}</span><button className="arena-button-secondary" onClick={() => void reload()}>ลองอีกครั้ง</button></div>}

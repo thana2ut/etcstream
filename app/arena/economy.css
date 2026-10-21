@@ -595,3 +595,14 @@
 @keyframes arena-boot-spin { to { transform: rotate(360deg); } }
 @keyframes arena-boot-breathe { 50% { transform: scale(1.06); } }
 @media (prefers-reduced-motion: reduce) { .arena-boot-ring::before, .arena-boot-ring img { animation: none; } .arena-boot, .arena-shell .arena-content { transition: none; } }
+
+/* Smooth loading (replaces the loading veil): header + banner show at once; data sections fade/slide in
+   when ready; every page enters with a short fade. */
+.arena-boot { display: none !important; }
+.arena-shell.is-booting .arena-content { opacity: 1 !important; }
+.arena-shell.is-booting .arena-content > :not(.arena-header):not(.arena-banner):not(.arena-back-button):not(.arena-footer) { opacity: 0; transform: translateY(8px); }
+.arena-shell .arena-content > * { transition: opacity .35s ease, transform .35s ease; }
+.arena-shell .arena-content > :not(.arena-header) { animation: arena-enter .4s ease-out both; }
+.arena-shell .arena-content > :nth-child(3) { animation-delay: .04s; } .arena-shell .arena-content > :nth-child(4) { animation-delay: .08s; } .arena-shell .arena-content > :nth-child(n+5) { animation-delay: .12s; }
+@keyframes arena-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .arena-shell .arena-content > * { animation: none !important; transition: none !important; transform: none !important; } }

@@ -28,7 +28,6 @@ export function ArenaShell({ children, admin = false, adminHeader, player,rank,c
   const chip = useArenaResource<ChipEquipped>(player && !admin ? "economy" : null, 60000), inbox = useArenaResource<Inbox>(player && !admin ? "social/me" : null, 30000);
   const unread = (inbox.data?.pendingIn ?? 0) + (inbox.data?.challengesIn ?? 0), eq = chip.data?.equipped ?? {};
   return <main className={`arena-shell${admin ? " is-admin" : " arena-public"}${booting ? " is-booting" : ""}`} data-arena-scene={admin ? undefined : current} aria-busy={booting || undefined}>
-    {!admin && <ArenaBootScreen active={booting} />}
     <Image src={arenaAsset(admin ? "bg-admin-command-hall" : "bg-arena-hub")} alt="" fill sizes="100vw" className="arena-backdrop" />
     <div className="arena-scrim" />
     <div className="arena-content">
@@ -89,13 +88,3 @@ export function ArenaConfirmDialog({ open, title, children, busy = false, onCanc
   </div>;
 }
 
-/** Game-style loading veil: covers the page until real data is in, then fades out (no half-built "draft" frame). */
-function ArenaBootScreen({ active }: { active: boolean }) {
-  return <div className={`arena-boot${active ? "" : " is-done"}`} role="status" aria-live="polite" aria-hidden={!active}>
-    <div className="arena-boot-core">
-      <span className="arena-boot-ring" aria-hidden="true"><Image src={arenaAsset("icon-arena")} alt="" width={72} height={72} priority /></span>
-      <strong>หอประลองเซียน</strong>
-      <small>กำลังเปิดประตูหอประลอง…</small>
-    </div>
-  </div>;
-}

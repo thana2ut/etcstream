@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { api, type AttemptView } from "./client-api";
+import { api, readCache, writeCache, type AttemptView } from "./client-api";
 import { ArenaEmptyState } from "./shell";
 import { useArenaResource } from "./use-arena-resource";
 import { COSMETIC_SLOTS, ECONOMY_ASSETS, MARKET_SLOTS, STARTER_LABELS, MEDAL_LABELS, SLOT_CONTEXT, SLOT_LABELS, stones, type CosmeticSlot, type Medal, BANNER_SLOTS, DEFAULT_NAMEPLATE_LABEL } from "@/game/content/economy-catalog";
@@ -92,10 +92,10 @@ export function CelestialMarket() {
   const [confirming, setConfirming] = useState(false), [busy, setBusy] = useState(false), [message, setMessage] = useState(""), [receipt, setReceipt] = useState<PurchaseReceipt | null>(null);
   const pending = useRef(false), purchaseKey = useRef<{ sku: string; key: string } | null>(null);
   const load = useCallback(async () => {
-    try { const value = await api<{ items: EconomyItem[]; balance: number }>("market"); setData(value); setError(""); return value; }
+    try { const value = await api<{ items: EconomyItem[]; balance: number }>("market"); writeCache("market", value); setData(value); setError(""); return value; }
     catch (e) { setError((e as Error).message); return null; } finally { setLoading(false); }
   }, []);
-  useEffect(() => { const t = window.setTimeout(() => void load(), 0); return () => clearTimeout(t); }, [load]);
+  useEffect(() => { const t = window.setTimeout(() => { const cached = readCache<{ items: EconomyItem[]; balance: number }>("market"); if (cached) { setData(cached); setLoading(false); } void load(); }, 0); return () => clearTimeout(t); }, [load]);
   useEconomyChanged(load);
   // Legacy (closed) V19 items appear only for their owners, under their own category.
   const hasLegacy = Boolean(data?.items.some((i) => i.legacy && i.owned));
@@ -215,9 +215,9 @@ export function QiankunBag({ name }: { name: string }) {
   const [data, setData] = useState<{ items: EconomyItem[]; balance: number } | null>(null), [error, setError] = useState(""), [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false), [message, setMessage] = useState(""); const pending = useRef(false);
   const load = useCallback(async () => {
-    try { setData(await api<{ items: EconomyItem[]; balance: number }>("market")); setError(""); } catch (e) { setError((e as Error).message); } finally { setLoading(false); }
+    try { const value = await api<{ items: EconomyItem[]; balance: number }>("market"); writeCache("market", value); setData(value); setError(""); } catch (e) { setError((e as Error).message); } finally { setLoading(false); }
   }, []);
-  useEffect(() => { const t = window.setTimeout(() => void load(), 0); return () => clearTimeout(t); }, [load]);
+  useEffect(() => { const t = window.setTimeout(() => { const cached = readCache<{ items: EconomyItem[]; balance: number }>("market"); if (cached) { setData(cached); setLoading(false); } void load(); }, 0); return () => clearTimeout(t); }, [load]);
   useEconomyChanged(load);
   const owned = (data?.items || []).filter((i) => i.owned);
   const equipped = Object.fromEntries(owned.filter((i) => i.equipped).map((i) => [i.slot, i])) as Partial<Record<CosmeticSlot, EconomyItem>>;
