@@ -292,6 +292,7 @@ export default function Home() {
           ) : (
             <form onSubmit={(e) => void handleNameSubmit(e)}>
               <div className="name-input-wrapper">
+                <span className="name-input-field">
                 <span className="name-input-icon">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -311,10 +312,11 @@ export default function Home() {
                   placeholder="พิมพ์ชื่อของคุณ..."
                   className="cultivation-input"
                 />
+                </span>
                 <span className="name-input-hint">2-20 ตัวอักษร (ไทย อังกฤษ ตัวเลข และเว้นวรรค)</span>
               </div>
 
-{isReservedNickname(nickname) && <input type="password" className="cultivation-input" value={ownerCode} onChange={(e) => { setOwnerCode(e.target.value); setError(""); }} maxLength={64} autoComplete="off" placeholder="รหัสยืนยันชื่อสงวน" aria-label="รหัสยืนยันชื่อสงวน" style={{ marginTop: 12 }} />}
+{isReservedNickname(nickname) && <div className="name-input-wrapper"><span className="name-input-field"><span className="name-input-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg></span><input type="password" className="cultivation-input" value={ownerCode} onChange={(e) => { setOwnerCode(e.target.value); setError(""); }} maxLength={64} autoComplete="off" placeholder="รหัสยืนยันชื่อสงวน" aria-label="รหัสยืนยันชื่อสงวน" /></span></div>}
               {error && <p className="form-error" role="alert" style={{ color: "var(--danger)", marginBottom: "16px" }}>{error}</p>}
 
               <ActionButton variant="gold" size="lg" type="submit" fullWidth>

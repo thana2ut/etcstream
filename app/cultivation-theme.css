@@ -1435,7 +1435,14 @@ body {
   margin-bottom: 24px;
 }
 
+.name-input-field {
+  position: relative;
+  display: block;
+}
+
 .name-input-icon {
+  display: flex;
+  pointer-events: none;
   position: absolute;
   left: 16px;
   top: 50%;
