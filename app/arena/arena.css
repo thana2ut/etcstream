@@ -552,3 +552,9 @@
 .arena-hall-mine { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .arena-player-chip .arena-rank-badge { margin-right: 2px; }
 @media (max-width: 640px) { .arena-hall-list li { grid-template-columns: 2em 32px minmax(0,1fr); } .arena-hall-list li small { grid-column: 3; } }
+
+/* Personal per-stage stats: the list scrolls inside the panel; the venue tabs stay in place. */
+.arena-records-scroll { max-height: min(420px, 55vh); overflow-y: auto; overscroll-behavior: contain; padding-right: 8px; scrollbar-width: thin; scrollbar-color: #c99a4a transparent; }
+.arena-records-scroll::-webkit-scrollbar { width: 6px; }
+.arena-records-scroll::-webkit-scrollbar-thumb { background: #c99a4a; border-radius: 3px; }
+.arena-records-scroll:focus-visible { outline: 2px solid #94ecdc; outline-offset: 2px; }

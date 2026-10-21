@@ -8,7 +8,7 @@ export function validateNickname(value: unknown): string | null {
 }
 
 /** Reserved display names (same canonical form as the server/database). Using one requires the owner code. */
-const RESERVED = new Set(["admin", "administrator", "แอดมิน", "แอดมิ้น", "ผู้ดูแล", "ผู้ดูแลระบบ", "ระบบ"]);
+const RESERVED = new Set(["admin", "administrator", "แอดมิน", "แอดมิ้น", "ผู้ดูแล", "ผู้ดูแลระบบ", "ระบบ", "admin1", "admin2", "admin3"]);
 export const isReservedNickname = (n: string) => RESERVED.has(n.normalize("NFKC").replace(/[​-‍⁠﻿­]/g, "").replace(/[\s\p{P}\p{S}]+/gu, "").toLowerCase());
 /** Set only after the server verified the owner code in this browser. */
 export const OWNER_NAME_KEY = "etc-owner-name-verified";
