@@ -17,6 +17,10 @@ export const ECONOMY_ASSETS = {
   questScroll: economyAsset("shop/misc/quest-scroll.png"),
 } as const;
 
+/** V22 free starter look (owned + equipped for new players; per-layer fallback everywhere). */
+export const STARTER_ASSETS = { avatar: "/arena/profile/default-player-avatar.png", frame: "/arena/profile/default-player-frame.png" } as const;
+export const STARTER_LABELS = { avatar: "โปรไฟล์ผู้ฝึกเริ่มต้น", frame: "กรอบผู้ฝึกเริ่มต้น", availability: "ได้รับฟรีเมื่อเริ่มเล่น", equipped: "กำลังใช้งาน" } as const;
+
 export type CosmeticSlot = "profileAvatar" | "swordSkin" | "profileFrame" | "profileCompanion" | "residenceDecor" | "portraitOutfit";
 export const SLOT_LABELS: Record<CosmeticSlot, string> = {
   swordSkin: "กระบี่",

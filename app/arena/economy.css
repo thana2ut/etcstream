@@ -187,3 +187,6 @@
 .arena-identity-link { text-decoration: none; color: inherit; border-radius: 14px; }
 .arena-identity-link:hover strong, .arena-identity-link:focus-visible strong { color: #fff3cf; }
 .arena-player-chip .chip-pet { position: absolute; left: -10px; bottom: -6px; object-fit: contain; filter: drop-shadow(0 2px 4px #000c); }
+
+/* V22 starter look: frame layer is always present (starter fallback), labels for free starter items. */
+.econ-starter-note { color: #9fe3d2; font-size: 12px; }

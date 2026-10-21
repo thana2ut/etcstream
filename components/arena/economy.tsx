@@ -5,10 +5,10 @@ import Link from "next/link";
 import { api, type AttemptView } from "./client-api";
 import { ArenaEmptyState } from "./shell";
 import { useArenaResource } from "./use-arena-resource";
-import { COSMETIC_SLOTS, ECONOMY_ASSETS, MARKET_SLOTS, MEDAL_LABELS, SLOT_CONTEXT, SLOT_LABELS, stones, type CosmeticSlot, type Medal } from "@/game/content/economy-catalog";
+import { COSMETIC_SLOTS, ECONOMY_ASSETS, MARKET_SLOTS, STARTER_LABELS, MEDAL_LABELS, SLOT_CONTEXT, SLOT_LABELS, stones, type CosmeticSlot, type Medal } from "@/game/content/economy-catalog";
 import { ProfileAvatar } from "./profile-avatar";
 
-export type EconomyItem = { sku: string; name: string; slot: CosmeticSlot; price: number; asset: string; enabled: boolean; legacy?: boolean; owned: boolean; equipped: boolean };
+export type EconomyItem = { sku: string; name: string; slot: CosmeticSlot; price: number; asset: string; enabled: boolean; legacy?: boolean; starter?: boolean; owned: boolean; equipped: boolean };
 export type EconomySummary = { balance: number; earned: number; spent: number; equipped: Partial<Record<CosmeticSlot, EconomyItem>>; ownedCount: number; claims: number };
 type Receipt = { entries: { kind: "first_clear" | "medal" | "daily"; amount: number; meta: { stage?: string; tier?: Medal; level?: number; day?: string } }[]; balance: number };
 
@@ -98,7 +98,7 @@ export function CelestialMarket() {
   useEconomyChanged(load);
   // Legacy (closed) V19 items appear only for their owners, under their own category.
   const hasLegacy = Boolean(data?.items.some((i) => i.legacy && i.owned));
-  const items = useMemo(() => (data?.items || []).filter((i) => category === "all" ? !i.legacy : category === "legacy" ? i.legacy : i.slot === category && !i.legacy), [data, category]);
+  const items = useMemo(() => (data?.items || []).filter((i) => !i.starter).filter((i) => category === "all" ? !i.legacy : category === "legacy" ? i.legacy : i.slot === category && !i.legacy), [data, category]);
   const item = items.find((i) => i.sku === selected) || items[0];
   const balance = data?.balance ?? 0;
   const buy = async () => {
@@ -235,7 +235,7 @@ export function QiankunBag({ name }: { name: string }) {
           : owned.length === 0 ? <ArenaEmptyState icon="trophy" title="ถุงเฉียนคุนยังว่าง" href="/arena/market" action="ไปตลาดสวรรค์">ของที่แลกจากตลาดจะเก็บไว้ที่นี่ และสวมใส่ได้ทันที</ArenaEmptyState>
           : COSMETIC_SLOTS.map((slot) => { const list = owned.filter((i) => i.slot === slot); if (!list.length) return null;
             return <fieldset key={slot} className="econ-slot"><legend>{SLOT_LABELS[slot]} <small>{SLOT_CONTEXT[slot]}</small></legend>
-              <ul>{list.map((i) => <li key={i.sku} className={i.equipped ? "is-equipped" : undefined}><Image src={i.asset} alt="" width={72} height={72} loading="lazy" /><strong>{i.name}</strong>
+              <ul>{list.map((i) => <li key={i.sku} className={i.equipped ? "is-equipped" : undefined}><Image src={i.asset} alt="" width={72} height={72} loading="lazy" /><strong>{i.name}</strong>{i.starter && <small className="econ-starter-note">{STARTER_LABELS.availability}{i.equipped ? ` · ${STARTER_LABELS.equipped}` : ""}</small>}
                 {i.equipped ? <button className="arena-button-secondary" disabled={busy} onClick={() => void act("economy/unequip", { slot }, `ถอด${i.name}แล้ว`)}>ถอดออก</button> : <button disabled={busy} onClick={() => void act("economy/equip", { sku: i.sku }, `สวมใส่${i.name}แล้ว`)}>สวมใส่</button>}</li>)}</ul></fieldset>; })}
       </section>
     </div>
