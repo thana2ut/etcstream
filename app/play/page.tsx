@@ -16,7 +16,6 @@ import { useAcademyStore } from "@/game/stores/academy-store";
 import { useTrainingStore } from "@/game/stores/training-store";
 import { SCENARIOS, type ScenarioId, type VenueScale } from "@/game/training/scenarios";
 import { trainingProgress, trainingTotal } from "@/game/training/hdmi-training";
-import { AcademyHeader } from "@/components/ui/academy-header";
 import { useGameAudio } from "@/components/audio/audio-provider";
 import { ActionButton } from "@/components/ui/action-buttons";
 import { TouchControls } from "@/components/game/touch-controls";
@@ -432,20 +431,7 @@ function PlayExperience() {
         />
       </div>
 
-      {/* Header bar */}
-      <AcademyHeader
-        traineeName={player.nickname}
-        onBack={
-          introOpen
-            ? handleBackFromIntro
-            : showResultModal
-            ? () => router.push("/academy")
-            : handleTriggerGameplayBack
-        }
-        backLabel="ย้อนกลับ"
-        brandInert={!introOpen && !showResultModal}
-        breadcrumb={difficultyLabel ? `${mission?.title} > ${difficultyLabel}` : "ห้องฝึกปราณสัญญาณ"}
-      />
+      {/* No top bar on the play route: the briefing has its own back pill and play uses the pause button. */}
       {/* While playing the top bar is gone; this small pause button is the way out (opens the exit confirmation). */}
       {!introOpen && !showResultModal && !showExitConfirm && !trainingFailed && (
         <button type="button" className="game-pause-btn" onClick={handleTriggerGameplayBack} aria-label="หยุดเกม / ออกจากด่าน" title="หยุดเกม / ออกจากด่าน">
