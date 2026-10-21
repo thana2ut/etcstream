@@ -531,7 +531,7 @@ function PlayExperience() {
             <div className="play-intro-grid briefing-body" tabIndex={0} role="region" aria-label="เนื้อหาใบงานและภาพรวมสัญญาณ">
               {validMission && activeScenario.stage && mission ? <div className="intro-info-card briefing-cards">
                 {/* Mission mode: purpose, goal and approach only; never cables, counts or port pairs. */}
-                <p className="intro-narrative briefing-scroll-quote">“{mission.description.replace(/ โดย /g, " โดย00a0")}”</p>
+                <p className="intro-narrative briefing-scroll-quote">“{mission.description.replace(/ โดย /g, " โดย\u00a0")}”</p>
                 {missionBriefing(activeScenario, mission.venue, difficulty?.objective).map((card) => <article key={card.id} className={`briefing-card is-${card.id}`}>
                   <h2><span className="briefing-card-icon" aria-hidden="true">{card.icon}</span>{card.title}</h2>
                   {card.lines.length === 1 || card.id === "identity"
