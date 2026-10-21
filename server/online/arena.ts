@@ -2,7 +2,7 @@ import "server-only";
 import { NextResponse } from "next/server";
 import { randomBytes, randomUUID } from "node:crypto";
 import { playerClient, trustedClient } from "./supabase";
-import { input } from "@/server/arena/auth";
+import { input, passwordMatches } from "@/server/arena/auth";
 import { ArenaError } from "@/server/arena/db";
 import { apply, commandCost } from "@/server/arena/command-replay";
 import { validateNickname } from "@/game/security/nickname-validation";
@@ -16,6 +16,11 @@ import { cloudAdminSession } from "./admin";
 import { replayCloudRun } from "./replay";
 import { cloudStages as stages, stageVersion as version, ensureCloudCatalog, verificationEnabled, seasonDTO, standingDTO, type CloudSeason } from "./ranked";
 
+const OWNER_ID = "49bad05a-38ae-49ae-b8b1-b2318b2d98fc";
+const OWNER_LOGIN_EMAIL = "owner.etcstream@example.com";
+const RESERVED = new Set(["admin", "administrator", "แอดมิน", "แอดมิ้น", "ผู้ดูแล", "ผู้ดูแลระบบ", "ระบบ"]);
+/** Same canonical form as etc_private.canonical_name in the database. */
+export const reservedName = (n: unknown) => typeof n === "string" && RESERVED.has(n.normalize("NFKC").replace(/[\u200B-\u200D\u2060\uFEFF\u00AD]/g, "").replace(/[\s\p{P}\p{S}]+/gu, "").toLowerCase());
 const rules = { connector_ms: 5000, route_ms: 10000, hint_ms: 15000, failed_ms: 10000, version: 1, board: 1, time_attack: 1 };
 const protocol = "server-command-v1";
 type Run = {
@@ -63,6 +68,21 @@ export async function cloudArena(request: Request, path: string[]) {
     // Public hall works without signing in: consented verified ranks, real presence count, labelled test profiles.
     if (route === "public" && !post) return response(checked(await client.rpc("etc_public_hall")));
     let { data: { user } } = await client.auth.getUser();
+    // Owner recovery for the reserved display name: code verified against a salted scrypt hash (env secret),
+    // globally rate-limited, and bound to the single owner account id. Grants NO /admin rights.
+    if (post && route === "owner-claim") {
+      const hash = process.env.ADMIN_DISPLAY_NAME_CLAIM_HASH;
+      if (!hash) throw new ArenaError(503, "ยังไม่ได้ตั้งค่าการยืนยันชื่อสงวน กรุณาติดต่อผู้ดูแล");
+      checked(await trustedClient().rpc("etc_trusted_budget", { k: "owner-claim", maximum: 5, seconds: 900 }));
+      if (!reservedName(body.name) || typeof body.code !== "string" || body.code.length > 64 || !passwordMatches(body.code.trim(), hash)) throw new ArenaError(401, "ชื่อหรือรหัสยืนยันไม่ถูกต้อง");
+      const password = randomBytes(32).toString("hex");
+      const updated = await trustedClient().auth.admin.updateUserById(OWNER_ID, { email: OWNER_LOGIN_EMAIL, password, email_confirm: true });
+      if (updated.error) throw new ArenaError(503, "ยังกู้บัญชีไม่ได้ กรุณาลองใหม่");
+      if (user) await client.auth.signOut();
+      const signed = await client.auth.signInWithPassword({ email: OWNER_LOGIN_EMAIL, password });
+      if (signed.error) throw new ArenaError(503, "ยังกู้บัญชีไม่ได้ กรุณาลองใหม่");
+      return response({ ok: true });
+    }
     if (post && route === "register") {
       const name = validateNickname(body.name);
       if (!name || /^(admin|administrator|ผู้ดูแล|ระบบ)$/i.test(name)) throw new ArenaError(400, "ใช้ชื่อภาษาไทยหรืออังกฤษ 2–20 ตัวอักษร และไม่ใช้ชื่อสงวน");
