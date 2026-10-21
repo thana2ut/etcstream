@@ -8,7 +8,7 @@ import { useAcademyStore } from "@/game/stores/academy-store";
 import { validateNickname } from "@/game/security/nickname-validation";
 import { ArenaBanner, ArenaConfirmDialog, ArenaEmptyState, ArenaFriendCode, ArenaIcon, ArenaShell, ArenaStatsStrip, arenaAsset } from "./shell";
 import { api, readCache, statusText, timeText, writeCache, type AttemptView, type PlayerView, type Profile } from "./client-api";
-import {DuelArena,HallOfImmortals,OnlineLeaderboard,RankedPage,MySeasonCapsule,OnlineFriendsSignal,ProfileRecords,PlayerSessionControls,RecoveryPanel,FriendCompare,type RankedResponse,type SeasonStanding} from "./online";
+import {DuelArena,HallOfImmortals,OnlineLeaderboard,RankedPage,MySeasonCapsule,OnlineFriendsSignal,ProfileRecords,PlayerSessionControls,FriendCompare,type RankedResponse,type SeasonStanding} from "./online";
 import {useArenaResource} from "./use-arena-resource";
 import { CloudLobby } from "./cloud-lobby";
 import { RankBadge } from "./rank-badge";
@@ -37,7 +37,7 @@ const modes = [
 const subtitles: Record<string, string> = { home: "ฝึกวิชาให้แม่นยำ แล้วก้าวสู่บททดสอบแห่งสำนัก", "time-attack": "ห้าสถานที่ ยี่สิบห้าบททดสอบ · ทุกสายต่อด้วยฝีมือของเจ้า", duel: "สองกระบี่ หนึ่งบททดสอบ · ความยุติธรรมต้องมาก่อนชัยชนะ", leaderboard: "จารึกเฉพาะผลที่ผ่านการยืนยันจากระบบกลาง", friends: "ร่วมเส้นทางกับสหาย โดยเคารพความเป็นส่วนตัว", profile: "ตัวตน ความเป็นส่วนตัว และประวัติการฝึกของเจ้า",ranked:"วิถีกระบี่แห่งสายสัญญาณ · ผลยืนยันคนละด่าน สู่การจัดอันดับประจำฤดูกาล", market: "แลกหินวิญญาณจากการประลองจริง เป็นเครื่องตกแต่งที่ไม่เพิ่มความได้เปรียบ", bag: "ถุงเฉียนคุน · เก็บและสวมใส่ของสะสม แยกจากถุงอุปกรณ์ในภารกิจ", player: "ดูโปรไฟล์ที่ผู้ฝึกยินยอมเปิดเผย ส่งคำขอเป็นสหาย หรือคำท้าทำเวลา" };
 export function ArenaPortal({ section = "home",initialScope="all",initialSeason,playerCode }: { section?: string;initialScope?:string;initialSeason?:string;playerCode?:string }) {
   const [profile, setProfile] = useState<Profile | null>(null), [error, setError] = useState(""), [loading, setLoading] = useState(true);
-  const [register, setRegister] = useState(false), [name, setName] = useState(""), [joining, setJoining] = useState(false), [claimCode, setClaimCode] = useState("");
+  const [register, setRegister] = useState(false), [name, setName] = useState(""), [joining, setJoining] = useState(false), [claimCode, setClaimCode] = useState(""), [pin, setPin] = useState("");
   const joiningRef = useRef(false);
   const [connection,setConnection]=useState<"connecting"|"connected"|"disconnected">("connecting");
   const season=useArenaResource<RankedResponse>(profile ? "ranked" : null);
@@ -60,15 +60,9 @@ export function ArenaPortal({ section = "home",initialScope="all",initialSeason,
     const visible=()=>{if(!document.hidden)beat();else setConnection("connecting");};
     beat(); const timer = window.setInterval(beat, 30000);document.addEventListener("visibilitychange",visible); return () => {clearInterval(timer);document.removeEventListener("visibilitychange",visible);};
   }, [profile]);
-  const join = async (e: FormEvent) => { e.preventDefault(); if (joiningRef.current) return; joiningRef.current = true; setJoining(true); try { const typed = name || localName || ""; if (isReservedName(typed)) { await api("owner-claim", { name: typed, code: claimCode }); setClaimCode(""); } else await api("register", { name: typed }); await reload(); } catch (e) { setError((e as Error).message); } finally { joiningRef.current = false; setJoining(false); } };
-  // The trainee already chose a name on the welcome screen: join with it automatically (rename later in the profile).
-  // Reserved names still need the owner code, and a failed attempt falls back to the form.
+  const join = async (e: FormEvent) => { e.preventDefault(); if (joiningRef.current) return; joiningRef.current = true; setJoining(true); try { const typed = name || localName || ""; if (isReservedName(typed)) { await api("owner-claim", { name: typed, code: claimCode }); setClaimCode(""); } else { await api("pin-join", { name: typed, pin }); setPin(""); } await reload(); } catch (e) { setError((e as Error).message); } finally { joiningRef.current = false; setJoining(false); } };
+  // Every identity is name + 4-digit PIN now, so there is no silent auto-join with the welcome-screen name.
   const autoJoined = useRef(false);
-  useEffect(() => {
-    if (!register || autoJoined.current || !localName || !validateNickname(localName) || isReservedName(localName)) return;
-    autoJoined.current = true; joiningRef.current = true; setJoining(true);
-    void api("register", { name: localName }).then(reload).catch((e) => setError((e as Error).message)).finally(() => { joiningRef.current = false; setJoining(false); });
-  }, [register, localName, reload]);
   const title = section === "home" ? "หอประลองเซียน" : section === "profile" ? "บันทึกวิถีเซียน" : section === "ranked" ? "จัดอันดับฤดูกาล" : section === "market" ? "ตลาดสวรรค์" : section === "player" ? "โปรไฟล์ผู้ฝึก" : section === "bag" ? "ถุงเฉียนคุน" : modes.find((m) => m[0] === section)?.[1] || "หอประลองเซียน";
   // Hold the loading veil until identity AND wallet/equipped look are known, so nothing renders in a placeholder state.
   const bootEconomy = useEconomySummary(true);
@@ -76,8 +70,7 @@ export function ArenaPortal({ section = "home",initialScope="all",initialSeason,
   return <ArenaShell booting={booting} player={profile?.player} rank={season.stale ? null : season.data?.mine} rankState={season.error?"stale":season.loading?"loading":"ready"} connection={connection}>{section !== "home" && <ArenaBackButton section={section} />}<ArenaBanner file={section === "home" ? "hero-celestial-gate" : section === "friends" ? "banner-friends" : section === "profile" ? "banner-profile" : section === "ranked" ? "card-leaderboard" : modes.find((m) => m[0] === section)?.[3] || "hero-celestial-gate"} title={title} panorama={false}><p>{subtitles[section]}</p></ArenaBanner>
     {loading && <div className="arena-panel arena-skeleton" role="status" aria-live="polite">กำลังเชื่อมต่อข้อมูลผู้ฝึก…</div>}
     {error && <div className="arena-error" role="alert"><span>{error}</span><button className="arena-button-secondary" onClick={() => void reload()}>ลองอีกครั้ง</button></div>}
-    {register && !(joining && autoJoined.current) && <form className="arena-panel arena-join" onSubmit={join}><ArenaIcon name="profile" /><h2>เข้าร่วมหอประลอง</h2><p>ตัวตนเฉพาะเบราว์เซอร์นี้ ชื่อซ้ำไม่ใช่บัญชีเดียวกัน และคะแนนฝึกเดิมไม่ถูกนำมาจัดอันดับ</p><label>ชื่อผู้ฝึก<input required minLength={2} maxLength={20} value={name || localName || ""} onChange={(e) => setName(e.target.value)} /></label>{isReservedName(name || localName || "") ? <label>รหัสยืนยันชื่อสงวน<input required type="password" inputMode="numeric" autoComplete="off" maxLength={64} value={claimCode} onChange={(e) => setClaimCode(e.target.value)} /><small className="arena-note">ชื่อนี้สงวนไว้สำหรับเจ้าของ ใส่รหัสเพื่อกลับเข้าบัญชีเดิม</small></label> : <p className="arena-note">เริ่มต้นไม่เปิดเผยรายชื่อหรือสถานะออนไลน์ ตั้งค่าเพิ่มเติมได้ภายหลัง</p>}<button type="submit" disabled={joining}>{joining ? "กำลังดำเนินการ…" : isReservedName(name || localName || "") ? "ยืนยันรหัสและเข้าบัญชี" : "สร้างตัวตนผู้ฝึก"}</button></form>}
-    {register && <RecoveryPanel onRecovered={reload}/>}
+    {register && !(joining && autoJoined.current) && <form className="arena-panel arena-join" onSubmit={join}><ArenaIcon name="profile" /><h2>เข้าร่วมหอประลอง</h2><p>ตัวตนเฉพาะเบราว์เซอร์นี้ ชื่อซ้ำไม่ใช่บัญชีเดียวกัน และคะแนนฝึกเดิมไม่ถูกนำมาจัดอันดับ</p><label>ชื่อผู้ฝึก<input required minLength={2} maxLength={20} value={name || localName || ""} onChange={(e) => setName(e.target.value)} /></label>{!isReservedName(name || localName || "") && <label>PIN 4 หลัก<input required type="password" inputMode="numeric" autoComplete="off" pattern="[0-9]{4}" minLength={4} maxLength={4} value={pin} onChange={(e) => setPin(e.target.value.replace(/[^0-9]/g, "").slice(0, 4))} /><small className="arena-note">ชื่อใหม่: PIN นี้จะผูกกับชื่อ · ชื่อเดิม: ใส่ PIN เดิมเพื่อกลับเข้าบัญชีเดิมจากเครื่องไหนก็ได้</small></label>}{isReservedName(name || localName || "") ? <label>รหัสยืนยันชื่อสงวน<input required type="password" inputMode="numeric" autoComplete="off" maxLength={64} value={claimCode} onChange={(e) => setClaimCode(e.target.value)} /><small className="arena-note">ชื่อนี้สงวนไว้สำหรับเจ้าของ ใส่รหัสเพื่อกลับเข้าบัญชีเดิม</small></label> : <p className="arena-note">เริ่มต้นไม่เปิดเผยรายชื่อหรือสถานะออนไลน์ ตั้งค่าเพิ่มเติมได้ภายหลัง</p>}<button type="submit" disabled={joining}>{joining ? "กำลังดำเนินการ…" : isReservedName(name || localName || "") ? "ยืนยันรหัสและเข้าบัญชี" : "สร้างตัวตนผู้ฝึก"}</button></form>}
     {section === "home" && <>
       {profile && <div className="arena-hub-summary"><Link className="arena-identity arena-identity-link" href="/arena/profile" aria-label={`เปิดโปรไฟล์ของ ${profile.player.name}`}><MyIdentityArt name={profile.player.name} size={72} /><div><span className="arena-eyebrow">ผู้ฝึกแห่งหอประลอง</span><strong>{profile.player.name}</strong></div></Link><div className="arena-summary-metrics"><span>ยืนยันแล้ว <strong>{profile.stats.verified ?? "—"} รอบ</strong></span><span>เวลายืนยันสั้นสุด <strong>{timeText(profile.stats.bestMs)}</strong></span></div></div>}
       <div className="arena-grid arena-mode-cards">{modes.map(([key, label, description, art]) => <section className={`arena-card arena-portal-tile`} key={key}><div className="arena-card-art"><Image src={arenaAsset(art)} alt="" fill sizes="(max-width:640px) 100vw, (max-width:1280px) 50vw, 600px" /></div><div className="arena-card-body"><h2><span className="arena-mode-icon" data-arena-icon={key}><ArenaIcon name={key} /></span><span>{label}</span></h2><p>{description}</p><Link className="arena-action" href={`/arena/${key}`}>{key === "time-attack" ? "เลือกสนามประลอง" : key === "leaderboard" ? "เปิดทำเนียบ" : key === "duel" ? "เข้าสู่ลานประลอง" : "พบสหาย"}</Link></div></section>)}</div>
@@ -92,7 +85,7 @@ export function ArenaPortal({ section = "home",initialScope="all",initialSeason,
     {section === "market" && (profile ? <CelestialMarket /> : !loading && <p className="arena-note">สร้างตัวตนผู้ฝึกก่อน จึงจะเข้าตลาดสวรรค์ได้</p>)}
     {section === "bag" && (profile ? <QiankunBag name={profile.player.name} /> : !loading && <p className="arena-note">สร้างตัวตนผู้ฝึกก่อน จึงจะเปิดถุงเฉียนคุนได้</p>)}
     {section === "player" && playerCode && (profile ? <PlayerProfilePage code={playerCode} /> : !loading && <p className="arena-note">สร้างตัวตนผู้ฝึกก่อน จึงจะดูโปรไฟล์ผู้อื่นได้</p>)}
-    {section === "profile" && profile && <><ProfileHub profile={profile} standing={season.stale ? null : season.data?.mine}/><MySeasonCapsule resource={season}/><PlayerProfile profile={profile} onChange={reload}/><ProfileRecords/><RecoveryPanel/><PlayerSessionControls onChange={reload}/></>}
+    {section === "profile" && profile && <><ProfileHub profile={profile} standing={season.stale ? null : season.data?.mine}/><MySeasonCapsule resource={season}/><PlayerProfile profile={profile} onChange={reload}/><ProfileRecords/><PinPanel/><PlayerSessionControls onChange={reload}/></>}
   </ArenaShell>;
 }
 function MissionSelector({ value, onChange }: { value: string; onChange: (id: string) => void }) {
@@ -194,4 +187,20 @@ const backTarget: Record<string, [string, string]> = { bag: ["/arena/profile", "
 function ArenaBackButton({ section }: { section: string }) {
   const [href, label] = backTarget[section] ?? ["/arena", "กลับหอประลอง"];
   return <Link className="arena-back-button arena-action" href={href}>← {label}</Link>;
+}
+
+/** Players who joined before PINs existed (or want a new one) set their 4-digit sign-in PIN here. */
+function PinPanel() {
+  const status = useArenaResource<{ hasPin: boolean }>("pin", 300000);
+  const [pin, setPin] = useState(""), [busy, setBusy] = useState(false), [message, setMessage] = useState("");
+  const save = async (e: FormEvent) => {
+    e.preventDefault(); if (busy) return; setBusy(true); setMessage("");
+    try { await api("pin", { pin }); setPin(""); setMessage("บันทึก PIN แล้ว ใช้ชื่อนี้กับ PIN นี้เข้าบัญชีได้ทุกเครื่อง"); status.retry(); }
+    catch (err) { setMessage((err as Error).message); } finally { setBusy(false); }
+  };
+  return <section className="arena-panel arena-pin-panel"><h2>PIN เข้าบัญชี</h2>
+    <p>{status.data?.hasPin ? "ตั้ง PIN แล้ว · เปลี่ยน PIN ใหม่ได้ด้านล่าง" : "ยังไม่ได้ตั้ง PIN · ตั้งไว้เพื่อกลับเข้าบัญชีเดิมด้วยชื่อและ PIN จากเครื่องไหนก็ได้"}</p>
+    <form className="arena-actions" onSubmit={save}><label>PIN 4 หลัก<input required type="password" inputMode="numeric" autoComplete="off" pattern="[0-9]{4}" minLength={4} maxLength={4} value={pin} onChange={(e) => setPin(e.target.value.replace(/[^0-9]/g, "").slice(0, 4))} /></label><button disabled={busy || pin.length !== 4}>{busy ? "กำลังบันทึก…" : "บันทึก PIN"}</button></form>
+    {message && <p role="status">{message}</p>}
+  </section>;
 }

@@ -107,6 +107,39 @@ export async function cloudArena(request: Request, path: string[]) {
       if (signed.error) throw new ArenaError(503, "ยังกู้บัญชีไม่ได้ กรุณาลองใหม่");
       return response({ ok: true });
     }
+    // Name + 4-digit PIN identity: the PIN lives in the auth user's app_metadata (server-only; players cannot edit it),
+    // is rate-limited per name, and signs this browser into the SAME account (same profile, stones and records).
+    if (post && route === "pin-join") {
+      const name = validateNickname(body.name), pin = String(body.pin ?? "");
+      if (!name || reservedName(name)) throw new ArenaError(400, "ใช้ชื่อภาษาไทยหรืออังกฤษ 2–20 ตัวอักษร และไม่ใช้ชื่อสงวน");
+      if (!/^[0-9]{4}$/.test(pin)) throw new ArenaError(400, "PIN ต้องเป็นตัวเลข 4 หลัก");
+      const trusted = trustedClient(), nfc = name.normalize("NFC");
+      checked(await trusted.rpc("etc_trusted_budget", { k: `pin:${canonicalName(nfc)}`, maximum: 8, seconds: 900 }));
+      const found = (checked(await trusted.from("etc_profiles").select("id,name,suspended").ilike("name", nfc.replace(/[\\%_]/g, (c) => "\\" + c))) || [])
+        .filter((row) => canonicalName(String(row.name)) === canonicalName(nfc));
+      if (found.length) {
+        const owner = found[0];
+        if (owner.suspended) throw new ArenaError(403, "บัญชีถูกระงับ กรุณาติดต่อผู้ดูแล");
+        const account = await trusted.auth.admin.getUserById(owner.id);
+        const stored = account.data.user?.app_metadata?.pin;
+        if (!stored) throw new ArenaError(409, "ชื่อนี้มีผู้ใช้แล้วและยังไม่ได้ตั้ง PIN กรุณาเลือกชื่ออื่น");
+        if (stored !== pin) throw new ArenaError(401, "ชื่อหรือ PIN ไม่ถูกต้อง");
+        if (user?.id === owner.id) return response({ ok: true, returning: true });
+        const email = `p-${owner.id}@players.etcstream.example.com`, password = randomBytes(32).toString("hex");
+        if ((await trusted.auth.admin.updateUserById(owner.id, { email, password, email_confirm: true })).error) throw new ArenaError(503, "ยังเข้าสู่บัญชีไม่ได้ กรุณาลองใหม่");
+        if (user) await client.auth.signOut();
+        if ((await client.auth.signInWithPassword({ email, password })).error) throw new ArenaError(503, "ยังเข้าสู่บัญชีไม่ได้ กรุณาลองใหม่");
+        return response({ ok: true, returning: true });
+      }
+      if (!user) {
+        const result = await client.auth.signInAnonymously();
+        if (result.error || !result.data.user) throw new ArenaError(503, "ยังสร้างตัวตนไม่ได้ กรุณาลองใหม่");
+        user = result.data.user;
+      }
+      const created = checked(await client.rpc("etc_player", { action: "register", body: { name: nfc } }));
+      if ((await trusted.auth.admin.updateUserById(user.id, { app_metadata: { ...(user.app_metadata ?? {}), pin } })).error) throw new ArenaError(503, "สร้างตัวตนแล้ว แต่ยังบันทึก PIN ไม่ได้ กรุณาตั้ง PIN อีกครั้งในโปรไฟล์");
+      return response(created);
+    }
     if (post && route === "register") {
       const name = validateNickname(body.name);
       if (!name || reservedName(name)) throw new ArenaError(400, "ใช้ชื่อภาษาไทยหรืออังกฤษ 2–20 ตัวอักษร และไม่ใช้ชื่อสงวน");
@@ -128,6 +161,14 @@ export async function cloudArena(request: Request, path: string[]) {
     const player = checked(await client.rpc("etc_player", { action: "get" })) as { id: string; rankPublic: boolean };
     const rpc = async (action: string, value: unknown = {}) => checked(await client.rpc("etc_player", { action, body: json(value) }));
     if (route === "profile" && post) return response(await rpc("profile", body));
+    if (route === "pin" && !post) return response({ hasPin: Boolean(user.app_metadata?.pin) });
+    if (route === "pin" && post) {
+      const pin = String(body.pin ?? "");
+      if (!/^[0-9]{4}$/.test(pin)) throw new ArenaError(400, "PIN ต้องเป็นตัวเลข 4 หลัก");
+      checked(await trustedClient().rpc("etc_trusted_budget", { k: `pin-set:${user.id}`, maximum: 5, seconds: 900 }));
+      if ((await trustedClient().auth.admin.updateUserById(user.id, { app_metadata: { ...(user.app_metadata ?? {}), pin } })).error) throw new ArenaError(503, "ยังบันทึก PIN ไม่ได้ กรุณาลองใหม่");
+      return response({ ok: true });
+    }
     // V19 economy: identity comes from the verified Supabase session (auth.uid()); never from the body.
     const economy = async (action: string, value: unknown = {}) => checked(await client.rpc("etc_economy", { action, body: json(value) }));
     if (route === "economy" && !post) return response(await economy("summary"));

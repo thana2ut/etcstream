@@ -153,7 +153,9 @@ export async function cloudAdmin(request: Request, path: string[]) {
       const ids = players.map((p) => p.id);
       const wallets = ids.length ? (check(await db.from("etc_wallets").select("player,balance").in("player", ids)) || []) as { player: string; balance: number }[] : [];
       const balances = new Map(wallets.map((w) => [w.player, Number(w.balance)]));
-      return reply({ backend: "supabase", players: players.filter((p) => !search || [p.name,p.friend_code,p.id].some((v) => String(v).toLowerCase().includes(search))).map((p) => ({ ...p, created: Date.parse(p.created), deleted: 0, attempt_count: null, balance: balances.get(p.id) ?? 0 })) });
+      // Owner-only view of each player's 4-digit sign-in PIN (stored in server-only app_metadata).
+      const pins = new Map<string, string>(await Promise.all(ids.map(async (id) => [id, String((await db.auth.admin.getUserById(id)).data.user?.app_metadata?.pin ?? "")] as [string, string])));
+      return reply({ backend: "supabase", players: players.filter((p) => !search || [p.name,p.friend_code,p.id].some((v) => String(v).toLowerCase().includes(search))).map((p) => ({ ...p, created: Date.parse(p.created), deleted: 0, attempt_count: null, balance: balances.get(p.id) ?? 0, pin: pins.get(p.id) || null })) });
     }
     if (["competitions", "leaderboards", "reviews"].includes(route)) {
       let query = db.from("etc_runs").select("id,player,scenario,status,start,created,elapsed,penalty,total,graph_valid,invalid,verified_at,validation_version").order("created", { ascending: false }).range(offset, offset + 99);
