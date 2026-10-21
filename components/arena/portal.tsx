@@ -13,7 +13,7 @@ import {useArenaResource} from "./use-arena-resource";
 import { CloudLobby } from "./cloud-lobby";
 import { RankBadge } from "./rank-badge";
 import { CelestialMarket, FriendPortrait, MyIdentityArt, QiankunBag, useEconomySummary, useFriendAppearance } from "./economy";
-import { ChallengeSender, ChallengesPanel, FriendSearch, PlayerProfilePage, ProfileHub } from "./social";
+import { ChallengeSender, ChallengesPanel, FriendSearch, PlayerProfilePage, ProfileHub, ActIcon } from "./social";
 
 const scales = { classroom: "xs", studio: "s", auditorium: "m", outdoor: "l", stadium: "xl" };
 export function selectedMission(id: string) {
@@ -172,7 +172,7 @@ function Friends({ ownCode }: { ownCode: string }) {
               <span className="friend-card-meta">{f.seasonal ? <><RankBadge tier={f.seasonal.tier} size={20} decorative />{f.seasonal.tier} · {f.seasonal.score} คะแนน · #{f.seasonal.globalRank}</> : "ยังไม่มีสถิติยืนยันที่เปิดเผย"}</span>
               <span className={`friend-card-online${f.online ? " is-online" : ""}`}><i className={`chip-dot is-${f.online ? "connected" : "offline"}`} aria-hidden="true" />{f.online ? "ออนไลน์" : "ไม่แสดงสถานะออนไลน์"}</span></div>
           </Link>
-          <div className="arena-actions">{f.status === "pending" ? f.incoming ? <><button disabled={busy} onClick={() => void action("accept", f.friendCode)}>รับคำขอ</button><button className="arena-button-secondary" disabled={busy} onClick={() => void action("decline", f.friendCode)}>ปฏิเสธ</button></> : <button className="arena-button-secondary" disabled={busy} onClick={() => void action("cancel", f.friendCode)}>ยกเลิกคำขอ</button> : <button className="arena-button-secondary" disabled={busy} onClick={() => setConfirmation({ action: "remove", code: f.friendCode })}>เลิกเป็นสหาย</button>}<button className="arena-button-danger" disabled={busy} onClick={() => setConfirmation({ action: "block", code: f.friendCode })}>ปิดกั้น</button></div>
+          <div className="arena-actions">{f.status === "pending" ? f.incoming ? <><button disabled={busy} onClick={() => void action("accept", f.friendCode)}><ActIcon name="check" />รับคำขอ</button><button className="arena-button-secondary" disabled={busy} onClick={() => void action("decline", f.friendCode)}><ActIcon name="x" />ปฏิเสธ</button></> : <button className="arena-button-secondary" disabled={busy} onClick={() => void action("cancel", f.friendCode)}><ActIcon name="x" />ยกเลิกคำขอ</button> : <button className="arena-button-secondary" disabled={busy} onClick={() => setConfirmation({ action: "remove", code: f.friendCode })}><ActIcon name="userMinus" />เลิกเป็นสหาย</button>}<button className="arena-button-danger" disabled={busy} onClick={() => setConfirmation({ action: "block", code: f.friendCode })}><ActIcon name="ban" />ปิดกั้น</button></div>
         {f.status!=="pending" && <><ChallengeSender code={f.friendCode} name={f.name}/><FriendCompare code={f.friendCode}/></>}</article>)}
       </div>
     </section>

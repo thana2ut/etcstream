@@ -132,20 +132,32 @@ export function ChallengesPanel() {
           <div><strong>{c.incoming ? `${c.other.name} ท้าเจ้า` : `เจ้าท้า ${c.other.name}`}</strong><span>{stageName(c.stage)} · {challengeStatus[c.status]}</span>
             {(c.status === "accepted" || c.status === "completed") && <span>เจ้า {timeText(c.myBestMs)} · อีกฝ่าย {timeText(c.otherBestMs)} — {verdict(c)}</span>}</div>
           <div className="arena-actions">
-            {c.status === "pending" && c.incoming && <><button disabled={busy} onClick={() => void respond(c.id, "accept")}>รับคำท้า</button><button className="arena-button-secondary" disabled={busy} onClick={() => void respond(c.id, "decline")}>ปฏิเสธ</button></>}
-            {c.status === "pending" && !c.incoming && <button className="arena-button-secondary" disabled={busy} onClick={() => void respond(c.id, "cancel")}>ยกเลิก</button>}
-            {c.status === "accepted" && <Link className="arena-action" href="/arena/time-attack">ไปทำเวลา</Link>}
+            {c.status === "pending" && c.incoming && <><button disabled={busy} onClick={() => void respond(c.id, "accept")}><ActIcon name="check" />รับคำท้า</button><button className="arena-button-secondary" disabled={busy} onClick={() => void respond(c.id, "decline")}><ActIcon name="x" />ปฏิเสธ</button></>}
+            {c.status === "pending" && !c.incoming && <button className="arena-button-secondary" disabled={busy} onClick={() => void respond(c.id, "cancel")}><ActIcon name="x" />ยกเลิก</button>}
+            {c.status === "accepted" && <><Link className="arena-action" href="/arena/time-attack"><ActIcon name="arrow" />ไปทำเวลา</Link><button className="arena-button-secondary" disabled={busy} onClick={() => void respond(c.id, "withdraw")}><ActIcon name="x" />ปฏิเสธคำท้า</button></>}
           </div></li>)}</ul>}
   </section>;
+}
+
+const ACT_ICON: Record<string, string> = {
+  check: "M5 12.5l4.5 4.5L19 7.5",
+  x: "M6 6l12 12M18 6L6 18",
+  flag: "M5 21V4m0 0h11l-2 4 2 4H5",
+  arrow: "M5 12h13m-5-5 5 5-5 5",
+  userMinus: "M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm-6 9c0-3.3 2.7-6 6-6s6 2.7 6 6M16 11h6",
+  ban: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM5.6 5.6l12.8 12.8",
+};
+export function ActIcon({ name }: { name: keyof typeof ACT_ICON }) {
+  return <svg className="act-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d={ACT_ICON[name]} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>;
 }
 
 export function ChallengeSender({ code, name }: { code: string; name: string }) {
   const [open, setOpen] = useState(false), [stage, setStage] = useState("xs-1"), [msg, setMsg] = useState(""), [busy, setBusy] = useState(false);
   const scales = { classroom: "xs", studio: "s", auditorium: "m", outdoor: "l", stadium: "xl" } as const;
-  if (!open) return <button className="arena-button-secondary" onClick={() => setOpen(true)}>ส่งคำท้าทำเวลา</button>;
+  if (!open) return <button className="arena-button-secondary" onClick={() => setOpen(true)}><ActIcon name="flag" />ส่งคำท้าทำเวลา</button>;
   return <form className="social-challenge-form" onSubmit={async (e) => { e.preventDefault(); setBusy(true); setMsg(""); try { await api("social/challenge", { code, stage }); setMsg(`ส่งคำท้าถึง ${name} แล้ว`); setOpen(false); } catch (err) { setMsg((err as Error).message); } finally { setBusy(false); } }}>
-    <label>ด่านที่ท้า<select value={stage} onChange={(e) => setStage(e.target.value)}>{missionChapters.flatMap((c) => [1, 2, 3, 4, 5].map((n) => <option key={`${c.id}-${n}`} value={`${scales[c.venueId as keyof typeof scales]}-${n}`}>{c.venue} · ระดับ {n}</option>))}</select></label>
-    <button disabled={busy}>{busy ? "กำลังส่ง…" : "ส่งคำท้า"}</button><button type="button" className="arena-button-secondary" onClick={() => setOpen(false)}>ยกเลิก</button>
+    <label className="social-challenge-stage"><span className="visually-hidden">ด่านที่ท้า</span><ActIcon name="flag" /><select aria-label="ด่านที่ท้า" value={stage} onChange={(e) => setStage(e.target.value)}>{missionChapters.flatMap((c) => [1, 2, 3, 4, 5].map((n) => <option key={`${c.id}-${n}`} value={`${scales[c.venueId as keyof typeof scales]}-${n}`}>{c.venue} · ระดับ {n}</option>))}</select></label>
+    <button disabled={busy}><ActIcon name="arrow" />{busy ? "กำลังส่ง…" : "ส่งคำท้า"}</button><button type="button" className="arena-button-secondary" onClick={() => setOpen(false)}><ActIcon name="x" />ยกเลิก</button>
     <span role="status">{msg}</span>
   </form>;
 }

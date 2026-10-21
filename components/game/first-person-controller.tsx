@@ -25,7 +25,7 @@ const raycaster = new Raycaster();
 const look = new Euler();
 const MOUSE_SENSITIVITY = 0.0018;
 const TOUCH_SENSITIVITY = 0.004;
-const MAX_PITCH = 1.3;
+const MAX_PITCH = 1.55;
 raycaster.far = 2.65;
 
 /** Where the player looks on the work-surface plane (free device placement); falls back to 0.9 m ahead. */
@@ -115,8 +115,8 @@ export function FirstPersonController({ active, fallbackLook, touch, onExitFallb
       }
       if (!Number.isFinite(event.movementX) || !Number.isFinite(event.movementY)) return;
       // A relock/OS-focus glitch can report a screen-sized synthetic delta; ordinary fast turns are untouched.
-      // Real hand movement stays far below this per event even on fast flicks; larger samples are snap glitches.
-      if (Math.abs(event.movementX) > Math.max(400, window.innerWidth * 0.35) || Math.abs(event.movementY) > Math.max(300, window.innerHeight * 0.35)) return;
+      // Only screen-sized synthetic jumps are dropped; fast flicks always pass through.
+      if (Math.abs(event.movementX) > Math.max(2000, window.innerWidth * 1.5) || Math.abs(event.movementY) > Math.max(2000, window.innerHeight * 1.5)) return;
       angles.current.yaw -= event.movementX * MOUSE_SENSITIVITY;
       angles.current.pitch = MathUtils.clamp(angles.current.pitch - event.movementY * MOUSE_SENSITIVITY, -MAX_PITCH, MAX_PITCH);
     };

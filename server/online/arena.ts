@@ -168,7 +168,7 @@ export async function cloudArena(request: Request, path: string[]) {
       return response(await social("challenge-send", { code: code(body.code), stage, version: version(stage) }));
     }
     if (route === "social/challenge-respond" && post) {
-      if (!uuid(body.id) || !["accept", "decline", "cancel"].includes(String(body.decision))) throw new ArenaError(400, "ข้อมูลคำท้าไม่ถูกต้อง");
+      if (!uuid(body.id) || !["accept", "decline", "cancel", "withdraw"].includes(String(body.decision))) throw new ArenaError(400, "ข้อมูลคำท้าไม่ถูกต้อง");
       return response(await social("challenge-respond", { id: body.id, decision: body.decision }));
     }
     if (route === "heartbeat" && post) return response(await rpc("heartbeat"));
