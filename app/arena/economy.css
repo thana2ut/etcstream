@@ -205,3 +205,34 @@
   .arena-public .arena-my-season { grid-template-columns: auto minmax(0,1fr); gap: 14px; padding: 14px 16px; }
   .arena-my-season > .arena-text-link { grid-column: 1 / -1; }
 }
+
+/* V23 profile covers: 3:1 art never cropped or stretched. Wide: card keeps 3:1 and content sits inside the art.
+   Narrow: art becomes a full-width 3:1 banner above the content. Missing cover = the original navy card. */
+.profile-cover { position: relative; }
+.profile-cover.has-cover { padding: 0; overflow: hidden; background: #0f1b2c; }
+.profile-cover-art { display: block; width: 100%; height: auto; aspect-ratio: 3 / 1; }
+.profile-cover.has-cover .profile-cover-body { position: relative; margin: 0; padding: 18px; background: linear-gradient(180deg, rgba(9, 16, 30, .78), rgba(9, 16, 30, .9)); }
+.profile-cover-tools { position: absolute; top: 10px; right: 12px; z-index: 3; }
+.profile-cover-change { min-height: 36px !important; padding: 4px 14px !important; font-size: 14px; background: rgba(9, 16, 30, .78) !important; border-color: #d7bb80 !important; }
+@media (min-width: 1100px) {
+  .profile-cover.has-cover { aspect-ratio: 3 / 1; }
+  .profile-cover.has-cover .profile-cover-art { position: absolute; inset: 0; height: 100%; }
+  .profile-cover.has-cover .profile-cover-body { position: absolute; inset: 9% 7.5%; padding: 18px 24px; border-radius: 14px; background: rgba(9, 16, 30, .62); backdrop-filter: blur(2px); overflow: auto; }
+}
+.econ-cover-thumb { width: 100% !important; height: auto !important; aspect-ratio: 3 / 1; object-fit: contain; border-radius: 8px; background: #0a1322; }
+.econ-item:has(.econ-cover-thumb) { grid-column: span 2; }
+.econ-cover-preview { display: grid; gap: 8px; margin-bottom: 12px; }
+.econ-cover-mock.has-cover, .econ-cover-mock { aspect-ratio: 3 / 1; border-radius: 10px; overflow: hidden; border: 1px solid #cda86c55; }
+.econ-cover-mock .profile-cover-art { position: absolute; inset: 0; height: 100%; }
+.econ-cover-mock .profile-cover-body { position: absolute !important; inset: 12% 9% !important; display: flex; align-items: center; gap: 10px; padding: 6px 10px !important; border-radius: 8px; background: rgba(9, 16, 30, .62) !important; }
+.econ-cover-mock-body small { display: block; color: var(--arena-muted); font-size: 12px; }
+.econ-cover-list { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important; }
+.econ-cover-default { margin: 4px 0 10px; }
+.cover-picker { width: min(760px, calc(100vw - 32px)); max-height: calc(100vh - 48px); overflow: auto; }
+.cover-picker-preview { aspect-ratio: 3 / 1; border-radius: 10px; overflow: hidden; background: linear-gradient(135deg, #1b2b43, #132237); display: grid; place-items: center; margin-bottom: 12px; border: 1px solid #cda86c55; }
+.cover-picker-preview img { width: 100%; height: 100%; object-fit: contain; }
+.cover-picker-list { list-style: none; padding: 0; margin: 0 0 12px; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.cover-picker-list button { width: 100%; display: grid; gap: 6px; padding: 8px; background: #0d1828 !important; border: 1px solid #cda86c40 !important; font-weight: 400; }
+.cover-picker-list button[aria-pressed="true"] { border-color: #6fe0c8 !important; box-shadow: 0 0 0 2px #6fe0c855; }
+.cover-thumb { width: 100%; aspect-ratio: 3 / 1; object-fit: contain; border-radius: 6px; display: block; }
+.cover-thumb.is-default { background: linear-gradient(135deg, #1b2b43, #132237); }

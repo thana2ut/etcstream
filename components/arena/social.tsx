@@ -6,6 +6,7 @@ import { api, timeText, type Profile } from "./client-api";
 import { ArenaEmptyState, ArenaFriendCode } from "./shell";
 import { useArenaResource } from "./use-arena-resource";
 import { ProfileAvatar } from "./profile-avatar";
+import { ChangeCoverButton, ProfileCover } from "./profile-cover";
 import { RankBadge } from "./rank-badge";
 import { SpiritStones, useEconomySummary, type EconomySummary } from "./economy";
 import { selectedMission } from "./portal";
@@ -135,7 +136,7 @@ export function ProfileHub({ profile, standing }: { profile: Profile; standing: 
   const eq = (economy.data?.equipped || {}) as EconomySummary["equipped"];
   const name = profile.player.name;
   return <section className="profile-hub" aria-label="โปรไฟล์ของข้า">
-    <div className="arena-panel profile-hub-header">
+    <ProfileCover cover={eq.profileCover?.asset} className="arena-panel profile-hub-card" bodyClassName="profile-hub-header" tools={economy.data ? <ChangeCoverButton onChanged={economy.retry} /> : null}>
       <div className="profile-hub-portrait">
         <ProfileAvatar avatar={(eq.profileAvatar ?? eq.portraitOutfit)?.asset} frame={eq.profileFrame?.asset} name={name} size={168} />
         {eq.profileCompanion && <Image className="profile-hub-pet" src={eq.profileCompanion.asset} alt={eq.profileCompanion.name} width={96} height={96} />}
@@ -154,7 +155,7 @@ export function ProfileHub({ profile, standing }: { profile: Profile; standing: 
         <Link className="arena-action econ-secondary" href={`/arena/players/${profile.player.friendCode}`}>ดูโปรไฟล์แบบที่ผู้อื่นเห็น</Link>
         <ShareProfile code={profile.player.friendCode} />
       </nav>
-    </div>
+    </ProfileCover>
     <div className="profile-hub-grid">
       <Showcase equipped={eq as Equipped} own />
       <section className="arena-panel"><span className="arena-eyebrow">สหายและการแจ้งเตือน</span><h3>ความเคลื่อนไหว</h3>
@@ -176,12 +177,12 @@ export function PlayerProfilePage({ code }: { code: string }) {
   if (loading) return <p className="arena-panel arena-skeleton" role="status">กำลังเปิดโปรไฟล์…</p>;
   if (error || !card) return <div className="arena-panel"><ArenaEmptyState icon="profile" title="เปิดโปรไฟล์นี้ไม่ได้" href="/arena/friends" action="กลับหน้าสหาย">{error || "ผู้ฝึกท่านนี้ไม่ได้เปิดเผยโปรไฟล์ หรือไม่พบรหัสนี้"}</ArenaEmptyState></div>;
   const eq = card.equipped;
-  return <div className="profile-hub"><section className="arena-panel profile-hub-header is-public">
+  return <div className="profile-hub"><ProfileCover cover={eq.profileCover?.asset} className="arena-panel profile-hub-card" bodyClassName="profile-hub-header is-public">
     <div className="profile-hub-portrait"><ProfileAvatar avatar={avatarOf(eq)} frame={eq.profileFrame?.asset} name={card.name} size={168} />{eq.profileCompanion && <Image className="profile-hub-pet" src={eq.profileCompanion.asset} alt={eq.profileCompanion.name} width={96} height={96} />}</div>
     <div className="profile-hub-identity"><span className="arena-eyebrow">{card.isMe ? "โปรไฟล์ของเจ้า (มุมมองผู้อื่น)" : card.relation === "friend" ? "สหายร่วมสำนัก" : "ผู้ฝึกในหอประลอง"}</span><h2>{card.name}</h2><code>@{card.friendCode}</code>
       <p>{card.online ? "ออนไลน์ (ผู้ฝึกยินยอมแสดง)" : "ไม่ได้แสดงสถานะออนไลน์"}</p>
       {card.stats ? <dl className="profile-hub-stats"><div><dt>ด่านที่รับรองแล้ว</dt><dd>{card.stats.verifiedStages}</dd></div><div><dt>เวลารับรองดีที่สุด</dt><dd>{timeText(card.stats.bestMs)}</dd></div></dl> : <p className="arena-note">ผู้ฝึกท่านนี้ไม่ได้เปิดเผยสถิติ</p>}
     </div>
     <div className="profile-hub-actions">{card.isMe ? <Link className="arena-action" href="/arena/profile">กลับโปรไฟล์ของข้า</Link> : <><RelationButton card={card} onChange={() => void load()} />{card.relation === "friend" && <ChallengeSender code={card.friendCode} name={card.name} />}</>}<Link className="arena-text-link" href="/arena/friends">กลับหน้าสหาย →</Link></div>
-  </section><Showcase equipped={eq} own={card.isMe} /></div>;
+  </ProfileCover><Showcase equipped={eq} own={card.isMe} /></div>;
 }
