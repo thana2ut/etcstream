@@ -13,8 +13,8 @@ import { InstructionsModal } from "@/components/ui/instructions-modal";
 import { FantasyBackground } from "@/components/ui/fantasy-background";
 import { BackButton } from "@/components/ui/back-button";
 import { soundEngine } from "@/game/audio/sound-engine";
-import { validateNickname } from "@/game/security/nickname-validation";
-import { syncOnlineName } from "@/components/arena/client-api";
+import { validateNickname, isReservedNickname, OWNER_NAME_KEY } from "@/game/security/nickname-validation";
+import { syncOnlineName, claimReservedName } from "@/components/arena/client-api";
 
 type EntryPhase = "landing" | "name" | "inscribing" | "welcome";
 
@@ -39,11 +39,18 @@ export default function Home() {
   const [changeName, setChangeName] = useState(false);
   const [nickname, setNickname] = useState("");
   const [error, setError] = useState("");
+  // Reserved names (Admin/แอดมิน …) are accepted only after the server verifies the owner code.
+  const [ownerCode, setOwnerCode] = useState("");
+  const [claiming, setClaiming] = useState(false);
+  const ownerVerified = () => { try { return window.localStorage.getItem(OWNER_NAME_KEY) === "1"; } catch { return false; } };
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   // Until the saved step is known only the background is drawn, so a reload does not flash the landing hero.
   const restored = hydrated && savedPhase !== undefined;
   // "welcome" needs a saved trainee; without one, fall back to the name step.
-  const phase: EntryPhase = chosenPhase ?? (savedPhase === "welcome" ? (player ? "welcome" : "name") : savedPhase ?? "landing");
+  const lockedName = Boolean(player && hydrated && isReservedNickname(player.nickname) && !ownerVerified());
+  const rawPhase: EntryPhase = chosenPhase ?? (savedPhase === "welcome" ? (player ? "welcome" : "name") : savedPhase ?? "landing");
+  // A saved reserved name that was never verified in this browser cannot reach the welcome screen.
+  const phase: EntryPhase = lockedName && rawPhase === "welcome" ? "name" : rawPhase;
 
   useEffect(() => {
     const pending = timers.current;
@@ -103,11 +110,16 @@ export default function Home() {
   const [renameValue, setRenameValue] = useState("");
   const [renameError, setRenameError] = useState("");
   const openRename = () => { setRenameValue(player?.nickname ?? ""); setRenameError(""); setRenameOpen(true); };
-  const saveRename = (e: React.FormEvent) => {
+  const saveRename = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!player) return;
+    if (!player || claiming) return;
     const trimmed = validateNickname(renameValue);
     if (!trimmed) { setRenameError(copy.name.invalid); return; }
+    if (isReservedNickname(trimmed)) {
+      if (!ownerCode.trim()) { setRenameError("ชื่อนี้สงวนไว้ ต้องใส่รหัสยืนยันของเจ้าของ"); return; }
+      setClaiming(true); const problem = await claimReservedName(trimmed, ownerCode.trim()); setClaiming(false); setOwnerCode("");
+      if (problem) { setRenameError(problem); return; }
+    }
     if (!setPlayer({ ...player, nickname: trimmed, lastPlayedAt: new Date().toISOString() })) { setRenameError(copy.name.saveError); return; }
     setNickname(trimmed);
     // Same name everywhere: also rename the online Arena profile (no-op if not signed in online).
@@ -115,12 +127,18 @@ export default function Home() {
   };
 
   // Submit name (REF 03 -> REF 04)
-  const handleNameSubmit = (e: React.FormEvent) => {
+  const handleNameSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (claiming) return;
     const trimmed = validateNickname(nickname);
     if (!trimmed) {
       setError(copy.name.invalid);
       return;
+    }
+    if (isReservedNickname(trimmed) && !ownerVerified()) {
+      if (!ownerCode.trim()) { setError("ชื่อนี้สงวนไว้ ต้องใส่รหัสยืนยันของเจ้าของ"); return; }
+      setClaiming(true); const problem = await claimReservedName(trimmed, ownerCode.trim()); setClaiming(false); setOwnerCode("");
+      if (problem) { setError(problem); return; }
     }
     const updatedPlayer: Player = player
       ? { ...player, nickname: trimmed, lastPlayedAt: new Date().toISOString() }
@@ -272,7 +290,7 @@ export default function Home() {
               </div>
             </div>
           ) : (
-            <form onSubmit={handleNameSubmit}>
+            <form onSubmit={(e) => void handleNameSubmit(e)}>
               <div className="name-input-wrapper">
                 <span className="name-input-icon">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -296,6 +314,7 @@ export default function Home() {
                 <span className="name-input-hint">2-20 ตัวอักษร (ไทย อังกฤษ ตัวเลข และเว้นวรรค)</span>
               </div>
 
+{isReservedNickname(nickname) && <input type="password" className="cultivation-input" value={ownerCode} onChange={(e) => { setOwnerCode(e.target.value); setError(""); }} maxLength={64} autoComplete="off" placeholder="รหัสยืนยันชื่อสงวน" aria-label="รหัสยืนยันชื่อสงวน" style={{ marginTop: 12 }} />}
               {error && <p className="form-error" role="alert" style={{ color: "var(--danger)", marginBottom: "16px" }}>{error}</p>}
 
               <ActionButton variant="gold" size="lg" type="submit" fullWidth>
@@ -366,11 +385,12 @@ export default function Home() {
 
       {renameOpen && player && (
         <div className="welcome-rename-backdrop" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) setRenameOpen(false); }} onKeyDown={(e) => { if (e.key === "Escape") setRenameOpen(false); }}>
-          <form className="welcome-rename-dialog glass-card gold-border-frame" role="dialog" aria-modal="true" aria-labelledby="rename-title" onSubmit={saveRename}>
+          <form className="welcome-rename-dialog glass-card gold-border-frame" role="dialog" aria-modal="true" aria-labelledby="rename-title" onSubmit={(e) => void saveRename(e)}>
             <h2 id="rename-title">เปลี่ยนชื่อผู้ฝึก</h2>
             <label htmlFor="rename-input" className="welcome-rename-hint">2-20 ตัวอักษร (ไทย อังกฤษ ตัวเลข และเว้นวรรค)</label>
             <input id="rename-input" className="cultivation-input" value={renameValue} maxLength={20} autoComplete="nickname" autoFocus
               onChange={(e) => { setRenameValue(e.target.value); setRenameError(""); }} aria-invalid={Boolean(renameError)} aria-describedby={renameError ? "rename-error" : undefined} />
+{isReservedNickname(renameValue) && <input type="password" className="cultivation-input" value={ownerCode} onChange={(e) => { setOwnerCode(e.target.value); setRenameError(""); }} maxLength={64} autoComplete="off" placeholder="รหัสยืนยันชื่อสงวน" aria-label="รหัสยืนยันชื่อสงวน" style={{ marginTop: 12 }} />}
             {renameError && <p id="rename-error" className="form-error" role="alert">{renameError}</p>}
             <div className="welcome-rename-actions">
               <button type="button" className="cultivation-btn btn-glass btn-md" onClick={() => setRenameOpen(false)}>ยกเลิก</button>

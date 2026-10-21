@@ -41,3 +41,14 @@ export async function syncOnlineName(name: string): Promise<string> {
     return "";
   } catch { return ""; }
 }
+
+/** Verify the owner code for a reserved name on the server (signs this browser into the owner profile). Resolves to an error message or "". */
+export async function claimReservedName(name: string, code: string): Promise<string> {
+  try {
+    const r = await fetch("/api/arena/owner-claim", { method: "POST", credentials: "same-origin", cache: "no-store", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, code }) });
+    if (!r.ok) { const v = await r.json().catch(() => ({})); return String(v.error || "รหัสยืนยันไม่ถูกต้อง"); }
+    clearCache();
+    try { window.localStorage.setItem("etc-owner-name-verified", "1"); } catch { /* storage blocked */ }
+    return "";
+  } catch { return "เชื่อมต่อไม่ได้ กรุณาลองใหม่"; }
+}

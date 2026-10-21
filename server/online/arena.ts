@@ -87,7 +87,7 @@ export async function cloudArena(request: Request, path: string[]) {
     }
     if (post && route === "register") {
       const name = validateNickname(body.name);
-      if (!name || /^(admin|administrator|ผู้ดูแล|ระบบ)$/i.test(name)) throw new ArenaError(400, "ใช้ชื่อภาษาไทยหรืออังกฤษ 2–20 ตัวอักษร และไม่ใช้ชื่อสงวน");
+      if (!name || reservedName(name)) throw new ArenaError(400, "ใช้ชื่อภาษาไทยหรืออังกฤษ 2–20 ตัวอักษร และไม่ใช้ชื่อสงวน");
       if (!user) {
         const result = await client.auth.signInAnonymously();
         if (result.error || !result.data.user) throw new ArenaError(503, "ยังสร้างตัวตนไม่ได้ กรุณาตรวจว่าเปิดการเข้าสู่ระบบแบบไม่ใช้อีเมลและข้อจำกัดการสมัครแล้ว");
