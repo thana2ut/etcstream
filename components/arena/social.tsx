@@ -185,7 +185,11 @@ export function ProfileHub({ profile, standing }: { profile: Profile; standing: 
         <Link className="arena-action econ-secondary" href={`/arena/players/${profile.player.friendCode}`}><HubIcon name="eye" />มุมมองผู้อื่น</Link>
         <ShareProfile code={profile.player.friendCode} />
       </nav>
-    <ProfileCover cover={eq.profileCover?.asset} className="arena-panel profile-hub-card" bodyClassName="profile-hub-header" tools={economy.data ? <><ChangeCoverButton onChanged={economy.retry} /><ChangeCoverButton slot="profileNameplate" onChanged={economy.retry} /></> : null}>
+    {economy.data && <div className="profile-hub-cover-tools" aria-label="ปรับแต่งภาพโปรไฟล์">
+      <ChangeCoverButton onChanged={economy.retry} />
+      <ChangeCoverButton slot="profileNameplate" onChanged={economy.retry} />
+    </div>}
+    <ProfileCover cover={eq.profileCover?.asset} className="arena-panel profile-hub-card" bodyClassName="profile-hub-header">
       <div className="profile-hub-portrait">
         <ProfileAvatar avatar={(eq.profileAvatar ?? eq.portraitOutfit)?.asset} frame={eq.profileFrame?.asset} name={name} size={168} />
         {eq.profileCompanion && <Image className="profile-hub-pet" src={eq.profileCompanion.asset} alt={eq.profileCompanion.name} width={96} height={96} />}
