@@ -73,12 +73,15 @@ function tvsHd8Iso(): ModelGeometry {
     { t: "screen", p: P(0, 63), n: panelN, s: [M(100), M(62)], feed: "view" },
     ...[-36.6, -13.3, 11.7, 36.6].map((u): Part => ({ t: "knob", p: P(u, 12), r: M(6), n: panelN })),
     ...[-36.6, -13.3, 11.7, 36.6].map((u) => key(P(u, 104), panelN, 11, 5)),
-    ...[-196.5, -172.6, -146, -120.5, -96.6, -73.3].flatMap((u) => [83, 58, 34].map((v) => key(P(u, v), panelN, 13, 9))),
+    // Panel keys (3q photo): CALL/DIM/CAMS/TALK pair group + HOME…AUX block, each 4 rows.
+    ...[-190, -173, -138, -121, -104, -87, -70].flatMap((u) => [83, 58, 34, 12].map((v) => key(P(u, v), panelN, 13, 9))),
     ...[71.7, 91.3, 110].flatMap((u) => [83, 58, 34, 12].map((v) => key(P(u, v), panelN, 13, 9))),
     text(P(186, 70), panelN, "Blackmagicdesign", 7, "#eef0f2"),
     // deck: 10 channel knobs, upper key row, source label strip, PROGRAM row (red) and PREVIEW row (green)
     ...Array.from({ length: 10 }, (_, i): Part => ({ t: "knob", p: D(128 + 31.25 * i, 235), r: M(5.5), n: deckN })),
     ...Array.from({ length: 10 }, (_, i) => key(D(128 + 31.25 * i, 285), deckN, 13, 11, undefined, WHITE_KEY)), key(D(444, 285), deckN, 13, 11),
+    // Per-channel SOLO / SEL mini keys under each audio knob.
+    ...Array.from({ length: 10 }, (_, i) => [255, 268].map((y) => key(D(128 + 31.25 * i, y), deckN, 9, 5))).flat(),
     { t: "box", p: v3((264 - 550) * 0.531, deckY(47) + 0.8, 47), s: v3(160, 1.5, 9), c: "#0d1a2c" },
     ...Array.from({ length: 10 }, (_, i) => key(D(119 + 31.25 * i, 338), deckN, 14, 12, i < 8 ? String(i + 1) : undefined, WHITE_KEY, i < 8 ? [{ key: "pgm", eq: `SDI ${i + 1}`, color: RED }] : undefined, i < 8 ? { key: "pgm", value: `SDI ${i + 1}`, label: `PROGRAM ${i + 1}` } : undefined)),
     ...Array.from({ length: 10 }, (_, i) => key(D(119 + 31.25 * i, 366), deckN, 14, 12, i < 8 ? String(i + 1) : undefined, WHITE_KEY, i < 8 ? [{ key: "pvw", eq: `SDI ${i + 1}`, color: GREEN }] : undefined, i < 8 ? { key: "pvw", value: `SDI ${i + 1}`, label: `PREVIEW ${i + 1}` } : undefined)),
@@ -120,6 +123,7 @@ function constellation2me4k(): ModelGeometry {
     ...([["KEY1 MIX", "DSK1 MIX", "DSK2 MIX", "FTB"], ["BARS", "BLACK", "MP 1", "MP 2"], ["MIX", "WIPE", "DIP", "DVE"]]).flatMap((row, r) => row.map((l, c) => key(F(830 + 35 * c, [23, 60, 97][r]), FRONT, 10, 10, l))),
     { t: "screen", p: F(1040, 60), n: FRONT, s: [M(45), M(34)], feed: "view" },
     { t: "knob", p: F(1160, 62), r: M(9), n: FRONT },
+    text(F(1150, 22), FRONT, "Blackmagicdesign", 3.2, "#eef0f2"),
     ...([["MENU", 25], ["SET", 60], ["LOCK", 96]] as [string, number][]).map(([l, y]) => key(F(1215, y), FRONT, 10, 9, l)),
     ...(["SDI INPUTS", "SDI OUTPUTS"] as const).map((l, i) => text(R(i ? 958 : 555, 336), BACK, l, 3)),
   ];
@@ -146,10 +150,10 @@ function videohub20(): ModelGeometry {
   const parts: Part[] = [
     box(0, 22.1, -1.5, 431, 44.2, 233, BODY), box(0, 22.1, 116.5, 482.6, 44.2, 3, PANEL),
     text(F(200, 38), FRONT, "Blackmagic", 6, "#eef0f2"), text(F(200, 62), FRONT, "Videohub 20x20 12G", 7, "#eef0f2"),
-    ...top.map((l, i) => key(F(372 + 43.1 * i, 40), FRONT, 14, 13, l, WHITE_KEY)),
-    ...bottom.map((l, i) => key(F(372 + 43.1 * i, 80), FRONT, 14, 13, l, WHITE_KEY)),
+    ...top.map((l, i) => key(F(372 + 43.1 * i, 40), FRONT, 14, 13, l, l === "DECK" ? "#f3c98a" : WHITE_KEY)),
+    ...bottom.map((l, i) => key(F(372 + 43.1 * i, 80), FRONT, 14, 13, l, l === "5" ? "#f3c98a" : WHITE_KEY)),
     key(F(828, 40), FRONT, 14, 13, "IN", "#f3c98a"), key(F(870, 40), FRONT, 14, 13, "CLEAR", "#f3c98a"),
-    key(F(828, 80), FRONT, 14, 13, "CUT", WHITE_KEY), key(F(870, 80), FRONT, 14, 13, "TAKE", "#e54b44"),
+    key(F(828, 80), FRONT, 14, 13, "OUT", WHITE_KEY), key(F(870, 80), FRONT, 14, 13, "TAKE", "#e54b44"),
     { t: "screen", p: F(985, 62), n: FRONT, s: [M(45), M(34)], feed: "view" },
     { t: "knob", p: F(1100, 55), r: M(15), n: FRONT },
     ...([["MENU", 25], ["SET", 60], ["LOCK", 96]] as [string, number][]).map(([l, y]) => key(F(1215, y), FRONT, 10, 9, l)),
@@ -212,6 +216,10 @@ function hyperdeckHdPlus(): ModelGeometry {
     ...([["SEARCH", 34], ["MENU", 69], ["SET", 104]] as [string, number][]).map(([l, y]) => key(F(377, y), FRONT, 13, 6.5, l)),
     { t: "screen", p: F(500, 67), n: FRONT, s: [M(44), M(36)], feed: "view" },
     { t: "knob", p: F(618, 67), r: M(8.5), n: FRONT },
+    // Front photo: two vertical SD slots with status LEDs, headphone jack, wordmark.
+    ...[77, 107].flatMap((x, i): Part[] => [{ t: "box", p: F(x, 68), s: v3(9, 70, 1.2), c: "#07090b" }, { t: "key", p: F(x, 16), n: FRONT, s: [M(6), M(2.5)], c: i ? "#33373c" : "#d0302a" }]),
+    { t: "cyl", p: F(35, 97), r: M(6), h: M(1.5), n: FRONT, c: "#a7abb0" }, { t: "cyl", p: F(35, 97), r: M(3.5), h: M(1.8), n: FRONT, c: "#07090b" },
+    text(F(605, 23), FRONT, "Blackmagicdesign", 3, "#eef0f2"),
     ...([["SDI OUT", 590, 248], ["SDI IN", 562, 312], ["SDI LOOP OUT", 617, 312], ["MONITOR OUT", 320, 312], ["HDMI OUT", 513, 255], ["HDMI IN", 513, 312], ["ETHERNET", 211, 312], ["A", 548, 207], ["B", 603, 207]] as [string, number, number][]).map(([l, x, y]) => text(R(x, y), BACK, l, 2.2)),
   ];
   return {
@@ -265,6 +273,8 @@ function smartviewDuo(): ModelGeometry {
     { t: "screen", p: F(303.5, 146.5), n: FRONT, s: [M(176), M(99)], feed: "in:sdi-in" },
     { t: "screen", p: F(757, 146.5), n: FRONT, s: [M(176), M(99)], feed: "in:sdi-in-b" },
     text(F(1005, 145), FRONT, "Blackmagicdesign", 5, "#eef0f2"),
+    // Rack-ear slots, four corners (front photo).
+    ...[-230, 230].flatMap((x) => [16, 117].map((y): Part => ({ t: "cyl", p: v3(x, y, 17.6), r: M(4.5), h: M(0.6), n: FRONT, c: "#0c0e11" }))),
     text(R(200, 548), BACK, "MONITOR 2", 4), text(R(835, 548), BACK, "MONITOR 1", 4),
     ...([["SDI IN", 322], ["SDI OUT", 366], ["SDI IN", 697], ["SDI OUT", 740]] as [string, number][]).map(([l, x]) => text(R(x, 588), BACK, l, 2.4)),
   ];
@@ -322,6 +332,12 @@ function studioCamera(pro: boolean): ModelGeometry {
     ...[110, 80, 50].map((y): Part => ({ t: "knob", p: v3(100, y, 64.4), r: M(7), n: FRONT })),
     text(v3(95.3, 110, -18), RIGHT, "HDMI", 3), text(v3(95.3, 92, -6), RIGHT, "SDI OUT", 2.4), text(v3(95.3, 77, -6), RIGHT, "SDI IN", 2.4),
     text(v3(95.3, 40, -60), RIGHT, "4K", 6, "#e8eaec"),
+    // Front photo: four lens-plate screws, two rubber grip pads, cooling vent under the mount, mounting plate.
+    ...[[-36, 120], [36, 120], [-36, 36], [36, 36]].map(([x, y]): Part => ({ t: "cyl", p: v3(x, y, -80.5), r: M(3.2), h: M(1), n: BACK, c: "#0c0e11" })),
+    ...[-1, 1].map((sx) => box(sx * 70, 141, 29.4, 34, 8, 1.5, "#2a2d31", true)),
+    ...Array.from({ length: 7 }, (_, i) => box(0, 18 + i * 2.6, -60, 38, 1, 1, "#07090b")),
+    box(0, 1, -10, 90, 10, 80, "#16181b", true),
+    text(v3(-4, 1, -50.6), BACK, "Blackmagicdesign", 3.2, "#c9ccd0"),
   ];
   const slug = pro ? "blackmagic-studio-camera-4k-pro-g2" : "blackmagic-studio-camera-4k-plus-g2";
   return {
@@ -370,6 +386,12 @@ function ursaBroadcastG2(): ModelGeometry {
     box(-75.15,66,21,0.3,1,99,"#090b0e"),
     text(v3(75.3, 155, -95), RIGHT, "4K BROADCAST", 3.5, "#e8eaec"),
     text(Sd(885, 270), RIGHT, "SDI OUT", 2.4), text(v3(0, 182.4, -78), UP, "XLR AUDIO IN", 2.6),
+    // 3q photo: baseplate runs forward under the lens with two 15 mm rod bores; rubber top pad; ND wheel; side badge.
+    box(0, 12, -110, 104, 24, 64, "#17191c", true),
+    ...[-1, 1].map((sx): Part => ({ t: "cyl", p: v3(sx * 30, 12, -142.3), r: M(7.5), h: M(1), n: BACK, c: "#050607" })),
+    box(-38, 176, -55, 60, 3, 55, "#2b2e33", true),
+    { t: "knob", p: v3(-75.4, 112, -88), n: LEFT, r: M(8) }, text(v3(-75.4, 98, -88), LEFT, "ND FILTER", 2.2),
+    text(v3(-75.4, 160, 60), LEFT, "Blackmagicdesign", 3, "#c9ccd0"),
   ];
   return {
     displayScale: 1.5, size: v3(150, 252, 278), mount: "tripod",
@@ -399,8 +421,10 @@ function cameraFiberConverter(): ModelGeometry {
     box(0, 95, -62, 110, 150, 14, "#202327"),                                   // camera mounting plate
     ...([[-32, GREEN], [0, RED], [32, GREEN]] as [number, string][]).map(([x, c]): Part => ({ t: "key", p: O(x, 170), n: FRONT, s: [M(14), M(3)], c })),
     ...([["POWER", -32], ["TALLY", 0], ["FIBER", 32]] as [string, number][]).map(([l, x]) => text(O(x, 176), FRONT, l, 2.2)),
-    ...[-35, -12, 12, 35].map((x): Part => ({ t: "knob", p: O(x, 125), r: M(5.5), n: FRONT })),
-    ...[-35,-12,12,35].map((x): Part=>({t:"knob",p:O(x,146),r:M(4.5),n:FRONT})),
+    // 3q photo: RET 1/2 row, PGM 1/2 row, then one INCOM level knob per intercom group above its label.
+    ...[-35,-12,12,35].map((x): Part=>({t:"knob",p:O(x,155),r:M(4.5),n:FRONT})),
+    ...[-35, -12, 12, 35].map((x): Part => ({ t: "knob", p: O(x, 138), r: M(5.5), n: FRONT })),
+    ...[-30, 16].map((x): Part => ({ t: "knob", p: O(x, 122), r: M(5.5), n: FRONT })),
     box(0,137,70.3,101,47,0.6,"#111316",true),
     text(O(-23, 112), FRONT, "INTERCOM 1", 2.2), text(O(23, 112), FRONT, "INTERCOM 2", 2.2),
     key(O(48, 150), FRONT, 10, 6, "FOCUS"), key(O(48, 140), FRONT, 10, 6, "REC", "#c9302a"),
@@ -437,6 +461,7 @@ function studioFiberConverter(): ModelGeometry {
     {t:"lathe",p:[F(128,175)[0],F(128,175)[1],M(186)],n:FRONT,c:"#16181b",finish:"rubber",
       profile:[[0,0],[14,0],[14,10],[13,12],[10,12],[10,2],[0,2]].map(([r,y])=>[M(r),M(y)])}, // open dust-cap cup
     text(F(470, 230), FRONT, "Blackmagicdesign", 3, "#eef0f2"),
+    box(-90.4, 21.7, 186.6, 30, 30, 1.5, "#2a2d32", true), text(F(40, 185), FRONT, "USB", 2.4), // rubber USB cover (front photo)
     text(R(1190, 115), BACK, "12G DIGITAL I/O", 2.6), text(R(1165, 222), BACK, "RETURN IN", 2.2), text(R(1165, 40), BACK, "AUDIO ANALOG OUT", 2.6),
   ];
   return {
@@ -472,12 +497,12 @@ function aja3gAma(): ModelGeometry {
     ...[0, 1, 2, 3].map((i) => inert(`BREAKOUT XLR OUT ${"ABCD"[i]}`, xlrOut(i), RIGHT, "xlr3m")),
   ];
   const parts: Part[] = [
-    box(0, H / 2, 0, L, H, D, "#2a2d33", true),
+    box(0, H / 2, 0, L, H, D, "#8d9298", true),                                     // light grey case (3q photo)
     box(L / 2 + 8, 12.7, -8, 16, 14, 56, "#9aa0a8"),                                  // DB-25 shell of the breakout
     ...Array.from({ length: 8 }, (_, i): Part => ({ t: "tube", r: M(1.5), c: "#16181b", finish: "rubber",
       points: [v3(L / 2 + 16, 12.7, -8), v3(L / 2 + 30, 5, (z0 + i * dz) * 0.6), v3(fanX - 40, 12.7, z0 + i * dz)] })),
     ...Array.from({ length: 8 }, (_, i): Part => ({ t: "cyl", p: v3(fanX - 20, 12.7, z0 + i * dz), r: M(9.5), h: M(40), n: RIGHT, c: "#25282d", finish: "plastic" })),
-    text(v3(0, H + 0.2, -10), UP, "AJA", 9, "#0089bf"), text(v3(0, H + 0.2, 10), UP, "3G-AMA", 6, "#e6e8ea"),
+    text(v3(0, H + 0.2, -10), UP, "AJA", 9, "#0089bf"), text(v3(0, H + 0.2, 10), UP, "3G-AMA", 6, "#f4f5f6"), text(v3(0, H + 0.2, 20), UP, "4-CH BALANCED AUDIO EMBEDDER / DISEMBEDDER", 2.4, "#eef0f2"),
     text(v3(fanX + 1, 20, z0 + 1.5 * dz), RIGHT, "INPUT A–D", 3), text(v3(fanX + 1, 20, z0 + 5.5 * dz), RIGHT, "OUTPUT A–D", 3),
   ];
   return {
@@ -510,6 +535,7 @@ function magewellSdiGen2(): ModelGeometry {
       { t: "cyl", p: v3(-L / 2 - 62, 7, 0), r: M(5.5), h: M(16), n: LEFT, c: "#9aa0a8", finish: "metal" },
       text(v3(0, H + 0.2, -3), UP, "USB Capture SDI", 5, "#5b5f66"), text(v3(0, H + 0.2, 5), UP, "MAGEWELL", 4, "#5b5f66"),
       text(v3(-L / 2 + 6, H + 0.2, 0), UP, "SDI IN", 2.4, "#5b5f66"),
+      ...[-1, 1].map((sz) => box(-6 + sz * 26, H + 0.05, sz * 9, 14, 0.1, 0.5, "#8d9198")), // engraved accent lines (overview photo)
       { t: "cyl", p: v3(L / 2 - 9, H + 0.1, -10), r: M(0.9), h: M(0.4), n: UP, c: "#2fd86a" },
       { t: "cyl", p: v3(L / 2 - 9, H + 0.1, 10), r: M(0.9), h: M(0.4), n: UP, c: "#2fd86a" },
       text(v3(L / 2 - 4, H + 0.2, -10), UP, "POWER", 1.8, "#5b5f66"), text(v3(L / 2 - 4, H + 0.2, 10), UP, "STATUS", 1.8, "#5b5f66"),
@@ -535,10 +561,11 @@ function shureSm58(): ModelGeometry {
       { t: "lathe", p: v3(0, cy, 0), n: RIGHT, c: "#aeb1b7", finish: "grille",
         profile: [[0, -81], [8, -79], [16, -74], [22, -66], [25.5, -56], [25.5, -49], [24.8, -42], [22, -35], [20.5, -33], [0, -33]].map(([r, x]) => [M(r), M(x)]) },
       along(-L / 2 + 24, 25.6, 2, "#9ea3a9"), // retaining band seen across the spherical grille
-      along(-L / 2 + 45, 21, 6, "#2b2e33"),                                 // grille ring / Shure badge band
+      along(-L / 2 + 45, 21, 6, "#8e9298"),                                 // satin silver ring under the grille (overview photo)
       { t: "lathe", p: v3(0, cy, 0), n: RIGHT, c: "#25282d", finish: "metal",
         profile: [[0, -36], [20.5, -36], [18, -30], [16, -22], [14.5, -10], [11.5, 72], [11.5, 81], [0, 81]].map(([r, x]) => [M(r), M(x)]) },
       text(v3(-L / 2 + 58, cy + 16, 0), UP, "SHURE", 4, "#e6e8ea"),
+      text(v3(-L / 2 + 70, cy + 15, 0), UP, "SM58", 3, "#d6d8db"),
     ],
     estimates: ["ส่วนโค้งหัว/ด้ามอ่านจากภาพผลิตภัณฑ์และ bounding dimensions 162 × 51 mm; ลายตะแกรงเป็นวัสดุ procedural", "ไม่เพิ่มสวิตช์เพราะรุ่นย่อย LC/S ยังไม่ยืนยัน"],
   };

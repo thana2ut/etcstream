@@ -85,24 +85,29 @@ def legend(name, words, centre, size, mat=silver, rear=True):
 box("HS5 rounded black cabinet",(0,0,H/2),(W,D,H),cabinet,.018)
 box("inset front baffle",(0,FRONT-.003,H/2),(W-.038,.007,H-.038),baffle,.013)
 front=FRONT-.009
-for z,outer in ((.38,.166),(.705,.082)):
-    cylinder("driver mounting well",(0,front+.001,z),outer,.004,void)
-    torus("rubber driver gasket",(0,front-.004,z),outer-.012,.011,rubber)
-    for angle in range(4):
-        a=angle*math.pi/2+math.pi/4
-        cylinder("driver screw",((outer-.016)*math.cos(a),front-.006,z+(outer-.016)*math.sin(a)),.004,.002,metal,vertices=12)
-# White five-inch woofer: annular rolled edge, shallow sloped cone and dust cap.
-torus("white woofer roll",(0,front-.006,.38),.125,.018,cone_shade)
-cylinder("white woofer diaphragm",(0,front-.006,.38),.119,.004,cone)
-torus("woofer inner bevel",(0,front-.008,.38),.068,.008,cone_shade)
-cylinder("woofer central dust cap",(0,front-.010,.38),.061,.005,dust)
-# Dark dome tweeter and its shallow waveguide.
-torus("tweeter waveguide",(0,front-.007,.705),.058,.016,rubber)
-cylinder("tweeter soft dome",(0,front-.010,.705),.029,.007,void)
-cylinder("front bass reflex port",(.154,front-.002,.705),.026,.004,void)
-torus("front port lip",(.154,front-.006,.705),.027,.004,rubber)
-legend("YAMAHA front logo","YAMAHA",(0,front-.004,.095),.029,rear=False)
-cylinder("power indicator",(0,front-.007,.058),.006,.003,red,vertices=20)
+# Proportions measured on 01_VERIFIED_EQUIPMENT/yamaha-hs5 front photo: tweeter centred on a round
+# plate in the upper third, woofer surround ~85 % of the cabinet width, square logo badge under the woofer.
+WZ, TZ = .36, .69
+cylinder("woofer surround bezel",(0,front-.002,WZ),.228,.012,rubber,vertices=72)
+torus("woofer surround rim",(0,front-.008,WZ),.215,.012,rubber)
+for k in range(6):
+    a=k*math.pi/3+math.pi/6
+    cylinder("woofer bezel screw",(.203*math.cos(a),front-.009,WZ+.203*math.sin(a)),.005,.002,metal,vertices=12)
+torus("black woofer roll",(0,front-.010,WZ),.168,.016,rubber)
+cylinder("white woofer diaphragm",(0,front-.010,WZ),.155,.004,cone,vertices=72)
+torus("woofer inner bevel",(0,front-.012,WZ),.072,.006,cone_shade)
+cylinder("woofer central dust cap",(0,front-.014,WZ),.068,.006,cone_shade,vertices=48)
+cylinder("tweeter round plate",(0,front-.004,TZ),.124,.010,rubber,vertices=72)
+for r,n in ((.104,4),(.052,4)):
+    for k in range(n):
+        a=k*math.pi/2+math.pi/4
+        cylinder("tweeter plate screw",(r*math.cos(a),front-.010,TZ+r*math.sin(a)),.004,.002,metal,vertices=12)
+cylinder("tweeter waveguide",(0,front-.009,TZ),.07,.004,void,vertices=48)
+cylinder("tweeter mesh guard",(0,front-.012,TZ),.044,.006,metal,vertices=48)
+cylinder("tweeter soft dome",(0,front-.0135,TZ),.036,.004,void,vertices=48)
+box("logo badge",(0,front-.006,.105),(.05,.008,.06),rubber,.006)
+cylinder("logo badge ring",(0,front-.011,.105),.017,.002,silver,vertices=36)
+cylinder("power indicator",(0,front-.007,.058),.004,.003,red,vertices=20)
 
 # Rear amplifier panel from the supplied straight-on reference.
 front_objects={o.name for o in bpy.data.objects}

@@ -56,13 +56,16 @@ function TripodCamera({ device }: { device: DeviceDef }) {
   if (ptz) return <group>
     <Rod a={[0, 0, 0]} b={[0, 1.15, 0]} r={0.03} />
     {[0, 1, 2].map((k) => { const a = (k / 3) * Math.PI * 2; return <Rod key={k} a={[0, 0.02, 0]} b={[Math.cos(a) * 0.3, 0.02, Math.sin(a) * 0.3]} r={0.02} />; })}
-    <Rb p={[0, 1.20, 0]} s={[0.2, 0.075, 0.19]} c="#d4d5d9" />
-    <Rb p={[0, 1.241, 0]} s={[0.18, 0.012, 0.17]} c="#b4b6bb" />
+    {/* SRG-X400 base: rounded white drum, SONY over a black POWER / NETWORK indicator strip (photo 1). */}
+    <mesh position={[0,1.2,0]} castShadow receiveShadow><cylinderGeometry args={[.1,.104,.075,48]} /><meshStandardMaterial color="#e6e7ea" roughness={.42} /></mesh>
+    <mesh position={[0,1.241,0]}><cylinderGeometry args={[.092,.1,.008,48]} /><meshStandardMaterial color="#cfd1d5" roughness={.45} /></mesh>
+    <Rb p={[0,1.184,-.1]} s={[.09,.016,.006]} c="#15171b" />
+    {[-.025,.025].map(x=><mesh key={x} position={[x,1.184,-.1035]}><sphereGeometry args={[.0025,8,8]} /><meshStandardMaterial color="#3fd17a" emissive="#3fd17a" emissiveIntensity={.8} /></mesh>)}
+    <Text font={FONT} position={[0,1.212,-.104]} rotation={[0,Math.PI,0]} fontSize={.012} color="#2c2f35" anchorX="center" anchorY="middle">SONY</Text>
     {[-1,1].map(side=><Rb key={side} p={[side*.082,1.29,.005]} s={[.03,.13,.14]} c="#e4e5e8" />)}
     <RoundedBox position={[0,1.34,-.005]} args={[.145,.17,.15]} radius={.055} smoothness={4} castShadow receiveShadow><meshStandardMaterial color="#ebecf0" roughness={.4} /></RoundedBox>
     <mesh position={[0, 1.35, -.08]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[.044,.044,.016,40]} /><meshStandardMaterial color="#171c23" roughness={.4} /></mesh>
     <mesh position={[0, 1.35, -.09]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[.031,.031,.005,40]} /><meshStandardMaterial color="#12382f" metalness={.7} roughness={.12} /></mesh>
-    <Rb p={[0,1.2,-.096]} s={[.054,.014,.002]} c="#383b44" />
   </group>;
   const lens = broadcast ? 0.42 : 0.2;
   return <group>
@@ -269,14 +272,23 @@ function Projector({ device }: { device: DeviceDef }) {
   const [w, profileHeight, d] = device.size;
   const h=profileHeight*.73; // EB-FH52's low chassis; preserve the larger training collision/packing envelope.
   return <group><Rb p={[0, h / 2, 0]} s={[w, h, d]} c="#e3e5e6" r={0.65} />
-    <Rb p={[0,h*.48,-d/2-.002]} s={[w*.92,h*.7,.005]} c="#191c20" r={.8} />
-    <mesh position={[w*.23,h*.53,-d/2-.007]} rotation={[Math.PI/2,0,0]}><cylinderGeometry args={[h*.34,h*.34,.012,32]} /><meshStandardMaterial color="#777d83" metalness={.65} roughness={.3} /></mesh>
-    <mesh position={[w * 0.23, h * 0.53, -d / 2]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[h * 0.28, h * 0.28, 0.008, 24]} /><meshStandardMaterial color="#142131" metalness={0.6} roughness={0.13} /></mesh>
-    {Array.from({ length: 7 }, (_, i) => <Rb key={i} p={[-w * 0.36 + i * w * 0.035, h * 0.5, -d / 2 - 0.006]} s={[w * 0.012, h * 0.51, 0.003]} c="#454a4d" />)}
-    <Rb p={[w*.23,h+.001,-d*.17]} s={[w*.19,.004,d*.29]} c="#a1a5a6" />
-    <Rb p={[w*.23,h+.004,-d*.15]} s={[w*.08,.008,d*.15]} c="#d3d5d5" />
-    {Array.from({length:5},(_,i)=><Rb key={i} p={[-w*.21+i*w*.055,h+.003,d*.27]} s={[w*.033,.004,d*.035]} c="#b9bdc0" />)}
-    <Text font={FONT} position={[-w*.03,h*.5,-d/2-.007]} rotation={[0,Math.PI,0]} fontSize={w*.035} color="#ddd" anchorX="center" anchorY="middle">EPSON</Text>
+    {/* Front seen from −Z (+x = viewer's left): black band, vent grille left, white cheek, lens right of centre, 3LCD far right (photo 1). */}
+    <Rb p={[-w*.08,h*.46,-d/2-.002]} s={[w*.76,h*.62,.005]} c="#121418" r={.8} />
+    <Rb p={[w*.36,h*.46,-d/2-.002]} s={[w*.22,h*.62,.005]} c="#0b0d10" r={.6} />
+    {Array.from({ length: 7 }, (_, i) => <Rb key={`v${i}`} p={[w*.36,h*.2+i*h*.085,-d/2-.006]} s={[w*.2,h*.018,.003]} c="#2a2e33" />)}
+    {Array.from({ length: 5 }, (_, i) => <Rb key={`u${i}`} p={[w*.27+i*w*.045,h*.46,-d/2-.006]} s={[w*.008,h*.56,.003]} c="#2a2e33" />)}
+    <Rb p={[w*.205,h*.46,-d/2-.004]} s={[w*.06,h*.5,.006]} c="#d9dcde" />
+    <Rb p={[-w*.17,h*.44,-d/2-.008]} s={[w*.2,h*.52,.012]} c="#06080a" r={.4} />
+    <mesh position={[-w*.17,h*.44,-d/2-.012]} rotation={[Math.PI/2,0,0]}><cylinderGeometry args={[h*.24,h*.24,.012,32]} /><meshStandardMaterial color="#25292e" metalness={.5} roughness={.35} /></mesh>
+    <mesh position={[-w*.17,h*.44,-d/2-.019]} rotation={[Math.PI/2,0,0]}><cylinderGeometry args={[h*.17,h*.17,.004,32]} /><meshStandardMaterial color="#1c2a36" metalness={.75} roughness={.08} /></mesh>
+    <Text font={FONT} position={[w*.06,h*.44,-d/2-.006]} rotation={[0,Math.PI,0]} fontSize={w*.045} color="#cfd2d5" anchorX="center" anchorY="middle">EPSON</Text>
+    <Text font={FONT} position={[-w*.4,h*.4,-d/2-.006]} rotation={[0,Math.PI,0]} fontSize={w*.022} color="#d6d8da" anchorX="center" anchorY="middle">3LCD</Text>
+    {/* Top: A/V mute slider, lens-cover recess and control keys behind it. */}
+    <Rb p={[-w*.05,h+.001,-d*.32]} s={[w*.36,.003,d*.04]} c="#c4c7ca" />
+    <Rb p={[w*.04,h+.003,-d*.32]} s={[w*.035,.006,d*.05]} c="#16181b" />
+    <Rb p={[-w*.1,h+.002,-d*.12]} s={[w*.27,.004,d*.16]} c="#d5d8da" />
+    {Array.from({length:6},(_,i)=><Rb key={`k${i}`} p={[-w*.28+i*w*.045,h+.003,d*.3]} s={[w*.03,.004,d*.03]} c="#cfd2d5" />)}
+    <Text font={FONT} position={[w*.1,h+.004,d*.22]} rotation={[-Math.PI/2,0,Math.PI]} fontSize={w*.03} color="#2a2d31" anchorX="center" anchorY="middle">EPSON</Text>
   </group>;
 }
 
@@ -292,7 +304,11 @@ function Speaker({ device }: { device: DeviceDef }) {
       <Rb p={[side*w*.485,h*.54,d*.01]} s={[.008,h*.28,d*.25]} c="#0d1116" />
       <Rb p={[side*w*.493,h*.54,d*.05]} s={[.015,h*.22,.017]} c="#33383d" />
     </group>)}
-    <Text font={FONT} position={[0,h*.09,-d/2-.018]} rotation={[0,Math.PI,0]} fontSize={w*.037} color="#aaaeb5" anchorX="center" anchorY="middle">YAMAHA</Text>
+    {/* DBR12 front: round tuning-fork badge low on the grille, six grille screws (photo 1). */}
+    <mesh position={[0,h*.14,-d/2-.014]} rotation={[Math.PI/2,0,0]}><cylinderGeometry args={[w*.055,w*.055,.006,32]} /><meshStandardMaterial color="#2a2d31" metalness={.5} roughness={.4} /></mesh>
+    <mesh position={[0,h*.14,-d/2-.0175]} rotation={[0,Math.PI,0]}><ringGeometry args={[w*.04,w*.046,32]} /><meshStandardMaterial color="#c9ccd0" metalness={.7} roughness={.3} /></mesh>
+    {[[-1,.92],[1,.92],[-1,.5],[1,.5],[-1,.08],[1,.08]].map(([x,y],i)=><mesh key={`screw-${i}`} position={[x*w*.405,h*y,-d/2-.012]} rotation={[Math.PI/2,0,0]}><cylinderGeometry args={[.007,.007,.004,12]} /><meshStandardMaterial color="#15171a" metalness={.6} roughness={.4} /></mesh>)}
+    <Text font={FONT} position={[0,h*.14,-d/2-.018]} rotation={[0,Math.PI,0]} fontSize={w*.012} color="#c9ccd0" anchorX="center" anchorY="middle">YAMAHA</Text>
     {[-1, 1].map((x) => <Rb key={x} p={[x * w * 0.3, 0.008, 0]} s={[0.045, 0.016, d * 0.8]} c="#111317" />)}
   </group>;
 }
@@ -315,8 +331,8 @@ function ShuttleController() {
   return <group>
     <mesh geometry={shell} castShadow receiveShadow><meshStandardMaterial color="#1b1c20" roughness={.58} /></mesh>
     <mesh position={[0,.03,-.014]} rotation={[-Math.PI/2,0,0]}><torusGeometry args={[.028,.006,12,48]} /><meshStandardMaterial color="#0c0e12" roughness={.5} /></mesh>
-    <mesh position={[0,.03,-.014]}><cylinderGeometry args={[.021,.021,.006,48]} /><meshStandardMaterial color="#c4c7cb" metalness={.85} roughness={.28} /></mesh>
-    {[0,1,2].map(i=>{const a=i*Math.PI*2/3;return <mesh key={i} position={[Math.sin(a)*.011,.0334,-.014+Math.cos(a)*.011]} rotation={[-Math.PI/2,0,0]}><circleGeometry args={[.006,20]} /><meshStandardMaterial color="#65696f" metalness={.7} roughness={.4} /></mesh>;})}
+    <mesh position={[0,.03,-.014]}><cylinderGeometry args={[.021,.021,.006,48]} /><meshStandardMaterial color="#e6e6e2" roughness={.35} /></mesh>
+    {[0,1,2].map(i=>{const a=i*Math.PI*2/3;return <mesh key={i} position={[Math.sin(a)*.011,.0334,-.014+Math.cos(a)*.011]} scale={[1,.55,1]}><sphereGeometry args={[.0058,16,12]} /><meshStandardMaterial color="#8a8d92" metalness={.8} roughness={.3} /></mesh>;})}
     {upper.map(([x,z],i)=><Rb key={i} p={[x,.029,z]} s={[.014,.005,.009]} c="#c3c5c8" m={.8} r={.24} />)}
     {[-1,1].flatMap(side=>[0,1].map(row=><group key={`${side}-${row}`} position={[side*.031,.029,.018+row*.016]} rotation={[0,side*.55,0]}><Rb p={[0,0,0]} s={[.028,.005,.009]} c="#c3c5c8" m={.8} r={.24} /></group>))}
     {[-1,1].map(side=><Rb key={side} p={[side*.048,.028,-.01]} s={[.009,.004,.028]} c="#101216" />)}

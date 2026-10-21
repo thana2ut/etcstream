@@ -24,8 +24,8 @@ def mat(name, color, metal=0, rough=.5):
     bs.inputs["Roughness"].default_value = rough
     return m
 
-silver = mat("satin anodized aluminium", (.68,.69,.68), .65, .38)
-edge = mat("polished rim", (.83,.84,.82), .8, .27)
+silver = mat("satin anodized aluminium", (.40,.41,.41), .6, .42)  # mid satin grey per overview photo
+edge = mat("polished rim", (.62,.63,.62), .8, .3)
 socket = mat("socket shadow", (.025,.027,.03), 0, .85)
 steel = mat("connector steel", (.38,.40,.41), .75, .3)
 blue = mat("USB 3 blue tongue", (.045,.18,.60), 0, .6)

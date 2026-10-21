@@ -196,16 +196,6 @@ export function buildVenueScenario(scale: VenueScale, level: 1 | 2 | 3 | 4 | 5):
   }
   storeCables(layoutId, cables);
 
-  // Portable gear starts in its labelled case/storage (L4 broken show: already installed).
-  const carried = devices.filter((d) => movable.has(d.id) || d.stockOnly && handled.has(d.id));
-  // Allocate the complete venue's liftable stock, even when some units start installed for this exercise.
-  // An unused slot stays empty rather than moving every other item between levels.
-  const pool = devices.filter((d) => liftable(d.id)), slots = packStorage(layoutId, pool);
-  const storage = carried.map((d) => slots[pool.findIndex((p) => p.id === d.id)]);
-  const prewiredAll = stage.prewired === "all";
-  const startOf: Record<string, Point3> = Object.fromEntries(carried.map((d, i) => [d.id, prewiredAll && !d.stockOnly ? [...d.position] as Point3 : storage[i]]));
-  for (const d of devices) if (handled.has(d.id) && !d.stockOnly) startOf[d.id] = [...d.position] as Point3;
-
   // Start state: pre-wired pairs, then L4 faults (unplug / repatch with a wrong lead).
   const pairs: { cableId: string; from: string; to: string }[] = [];
   const used = new Set<string>();
@@ -216,6 +206,7 @@ export function buildVenueScenario(scale: VenueScale, level: 1 | 2 | 3 | 4 | 5):
     const sameEnd = stage.solution.find(([f, t]) => (f === from || t === to) && !used.has(leadFor[`${f}>${t}`]));
     return sameEnd ? leadFor[`${sameEnd[0]}>${sameEnd[1]}`] : undefined;
   };
+  const prewiredAll = stage.prewired === "all";
   const listed = stage.prewired === "all" || !stage.prewired ? [] : stage.prewired;
   const pre: [string, string, string?][] = prewiredAll ? stage.solution.map(([f, t]) => [f, t]) : listed.map((x) => [x[0], x[1], x[2]]);
   for (const [from, to, cab] of pre) {
@@ -234,6 +225,13 @@ export function buildVenueScenario(scale: VenueScale, level: 1 | 2 | 3 | 4 | 5):
     }
   }
 
+  // Every liftable unit starts laid out on the venue prep table, in the same slot every level, ready to carry and patch.
+  // Only units the start state already wires (pre-wired / L4 broken show) begin installed at their station.
+  const wired = new Set(initial.flatMap((c) => [c.from.split(":")[0], c.to.split(":")[0]]));
+  const pool = devices.filter((d) => liftable(d.id)), slots = packStorage(layoutId, pool);
+  const startOf: Record<string, Point3> = Object.fromEntries(pool.map((d, i) => [d.id, wired.has(d.id) && !d.stockOnly ? [...d.position] as Point3 : slots[i]]));
+  const installed = (id: string) => wired.has(id) && !devices.find((d) => d.id === id)!.stockOnly;
+
   // Guided levels list the documented patches as a checklist; scenario levels and above do not reveal routes.
   const guided = stage.guidance === "guided" || stage.guidance === "partial";
   const requirements = guided ? stage.solution.map(([from, to], i) => ({ id: `patch-${i + 1}`, label: `${ports[from].label} → ${ports[to].label}`, group: groupOf(ports[from]), from: [from], to: [to], verified: true })) : [];
@@ -244,7 +242,7 @@ export function buildVenueScenario(scale: VenueScale, level: 1 | 2 | 3 | 4 | 5):
     referenceStatus: stage.researchStatus ?? "DESIGN_REFERENCE",
     id: `${scale}-${level}`, venueScale: scale, level, title: `${stage.id} · ${stage.title.split(" · ")[0]}`, layout: layoutId,
     devices, ports, cables, requirements, actions: [], job: stage.ticket,
-    placeables: devices.filter((d) => liftable(d.id)).map((d) => ({ id: d.id, label: d.label, start: startOf[d.id], zone: [...d.position] as Point3, zoneLabel: spotOf(d.id)?.label ?? d.zoneLabel, device: d, ...(handled.has(d.id) && !d.stockOnly ? { installed: true } : {}), ...(d.stockOnly ? { stockOnly: true } : {}) })),
+    placeables: devices.filter((d) => liftable(d.id)).map((d) => ({ id: d.id, label: d.label, start: startOf[d.id], zone: [...d.position] as Point3, zoneLabel: spotOf(d.id)?.label ?? d.zoneLabel, device: d, ...(installed(d.id) ? { installed: true } : {}), ...(d.stockOnly ? { stockOnly: true } : {}) })),
     canonical: stage.solution.map(([from, to]) => ({ cableId: leadFor[`${from}>${to}`], from, to })),
     initialConnections: initial,
     faults: guided ? (stage.faults ?? []).map((f) => f.label) : [],
