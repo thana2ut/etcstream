@@ -43,23 +43,10 @@ function Desk({ f, look, skirt }: { f: Furniture; look: FurnitureLook; skirt?: s
   </group>;
 }
 
-/** Dedicated mission staging bench. Colour bands make equipment categories readable without adding blockers. */
+/** Dedicated mission staging bench: a plain light-wood table (no coloured category sheets on the top). */
 function EquipmentPrepTable({ f, look }: { f: Furniture; look: FurnitureLook }) {
-  const [w, h, d] = f.size;
-  const longX = w >= d;
-  const categories = [["ภาพ", "#3f7fca"], ["เสียง", "#b66d35"], ["ควบคุม", "#7c5fc4"], ["บันทึก", "#3f8c69"]] as const;
-  return <group>
-    {/* Shared light-wood preparation surface matches the owner's reference; production desks retain each venue's look. */}
-    <Desk f={f} look={{ ...look, top: "#cdb18a", frame: BLACK_METAL }} />
-    {categories.map(([label, color], i) => {
-      const along = (i / (categories.length - 1) - 0.5) * ((longX ? w : d) - 0.35);
-      const p: [number, number, number] = longX ? [along, h + 0.006, 0] : [0, h + 0.006, along];
-      return <group key={label} position={p} rotation={[-Math.PI / 2, 0, longX ? 0 : Math.PI / 2]}>
-        <mesh><planeGeometry args={[0.62, 0.13]} /><meshStandardMaterial color={color} roughness={0.7} /></mesh>
-        <Text font={FONT} position={[0, 0, 0.002]} fontSize={0.055} color="#fff" anchorX="center" anchorY="middle">{sceneText(label)}</Text>
-      </group>;
-    })}
-  </group>;
+  // Shared light-wood preparation surface matches the owner's reference; production desks retain each venue's look.
+  return <Desk f={f} look={{ ...look, top: "#cdb18a", frame: BLACK_METAL }} />;
 }
 
 function FlightCase({ f, look }: { f: Furniture; look: FurnitureLook }) {
