@@ -57,7 +57,7 @@ export function RelationButton({ card, onChange }: { card: PlayerCard; onChange?
 export function PlayerRow({ card, onChange, children }: { card: PlayerCard; onChange?: () => void; children?: React.ReactNode }) {
   return <article className="arena-person-row social-row">
     <Link className="arena-person-identity" href={`/arena/players/${card.friendCode}`}>
-      <ProfileAvatar avatar={avatarOf(card.equipped)} frame={card.equipped.profileFrame?.asset} name={card.name} size={52} />
+      <ProfileAvatar avatar={avatarOf(card.equipped)} frame={card.equipped.profileFrame?.asset} name={card.name} size={72} />
       <div><strong>{card.name}</strong><code>@{card.friendCode}</code><span>{card.online ? "ออนไลน์ (ผู้ฝึกยินยอมแสดง)" : "ไม่ได้แสดงสถานะออนไลน์"}</span></div>
     </Link>
     <div className="arena-actions"><RelationButton card={card} onChange={onChange} />{children}</div>

@@ -276,5 +276,5 @@ export function useFriendAppearance(enabled: boolean) {
   return useArenaResource<{ friends: Record<string, Partial<Record<"profileAvatar" | "profileFrame" | "profileCompanion", string>>> }>(enabled ? "economy/friends" : null, 60000);
 }
 export function FriendPortrait({ items, name }: { items?: Partial<Record<"profileAvatar" | "profileFrame" | "profileCompanion", string>>; name?: string }) {
-  return <span className="econ-friend-portrait"><ProfileAvatar avatar={items?.profileAvatar} frame={items?.profileFrame} name={name} size={52} />{items?.profileCompanion && <Image src={items.profileCompanion} alt="" width={30} height={30} />}</span>;
+  return <span className="econ-friend-portrait"><ProfileAvatar avatar={items?.profileAvatar} frame={items?.profileFrame} name={name} size={72} />{items?.profileCompanion && <Image src={items.profileCompanion} alt="" width={36} height={36} />}</span>;
 }

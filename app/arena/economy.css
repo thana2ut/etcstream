@@ -66,7 +66,7 @@
 .econ-receipt-art { border-radius: 12px; flex: none; }
 .econ-receipt-total { font-weight: 600; }
 .econ-friend-portrait { position: relative; display: inline-flex; align-items: flex-end; }
-.econ-friend-portrait img:nth-child(2) { margin-left: -10px; border-radius: 6px; }
+.econ-friend-portrait > img { margin-left: -14px; align-self: flex-end; border-radius: 6px; }
 .admin-economy .admin-subnav { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
 .admin-economy input[type="number"] { width: 110px; }
 .admin-reason { display: grid; gap: 4px; margin: 10px 0; max-width: 560px; }
