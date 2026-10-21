@@ -1186,7 +1186,7 @@ html[data-overlay] .cloud-layer { transition: none; }
 @media (prefers-reduced-motion: reduce) { .mission-outcome-panel, .mission-outcome-mist, .mission-final-warning { animation: none; } }
 
 /* No top bar during play: HUD on both sides sits flush with the top edge. */
-.game-screen .hud-objective-panel { top: 14px; max-height: calc(100vh - 120px); }
+.game-screen .hud-objective-panel { top: 14px; max-height: calc(100dvh - 14px - var(--guide-h, 260px) - 24px - 14px); overflow-y: auto; overscroll-behavior: contain; }
 .game-screen .hud-objective-mini-pill { top: 14px; }
 .game-pause-btn { top: 14px; }
 .cl-bag-button.is-touch { top: max(66px, calc(env(safe-area-inset-top) + 66px)); }
