@@ -20,6 +20,7 @@ import { PlaceableEquipment } from "./placeable-equipment";
 import { HdmiCables } from "./hdmi-cables";
 import { DeviceVisual } from "./equipment/device-visual";
 import { PortSocket } from "./equipment/port-socket";
+import { equipmentVisualGeometry } from "@/game/rendering/equipment-visual-profile";
 import { SamsungTv } from "./equipment/samsung-tv";
 import { monitorFeed, venueScreenFeed } from "@/game/training/monitor-feed";
 import { CuboidCollider, CylinderCollider, RigidBody } from "@react-three/rapier";
@@ -132,7 +133,7 @@ function Port({ id }: { id: string }) {
   });
   const physicalSocket = useTrainingStore((state) => {
     const p = getPort(state, id);
-    return scenarioOf(state).layout !== "studio" && scenarioOf(state).devices.some((d) => d.id === p?.device && d.generic);
+    return scenarioOf(state).layout !== "studio" && scenarioOf(state).devices.some((d) => d.id === p?.device && d.generic && !equipmentVisualGeometry(d.modelId)?.parts);
   });
   const port = useTrainingStore((state) => getPort(state, id));
   const live = useTrainingStore((state) => portAvailable(state, id));
@@ -155,7 +156,7 @@ function Port({ id }: { id: string }) {
   return <group position={[mx, my, mz]}>
     <group rotation={flat ? [-Math.PI / 2, 0, 0] : [0, yaw, 0]}>
       {mission && <PortFeedback connection={connection} radius={ring} />}
-      {physicalSocket && <group position={[0, 0, -0.025]}><PortSocket connector={port.connector} /></group>}
+      {physicalSocket && <group position={[0, 0, -0.025]}><PortSocket connector={port.connector} direction={port.direction} /></group>}
       {/* balanced ellipse flush on the device face: thin bright rim, soft glass fill, faint x-ray copy through the body */}
       <mesh scale={[1.3, 1, 1]}><torusGeometry args={[ring, ring * (focused ? 0.17 : 0.11), 10, 48]} /><meshStandardMaterial color={color} emissive={color} emissiveIntensity={fits === false ? 0.2 : focused ? 1.6 : 1.0} transparent opacity={fits === false ? 0.45 : 1} /></mesh>
       <mesh scale={[1.3, 1, 1]}><circleGeometry args={[ring * 0.9, 40]} /><meshBasicMaterial color={color} transparent opacity={fits === false ? 0.04 : focused ? 0.22 : 0.1} depthWrite={false} side={DoubleSide} /></mesh>

@@ -8,7 +8,7 @@ import { GlbModel, Hcx2000Model } from "./hc-x2000";
 import { GenericDevice } from "./generic-device";
 import { AtemMiniProModel } from "./atem-mini-pro";
 import { HardwareModel, RackTower, Tripod } from "./hardware-model";
-import { MODEL_GEOMETRY } from "@/game/training/sim/model-geometry";
+import { equipmentVisualGeometry } from "@/game/rendering/equipment-visual-profile";
 import { Hds7105Model } from "./hds7105";
 import { SamsungTv } from "./samsung-tv";
 import { useTrainingStore } from "@/game/stores/training-store";
@@ -37,17 +37,20 @@ export function DeviceLabel({ device, y }: { device: Pick<DeviceDef, "label" | "
 /** `bare` hides the floating name label (used in the inspector). */
 export function DeviceVisual({ device, bare = false }: { device: DeviceDef; bare?: boolean }) {
   const [w, h, d] = device.size;
-  if (device.generic) return <GenericDevice device={device} bare={bare} />;
-  const geo = device.modelId ? MODEL_GEOMETRY[device.modelId] : undefined;
+  const geo = equipmentVisualGeometry(device.modelId);
   if (geo?.parts && device.modelId) {
-    const o = device.mount?.offset ?? [0, 0, 0], top = device.mount?.kind === "rack" ? h : o[1] + geo.size[1] * geo.displayScale;
+    const floorMic=device.kind==='mic'&&device.position[1]<.3;
+    const o = device.mount?.offset ?? (floorMic?[0,1.39,0]:[0,0,0]), top = device.mount?.kind === "rack" ? h : o[1] + geo.size[1] * geo.displayScale;
     return <group>
+      {floorMic&&<group><mesh position={[0,.01,0]}><cylinderGeometry args={[.14,.16,.02,24]} /><meshStandardMaterial color="#1c2229" /></mesh><mesh position={[0,.70,0]}><cylinderGeometry args={[.008,.012,1.38,16]} /><meshStandardMaterial color="#3c444e" metalness={.7} roughness={.4} /></mesh></group>}
       {device.mount?.kind === "tripod" && <Tripod top={o[1]} />}
       {device.mount?.kind === "rack" && <RackTower size={device.size} />}
       <group position={o}><HardwareModel geo={geo} deviceId={device.id} modelId={device.modelId} /></group>
       {!bare && <DeviceLabel device={device} y={top + 0.16} />}
     </group>;
   }
+  if(device.modelId==='generic-hdmi-camera')return <group><Hcx2000Model />{!bare&&<DeviceLabel device={device} y={1.72} />}</group>;
+  if (device.generic) return <GenericDevice device={device} bare={bare} />;
   if (device.modelId === "bmd-atem-mini-pro") return <group><AtemMiniProModel deviceId={device.id} />{!bare && <DeviceLabel device={device} y={h + 0.16} />}</group>;
   if (device.id === "sw" && device.model.startsWith("DeviceWell HDS7105")) return <group><Hds7105Model />{!bare && <DeviceLabel device={device} y={h + 0.16} />}</group>;
   if (device.id === "monitor" && device.model.startsWith("Samsung")) return <><MissionStudioMonitor />{!bare && <DeviceLabel device={device} y={0.75} />}</>;

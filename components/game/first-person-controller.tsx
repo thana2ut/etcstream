@@ -9,6 +9,7 @@ import type { Point3, TrainingTarget } from "@/game/training/hdmi-training";
 import { scenarioOf } from "@/game/training/hdmi-training";
 import { TRAINING_INPUT_EVENT, type TrainingInputDetail } from "@/game/input/training-input";
 import type { ReviewView } from "@/game/training/environment-review";
+import { inspectIdForTarget } from "@/game/content/inspect-info";
 
 import { dropHeight, LAYOUTS, onSurface, type LayoutId, type VenueLayout } from "@/game/training/venue-layouts";
 
@@ -60,7 +61,7 @@ export function FirstPersonController({ active, fallbackLook, touch, onExitFallb
     const beginInteract = () => {
       const store = useTrainingStore.getState();
       const target = store.focusedTarget;
-      if (!store.held && !store.heldItem && (target?.kind === "item" || target?.kind === "device")) {
+      if (!store.held && !store.heldItem && inspectIdForTarget(target)) {
         inspectTarget.current = target;
         store.setInspectHold(performance.now());
       }
@@ -195,7 +196,7 @@ export function FirstPersonController({ active, fallbackLook, touch, onExitFallb
     }
     if (store.inspectHoldStart !== null && performance.now() - store.inspectHoldStart >= INSPECT_HOLD_MS) {
       const target = store.focusedTarget;
-      const id = target?.kind === "item" ? target.itemId : target?.kind === "device" ? target.deviceId : null;
+      const id = inspectIdForTarget(target);
       store.setInspecting(id);
       if (document.pointerLockElement) document.exitPointerLock();
       return;

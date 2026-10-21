@@ -350,7 +350,9 @@ function PlayExperience() {
     // Rebuild the level from its definition, then apply the saved world state before the room is shown.
     resetTraining(scenarioId);
     const t = snap.training;
-    useTrainingStore.setState({ ...t, notice: null, wrongStreak: snap.wrongStreak, failed: snap.failed, heldTurn: snap.heldTurn,
+    // Saves taken before venue stock was staged lack those units: keep their fresh table positions.
+    const fresh = useTrainingStore.getState();
+    useTrainingStore.setState({ ...t, items: { ...fresh.items, ...t.items }, notice: null, wrongStreak: snap.wrongStreak, failed: snap.failed, heldTurn: snap.heldTurn,
       focusedTarget: null, inspecting: null, consoleOpen: false, inspectHoldStart: null, pickMode: "whole" });
     setResumeOffer(null);
     setBag(snap.lobbyBag);
@@ -435,9 +437,9 @@ function PlayExperience() {
           <InspectHoldRing />
           <EquipmentInspector />
           <TrainingHud title={currentTitle} difficultyLabel={difficultyLabel ?? undefined} objective={difficulty?.objective} touch={touch} />
-          {(routeMode === "mission" || validClassroom) && bag && <button type="button" className="cl-bag-button" onClick={() => { if (document.pointerLockElement) document.exitPointerLock(); setBagOpen(true); }} title="เปิดกระเป๋า (R)">🎒 กระเป๋า <b className="cl-bag-badge">{bagCount}</b></button>}
+          {(routeMode === "mission" || validClassroom) && bag && <button type="button" className={`cl-bag-button${touch ? " is-touch" : ""}`} onClick={() => { if (document.pointerLockElement) document.exitPointerLock(); setBagOpen(true); }} title="เปิดกระเป๋า (R)">🎒 กระเป๋า <b className="cl-bag-badge">{bagCount}</b></button>}
           {bagOpen && bag && <BagPanel bag={bag} onClose={() => setBagOpen(false)} />}
-          {hasStage && <button type="button" className="cl-bag-button" style={{ top: "auto", bottom: 86 }} onClick={() => { if (document.pointerLockElement) document.exitPointerLock(); useTrainingStore.getState().setConsoleOpen(true); }} title="คอนโซลควบคุม (C)">🎛 คอนโซล (C)</button>}
+          {hasStage && <button type="button" className={`cl-bag-button cl-console-button${touch ? " is-touch" : ""}`} onClick={() => { if (document.pointerLockElement) document.exitPointerLock(); useTrainingStore.getState().setConsoleOpen(true); }} title="คอนโซลควบคุม (C)">🎛 คอนโซล (C)</button>}
           <OperatorConsole />
           <ReviewOverlay />
           {touch && !showExitConfirm && <TouchControls />}

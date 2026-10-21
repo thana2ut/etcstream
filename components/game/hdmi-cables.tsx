@@ -42,8 +42,8 @@ function endPoint(_ports: Record<string, PortDef>, position: Point3, portId: str
 }
 
 /** Seated plugs shrink so neighbouring jacks stay visible; loose plugs are a bit larger to grab. */
-function plugFit(portId: string | null): { scale: number; hit: number } {
-  return portId ? { scale: 0.32, hit: 0.1 } : { scale: 0.55, hit: 0.15 };
+function plugFit(portId: string | null, style?: string): { scale: number; hit: number } {
+  return portId ? { scale: style==='lc-duplex'?0.428571:0.32, hit: 0.1 } : { scale: 0.55, hit: 0.15 };
 }
 
 function Cable({ id }: { id: CableId }) {
@@ -57,6 +57,8 @@ function Cable({ id }: { id: CableId }) {
   const def = scenario.cables.find((c) => c.id === id)!;
   const color = def.color;
   const adapter = Boolean(def.socketB);
+  // CTRL-REPLAY is a logical control link: drawn as a faint link, never as a physical cord.
+  const logical = def.plugs?.[0] === "logical" || def.plugs?.[0] === "control";
   const lockedHost = useMemo(() => {
     const port = def.locked && def.fixedA ? scenario.ports[scenario.initialConnections?.find((c) => c.cableId === id)?.to ?? ""] : undefined;
     const item = port?.requiresItem ? scenario.placeables.find((p) => p.id === port.requiresItem) : undefined;
@@ -143,7 +145,7 @@ function Cable({ id }: { id: CableId }) {
 
   return <group>
     {CABLE_ENDS.map((end) => <group key={end} ref={(node) => { ends.current[end] = node; }}>
-      <group scale={def.fixedA && end === "a" ? 1.15 : plugFit(cable[end].portId).scale}>
+      <group scale={def.fixedA && end === "a" ? 1.15 : plugFit(cable[end].portId,def.plugs?.[end==='a'?0:1]).scale}>
       {!(adapter && end === "b") && <PlugMesh style={def.plugs?.[end === "a" ? 0 : 1] ?? "hdmi"} accent={end === "a" ? "#c21d1d" : "#e9e9e9"} />}
       <mesh userData={{ trainingTarget: { kind: "end", cableId: id, end } }}>
         <sphereGeometry args={[plugFit(cable[end].portId).hit, 10, 8]} />
@@ -153,11 +155,11 @@ function Cable({ id }: { id: CableId }) {
     </group>)}
     {!adapter && scenario.stage && <instancedMesh ref={missionSegments} args={[undefined, undefined, segmentCount]} frustumCulled={false} castShadow>
       <cylinderGeometry args={[def.short ? 0.009 : 0.012, def.short ? 0.009 : 0.012, 1, 7]} />
-      <meshStandardMaterial color={color} roughness={0.7} metalness={0.15} />
+      {logical ? <meshBasicMaterial color="#b98cff" transparent opacity={0.35} depthWrite={false} /> : <meshStandardMaterial color={color} roughness={0.7} metalness={0.15} />}
     </instancedMesh>}
     {!adapter && !scenario.stage && Array.from({ length: segmentCount }, (_, index) => <mesh key={index} ref={(node) => { segments.current[index] = node; }} castShadow>
       <cylinderGeometry args={[def.short ? 0.009 : 0.012, def.short ? 0.009 : 0.012, 1, 7]} />
-      <meshStandardMaterial color={color} roughness={0.7} metalness={0.15} />
+      {logical ? <meshBasicMaterial color="#b98cff" transparent opacity={0.35} depthWrite={false} /> : <meshStandardMaterial color={color} roughness={0.7} metalness={0.15} />}
     </mesh>)}
   </group>;
 }

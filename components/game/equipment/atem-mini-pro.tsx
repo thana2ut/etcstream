@@ -8,7 +8,7 @@ import { useTrainingStore } from "@/game/stores/training-store";
 import { MODEL_GEOMETRY } from "@/game/training/sim/model-geometry";
 import { MODELS } from "@/game/training/sim/equipment";
 import type { Press } from "@/game/training/sim/model-geometry";
-import { PressTarget } from "./hardware-model";
+import { HardwareSocket, PressTarget } from "./hardware-model";
 
 /**
  * Blackmagic ATEM Mini Pro, procedural model from the official techspecs images
@@ -54,20 +54,7 @@ function Key({ px, py, text, big = false, lit, below, press, deviceId }: { px: n
 
 /** Rear sockets (real outlines measured on the rear view: HDMI 15 × 6.5 mm, RJ45 13.6 × 12 mm, USB-C 9 × 3.5 mm). */
 function Socket({ at, kind }: { at: [number, number, number]; kind: "hdmi" | "rj45" | "usbc" | "jack" | "dc" }) {
-  const [x, y, z] = at;
-  if (kind === "jack" || kind === "dc") {
-    const r = kind === "dc" ? 0.0054 : 0.0042;
-    return <group position={[x, y, z]} rotation={[-Math.PI / 2, 0, 0]}>
-      <mesh position={[0, 0.0008, 0]}><cylinderGeometry args={[r, r, 0.0016, 20]} /><meshStandardMaterial color="#9aa0a8" metalness={0.85} roughness={0.3} /></mesh>
-      <mesh position={[0, 0.0017, 0]}><cylinderGeometry args={[kind === "dc" ? 0.0028 : 0.0018, kind === "dc" ? 0.0028 : 0.0018, 0.0004, 16]} /><meshStandardMaterial color="#050608" /></mesh>
-    </group>;
-  }
-  const [w, h] = kind === "hdmi" ? [0.015, 0.0065] : kind === "rj45" ? [0.0136, 0.012] : [0.009, 0.0035];
-  return <group position={[x, y, z]}>
-    <mesh position={[0, 0, -0.0006]}><boxGeometry args={[w, h, 0.0012]} /><meshStandardMaterial color={kind === "rj45" ? "#b9bcc0" : "#a3a8ae"} metalness={0.8} roughness={0.35} /></mesh>
-    <mesh position={[0, 0, -0.00125]} rotation={[0, Math.PI, 0]}><planeGeometry args={[w * 0.82, h * 0.7]} /><meshStandardMaterial color="#07080a" /></mesh>
-    {kind === "rj45" && [-1, 1].map((s) => <mesh key={s} position={[s * 0.0045, h / 2 - 0.0014, -0.0013]} rotation={[0, Math.PI, 0]}><planeGeometry args={[0.0022, 0.0016]} /><meshBasicMaterial color={s < 0 ? "#f0a020" : "#38d070"} /></mesh>)}
-  </group>;
+  return <HardwareSocket at={at} n={[0, 0, -1]} kind={kind === "jack" ? "jack35" : kind} />;
 }
 
 function RearLabel({ text, x, y }: { text: string; x: number; y: number }) {

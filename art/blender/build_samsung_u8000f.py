@@ -1,4 +1,4 @@
-"""Build the Samsung 43-inch U8000F television body for the existing studio stand.
+"""Build the selected Thai 85-inch UA85U8000FKXXT body for the existing studio stand.
 
 Only the display is authored here: no feet or floor stand. Blender X is width,
 -Y is the viewer-facing screen, Z is up. The origin is the display centre.
@@ -55,29 +55,41 @@ def legend(name,value,center,size,front=True):
     bpy.context.view_layer.objects.active=o
     bpy.ops.object.convert(target="MESH")
 
-# A 43-inch 16:9 picture is about 0.95 m wide. The display is mounted on the
-# pre-existing production stand, so the retail feet are intentionally absent.
-box("slim U8000F outer chassis",(0,.011,0),(1.00,.046,.588),edge,.008)
-box("seamless front glass",(0,-.013,.003),(.979,.003,.552),glass,.003)
-box("one centimetre lower bezel",(0,-.014,-.277),(.994,.004,.027),brushed,.002)
-legend("SAMSUNG lower bezel wordmark","SAMSUNG",(0,-.017,-.279),.011)
-box("lower electronics enclosure",(0,.046,-.078),(.75,.061,.39),back,.019)
-box("rear panel texture seam",(0,.078,-.078),(.69,.001,.32),edge,.009)
-box("VESA upper mount boss",(0,.078,.102),(.18,.013,.12),back,.006)
-box("stand attachment plate",(0,.085,-.17),(.18,.025,.09),metal,.006)
-legend("rear product mark","SAMSUNG  UA43U8000FKXXT",(0,.079,-.012),.017,front=False)
+# Official local 85-inch drawing: 1889.9 × 1083.5 × 77 mm without retail feet.
+# Uniformly display at 1 m wide to retain the established room footprint; the production stand is generic.
+HEIGHT=1083.5/1889.9
+FRONT=-.017
+REAR=FRONT+77/1889.9
+chassis=box("slim U8000F outer chassis",(0,FRONT+.011,0),(1.00,.022,HEIGHT),edge,.005)
+chassis["game_target_sku"]="UA85U8000FKXXT"
+chassis["real_dimensions_m"]=[1.8899,1.0835,.077]
+chassis["display_scale"]=1/1.8899
+chassis["reference_status"]="OWNER_SELECTED_GAME_VARIANT / PARTIAL_REFERENCE"
+box("seamless front glass",(0,FRONT-.0003,.003),(.979,.002,.5507),glass,.002)
+box("lower bezel",(0,FRONT-.001,-HEIGHT/2+.008),(.994,.003,.016),brushed,.002)
+legend("SAMSUNG lower bezel wordmark","SAMSUNG",(0,FRONT-.003,-HEIGHT/2+.008),.008)
+box("lower electronics enclosure",(0,(REAR+.005)/2,-.065),(.75,REAR-.005,.405),back,.010)
+for i in range(28):
+    box("rear horizontal moulded rib",(0,.0058,-HEIGHT/2+.022+i*(HEIGHT-.045)/27),(.96,.001,.0018),back)
+for x in (-.4/1.8899/2,.4/1.8899/2):
+    for z in (-.3/1.8899/2,.3/1.8899/2):
+        box("VESA 400 x 300 mounting well",(x,REAR+.0008,z),(.008,.001,.008),hole,.002)
+box("stand attachment plate",(0,REAR+.003,-.17),(.18,.006,.09),metal,.004)
+legend("rear product mark","SAMSUNG  UA85U8000FKXXT",(0,REAR+.001,-.012),.012,front=False)
 
 # Three discrete Type-A HDMI inputs down the right side of the rear electronics
 # enclosure. Anchor positions map directly to training-room port markers.
 for number,z in enumerate((-.095,-.16,-.225),1):
     x=.315
-    box(f"HDMI {number} steel socket",(x,.080,z),(.034,.006,.016),metal,.002)
-    box(f"HDMI {number} dark aperture",(x,.084,z),(.028,.003,.010),hole,.001)
-    box(f"HDMI {number} contact tongue",(x,.086,z-.002),(.021,.001,.002),metal)
-    legend(f"HDMI {number} label",f"HDMI {number}",(x,.087,z+.017),.008,front=False)
+    # X/Y service spacing remains the training layout; exact SKU port coordinates are not surveyed.
+    box(f"HDMI {number} steel socket",(x,REAR+.001,z),(.021,.002,.009),metal,.001)
+    box(f"HDMI {number} dark aperture",(x,REAR+.0025,z),(.017,.001,.006),hole,.001)
+    box(f"HDMI {number} contact tongue",(x,REAR+.0032,z-.001),(.012,.001,.001),metal)
+    legend(f"HDMI {number} label",f"HDMI {number}",(x,REAR+.0037,z+.012),.006,front=False)
     anchor=bpy.data.objects.new(f"PORT_HDMI_{number}",None)
     bpy.context.collection.objects.link(anchor)
-    anchor.location=(x,.09,z)
+    anchor.location=(x,REAR+.006,z)
+    anchor["position_evidence"]="training service position; approximate, not measured SKU coordinates"
     anchor["connector"]="HDMI Type-A"
     anchor["direction"]="INPUT"
     anchor["port_id"]=f"HDMI_{number}"

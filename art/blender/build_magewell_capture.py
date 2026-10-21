@@ -69,8 +69,15 @@ cube("satin top face", (0,0,.0151), (.0948,.0408,.0004), silver, .00015)
 
 # Recessed connector faces sit at the actual ends of the case.
 cube("HDMI IN inset", (-.0481,0,.0075), (.00035,.016,.0065), socket, .001)
-cube("HDMI metal surround", (-.04835,0,.0075), (.00025,.014,.0054), steel, .0007)
-cube("HDMI dark receptacle", (-.04854,0,.0075), (.00018,.0115,.0035), socket, .00055)
+def hdmi_section(name, x, width, height, depth, material):
+    # Trapezoidal Type-A outline from the local official HDMI end view, extruded along X.
+    outline=[(-width/2,height/2),(width/2,height/2),(width/2,-height*.12),(width*.36,-height/2),(-width*.36,-height/2),(-width/2,-height*.12)]
+    verts=[(x+side*depth/2,y,.0075+z) for side in (-1,1) for y,z in outline]
+    faces=[tuple(reversed(range(6))),tuple(range(6,12))]+[(i,(i+1)%6,(i+1)%6+6,i+6) for i in range(6)]
+    mesh=bpy.data.meshes.new(name); mesh.from_pydata(verts,[],faces); mesh.update()
+    obj=bpy.data.objects.new(name,mesh); bpy.context.collection.objects.link(obj); obj.data.materials.append(material)
+hdmi_section("HDMI metal surround", -.04835, .014, .0054, .00025, steel)
+hdmi_section("HDMI dark receptacle", -.04854, .0115, .0035, .00018, socket)
 cube("HDMI inner tongue", (-.0487,0,.00725), (.00012,.009,.00075), steel, .0002)
 cube("USB 3.0 inset", (.0481,0,.0075), (.00035,.014,.007), socket, .0008)
 cube("USB Type-A steel rim", (.04835,0,.0075), (.00025,.0125,.0058), steel, .0006)

@@ -40,10 +40,12 @@ export const runStorageKey = (k: RunKey) => `${PREFIX}:${k.playerId}:${k.mode}:$
 
 /** Stable fingerprint of a level's mutable-object identities; changes when mission content changes shape. */
 export function contentSignature(scenario: Scenario): string {
+  // Venue-stock units (other levels' gear staged in the room) are excluded, so adding them kept existing saves valid.
+  const stock = new Set(scenario.devices.filter((d) => d.stockOnly).map((d) => d.id));
   const parts = [
-    Object.keys(scenario.ports).sort().join(","),
+    Object.keys(scenario.ports).filter((k) => !stock.has(scenario.ports[k].device)).sort().join(","),
     scenario.cables.map((c) => `${c.id}:${c.ends.join("-")}`).sort().join(","),
-    scenario.placeables.map((p) => p.id).sort().join(","),
+    scenario.placeables.filter((p) => !p.stockOnly).map((p) => p.id).sort().join(","),
   ].join("|");
   let h = 2166136261;
   for (let i = 0; i < parts.length; i++) { h ^= parts.charCodeAt(i); h = Math.imul(h, 16777619); }

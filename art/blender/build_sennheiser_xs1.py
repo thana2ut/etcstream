@@ -109,7 +109,7 @@ for i in range(7):
     cube("switch grip line", (-.043+i*.0012,0,.04118),(.00035,.007,.00012),body)
 text("XS1 marking","XS1",(-.003,0,.0418),.003)
 text("SENNHEISER marking","SENNHEISER",(-.070,0,.0388),.0024)
-text("brand mark","S",(-.095,0,.0388),.0045)
+# The previous isolated "S" was not the Sennheiser symbol. Keep only the verified name lettering.
 
 # Three visible male XLR pins and a socket cavity at the cable end.
 lathe("XLR output cavity", [(-.107,.008),(-.106,.008),(-.105,.008)], mesh_dark)

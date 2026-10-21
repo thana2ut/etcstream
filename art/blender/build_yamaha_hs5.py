@@ -135,7 +135,8 @@ for centre,label_text,rad in ((PORT_XLR,"INPUT 1 XLR",.030),(PORT_TRS,"INPUT 2 T
     cylinder(label_text+" socket",(x,REAR+.014,z),rad-.004,.003,void)
     legend(label_text+" legend",label_text,(x,REAR+.010,z+.039),.009)
 for x,z in ((.128,.567),(.151,.567),(.139,.546)):
-    cylinder("XLR three contact well",(x,REAR+.017,z),.003,.001,metal,vertices=12)
+    cylinder("XLR three contact rim",(x,REAR+.017,z),.003,.001,metal,vertices=12)
+    cylinder("XLR three female contact bore",(x,REAR+.0177,z),.002,.0005,void,vertices=12)
 cylinder("TRS inner sleeve",(.138,REAR+.018,.478),.008,.002,metal)
 cylinder("TRS black bore",(.138,REAR+.019,.478),.005,.002,void)
 
@@ -144,6 +145,8 @@ box("power rocker",(.130,REAR+.016,.275),(.053,.005,.036),panel,.003)
 legend("power rocker label","POWER",(.13,REAR+.009,.313),.011)
 box("IEC mains socket",(.130,REAR+.010,.175),(.070,.008,.068),rubber,.004)
 box("IEC dark receptacle",(.130,REAR+.015,.175),(.046,.003,.042),void,.003)
+for x,z in ((.117,.169),(.143,.169),(.130,.187)):
+    box("IEC inlet contact blade",(x,REAR+.018,z),(.004,.004,.002),metal)
 legend("mains label","AC IN",(.13,REAR+.009,.220),.011)
 
 for name,point,connector in (("PORT_XLR_INPUT",PORT_XLR,"XLR balanced"),("PORT_TRS_INPUT",PORT_TRS,"6.35 mm TRS balanced")):

@@ -3,8 +3,8 @@
   "blender": "5.2.1 LTS",
   "camera_display_scale": 1.6,
   "head_height_m": 1.22,
-  "triangles": 6235,
-  "glb_bytes": 411940,
+  "triangles": 6859,
+  "glb_bytes": 448104,
   "video_out_web_m": [
     0.048,
     1.3,
@@ -18,5 +18,11 @@
     "exact dimensions (built from photo proportions)",
     "tripod model"
   ],
-  "references": "art/reference/hc-x2000 (70-74)"
+  "references": "art/reference/hc-x2000 (70-74)",
+  "local_reference_pack": "04_PENDING_UNVERIFIED/panasonic-hc-x2000/MODELING_REFERENCE_PACK.md",
+  "evidence_status": "PENDING_EVIDENCE / owner unit unverified",
+  "photo_refinement": [
+    "hollow tapered lens hood with recessed round glass",
+    "visual-only handle audio sockets; game anchor unchanged"
+  ]
 }

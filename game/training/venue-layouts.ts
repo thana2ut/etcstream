@@ -16,7 +16,7 @@ export interface Surface { shape: "round" | "rect"; center: Point3; radius?: num
   /** Extra shelf heights below the top (cable racks): stored items are spread over every level. */
   levels?: number[] }
 export type FurnitureKind =
-  | "operatorDesk" | "teacherDesk" | "studentDesk" | "avCabinet" | "tvStand"
+  | "operatorDesk" | "equipmentPrep" | "teacherDesk" | "studentDesk" | "avCabinet" | "tvStand"
   | "fohDesk" | "audioDesk" | "roadCase" | "cableRack" | "presenterTable" | "riser" | "stage" | "podium" | "audienceTable"
   | "tentDesk" | "fieldCase" | "cableReel" | "powerCase" | "chairBlock"
   | "productionDesk" | "rackCabinet" | "commentaryDesk" | "controlWall" | "cameraPlatform";
@@ -89,7 +89,7 @@ const studio: VenueLayout = {
  *  Two blocks of 2-seat student tables with a centre aisle · camera on a tripod by the left windows (with softbox)
  *  โต๊ะควบคุม AV rear-right · metal storage shelving (portable gear) on the right wall. */
 const xsDesk = furn("xs-operator", "operatorDesk", 3.5, 2.9, 2.4, 0.76, 0.8, "โต๊ะควบคุม AV");
-const xsCabinet = furn("xs-cabinet", "avCabinet", 5.35, 0.1, 0.62, 0.95, 3.0, "ตู้ AV");
+const xsPrep = furn("xs-equipment-prep", "equipmentPrep", 5.15, 0.15, 1.1, 0.78, 3.2, "โต๊ะเตรียมอุปกรณ์ · ภาพ / ควบคุม / เสียง");
 const xsCableShelf = furn("xs-cable-shelf", "cableRack", 1.5, 3.95, 1.1, 0.9, 0.45, "ชั้นวางสาย");
 const xsTeacher = furn("xs-teacher", "teacherDesk", 0, -3.0, 3.6, 0.76, 1.4, "โต๊ะผู้สอน / ควบคุมภาพและเสียง");
 // 2-seat tables: left block (3 seats wide) and right block, centre aisle between them.
@@ -104,7 +104,7 @@ const classroom: VenueLayout = {
   bounds: { minX: -5.75, maxX: 5.75, minZ: -4.4, maxZ: 4.4 },
   spawn: [5.1, 0.84, 1.95], spawnYaw: yawToward([5.1, 0, 1.95], [0, 0, -2.4]),
   work: top(xsTeacher),
-  equipment: { shape: "rect", center: [xsCabinet.center[0], xsCabinet.size[1], xsCabinet.center[2]], size: [0.55, 2.8], front: 1 },
+  equipment: top(xsPrep),
   cables: top(xsCableShelf, -1),
   places: {
     rx: at(-0.95, 0.76, -2.7, 0, "โต๊ะผู้สอน — ข้าง Mixer"),
@@ -117,9 +117,9 @@ const classroom: VenueLayout = {
     monitor: at(4.2, 0.98, -3.15, 0, "TV ห้องเรียน — เว้นทางบริการหลังจอ"),
     cam1: cam(-3.8, -2.2, [0.1, -3.72], "กล้องผู้สอนริมหน้าต่าง"),
   },
-  furniture: [xsDesk, xsCabinet, xsCableShelf, xsTeacher, furn("xs-tv", "tvStand", 4.2, -3.2, 1.2, 0.95, 0.45), ...XS_STUDENT],
+  furniture: [xsDesk, xsPrep, xsCableShelf, xsTeacher, furn("xs-tv", "tvStand", 4.2, -3.2, 1.2, 0.95, 0.45), ...XS_STUDENT],
   obstacles: [],
-  zones: ["หน้าห้อง: จอโปรเจกเตอร์กลาง โต๊ะผู้สอน ไวท์บอร์ด (ซ้าย) TV (ขวา)", "กลางห้อง: โต๊ะนักเรียนคู่ 2 ฝั่ง ทางเดินกลาง", "ริมหน้าต่าง: กล้องบนขาตั้ง + ไฟ Softbox", "หน้าห้อง: โต๊ะผู้สอนและจุดควบคุมหลัก", "ผนังขวา: ชั้นเหล็กเก็บอุปกรณ์พกพา", "หลังห้อง: ชั้นสายและโต๊ะพักอุปกรณ์"],
+  zones: ["หน้าห้อง: จอโปรเจกเตอร์กลาง โต๊ะผู้สอน ไวท์บอร์ด (ซ้าย) TV (ขวา)", "กลางห้อง: โต๊ะนักเรียนคู่ 2 ฝั่ง ทางเดินกลาง", "ริมหน้าต่าง: กล้องบนขาตั้ง + ไฟ Softbox", "หน้าห้อง: โต๊ะผู้สอนและจุดควบคุมหลัก", "ผนังขวา: โต๊ะเตรียมอุปกรณ์ แบ่งหมวดภาพ / ควบคุม / เสียง", "หลังห้อง: ชั้นเก็บสาย"],
 };
 
 /* ════════ M · Auditorium / activity hall ════════
@@ -128,7 +128,7 @@ const classroom: VenueLayout = {
 const mFoh = furn("m-foh", "fohDesk", 0.4, 5.6, 4.2, 0.76, 0.9, "FOH Production");
 const mAudio = furn("m-audio", "audioDesk", -3.1, 5.75, 1.8, 0.76, 0.85, "FOH Audio");
 const mCableRack = furn("m-cable-rack", "cableRack", 4.0, 7.75, 2.6, 1.0, 0.7, "ชั้นเก็บสาย");
-const mSideCase = furn("m-side-case", "roadCase", -5.3, 7.75, 5.8, 0.85, 0.85, "จุดเตรียมไมค์และอุปกรณ์หลังห้อง");
+const mSideCase = furn("m-equipment-prep", "equipmentPrep", -5.3, 7.75, 5.8, 0.78, 1.1, "โต๊ะเทคนิคหลังเวที · ภาพ / เสียง / บันทึก");
 const M_AUDIENCE: Furniture[] = [];
 // 126 seats: three blocks, two generous longitudinal aisles and a rear camera route.
 for (let row = 0; row < 7; row++) for (const x of [-4.2, 0, 4.2]) M_AUDIENCE.push(furn(`m-aud-${x}-${row}`, "chairBlock", x, -2.0 + row * 0.78, 3.48, 1.16, 0.48));
@@ -179,7 +179,7 @@ const auditorium: VenueLayout = {
  *  Stage far at the front · audience in the middle · control tent rear-right · service entrance rear-left (road cases, cable reels). */
 const lTent = furn("l-tent-desk", "tentDesk", 4.15, 8.05, 5.2, 0.76, 1.3, "เต็นท์ควบคุม");
 const lFiberCase = furn("l-fiber-case", "fieldCase", 1.55, 8.15, 0.8, 0.85, 0.6, "ตู้รวมและจัดเส้นทางสัญญาณภาพ");
-const lGearCase = furn("l-gear-cases", "fieldCase", -7.9, 8.7, 5.8, 0.85, 0.85, "กล่องอุปกรณ์ภาคสนาม");
+const lGearCase = furn("l-equipment-prep", "equipmentPrep", -7.9, 8.7, 5.8, 0.78, 1.1, "โต๊ะสนามใต้กันสาด · กล้อง / ส่งสัญญาณ / เสียง");
 const lCableCase = furn("l-cable-case", "fieldCase", -9.2, 6.7, 2.6, 0.85, 0.7, "กล่องสายภาคสนาม");
 const L_CHAIRS: Furniture[] = [];
 for (const z of [-3.6, -2.0, -0.4, 1.2]) for (const x of [-4.4, -2.4, 2.4, 4.4]) L_CHAIRS.push(furn(`l-chairs-${x}-${z}`, "chairBlock", x, z, 1.6, 0.85, 0.6));
@@ -245,7 +245,7 @@ const xlGraphics = furn("xl-graphics", "productionDesk", -7.0, -0.8, 4.4, 0.76, 
 const xlAudio = furn("xl-audio", "audioDesk", -2.6, -4.0, 1.8, 0.76, 1.0, "โต๊ะควบคุมเสียง");
 // Two-level technical cable rack: the full broadcast graph needs ~50 typed leads in organised rows.
 const xlCases = furn("xl-cases", "cableRack", 2.6, 3.4, 4.2, 0.9, 1.0, "ชั้นสายเทคนิค · ไฟเบอร์ / SDI / XLR / เครือข่าย");
-const xlCableRack = furn("xl-cable-rack", "cableRack", -2.3, 0.8, 1.6, 1.0, 0.5, "ชั้นอุปกรณ์เสริม");
+const xlCableRack = furn("xl-equipment-prep", "equipmentPrep", -2.3, 0.8, 4.4, 0.78, 1.1, "โต๊ะเตรียมข้างสนาม · ภาพ / เสียง / ควบคุม / บันทึก");
 const xlCommentary = furn("xl-commentary", "commentaryDesk", 6.2, -1.6, 3.0, 0.76, 0.8, "โต๊ะผู้บรรยาย");
 const RACKS: [string, number, string][] = [["ccu", -6.4, "CCU / Base Station"], ["router", -5.6, "Video Router"], ["encoder", -3.8, "Main Encoder"], ["network", -3.0, "Primary Network"], ["live", -2.2, "Uplink"], ["backup", -0.2, "Backup Encoder"], ["backup-net", 0.6, "Backup Network"]];
 const stadium: VenueLayout = {
@@ -307,7 +307,7 @@ export const STUDIO_MISSION_SETS = {
 };
 const smProd = furn("sm-prod", "productionDesk", -2.7, 4.7, 5.4, 0.76, 1.5, "โต๊ะผลิตรายการ");
 const smCables = furn("sm-cables", "cableRack", -6.7, 6.8, 2.8, 0.9, 0.7, "ชั้นสาย HDMI / XLR / USB");
-const smEquip = furn("sm-equip", "operatorDesk", 6.2, 6.4, 2.8, 0.76, 1.0, "เตรียมและคืนอุปกรณ์");
+const smEquip = furn("sm-equip", "equipmentPrep", 6.2, 6.4, 3.6, 0.78, 1.0, "โต๊ะเตรียมสตูดิโอ · ภาพ / เสียง / ควบคุม");
 const smTvAt: Point3 = [-6.5, 0, 3.9];
 const studioMission: VenueLayout = {
   id: "studioMission",

@@ -8,22 +8,29 @@
 import { HARDWARE_GEOMETRY } from "./hardware-geometry";
 
 export type V3 = [number, number, number];
-export type SocketKind = "bnc" | "hdmi" | "rj45" | "usbc" | "usbb" | "xlr3f" | "xlr3m" | "xlr4" | "xlr5" | "trs" | "jack35" | "rca" | "dc" | "iec" | "db9" | "db25" | "sfp" | "smpte" | "sd";
-export interface ModelPortGeometry { at: V3; normal: V3; kind?: SocketKind }
+export type SocketKind = "bnc" | "hdmi" | "rj45" | "usbc" | "usbb" | "xlr3f" | "xlr3m" | "xlr4" | "xlr5" | "trs" | "jack35" | "rca" | "dc" | "iec" | "db9" | "db25" | "sfp" | "smpte" | "sd" | "mcx" | "usba" | "multipin" | "optical-lc";
+export interface ModelPortGeometry { at: V3; normal: V3; kind?: SocketKind; /** Socket on a supplied, attached lead (pigtail / breakout) rather than the chassis. */ lead?: boolean }
 /** A lamp/key colour driven by a device control value (only while the device is powered). */
 export interface Lit { key: string; eq: string | boolean; color: string }
 /** A physical button that drives an existing simulation control (same path as the Operator Console). */
 export interface Press { key: string; value: string | boolean | "toggle" | "cycle"; label: string }
 /** Visual parts in metres at real size; `n` is the outward face normal the part sits on. */
-export type Part =
+export type Part = (
   | { t: "box"; p: V3; s: V3; c: string; round?: boolean }
   | { t: "prism"; profile: [number, number][]; x: [number, number]; c: string }
+  /** Photo-derived taper: successive [z, centreY, width, height] sections; chamfer fraction is approximate. */
+  | { t: "loft"; sections: [number,number,number,number][]; chamfer: number; c: string }
   | { t: "cyl"; p: V3; r: number; h: number; n: V3; c: string }
   | { t: "key"; p: V3; s: [number, number]; n: V3; c?: string; label?: string; lit?: Lit[]; press?: Press }
   | { t: "screen"; p: V3; s: [number, number]; n: V3; feed?: string }
   | { t: "text"; p: V3; n: V3; text: string; size: number; c?: string }
   | { t: "knob"; p: V3; r: number; n: V3 }
-  | { t: "tally"; p: V3; s: V3 };
+  | { t: "tally"; p: V3; s: V3 }
+  | { t: "lathe"; p: V3; n: V3; profile: [number, number][]; c: string }
+  | { t: "tube"; points: V3[]; r: number; c: string }
+  /** Repeated face details share one instanced draw call (vents, screw wells, rack mounting holes). */
+  | { t: "pattern"; p: V3; n: V3; points: [number, number][]; r: number; c: string }
+) & { finish?: "metal" | "plastic" | "rubber" | "grille" };
 export interface ModelGeometry {
   displayScale: number;
   /** Manufacturer dimensions (bounding box, metres). Gameplay size = size × displayScale. */
@@ -38,6 +45,8 @@ export interface ModelGeometry {
   parts?: Part[];
   /** Values that are estimated from official photos rather than read from a dimensioned drawing. */
   estimates?: string[];
+  /** Optional full visual footprint including attached leads, in real metres; does not change registry dimensions. */
+  stagingBounds?: { min: V3; max: V3 };
 }
 /** Tripod head height (scene metres) for modelled cameras. */
 export const TRIPOD_TOP = 1.12;

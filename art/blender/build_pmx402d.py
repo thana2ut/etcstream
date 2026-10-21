@@ -1,5 +1,5 @@
 """Run with Blender 5.2 --background --python art/blender/build_pmx402d.py.
-YAMAHA PMX-402D-USB powered mixer, authored from art/reference/pmx402d (77-85).
+PMX-402D-USB owner-reference mixer, manufacturer unverified, from art/reference/pmx402d (77-85).
 Top panel from photo 79 (straight-down view), rear panel from photo 80. Built at DISPLAY
 scale (S x estimated real size) so every jack is readable and pluggable in first person.
 Blender: -Y = operator front (faders), +Y = rear (jack strip / rear panel), Z up.
@@ -100,7 +100,7 @@ jack635('AUX_SEND', 'Mixer AUX SEND OUT (6.35 mm)', 580, 580, 'OUTPUT')
 rca('REC_L', 'Mixer REC L (RCA)', 537, 630, 'rca_w'); rca('REC_R', 'Mixer REC R (RCA)', 578, 630, 'rca_r')
 for label, py in (('MAIN OUT', 530), ('AUX', 580), ('REC', 630)):
     text(label, (tx(620), ty(py), Z), .009, (0, 0, math.pi / 2))
-text('YAMAHA', (tx(700), ty(518), Z), .03)
+text('PMX-402D-USB', (tx(700), ty(518), Z), .018)
 text('4 CHANNEL STEREO MIXER', (tx(700), ty(538), Z), .008)
 text('PMX-402D-USB', (tx(700), ty(549), Z), .012)
 box((tx(700), ty(580), Z), (tx(755) - tx(648), .03, .002), 'lcd')
@@ -191,7 +191,7 @@ bpy.ops.object.select_all(action='DESELECT')
 for o in root.objects: o.select_set(True)
 bpy.ops.export_scene.gltf(filepath=str(out / 'pmx402d.glb'), export_format='GLB', use_selection=True, export_animations=False, export_cameras=False, export_lights=False)
 c = ctrl.location
-data = {'model': 'YAMAHA PMX-402D-USB', 'display_scale': S, 'size_web_m': [round(W * S, 3), round(TOP, 3), round(D * S, 3)],
+data = {'model': 'PMX-402D-USB (owner reference; manufacturer unverified)', 'display_scale': S, 'size_web_m': [round(W * S, 3), round(TOP, 3), round(D * S, 3)],
         'estimated_real_size_m': [W, D, H], 'real_size_verified': False, 'main_fader_web': [round(c.x, 4), round(c.z, 4), round(-c.y, 4)], 'ports': PORTS}
 (ROOT / 'game/training/pmx402d-ports.json').write_text(json.dumps(data, indent=2))
 tris = sum(sum(len(p.vertices) - 2 for p in o.data.polygons) for o in root.objects if o.type == 'MESH')

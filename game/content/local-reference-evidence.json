@@ -1,0 +1,1587 @@
+{
+  "aja-3g-ama": {
+    "folder": "01_VERIFIED_EQUIPMENT/aja-3g-ama",
+    "identity": "AJA Video Systems AJA 3G-AMA",
+    "exactness": "VERIFIED_EXACT",
+    "readiness": "PARTIAL",
+    "evidenceClass": "exact",
+    "missing": "front;rear;left;right;top;bottom",
+    "notes": "ขนาดทางการ 147.32 × 78.74 × 25.4 mm (manual p.21) · แผง DB-25 + breakout XLR (manual p.7) · ไม่มีภาพถ่ายด้านหน้า/หลังความละเอียดสูง มีเพียง cameo 180 px และภาพ hero",
+    "files": [
+      "01_OVERVIEW/aja-3g-ama__overview__official__01.png",
+      "08_PORTS_AND_CONNECTORS/aja-3g-ama__ports__official__01.png",
+      "11_3Q_AND_360_VIEWS/aja-3g-ama__3q__official__01.png",
+      "12_DOCUMENTS/aja-3g-ama__docs__official__01.pdf",
+      "12_DOCUMENTS/aja-3g-ama__docs__official__02.pdf",
+      "01_OVERVIEW/aja-3g-ama__overview__official-pdf-render__01.png",
+      "08_PORTS_AND_CONNECTORS/aja-3g-ama__ports__official-pdf-render__01.png",
+      "08_PORTS_AND_CONNECTORS/aja-3g-ama__ports__official-pdf-render__02.png",
+      "10_DIMENSION_DRAWINGS/aja-3g-ama__dimensions__official-pdf-render__01.png"
+    ],
+    "shapeFiles": [],
+    "pack": "01_VERIFIED_EQUIPMENT/aja-3g-ama/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "bmd-atem-2me-constellation-4k": {
+    "folder": "01_VERIFIED_EQUIPMENT/bmd-atem-2me-constellation-4k",
+    "identity": "Blackmagic Design Blackmagic ATEM 2 M/E Constellation 4K",
+    "exactness": "VERIFIED_EXACT",
+    "readiness": "READY_FOR_HIGH_FIDELITY_3D",
+    "evidenceClass": "exact",
+    "missing": "left;right;top;bottom",
+    "notes": "",
+    "files": [
+      "02_FRONT/bmd-atem-2me-constellation-4k__front__official__01.tif",
+      "03_REAR/bmd-atem-2me-constellation-4k__rear__official__01.tif",
+      "11_3Q_AND_360_VIEWS/bmd-atem-2me-constellation-4k__3q__official__01.tif",
+      "08_PORTS_AND_CONNECTORS/bmd-atem-2me-constellation-4k__ports__official__01.png",
+      "10_DIMENSION_DRAWINGS/bmd-atem-2me-constellation-4k__dimensions__official__01.jpg",
+      "02_FRONT/bmd-atem-2me-constellation-4k__front__official__02.jpg"
+    ],
+    "shapeFiles": [],
+    "pack": "01_VERIFIED_EQUIPMENT/bmd-atem-2me-constellation-4k/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "bmd-atem-mini-pro": {
+    "folder": "01_VERIFIED_EQUIPMENT/bmd-atem-mini-pro",
+    "identity": "Blackmagic Design Blackmagic ATEM Mini Pro",
+    "exactness": "VERIFIED_EXACT",
+    "readiness": "READY_FOR_HIGH_FIDELITY_3D",
+    "evidenceClass": "exact",
+    "missing": "front;left;right;bottom",
+    "notes": "",
+    "files": [
+      "01_OVERVIEW/bmd-atem-mini-pro__overview__official__01.tif",
+      "03_REAR/bmd-atem-mini-pro__rear__official__01.tif",
+      "06_TOP/bmd-atem-mini-pro__top__official__01.tif",
+      "08_PORTS_AND_CONNECTORS/bmd-atem-mini-pro__ports__official__01.png",
+      "10_DIMENSION_DRAWINGS/bmd-atem-mini-pro__dimensions__official__01.jpg",
+      "11_3Q_AND_360_VIEWS/bmd-atem-mini-pro__3q__official__01.jpg"
+    ],
+    "shapeFiles": [],
+    "pack": "01_VERIFIED_EQUIPMENT/bmd-atem-mini-pro/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "bmd-atem-television-studio-hd8-iso": {
+    "folder": "01_VERIFIED_EQUIPMENT/bmd-atem-television-studio-hd8-iso",
+    "identity": "Blackmagic Design Blackmagic ATEM Television Studio HD8 ISO",
+    "exactness": "VERIFIED_EXACT",
+    "readiness": "READY_FOR_HIGH_FIDELITY_3D",
+    "evidenceClass": "exact",
+    "missing": "left;right;bottom",
+    "notes": "",
+    "files": [
+      "02_FRONT/bmd-atem-television-studio-hd8-iso__front__official__01.tif",
+      "03_REAR/bmd-atem-television-studio-hd8-iso__rear__official__01.tif",
+      "06_TOP/bmd-atem-television-studio-hd8-iso__top__official__01.tif",
+      "11_3Q_AND_360_VIEWS/bmd-atem-television-studio-hd8-iso__3q__official__01.tif",
+      "08_PORTS_AND_CONNECTORS/bmd-atem-television-studio-hd8-iso__ports__official__01.png",
+      "10_DIMENSION_DRAWINGS/bmd-atem-television-studio-hd8-iso__dimensions__official__01.jpg",
+      "11_3Q_AND_360_VIEWS/bmd-atem-television-studio-hd8-iso__3q__official__02.jpg"
+    ],
+    "shapeFiles": [],
+    "pack": "01_VERIFIED_EQUIPMENT/bmd-atem-television-studio-hd8-iso/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "bmd-camera-fiber-converter": {
+    "folder": "01_VERIFIED_EQUIPMENT/bmd-camera-fiber-converter",
+    "identity": "Blackmagic Design Blackmagic Camera Fiber Converter",
+    "exactness": "VERIFIED_EXACT",
+    "readiness": "READY_FOR_HIGH_FIDELITY_3D",
+    "evidenceClass": "exact",
+    "missing": "rear;top;bottom",
+    "notes": "",
+    "files": [
+      "02_FRONT/bmd-camera-fiber-converter__front__official__01.tif",
+      "04_LEFT/bmd-camera-fiber-converter__left__official__01.tif",
+      "05_RIGHT/bmd-camera-fiber-converter__right__official__01.tif",
+      "11_3Q_AND_360_VIEWS/bmd-camera-fiber-converter__3q__official__01.tif",
+      "08_PORTS_AND_CONNECTORS/bmd-camera-fiber-converter__ports__official__01.png",
+      "10_DIMENSION_DRAWINGS/bmd-camera-fiber-converter__dimensions__official__01.jpg",
+      "11_3Q_AND_360_VIEWS/bmd-camera-fiber-converter__3q__official__02.jpg"
+    ],
+    "shapeFiles": [],
+    "pack": "01_VERIFIED_EQUIPMENT/bmd-camera-fiber-converter/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "bmd-hyperdeck-studio-hd-plus": {
+    "folder": "01_VERIFIED_EQUIPMENT/bmd-hyperdeck-studio-hd-plus",
+    "identity": "Blackmagic Design Blackmagic HyperDeck Studio HD Plus",
+    "exactness": "VERIFIED_EXACT",
+    "readiness": "READY_FOR_HIGH_FIDELITY_3D",
+    "evidenceClass": "exact",
+    "missing": "left;right;top;bottom",
+    "notes": "",
+    "files": [
+      "02_FRONT/bmd-hyperdeck-studio-hd-plus__front__official__01.tif",
+      "03_REAR/bmd-hyperdeck-studio-hd-plus__rear__official__01.tif",
+      "11_3Q_AND_360_VIEWS/bmd-hyperdeck-studio-hd-plus__3q__official__01.tif",
+      "08_PORTS_AND_CONNECTORS/bmd-hyperdeck-studio-hd-plus__ports__official__01.png",
+      "10_DIMENSION_DRAWINGS/bmd-hyperdeck-studio-hd-plus__dimensions__official__01.jpg",
+      "11_3Q_AND_360_VIEWS/bmd-hyperdeck-studio-hd-plus__3q__official__02.jpg",
+      "12_DOCUMENTS/bmd-hyperdeck-studio-hd-plus__docs__official__01.pdf"
+    ],
+    "shapeFiles": [],
+    "pack": "01_VERIFIED_EQUIPMENT/bmd-hyperdeck-studio-hd-plus/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "bmd-micro-converter-hdmi-sdi-3g": {
+    "folder": "01_VERIFIED_EQUIPMENT/bmd-micro-converter-hdmi-sdi-3g",
+    "identity": "Blackmagic Design Blackmagic Micro Converter HDMI to SDI 3G",
+    "exactness": "VERIFIED_EXACT",
+    "readiness": "READY_FOR_HIGH_FIDELITY_3D",
+    "evidenceClass": "exact",
+    "missing": "rear;top;bottom",
+    "notes": "",
+    "files": [
+      "02_FRONT/bmd-micro-converter-hdmi-sdi-3g__front__official__01.tif",
+      "04_LEFT/bmd-micro-converter-hdmi-sdi-3g__left__official__01.tif",
+      "05_RIGHT/bmd-micro-converter-hdmi-sdi-3g__right__official__01.tif",
+      "08_PORTS_AND_CONNECTORS/bmd-micro-converter-hdmi-sdi-3g__ports__official__01.png",
+      "10_DIMENSION_DRAWINGS/bmd-micro-converter-hdmi-sdi-3g__dimensions__official__01.jpg",
+      "11_3Q_AND_360_VIEWS/bmd-micro-converter-hdmi-sdi-3g__3q__official__01.jpg",
+      "12_DOCUMENTS/bmd-micro-converter-hdmi-sdi-3g__docs__official__01.pdf"
+    ],
+    "shapeFiles": [],
+    "pack": "01_VERIFIED_EQUIPMENT/bmd-micro-converter-hdmi-sdi-3g/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "bmd-micro-converter-sdi-hdmi-3g": {
+    "folder": "01_VERIFIED_EQUIPMENT/bmd-micro-converter-sdi-hdmi-3g",
+    "identity": "Blackmagic Design Blackmagic Micro Converter SDI to HDMI 3G",
+    "exactness": "VERIFIED_EXACT",
+    "readiness": "READY_FOR_HIGH_FIDELITY_3D",
+    "evidenceClass": "exact",
+    "missing": "rear;top;bottom",
+    "notes": "",
+    "files": [
+      "02_FRONT/bmd-micro-converter-sdi-hdmi-3g__front__official__01.tif",
+      "04_LEFT/bmd-micro-converter-sdi-hdmi-3g__left__official__01.tif",
+      "05_RIGHT/bmd-micro-converter-sdi-hdmi-3g__right__official__01.tif",
+      "08_PORTS_AND_CONNECTORS/bmd-micro-converter-sdi-hdmi-3g__ports__official__01.png",
+      "10_DIMENSION_DRAWINGS/bmd-micro-converter-sdi-hdmi-3g__dimensions__official__01.jpg",
+      "11_3Q_AND_360_VIEWS/bmd-micro-converter-sdi-hdmi-3g__3q__official__01.jpg",
+      "12_DOCUMENTS/bmd-micro-converter-sdi-hdmi-3g__docs__official__01.pdf"
+    ],
+    "shapeFiles": [],
+    "pack": "01_VERIFIED_EQUIPMENT/bmd-micro-converter-sdi-hdmi-3g/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "bmd-smartview-duo": {
+    "folder": "01_VERIFIED_EQUIPMENT/bmd-smartview-duo",
+    "identity": "Blackmagic Design Blackmagic SmartView Duo",
+    "exactness": "VERIFIED_EXACT",
+    "readiness": "READY_FOR_HIGH_FIDELITY_3D",
+    "evidenceClass": "exact",
+    "missing": "top;bottom",
+    "notes": "",
+    "files": [
+      "02_FRONT/bmd-smartview-duo__front__official__01.tif",
+      "03_REAR/bmd-smartview-duo__rear__official__01.tif",
+      "04_LEFT/bmd-smartview-duo__left__official__01.psd",
+      "04_LEFT/bmd-smartview-duo__left__official__01__derived-from-psd.png",
+      "05_RIGHT/bmd-smartview-duo__right__official__01.tif",
+      "08_PORTS_AND_CONNECTORS/bmd-smartview-duo__ports__official__01.png",
+      "10_DIMENSION_DRAWINGS/bmd-smartview-duo__dimensions__official__01.jpg",
+      "11_3Q_AND_360_VIEWS/bmd-smartview-duo__3q__official__01.jpg",
+      "12_DOCUMENTS/bmd-smartview-duo__docs__official__01.pdf"
+    ],
+    "shapeFiles": [],
+    "pack": "01_VERIFIED_EQUIPMENT/bmd-smartview-duo/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "bmd-streaming-encoder-hd": {
+    "folder": "01_VERIFIED_EQUIPMENT/bmd-streaming-encoder-hd",
+    "identity": "Blackmagic Design Blackmagic Streaming Encoder HD",
+    "exactness": "VERIFIED_EXACT",
+    "readiness": "READY_FOR_HIGH_FIDELITY_3D",
+    "evidenceClass": "exact",
+    "missing": "left;top;bottom",
+    "notes": "",
+    "files": [
+      "02_FRONT/bmd-streaming-encoder-hd__front__official__01.tif",
+      "03_REAR/bmd-streaming-encoder-hd__rear__official__01.tif",
+      "05_RIGHT/bmd-streaming-encoder-hd__right__official__01.tif",
+      "08_PORTS_AND_CONNECTORS/bmd-streaming-encoder-hd__ports__official__01.png",
+      "10_DIMENSION_DRAWINGS/bmd-streaming-encoder-hd__dimensions__official__01.jpg",
+      "11_3Q_AND_360_VIEWS/bmd-streaming-encoder-hd__3q__official__01.jpg",
+      "12_DOCUMENTS/bmd-streaming-encoder-hd__docs__official__01.pdf"
+    ],
+    "shapeFiles": [],
+    "pack": "01_VERIFIED_EQUIPMENT/bmd-streaming-encoder-hd/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "bmd-studio-camera-4k-plus-g2": {
+    "folder": "01_VERIFIED_EQUIPMENT/bmd-studio-camera-4k-plus-g2",
+    "identity": "Blackmagic Design Blackmagic Studio Camera 4K Plus G2",
+    "exactness": "VERIFIED_EXACT",
+    "readiness": "READY_FOR_HIGH_FIDELITY_3D",
+    "evidenceClass": "exact",
+    "missing": "top;bottom",
+    "notes": "",
+    "files": [
+      "01_OVERVIEW/bmd-studio-camera-4k-plus-g2__overview__official__01.tif",
+      "02_FRONT/bmd-studio-camera-4k-plus-g2__front__official__01.tif",
+      "03_REAR/bmd-studio-camera-4k-plus-g2__rear__official__01.tif",
+      "04_LEFT/bmd-studio-camera-4k-plus-g2__left__official__01.tif",
+      "05_RIGHT/bmd-studio-camera-4k-plus-g2__right__official__01.tif",
+      "11_3Q_AND_360_VIEWS/bmd-studio-camera-4k-plus-g2__3q__official__01.tif",
+      "08_PORTS_AND_CONNECTORS/bmd-studio-camera-4k-plus-g2__ports__official__01.png",
+      "10_DIMENSION_DRAWINGS/bmd-studio-camera-4k-plus-g2__dimensions__official__01.jpg",
+      "11_3Q_AND_360_VIEWS/bmd-studio-camera-4k-plus-g2__3q__official__02.jpg",
+      "12_DOCUMENTS/bmd-studio-camera-4k-plus-g2__docs__official__01.pdf"
+    ],
+    "shapeFiles": [],
+    "pack": "01_VERIFIED_EQUIPMENT/bmd-studio-camera-4k-plus-g2/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "bmd-studio-camera-4k-pro-g2": {
+    "folder": "01_VERIFIED_EQUIPMENT/bmd-studio-camera-4k-pro-g2",
+    "identity": "Blackmagic Design Blackmagic Studio Camera 4K Pro G2",
+    "exactness": "VERIFIED_EXACT",
+    "readiness": "READY_FOR_HIGH_FIDELITY_3D",
+    "evidenceClass": "exact",
+    "missing": "top;bottom",
+    "notes": "",
+    "files": [
+      "01_OVERVIEW/bmd-studio-camera-4k-pro-g2__overview__official__01.tif",
+      "02_FRONT/bmd-studio-camera-4k-pro-g2__front__official__01.tif",
+      "03_REAR/bmd-studio-camera-4k-pro-g2__rear__official__01.tif",
+      "04_LEFT/bmd-studio-camera-4k-pro-g2__left__official__01.tif",
+      "05_RIGHT/bmd-studio-camera-4k-pro-g2__right__official__01.tif",
+      "11_3Q_AND_360_VIEWS/bmd-studio-camera-4k-pro-g2__3q__official__01.tif",
+      "08_PORTS_AND_CONNECTORS/bmd-studio-camera-4k-pro-g2__ports__official__01.png",
+      "10_DIMENSION_DRAWINGS/bmd-studio-camera-4k-pro-g2__dimensions__official__01.jpg",
+      "11_3Q_AND_360_VIEWS/bmd-studio-camera-4k-pro-g2__3q__official__02.jpg",
+      "12_DOCUMENTS/bmd-studio-camera-4k-pro-g2__docs__official__01.pdf"
+    ],
+    "shapeFiles": [],
+    "pack": "01_VERIFIED_EQUIPMENT/bmd-studio-camera-4k-pro-g2/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "bmd-studio-fiber-converter": {
+    "folder": "01_VERIFIED_EQUIPMENT/bmd-studio-fiber-converter",
+    "identity": "Blackmagic Design Blackmagic Studio Fiber Converter",
+    "exactness": "VERIFIED_EXACT",
+    "readiness": "READY_FOR_HIGH_FIDELITY_3D",
+    "evidenceClass": "exact",
+    "missing": "left;right;top;bottom",
+    "notes": "",
+    "files": [
+      "01_OVERVIEW/bmd-studio-fiber-converter__overview__official__01.tif",
+      "02_FRONT/bmd-studio-fiber-converter__front__official__01.tif",
+      "03_REAR/bmd-studio-fiber-converter__rear__official__01.tif",
+      "11_3Q_AND_360_VIEWS/bmd-studio-fiber-converter__3q__official__01.tif",
+      "08_PORTS_AND_CONNECTORS/bmd-studio-fiber-converter__ports__official__01.png",
+      "10_DIMENSION_DRAWINGS/bmd-studio-fiber-converter__dimensions__official__01.jpg",
+      "11_3Q_AND_360_VIEWS/bmd-studio-fiber-converter__3q__official__02.jpg"
+    ],
+    "shapeFiles": [],
+    "pack": "01_VERIFIED_EQUIPMENT/bmd-studio-fiber-converter/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "bmd-ursa-broadcast-g2": {
+    "folder": "01_VERIFIED_EQUIPMENT/bmd-ursa-broadcast-g2",
+    "identity": "Blackmagic Design Blackmagic URSA Broadcast G2",
+    "exactness": "VERIFIED_EXACT",
+    "readiness": "READY_FOR_HIGH_FIDELITY_3D",
+    "evidenceClass": "exact",
+    "missing": "front;right;top;bottom",
+    "notes": "",
+    "files": [
+      "03_REAR/bmd-ursa-broadcast-g2__rear__official__01.tif",
+      "04_LEFT/bmd-ursa-broadcast-g2__left__official__01.tif",
+      "11_3Q_AND_360_VIEWS/bmd-ursa-broadcast-g2__3q__official__01.tif",
+      "08_PORTS_AND_CONNECTORS/bmd-ursa-broadcast-g2__ports__official__01.png",
+      "10_DIMENSION_DRAWINGS/bmd-ursa-broadcast-g2__dimensions__official__01.jpg",
+      "11_3Q_AND_360_VIEWS/bmd-ursa-broadcast-g2__3q__official__02.jpg"
+    ],
+    "shapeFiles": [],
+    "pack": "01_VERIFIED_EQUIPMENT/bmd-ursa-broadcast-g2/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "bmd-videohub-20x20-12g": {
+    "folder": "01_VERIFIED_EQUIPMENT/bmd-videohub-20x20-12g",
+    "identity": "Blackmagic Design Blackmagic Videohub 20x20 12G",
+    "exactness": "VERIFIED_EXACT",
+    "readiness": "READY_FOR_HIGH_FIDELITY_3D",
+    "evidenceClass": "exact",
+    "missing": "left;right;top;bottom",
+    "notes": "",
+    "files": [
+      "02_FRONT/bmd-videohub-20x20-12g__front__official__01.tif",
+      "02_FRONT/bmd-videohub-20x20-12g__front__official__03.tif",
+      "02_FRONT/bmd-videohub-20x20-12g__front__official__05.tif",
+      "03_REAR/bmd-videohub-20x20-12g__rear__official__01.tif",
+      "11_3Q_AND_360_VIEWS/bmd-videohub-20x20-12g__3q__official__01.tif",
+      "08_PORTS_AND_CONNECTORS/bmd-videohub-20x20-12g__ports__official__01.png",
+      "10_DIMENSION_DRAWINGS/bmd-videohub-20x20-12g__dimensions__official__01.jpg",
+      "02_FRONT/bmd-videohub-20x20-12g__front__official__04.jpg"
+    ],
+    "shapeFiles": [],
+    "pack": "01_VERIFIED_EQUIPMENT/bmd-videohub-20x20-12g/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "magewell-usb-capture-hdmi-gen2": {
+    "folder": "01_VERIFIED_EQUIPMENT/magewell-usb-capture-hdmi-gen2",
+    "identity": "Magewell USB Capture HDMI Gen 2",
+    "exactness": "VERIFIED_EXACT",
+    "readiness": "PARTIAL",
+    "evidenceClass": "exact",
+    "missing": "left;right;bottom;dimensions",
+    "notes": "Manifest reconciled: 9 entries (7 raster, 2 PDF); 2 top and 1 3q files; documented overall size, detailed views still partial.",
+    "files": [
+      "01_OVERVIEW/magewell-usb-capture-hdmi-gen2__overview__official__01.png",
+      "02_FRONT/magewell-usb-capture-hdmi-gen2__front__official__01.png",
+      "03_REAR/magewell-usb-capture-hdmi-gen2__rear__official__01.png",
+      "08_PORTS_AND_CONNECTORS/magewell-usb-capture-hdmi-gen2__ports__official__01.png",
+      "11_3Q_AND_360_VIEWS/magewell-usb-capture-hdmi-gen2__3q__official__01.png",
+      "12_DOCUMENTS/magewell-usb-capture-hdmi-gen2__docs__official__01.pdf",
+      "11_3Q_AND_360_VIEWS/magewell-usb-capture-hdmi-gen2__3q__official__02.png",
+      "11_3Q_AND_360_VIEWS/magewell-usb-capture-hdmi-gen2__3q__official__03.png",
+      "12_DOCUMENTS/magewell-usb-capture-hdmi-gen2__docs__official__02.pdf"
+    ],
+    "shapeFiles": [],
+    "pack": "01_VERIFIED_EQUIPMENT/magewell-usb-capture-hdmi-gen2/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "magewell-usb-capture-sdi-gen2": {
+    "folder": "01_VERIFIED_EQUIPMENT/magewell-usb-capture-sdi-gen2",
+    "identity": "Magewell USB Capture SDI Gen 2 (32070)",
+    "exactness": "VERIFIED_EXACT",
+    "readiness": "PARTIAL",
+    "evidenceClass": "exact",
+    "missing": "left;right;bottom;dimensions",
+    "notes": "Manifest reconciled: 10 entries (8 raster, 2 PDF); 2 top and 2 3q files; documented overall size, detailed views still partial.",
+    "files": [
+      "01_OVERVIEW/magewell-usb-capture-sdi-gen2__overview__official__01.png",
+      "02_FRONT/magewell-usb-capture-sdi-gen2__front__official__01.png",
+      "03_REAR/magewell-usb-capture-sdi-gen2__rear__official__01.png",
+      "08_PORTS_AND_CONNECTORS/magewell-usb-capture-sdi-gen2__ports__official__01.png",
+      "11_3Q_AND_360_VIEWS/magewell-usb-capture-sdi-gen2__3q__official__01.png",
+      "12_DOCUMENTS/magewell-usb-capture-sdi-gen2__docs__official__01.pdf",
+      "11_3Q_AND_360_VIEWS/magewell-usb-capture-sdi-gen2__3q__official__02.png",
+      "11_3Q_AND_360_VIEWS/magewell-usb-capture-sdi-gen2__3q__official__03.png",
+      "11_3Q_AND_360_VIEWS/magewell-usb-capture-sdi-gen2__3q__official__04.png",
+      "12_DOCUMENTS/magewell-usb-capture-sdi-gen2__docs__official__02.pdf"
+    ],
+    "shapeFiles": [],
+    "pack": "01_VERIFIED_EQUIPMENT/magewell-usb-capture-sdi-gen2/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "shure-sm58": {
+    "folder": "01_VERIFIED_EQUIPMENT/shure-sm58",
+    "identity": "Shure SM58",
+    "exactness": "VERIFIED_EXACT",
+    "readiness": "PARTIAL",
+    "evidenceClass": "exact",
+    "missing": "front;rear;left;right;top;bottom;ports;owner variant",
+    "notes": "Shure official spec sheet confirms 162 × 51 mm and is registered; partial remains for missing views/port and owner subvariant LC vs S confirmation.",
+    "files": [
+      "01_OVERVIEW/shure-sm58__overview__official__01.jpg",
+      "11_3Q_AND_360_VIEWS/shure-sm58__3q__official__01.jpg",
+      "01_OVERVIEW/shure-sm58__overview__official__02.webp",
+      "01_OVERVIEW/shure-sm58__overview__official__03.webp",
+      "01_OVERVIEW/shure-sm58__overview__official__04.webp",
+      "01_OVERVIEW/shure-sm58__overview__official__05.webp",
+      "01_OVERVIEW/shure-sm58__overview__official__06.webp",
+      "01_OVERVIEW/shure-sm58__overview__official__07.webp",
+      "12_DOCUMENTS/shure-sm58__docs__official-doc-mirror__01.pdf",
+      "12_DOCUMENTS/shure-sm58__docs__official-spec-sheet__01.pdf",
+      "10_DIMENSION_DRAWINGS/shure-sm58__dimensions__official-pdf-render__01.png"
+    ],
+    "shapeFiles": [],
+    "pack": "01_VERIFIED_EQUIPMENT/shure-sm58/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "yamaha-hs5": {
+    "folder": "01_VERIFIED_EQUIPMENT/yamaha-hs5",
+    "identity": "Yamaha Yamaha HS5 (ลำโพงมอนิเตอร์แอ็กทีฟ)",
+    "exactness": "VERIFIED_EXACT",
+    "readiness": "READY_FOR_HIGH_FIDELITY_3D",
+    "evidenceClass": "exact",
+    "missing": "top;bottom;ports;dimensions",
+    "notes": "ขนาดทางการ W170 × H285 × D222 mm (ตารางสเปก Yamaha คอลัมน์ HS5) · ภาพเป็นรุ่นสีดำ ไม่ใช่ HS5W/HS5i",
+    "files": [
+      "02_FRONT/yamaha-hs5__front__official__01.jpg",
+      "03_REAR/yamaha-hs5__rear__official__01.jpg",
+      "04_LEFT/yamaha-hs5__left__official__01.jpg",
+      "05_RIGHT/yamaha-hs5__right__official__01.jpg"
+    ],
+    "shapeFiles": [],
+    "pack": "01_VERIFIED_EQUIPMENT/yamaha-hs5/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "comica-wm100-plus": {
+    "folder": "04_PENDING_UNVERIFIED/comica-wm100-plus",
+    "identity": "COMICA WM100 PLUS selected Free Practice GAME target; owner physical unit unverified",
+    "exactness": "OWNER_SELECTED_GAME_TARGET",
+    "readiness": "PARTIAL_REFERENCE",
+    "evidenceClass": "owner-selected",
+    "missing": "dedicated orthographic views and dimensions for each RX/TX component",
+    "notes": "Five official raster references plus official manual; WM300 conflict image is excluded and archived separately.",
+    "files": [
+      "01_OVERVIEW/comica-wm100-plus__overview__official-comica__01.jpg",
+      "01_OVERVIEW/comica-wm100-plus__overview__official-comica__02.jpg",
+      "01_OVERVIEW/comica-wm100-plus__overview__official-comica__03.jpg",
+      "01_OVERVIEW/comica-wm100-plus__overview__official-comica__04.jpg",
+      "01_OVERVIEW/comica-wm100-plus__ports__official-comica__01.jpg",
+      "12_DOCUMENTS/comica-wm100-plus__docs__official-manual-en__01.pdf"
+    ],
+    "shapeFiles": [],
+    "pack": "04_PENDING_UNVERIFIED/comica-wm100-plus/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "devicewell-hds7105": {
+    "folder": "04_PENDING_UNVERIFIED/devicewell-hds7105",
+    "identity": "devicewell-hds7105",
+    "exactness": "PENDING_EXACT",
+    "readiness": "BLOCKED",
+    "evidenceClass": "owner-specific",
+    "missing": "front;rear;left;right;top;bottom;ports;dimensions",
+    "notes": "ไม่พบสเปก/หน้าเว็บทางการ (ทะเบียนโปรเจกต์ระบุเช่นกัน) · โมเดล 3D เดิมของห้องฝึกอ้าง art/blender/hds7105-manifest.json",
+    "files": [
+      "01_OVERVIEW/1__owner__devicewell-hds7105.webp",
+      "01_OVERVIEW/2__owner__devicewell-hds7105.webp",
+      "01_OVERVIEW/3__owner__devicewell-hds7105.webp",
+      "01_OVERVIEW/4__owner__devicewell-hds7105.png",
+      "01_OVERVIEW/5__owner__devicewell-hds7105.jpg",
+      "01_OVERVIEW/6__owner__devicewell-hds7105.jpg",
+      "01_OVERVIEW/7__owner__devicewell-hds7105.jpg",
+      "01_OVERVIEW/8__owner__devicewell-hds7105.jpg",
+      "01_OVERVIEW/case__owner__devicewell-hds7105.jpg",
+      "01_OVERVIEW/20__owner__studio-survey-orico-box.jpg"
+    ],
+    "shapeFiles": [],
+    "pack": "04_PENDING_UNVERIFIED/devicewell-hds7105/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "hp-15-6-reference": {
+    "folder": "04_PENDING_UNVERIFIED/hp-15-6-reference",
+    "identity": "hp-15-6-reference",
+    "exactness": "PENDING_EXACT",
+    "readiness": "BLOCKED",
+    "evidenceClass": "owner-specific",
+    "missing": "front;rear;left;right;top;bottom;ports;dimensions",
+    "notes": "โค้ดระบุแค่ \"HP 15.6-inch (ตามภาพอ้างอิง)\" ไม่มีรหัสรุ่น → ไม่สามารถหาภาพรุ่นที่ถูกต้องได้ (เป็น GENERIC จริง)",
+    "files": [
+      "01_OVERVIEW/1-รูปภาพ-1__owner__hp-15-6-reference.jpg",
+      "01_OVERVIEW/2-รูปภาพ-2__owner__hp-15-6-reference.jpg",
+      "01_OVERVIEW/3-รูปภาพ-3__owner__hp-15-6-reference.jpg",
+      "01_OVERVIEW/4-รูปภาพ-4__owner__hp-15-6-reference.jpg",
+      "01_OVERVIEW/5-รูปภาพ-5__owner__hp-15-6-reference.jpg",
+      "01_OVERVIEW/6-รูปภาพ-6__owner__hp-15-6-reference.jpg",
+      "01_OVERVIEW/7-รูปภาพ-7__owner__hp-15-6-reference.jpg"
+    ],
+    "shapeFiles": [],
+    "pack": "04_PENDING_UNVERIFIED/hp-15-6-reference/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "panasonic-hc-x2000": {
+    "folder": "04_PENDING_UNVERIFIED/panasonic-hc-x2000",
+    "identity": "Panasonic HC-X2000 candidate; owner unit label unverified",
+    "exactness": "PENDING_EXACT",
+    "readiness": "PENDING_EVIDENCE",
+    "evidenceClass": "owner-specific",
+    "missing": "front;top;bottom",
+    "notes": "Owner photographs are present but no model label is readable; official manual drawings and specifications are archived. Owner unit exact identity pending.",
+    "files": [
+      "12_DOCUMENTS/panasonic-hc-x2000__docs__official__01.pdf",
+      "04_LEFT/panasonic-hc-x2000__left__official-pdf-render__01.png",
+      "03_REAR/panasonic-hc-x2000__rear__official-pdf-render__01.png",
+      "05_RIGHT/panasonic-hc-x2000__right__official-pdf-render__01.png",
+      "08_PORTS_AND_CONNECTORS/panasonic-hc-x2000__ports__official-pdf-render__01.png",
+      "10_DIMENSION_DRAWINGS/panasonic-hc-x2000__dimensions__official-pdf-render__01.png",
+      "10_DIMENSION_DRAWINGS/panasonic-hc-x2000__dimensions__official-pdf-render__02.png",
+      "11_3Q_AND_360_VIEWS/panasonic-hc-x2000__3q__award-press-manufacturer-submitted__01.jpg",
+      "01_OVERVIEW/70__owner__panasonic-hc-x2000.webp",
+      "01_OVERVIEW/71__owner__panasonic-hc-x2000.webp",
+      "01_OVERVIEW/72__owner__panasonic-hc-x2000.webp",
+      "01_OVERVIEW/73__owner__panasonic-hc-x2000.webp",
+      "01_OVERVIEW/74__owner__panasonic-hc-x2000.webp"
+    ],
+    "shapeFiles": [],
+    "pack": "04_PENDING_UNVERIFIED/panasonic-hc-x2000/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "pmx-402d-usb": {
+    "folder": "04_PENDING_UNVERIFIED/pmx-402d-usb",
+    "identity": "PMX-402D-USB label as observed; manufacturer unverified",
+    "exactness": "OWNER_REFERENCE_UNVERIFIED_MANUFACTURER",
+    "readiness": "PARTIAL_REFERENCE",
+    "evidenceClass": "owner-specific",
+    "missing": "manufacturer authenticity; scale; clearer end-on connector views; all sides/top/bottom",
+    "notes": "Nine owner photos; visible label/ports recorded as observations only. No verifiable Yamaha proof.",
+    "files": [
+      "01_OVERVIEW/77__owner__pmx-402d-usb.webp",
+      "01_OVERVIEW/78__owner__pmx-402d-usb.webp",
+      "01_OVERVIEW/79__owner__pmx-402d-usb.webp",
+      "01_OVERVIEW/80__owner__pmx-402d-usb.webp",
+      "01_OVERVIEW/81__owner__pmx-402d-usb.webp",
+      "01_OVERVIEW/82__owner__pmx-402d-usb.webp",
+      "01_OVERVIEW/83__owner__pmx-402d-usb.webp",
+      "01_OVERVIEW/84__owner__pmx-402d-usb.webp",
+      "01_OVERVIEW/85__owner__pmx-402d-usb.webp"
+    ],
+    "shapeFiles": [],
+    "pack": "04_PENDING_UNVERIFIED/pmx-402d-usb/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "samsung-u8000f": {
+    "folder": "04_PENDING_UNVERIFIED/samsung-u8000f",
+    "identity": "Samsung Crystal UHD U8000F 85-inch Thai SKU UA85U8000FKXXT selected GAME target; owner physical unit unverified",
+    "exactness": "OWNER_SELECTED_GAME_VARIANT",
+    "readiness": "PARTIAL_REFERENCE",
+    "evidenceClass": "owner-selected",
+    "missing": "owner unit label; orthographic views; measured port coordinates; stand attachment detail",
+    "notes": "36 official candidates span six sizes; only 85-inch folder is selected for GAME and the other five sizes are UNSELECTED_SIZE_REFERENCE.",
+    "files": [
+      "01_CANDIDATES/PENDING_VARIANT/43in-ua43u8000fkxxt/samsung-u8000f-43in__front__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/43in-ua43u8000fkxxt/samsung-u8000f-43in__rear-perspective__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/43in-ua43u8000fkxxt/samsung-u8000f-43in__rear__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/43in-ua43u8000fkxxt/samsung-u8000f-43in__dimensions__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/43in-ua43u8000fkxxt/samsung-u8000f-43in__ports__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/43in-ua43u8000fkxxt/samsung-u8000f-43in__side__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/50in-ua50u8000fkxxt/samsung-u8000f-50in__front__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/50in-ua50u8000fkxxt/samsung-u8000f-50in__rear-perspective__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/50in-ua50u8000fkxxt/samsung-u8000f-50in__rear__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/50in-ua50u8000fkxxt/samsung-u8000f-50in__dimensions__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/50in-ua50u8000fkxxt/samsung-u8000f-50in__ports__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/50in-ua50u8000fkxxt/samsung-u8000f-50in__side__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/55in-ua55u8000fkxxt/samsung-u8000f-55in__front__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/55in-ua55u8000fkxxt/samsung-u8000f-55in__rear-perspective__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/55in-ua55u8000fkxxt/samsung-u8000f-55in__rear__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/55in-ua55u8000fkxxt/samsung-u8000f-55in__dimensions__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/55in-ua55u8000fkxxt/samsung-u8000f-55in__ports__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/55in-ua55u8000fkxxt/samsung-u8000f-55in__side__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/65in-ua65u8000fkxxt/samsung-u8000f-65in__front__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/65in-ua65u8000fkxxt/samsung-u8000f-65in__rear-perspective__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/65in-ua65u8000fkxxt/samsung-u8000f-65in__rear__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/65in-ua65u8000fkxxt/samsung-u8000f-65in__dimensions__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/65in-ua65u8000fkxxt/samsung-u8000f-65in__ports__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/65in-ua65u8000fkxxt/samsung-u8000f-65in__side__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/75in-ua75u8000fkxxt/samsung-u8000f-75in__front__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/75in-ua75u8000fkxxt/samsung-u8000f-75in__rear-perspective__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/75in-ua75u8000fkxxt/samsung-u8000f-75in__rear__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/75in-ua75u8000fkxxt/samsung-u8000f-75in__dimensions__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/75in-ua75u8000fkxxt/samsung-u8000f-75in__ports__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/75in-ua75u8000fkxxt/samsung-u8000f-75in__side__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/85in-ua85u8000fkxxt/samsung-u8000f-85in__front__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/85in-ua85u8000fkxxt/samsung-u8000f-85in__rear-perspective__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/85in-ua85u8000fkxxt/samsung-u8000f-85in__rear__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/85in-ua85u8000fkxxt/samsung-u8000f-85in__dimensions__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/85in-ua85u8000fkxxt/samsung-u8000f-85in__ports__official-samsung-th.png",
+      "01_CANDIDATES/PENDING_VARIANT/85in-ua85u8000fkxxt/samsung-u8000f-85in__side__official-samsung-th.png"
+    ],
+    "shapeFiles": [],
+    "pack": "04_PENDING_UNVERIFIED/samsung-u8000f/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "sennheiser-xs1": {
+    "folder": "04_PENDING_UNVERIFIED/sennheiser-xs1",
+    "identity": "Sennheiser XS 1 (owner label agrees with official product/manual)",
+    "exactness": "VERIFIED_EXACT",
+    "readiness": "PARTIAL_REFERENCE",
+    "evidenceClass": "exact",
+    "missing": "rear; right; top; bottom; connector close-up",
+    "notes": "6 raster references plus official PDF; owner photo visibly shows XS 1 label/logo; dimension drawing retained.",
+    "files": [
+      "01_OVERVIEW/sennheiser-xs1__overview__official__01.png",
+      "02_FRONT/sennheiser-xs1__front__official__01.png",
+      "11_3Q_AND_360_VIEWS/sennheiser-xs1__3q__official__01.png",
+      "04_LEFT/sennheiser-xs1__left__official__01.png",
+      "12_DOCUMENTS/sennheiser-xs1__docs__official__01.pdf",
+      "10_DIMENSION_DRAWINGS/sennheiser-xs1__dimensions__official-pdf-render__01.png",
+      "01_OVERVIEW/22__owner__sennheiser-xs1.jpg"
+    ],
+    "shapeFiles": [],
+    "pack": "04_PENDING_UNVERIFIED/sennheiser-xs1/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "generic-4ch-mixer": {
+    "folder": "05_GENERIC_UNRESOLVED/generic-4ch-mixer",
+    "identity": "Generic Training Device มิกเซอร์ 4 ช่อง (GENERIC TRAINING MODEL)",
+    "exactness": "GENERIC_PROFILE",
+    "readiness": "GENERIC_NO_EXACT_MODEL",
+    "evidenceClass": "generic",
+    "missing": "front;rear;left;right;top;bottom;ports;dimensions",
+    "notes": "โปรไฟล์ฝึก GENERIC ไม่มีรุ่นจริงให้ผูก — ใช้ภาพรูปทรงหัวต่อใน 02_CABLES_AND_CONNECTORS/_CONNECTOR_SHAPES ตามชนิดพอร์ตเท่านั้น ห้ามยกระดับเป็นรุ่นจริงเพื่อเติมดัชนี",
+    "files": [],
+    "shapeFiles": [],
+    "pack": "05_GENERIC_UNRESOLVED/generic-4ch-mixer/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "generic-active-pa": {
+    "folder": "05_GENERIC_UNRESOLVED/generic-active-pa",
+    "identity": "Generic Training Device ลำโพงแอ็กทีฟจำลองเพื่อฝึก",
+    "exactness": "GENERIC_PROFILE",
+    "readiness": "GENERIC_NO_EXACT_MODEL",
+    "evidenceClass": "generic",
+    "missing": "front;rear;left;right;top;bottom;ports;dimensions",
+    "notes": "โปรไฟล์ฝึก GENERIC ไม่มีรุ่นจริงให้ผูก — ใช้ภาพรูปทรงหัวต่อใน 02_CABLES_AND_CONNECTORS/_CONNECTOR_SHAPES ตามชนิดพอร์ตเท่านั้น ห้ามยกระดับเป็นรุ่นจริงเพื่อเติมดัชนี",
+    "files": [],
+    "shapeFiles": [],
+    "pack": "05_GENERIC_UNRESOLVED/generic-active-pa/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "generic-ambience-mic": {
+    "folder": "05_GENERIC_UNRESOLVED/generic-ambience-mic",
+    "identity": "Generic Training Device ไมค์บรรยากาศไดนามิกสมดุลจำลอง",
+    "exactness": "GENERIC_PROFILE",
+    "readiness": "GENERIC_NO_EXACT_MODEL",
+    "evidenceClass": "generic",
+    "missing": "front;rear;left;right;top;bottom;ports;dimensions",
+    "notes": "โปรไฟล์ฝึก GENERIC ไม่มีรุ่นจริงให้ผูก — ใช้ภาพรูปทรงหัวต่อใน 02_CABLES_AND_CONNECTORS/_CONNECTOR_SHAPES ตามชนิดพอร์ตเท่านั้น ห้ามยกระดับเป็นรุ่นจริงเพื่อเติมดัชนี",
+    "files": [],
+    "shapeFiles": [],
+    "pack": "05_GENERIC_UNRESOLVED/generic-ambience-mic/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "generic-dynamic-mic": {
+    "folder": "05_GENERIC_UNRESOLVED/generic-dynamic-mic",
+    "identity": "Generic Training Device ไมค์สายไดนามิก XLR (GENERIC TRAINING MODEL)",
+    "exactness": "GENERIC_PROFILE",
+    "readiness": "GENERIC_NO_EXACT_MODEL",
+    "evidenceClass": "generic",
+    "missing": "front;rear;left;right;top;bottom;ports;dimensions",
+    "notes": "โปรไฟล์ฝึก GENERIC ไม่มีรุ่นจริงให้ผูก — ใช้ภาพรูปทรงหัวต่อใน 02_CABLES_AND_CONNECTORS/_CONNECTOR_SHAPES ตามชนิดพอร์ตเท่านั้น ห้ามยกระดับเป็นรุ่นจริงเพื่อเติมดัชนี",
+    "files": [],
+    "shapeFiles": [],
+    "pack": "05_GENERIC_UNRESOLVED/generic-dynamic-mic/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "generic-gateway": {
+    "folder": "05_GENERIC_UNRESOLVED/generic-gateway",
+    "identity": "Generic Training Device เราเตอร์และเกตเวย์ GbE จำลอง",
+    "exactness": "GENERIC_PROFILE",
+    "readiness": "GENERIC_NO_EXACT_MODEL",
+    "evidenceClass": "generic",
+    "missing": "front;rear;left;right;top;bottom;ports;dimensions",
+    "notes": "โปรไฟล์ฝึก GENERIC ไม่มีรุ่นจริงให้ผูก — ใช้ภาพรูปทรงหัวต่อใน 02_CABLES_AND_CONNECTORS/_CONNECTOR_SHAPES ตามชนิดพอร์ตเท่านั้น ห้ามยกระดับเป็นรุ่นจริงเพื่อเติมดัชนี",
+    "files": [],
+    "shapeFiles": [],
+    "pack": "05_GENERIC_UNRESOLVED/generic-gateway/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "generic-graphics-pc": {
+    "folder": "05_GENERIC_UNRESOLVED/generic-graphics-pc",
+    "identity": "Generic Training Device คอมพิวเตอร์กราฟิกที่มีสิทธิ์ใช้งานจำลอง",
+    "exactness": "GENERIC_PROFILE",
+    "readiness": "GENERIC_NO_EXACT_MODEL",
+    "evidenceClass": "generic",
+    "missing": "front;rear;left;right;top;bottom;ports;dimensions",
+    "notes": "โปรไฟล์ฝึก GENERIC ไม่มีรุ่นจริงให้ผูก — ใช้ภาพรูปทรงหัวต่อใน 02_CABLES_AND_CONNECTORS/_CONNECTOR_SHAPES ตามชนิดพอร์ตเท่านั้น ห้ามยกระดับเป็นรุ่นจริงเพื่อเติมดัชนี",
+    "files": [],
+    "shapeFiles": [],
+    "pack": "05_GENERIC_UNRESOLVED/generic-graphics-pc/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "generic-hdmi-camera": {
+    "folder": "05_GENERIC_UNRESOLVED/generic-hdmi-camera",
+    "identity": "Generic Training Device กล้องฝึก HDMI 1080p50",
+    "exactness": "GENERIC_PROFILE",
+    "readiness": "GENERIC_NO_EXACT_MODEL",
+    "evidenceClass": "generic",
+    "missing": "front;rear;left;right;top;bottom;ports;dimensions",
+    "notes": "โปรไฟล์ฝึก GENERIC ไม่มีรุ่นจริงให้ผูก — ใช้ภาพรูปทรงหัวต่อใน 02_CABLES_AND_CONNECTORS/_CONNECTOR_SHAPES ตามชนิดพอร์ตเท่านั้น ห้ามยกระดับเป็นรุ่นจริงเพื่อเติมดัชนี",
+    "files": [],
+    "shapeFiles": [],
+    "pack": "05_GENERIC_UNRESOLVED/generic-hdmi-camera/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "generic-hdmi-monitor": {
+    "folder": "05_GENERIC_UNRESOLVED/generic-hdmi-monitor",
+    "identity": "Generic Training Device Generic HDMI Training Monitor",
+    "exactness": "GENERIC_PROFILE",
+    "readiness": "GENERIC_NO_EXACT_MODEL",
+    "evidenceClass": "generic",
+    "missing": "front;rear;left;right;top;bottom;ports;dimensions",
+    "notes": "โปรไฟล์ฝึก GENERIC ไม่มีรุ่นจริงให้ผูก — ใช้ภาพรูปทรงหัวต่อใน 02_CABLES_AND_CONNECTORS/_CONNECTOR_SHAPES ตามชนิดพอร์ตเท่านั้น ห้ามยกระดับเป็นรุ่นจริงเพื่อเติมดัชนี",
+    "files": [],
+    "shapeFiles": [],
+    "pack": "05_GENERIC_UNRESOLVED/generic-hdmi-monitor/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "generic-laptop": {
+    "folder": "05_GENERIC_UNRESOLVED/generic-laptop",
+    "identity": "Generic Training Device โน้ตบุ๊กนำเสนอจำลอง",
+    "exactness": "GENERIC_PROFILE",
+    "readiness": "GENERIC_NO_EXACT_MODEL",
+    "evidenceClass": "generic",
+    "missing": "front;rear;left;right;top;bottom;ports;dimensions",
+    "notes": "โปรไฟล์ฝึก GENERIC ไม่มีรุ่นจริงให้ผูก — ใช้ภาพรูปทรงหัวต่อใน 02_CABLES_AND_CONNECTORS/_CONNECTOR_SHAPES ตามชนิดพอร์ตเท่านั้น ห้ามยกระดับเป็นรุ่นจริงเพื่อเติมดัชนี",
+    "files": [],
+    "shapeFiles": [],
+    "pack": "05_GENERIC_UNRESOLVED/generic-laptop/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "generic-lav-mic": {
+    "folder": "05_GENERIC_UNRESOLVED/generic-lav-mic",
+    "identity": "Generic Training Device ไมค์หนีบปก Lavalier (GENERIC TRAINING MODEL)",
+    "exactness": "GENERIC_PROFILE",
+    "readiness": "GENERIC_NO_EXACT_MODEL",
+    "evidenceClass": "generic",
+    "missing": "front;rear;left;right;top;bottom;ports;dimensions",
+    "notes": "โปรไฟล์ฝึก GENERIC ไม่มีรุ่นจริงให้ผูก — ใช้ภาพรูปทรงหัวต่อใน 02_CABLES_AND_CONNECTORS/_CONNECTOR_SHAPES ตามชนิดพอร์ตเท่านั้น ห้ามยกระดับเป็นรุ่นจริงเพื่อเติมดัชนี",
+    "files": [],
+    "shapeFiles": [],
+    "pack": "05_GENERIC_UNRESOLVED/generic-lav-mic/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "generic-obs-host": {
+    "folder": "05_GENERIC_UNRESOLVED/generic-obs-host",
+    "identity": "Generic Training Device คอมพิวเตอร์ OBS จำลอง",
+    "exactness": "GENERIC_PROFILE",
+    "readiness": "GENERIC_NO_EXACT_MODEL",
+    "evidenceClass": "generic",
+    "missing": "front;rear;left;right;top;bottom;ports;dimensions",
+    "notes": "โปรไฟล์ฝึก GENERIC ไม่มีรุ่นจริงให้ผูก — ใช้ภาพรูปทรงหัวต่อใน 02_CABLES_AND_CONNECTORS/_CONNECTOR_SHAPES ตามชนิดพอร์ตเท่านั้น ห้ามยกระดับเป็นรุ่นจริงเพื่อเติมดัชนี",
+    "files": [],
+    "shapeFiles": [],
+    "pack": "05_GENERIC_UNRESOLVED/generic-obs-host/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "generic-projector": {
+    "folder": "05_GENERIC_UNRESOLVED/generic-projector",
+    "identity": "Generic Training Device Generic Training Projector",
+    "exactness": "GENERIC_PROFILE",
+    "readiness": "GENERIC_NO_EXACT_MODEL",
+    "evidenceClass": "generic",
+    "missing": "front;rear;left;right;top;bottom;ports;dimensions",
+    "notes": "โปรไฟล์ฝึก GENERIC ไม่มีรุ่นจริงให้ผูก — ใช้ภาพรูปทรงหัวต่อใน 02_CABLES_AND_CONNECTORS/_CONNECTOR_SHAPES ตามชนิดพอร์ตเท่านั้น ห้ามยกระดับเป็นรุ่นจริงเพื่อเติมดัชนี",
+    "files": [],
+    "shapeFiles": [],
+    "pack": "05_GENERIC_UNRESOLVED/generic-projector/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "generic-sdi-monitor": {
+    "folder": "05_GENERIC_UNRESOLVED/generic-sdi-monitor",
+    "identity": "Generic Training Device จอมอนิเตอร์ SDI ที่ FOH (GENERIC TRAINING MODEL)",
+    "exactness": "GENERIC_PROFILE",
+    "readiness": "GENERIC_NO_EXACT_MODEL",
+    "evidenceClass": "generic",
+    "missing": "front;rear;left;right;top;bottom;ports;dimensions",
+    "notes": "โปรไฟล์ฝึก GENERIC ไม่มีรุ่นจริงให้ผูก — ใช้ภาพรูปทรงหัวต่อใน 02_CABLES_AND_CONNECTORS/_CONNECTOR_SHAPES ตามชนิดพอร์ตเท่านั้น ห้ามยกระดับเป็นรุ่นจริงเพื่อเติมดัชนี",
+    "files": [],
+    "shapeFiles": [],
+    "pack": "05_GENERIC_UNRESOLVED/generic-sdi-monitor/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "generic-sdi-ptz": {
+    "folder": "05_GENERIC_UNRESOLVED/generic-sdi-ptz",
+    "identity": "Generic Training Device กล้อง PTZ ติดตั้งถาวร ขาออก SDI (GENERIC TRAINING MODEL)",
+    "exactness": "GENERIC_PROFILE",
+    "readiness": "GENERIC_NO_EXACT_MODEL",
+    "evidenceClass": "generic",
+    "missing": "front;rear;left;right;top;bottom;ports;dimensions",
+    "notes": "โปรไฟล์ฝึก GENERIC ไม่มีรุ่นจริงให้ผูก — ใช้ภาพรูปทรงหัวต่อใน 02_CABLES_AND_CONNECTORS/_CONNECTOR_SHAPES ตามชนิดพอร์ตเท่านั้น ห้ามยกระดับเป็นรุ่นจริงเพื่อเติมดัชนี",
+    "files": [],
+    "shapeFiles": [],
+    "pack": "05_GENERIC_UNRESOLVED/generic-sdi-ptz/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "generic-studio-switcher": {
+    "folder": "05_GENERIC_UNRESOLVED/generic-studio-switcher",
+    "identity": "Generic Training Device เครื่องสลับภาพสตูดิโอ (โปรไฟล์ฝึกแบบ HDS7105 · GENERIC TRAINING MODEL)",
+    "exactness": "GENERIC_PROFILE",
+    "readiness": "GENERIC_NO_EXACT_MODEL",
+    "evidenceClass": "generic",
+    "missing": "front;rear;left;right;top;bottom;ports;dimensions",
+    "notes": "โปรไฟล์ฝึก GENERIC ไม่มีรุ่นจริงให้ผูก — ใช้ภาพรูปทรงหัวต่อใน 02_CABLES_AND_CONNECTORS/_CONNECTOR_SHAPES ตามชนิดพอร์ตเท่านั้น ห้ามยกระดับเป็นรุ่นจริงเพื่อเติมดัชนี",
+    "files": [],
+    "shapeFiles": [],
+    "pack": "05_GENERIC_UNRESOLVED/generic-studio-switcher/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "generic-test-ingest": {
+    "folder": "05_GENERIC_UNRESOLVED/generic-test-ingest",
+    "identity": "Generic Training Device จุดรับสตรีมส่วนตัวและผู้ชมทางไกลจำลองในเครื่อง",
+    "exactness": "GENERIC_PROFILE",
+    "readiness": "GENERIC_NO_EXACT_MODEL",
+    "evidenceClass": "generic",
+    "missing": "front;rear;left;right;top;bottom;ports;dimensions",
+    "notes": "โปรไฟล์ฝึก GENERIC ไม่มีรุ่นจริงให้ผูก — ใช้ภาพรูปทรงหัวต่อใน 02_CABLES_AND_CONNECTORS/_CONNECTOR_SHAPES ตามชนิดพอร์ตเท่านั้น ห้ามยกระดับเป็นรุ่นจริงเพื่อเติมดัชนี",
+    "files": [],
+    "shapeFiles": [],
+    "pack": "05_GENERIC_UNRESOLVED/generic-test-ingest/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "generic-wireless-rx": {
+    "folder": "05_GENERIC_UNRESOLVED/generic-wireless-rx",
+    "identity": "Generic Training Device ตัวรับไร้สาย RX (GENERIC TRAINING MODEL)",
+    "exactness": "GENERIC_PROFILE",
+    "readiness": "GENERIC_NO_EXACT_MODEL",
+    "evidenceClass": "generic",
+    "missing": "front;rear;left;right;top;bottom;ports;dimensions",
+    "notes": "โปรไฟล์ฝึก GENERIC ไม่มีรุ่นจริงให้ผูก — ใช้ภาพรูปทรงหัวต่อใน 02_CABLES_AND_CONNECTORS/_CONNECTOR_SHAPES ตามชนิดพอร์ตเท่านั้น ห้ามยกระดับเป็นรุ่นจริงเพื่อเติมดัชนี",
+    "files": [],
+    "shapeFiles": [],
+    "pack": "05_GENERIC_UNRESOLVED/generic-wireless-rx/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "generic-wireless-tx": {
+    "folder": "05_GENERIC_UNRESOLVED/generic-wireless-tx",
+    "identity": "Generic Training Device ตัวส่งไร้สาย Bodypack TX (GENERIC TRAINING MODEL)",
+    "exactness": "GENERIC_PROFILE",
+    "readiness": "GENERIC_NO_EXACT_MODEL",
+    "evidenceClass": "generic",
+    "missing": "front;rear;left;right;top;bottom;ports;dimensions",
+    "notes": "โปรไฟล์ฝึก GENERIC ไม่มีรุ่นจริงให้ผูก — ใช้ภาพรูปทรงหัวต่อใน 02_CABLES_AND_CONNECTORS/_CONNECTOR_SHAPES ตามชนิดพอร์ตเท่านั้น ห้ามยกระดับเป็นรุ่นจริงเพื่อเติมดัชนี",
+    "files": [],
+    "shapeFiles": [],
+    "pack": "05_GENERIC_UNRESOLVED/generic-wireless-tx/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "reference-console-6": {
+    "folder": "05_GENERIC_UNRESOLVED/reference-console-6",
+    "identity": "โมเดลจำลองเพื่อฝึก คอนโซลเสียงแยกบัส PA / BROADCAST",
+    "exactness": "GENERIC_PROFILE",
+    "readiness": "GENERIC_NO_EXACT_MODEL",
+    "evidenceClass": "generic",
+    "missing": "front;rear;left;right;top;bottom;ports;dimensions",
+    "notes": "โปรไฟล์ฝึก GENERIC ไม่มีรุ่นจริงให้ผูก — ใช้ภาพรูปทรงหัวต่อใน 02_CABLES_AND_CONNECTORS/_CONNECTOR_SHAPES ตามชนิดพอร์ตเท่านั้น ห้ามยกระดับเป็นรุ่นจริงเพื่อเติมดัชนี",
+    "files": [],
+    "shapeFiles": [],
+    "pack": "05_GENERIC_UNRESOLVED/reference-console-6/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "reference-fiber-rx": {
+    "folder": "05_GENERIC_UNRESOLVED/reference-fiber-rx",
+    "identity": "โมเดลจำลองเพื่อฝึก ตัวรับ Optical → SDI (คู่ส่งรับที่ตรงกัน)",
+    "exactness": "GENERIC_PROFILE",
+    "readiness": "GENERIC_NO_EXACT_MODEL",
+    "evidenceClass": "generic",
+    "missing": "front;rear;left;right;top;bottom;ports;dimensions",
+    "notes": "โปรไฟล์ฝึก GENERIC ไม่มีรุ่นจริงให้ผูก — ใช้ภาพรูปทรงหัวต่อใน 02_CABLES_AND_CONNECTORS/_CONNECTOR_SHAPES ตามชนิดพอร์ตเท่านั้น ห้ามยกระดับเป็นรุ่นจริงเพื่อเติมดัชนี",
+    "files": [],
+    "shapeFiles": [],
+    "pack": "05_GENERIC_UNRESOLVED/reference-fiber-rx/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "reference-fiber-tx": {
+    "folder": "05_GENERIC_UNRESOLVED/reference-fiber-tx",
+    "identity": "โมเดลจำลองเพื่อฝึก ตัวส่ง SDI → Optical (คู่ส่งรับที่ตรงกัน)",
+    "exactness": "GENERIC_PROFILE",
+    "readiness": "GENERIC_NO_EXACT_MODEL",
+    "evidenceClass": "generic",
+    "missing": "front;rear;left;right;top;bottom;ports;dimensions",
+    "notes": "โปรไฟล์ฝึก GENERIC ไม่มีรุ่นจริงให้ผูก — ใช้ภาพรูปทรงหัวต่อใน 02_CABLES_AND_CONNECTORS/_CONNECTOR_SHAPES ตามชนิดพอร์ตเท่านั้น ห้ามยกระดับเป็นรุ่นจริงเพื่อเติมดัชนี",
+    "files": [],
+    "shapeFiles": [],
+    "pack": "05_GENERIC_UNRESOLVED/reference-fiber-tx/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "reference-handheld-tx": {
+    "folder": "05_GENERIC_UNRESOLVED/reference-handheld-tx",
+    "identity": "โมเดลจำลองเพื่อฝึก ไมค์มือถือพร้อมตัวส่ง RF ในตัว (แบบฝึก)",
+    "exactness": "GENERIC_PROFILE",
+    "readiness": "GENERIC_NO_EXACT_MODEL",
+    "evidenceClass": "generic",
+    "missing": "front;rear;left;right;top;bottom;ports;dimensions",
+    "notes": "โปรไฟล์ฝึก GENERIC ไม่มีรุ่นจริงให้ผูก — ใช้ภาพรูปทรงหัวต่อใน 02_CABLES_AND_CONNECTORS/_CONNECTOR_SHAPES ตามชนิดพอร์ตเท่านั้น ห้ามยกระดับเป็นรุ่นจริงเพื่อเติมดัชนี",
+    "files": [],
+    "shapeFiles": [],
+    "pack": "05_GENERIC_UNRESOLVED/reference-handheld-tx/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "reference-replay": {
+    "folder": "05_GENERIC_UNRESOLVED/reference-replay",
+    "identity": "โมเดลจำลองเพื่อฝึก เครื่องเล่นภาพซ้ำพร้อมสื่อ (จำลอง)",
+    "exactness": "GENERIC_PROFILE",
+    "readiness": "GENERIC_NO_EXACT_MODEL",
+    "evidenceClass": "generic",
+    "missing": "front;rear;left;right;top;bottom;ports;dimensions",
+    "notes": "โปรไฟล์ฝึก GENERIC ไม่มีรุ่นจริงให้ผูก — ใช้ภาพรูปทรงหัวต่อใน 02_CABLES_AND_CONNECTORS/_CONNECTOR_SHAPES ตามชนิดพอร์ตเท่านั้น ห้ามยกระดับเป็นรุ่นจริงเพื่อเติมดัชนี",
+    "files": [],
+    "shapeFiles": [],
+    "pack": "05_GENERIC_UNRESOLVED/reference-replay/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "reference-replay-controller": {
+    "folder": "05_GENERIC_UNRESOLVED/reference-replay-controller",
+    "identity": "โมเดลจำลองเพื่อฝึก แผงควบคุมภาพซ้ำ (ลิงก์ควบคุมจำลอง)",
+    "exactness": "GENERIC_PROFILE",
+    "readiness": "GENERIC_NO_EXACT_MODEL",
+    "evidenceClass": "generic",
+    "missing": "front;rear;left;right;top;bottom;ports;dimensions",
+    "notes": "โปรไฟล์ฝึก GENERIC ไม่มีรุ่นจริงให้ผูก — ใช้ภาพรูปทรงหัวต่อใน 02_CABLES_AND_CONNECTORS/_CONNECTOR_SHAPES ตามชนิดพอร์ตเท่านั้น ห้ามยกระดับเป็นรุ่นจริงเพื่อเติมดัชนี",
+    "files": [],
+    "shapeFiles": [],
+    "pack": "05_GENERIC_UNRESOLVED/reference-replay-controller/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "reference-shotgun": {
+    "folder": "05_GENERIC_UNRESOLVED/reference-shotgun",
+    "identity": "โมเดลจำลองเพื่อฝึก ไมค์ช็อตกันคอนเดนเซอร์ (โปรไฟล์ฝึก +48V)",
+    "exactness": "GENERIC_PROFILE",
+    "readiness": "GENERIC_NO_EXACT_MODEL",
+    "evidenceClass": "generic",
+    "missing": "front;rear;left;right;top;bottom;ports;dimensions",
+    "notes": "โปรไฟล์ฝึก GENERIC ไม่มีรุ่นจริงให้ผูก — ใช้ภาพรูปทรงหัวต่อใน 02_CABLES_AND_CONNECTORS/_CONNECTOR_SHAPES ตามชนิดพอร์ตเท่านั้น ห้ามยกระดับเป็นรุ่นจริงเพื่อเติมดัชนี",
+    "files": [],
+    "shapeFiles": [],
+    "pack": "05_GENERIC_UNRESOLVED/reference-shotgun/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "reference-stagebox-6": {
+    "folder": "05_GENERIC_UNRESOLVED/reference-stagebox-6",
+    "identity": "โมเดลจำลองเพื่อฝึก กล่องรับเสียงเวที 6 ช่อง (แบบฝึกอนาล็อก)",
+    "exactness": "GENERIC_PROFILE",
+    "readiness": "GENERIC_NO_EXACT_MODEL",
+    "evidenceClass": "generic",
+    "missing": "front;rear;left;right;top;bottom;ports;dimensions",
+    "notes": "โปรไฟล์ฝึก GENERIC ไม่มีรุ่นจริงให้ผูก — ใช้ภาพรูปทรงหัวต่อใน 02_CABLES_AND_CONNECTORS/_CONNECTOR_SHAPES ตามชนิดพอร์ตเท่านั้น ห้ามยกระดับเป็นรุ่นจริงเพื่อเติมดัชนี",
+    "files": [],
+    "shapeFiles": [],
+    "pack": "05_GENERIC_UNRESOLVED/reference-stagebox-6/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "reference-tail-6": {
+    "folder": "05_GENERIC_UNRESOLVED/reference-tail-6",
+    "identity": "โมเดลจำลองเพื่อฝึก หางสายมัลติคอร์ 6 ช่อง",
+    "exactness": "GENERIC_PROFILE",
+    "readiness": "GENERIC_NO_EXACT_MODEL",
+    "evidenceClass": "generic",
+    "missing": "front;rear;left;right;top;bottom;ports;dimensions",
+    "notes": "โปรไฟล์ฝึก GENERIC ไม่มีรุ่นจริงให้ผูก — ใช้ภาพรูปทรงหัวต่อใน 02_CABLES_AND_CONNECTORS/_CONNECTOR_SHAPES ตามชนิดพอร์ตเท่านั้น ห้ามยกระดับเป็นรุ่นจริงเพื่อเติมดัชนี",
+    "files": [],
+    "shapeFiles": [],
+    "pack": "05_GENERIC_UNRESOLVED/reference-tail-6/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "ADAPTER-35-635": {
+    "folder": "02_CABLES_AND_CONNECTORS/ADAPTER-35-635",
+    "identity": "",
+    "exactness": "CONNECTOR_SHAPE_REFERENCE_ONLY (game does not bind cable to a brand/SKU)",
+    "readiness": "COMPLETE_SHAPE_REFERENCE",
+    "evidenceClass": "shape-reference",
+    "missing": "practice-room adapter, not a CABLE_CATALOG id",
+    "notes": "practice-room adapter, not a CABLE_CATALOG id",
+    "files": [
+      "06_BOTH_ENDS/adapter-35-635__both-ends__manufacturer-hosa__01.jpg",
+      "06_BOTH_ENDS/adapter-35-635__both-ends__manufacturer-hosa__02.jpg",
+      "06_BOTH_ENDS/adapter-35-635__both-ends__manufacturer-hosa__03.jpg"
+    ],
+    "shapeFiles": [
+      "../_CONNECTOR_SHAPES/shape-trs-3.5/02_END_A/shape-trs-3.5__end-a__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-trs-3.5/02_END_A/shape-trs-3.5__end-a__secondary-commons__02.jpg",
+      "../_CONNECTOR_SHAPES/shape-trs-6.35/02_END_A/shape-trs-6.35__end-a__official-manufacturer__01.jpg"
+    ],
+    "pack": "02_CABLES_AND_CONNECTORS/ADAPTER-35-635/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "ADAPTER-635-35": {
+    "folder": "02_CABLES_AND_CONNECTORS/ADAPTER-635-35",
+    "identity": "",
+    "exactness": "CONNECTOR_SHAPE_REFERENCE_ONLY (game does not bind cable to a brand/SKU)",
+    "readiness": "COMPLETE_SHAPE_REFERENCE",
+    "evidenceClass": "shape-reference",
+    "missing": "practice-room adapter, not a CABLE_CATALOG id",
+    "notes": "practice-room adapter, not a CABLE_CATALOG id",
+    "files": [
+      "06_BOTH_ENDS/adapter-635-35__both-ends__manufacturer-hosa__01.jpg",
+      "06_BOTH_ENDS/adapter-635-35__both-ends__manufacturer-hosa__02.jpg",
+      "06_BOTH_ENDS/adapter-635-35__both-ends__manufacturer-hosa__03.jpg"
+    ],
+    "shapeFiles": [
+      "../_CONNECTOR_SHAPES/shape-trs-6.35/02_END_A/shape-trs-6.35__end-a__official-manufacturer__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-trs-3.5/02_END_A/shape-trs-3.5__end-a__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-trs-3.5/02_END_A/shape-trs-3.5__end-a__secondary-commons__02.jpg"
+    ],
+    "pack": "02_CABLES_AND_CONNECTORS/ADAPTER-635-35/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "AUD-LAV-TX": {
+    "folder": "02_CABLES_AND_CONNECTORS/AUD-LAV-TX",
+    "identity": "",
+    "exactness": "CONNECTOR_SHAPE_REFERENCE_ONLY",
+    "readiness": "COMPLETE_SHAPE_REFERENCE",
+    "evidenceClass": "shape-reference",
+    "missing": "exact TX compatibility requires owner selection",
+    "notes": "Official COMICA lock-plate TRS-to-TRS cable and actual images added as connector-shape example. The game transmitter is generic; male/female, TRS/TRRS/locking compatibility at the room TX remains unresolved.",
+    "files": [
+      "01_FULL_CABLE/aud-lav-tx__full-cable__official-comica__01.jpg",
+      "01_FULL_CABLE/aud-lav-tx__full-cable__official-comica__02.jpg",
+      "01_FULL_CABLE/comica-cvm-dl-cpx-official/comica-cvm-dl-cpx__official__01.jpg",
+      "01_FULL_CABLE/comica-cvm-dl-cpx-official/comica-cvm-dl-cpx__official__02.jpg",
+      "01_FULL_CABLE/comica-cvm-dl-cpx-official/comica-cvm-dl-cpx__official__03.jpg",
+      "01_FULL_CABLE/comica-cvm-dl-cpx-official/comica-cvm-dl-cpx__official__04.jpg",
+      "01_FULL_CABLE/comica-cvm-dl-cpx-official/comica-cvm-dl-cpx__official__05.jpg",
+      "01_FULL_CABLE/comica-cvm-dl-cpx-official/comica-cvm-dl-cpx__official__06.jpg",
+      "01_FULL_CABLE/comica-cvm-dl-cpx-official/comica-cvm-dl-cpx__official__07.jpg",
+      "01_FULL_CABLE/comica-cvm-dl-cpx-official/comica-cvm-dl-cpx__official__08.jpg",
+      "01_FULL_CABLE/comica-cvm-dl-cpx-official/comica-cvm-dl-cpx__official__09.jpg"
+    ],
+    "shapeFiles": [
+      "../_CONNECTOR_SHAPES/shape-lav-3.5-locking/01_FULL_CABLE/shape-lav-3.5-locking__full-cable__official-manufacturer__01.png",
+      "../_CONNECTOR_SHAPES/shape-lav-3.5-locking/02_END_A/shape-lav-3.5-locking__end-a__official-manufacturer__01.png",
+      "../_CONNECTOR_SHAPES/shape-trs-3.5/02_END_A/shape-trs-3.5__end-a__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-trs-3.5/02_END_A/shape-trs-3.5__end-a__secondary-commons__02.jpg",
+      "../_CONNECTOR_SHAPES/shape-trrs-3.5/04_CONNECTOR_CLOSEUPS/shape-trrs-3.5__connector__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-trrs-3.5/02_END_A/shape-trrs-3.5__end-a__secondary-commons__01.jpg"
+    ],
+    "pack": "02_CABLES_AND_CONNECTORS/AUD-LAV-TX/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "AUD-PA-ACTIVE": {
+    "folder": "02_CABLES_AND_CONNECTORS/AUD-PA-ACTIVE",
+    "identity": "",
+    "exactness": "CONNECTOR_SHAPE_REFERENCE_ONLY (game does not bind cable to a brand/SKU)",
+    "readiness": "COMPLETE_SHAPE_REFERENCE",
+    "evidenceClass": "shape-reference",
+    "missing": "code allows XLR/TRS line to PA; active PA is GENERIC",
+    "notes": "code allows XLR/TRS line to PA; active PA is GENERIC",
+    "files": [
+      "01_FULL_CABLE/aud-pa-active__full-cable__secondary__01.jpg"
+    ],
+    "shapeFiles": [
+      "../_CONNECTOR_SHAPES/shape-xlr3/06_BOTH_ENDS/shape-xlr3__both-ends__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-xlr3/01_FULL_CABLE/shape-xlr3__full-cable__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-xlr3/02_END_A/shape-xlr3__end-a__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-xlr3/02_END_A/shape-xlr3__end-a__secondary-commons__02.jpg",
+      "../_CONNECTOR_SHAPES/shape-xlr3/02_END_A/shape-xlr3__end-a__official-manufacturer__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-xlr3/03_END_B/shape-xlr3__end-b__official-manufacturer__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-trs-6.35/02_END_A/shape-trs-6.35__end-a__official-manufacturer__01.jpg",
+      "../AUD-XLR-MIC/01_FULL_CABLE/aud-xlr-mic__full-cable__manufacturer-hosa__01.jpg",
+      "../AUD-XLR-MIC/01_FULL_CABLE/aud-xlr-mic__full-cable__manufacturer-hosa__02.jpg",
+      "../AUD-XLR-MIC/01_FULL_CABLE/aud-xlr-mic__full-cable__manufacturer-hosa__03.jpg",
+      "../AUD-XLR-MIC/01_FULL_CABLE/aud-xlr-mic__full-cable__manufacturer-hosa__04.jpg"
+    ],
+    "pack": "02_CABLES_AND_CONNECTORS/AUD-PA-ACTIVE/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "AUD-RCA-3.5": {
+    "folder": "02_CABLES_AND_CONNECTORS/AUD-RCA-3.5",
+    "identity": "",
+    "exactness": "CONNECTOR_SHAPE_REFERENCE_ONLY (game does not bind cable to a brand/SKU)",
+    "readiness": "COMPLETE_SHAPE_REFERENCE",
+    "evidenceClass": "shape-reference",
+    "missing": "exact in-game SKU/length generic",
+    "notes": "Hosa catalog page 25 is adjacent breakout-family context only. Exact 3.5 mm/RCA gender/direction and dedicated connector close-up remain unresolved.",
+    "files": [
+      "01_FULL_CABLE/aud-rca-3.5__full-cable__secondary__01.jpg",
+      "01_FULL_CABLE/aud-rca-3.5__full-cable__manufacturer-hosa__01.jpg",
+      "01_FULL_CABLE/aud-rca-3.5__full-cable__manufacturer-hosa__02.jpg",
+      "01_FULL_CABLE/aud-rca-3.5__full-cable__manufacturer-hosa__03.jpg",
+      "01_FULL_CABLE/aud-rca-3.5__full-cable__manufacturer-hosa__04.jpg",
+      "12_DOCUMENTS/hosa-product-catalog-2012.pdf",
+      "01_FULL_CABLE/hosa-catalog-p25.png"
+    ],
+    "shapeFiles": [
+      "../_CONNECTOR_SHAPES/shape-trs-3.5/02_END_A/shape-trs-3.5__end-a__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-trs-3.5/02_END_A/shape-trs-3.5__end-a__secondary-commons__02.jpg",
+      "../_CONNECTOR_SHAPES/shape-phone-plugs-labeled/05_TECHNICAL_DRAWINGS/shape-phone-plugs-labeled__diagram__secondary-commons__01.jpg"
+    ],
+    "pack": "02_CABLES_AND_CONNECTORS/AUD-RCA-3.5/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "AUD-RX-MIXER-3.5": {
+    "folder": "02_CABLES_AND_CONNECTORS/AUD-RX-MIXER-3.5",
+    "identity": "",
+    "exactness": "CONNECTOR_SHAPE_REFERENCE_ONLY (game does not bind cable to a brand/SKU)",
+    "readiness": "COMPLETE_SHAPE_REFERENCE",
+    "evidenceClass": "shape-reference",
+    "missing": "",
+    "notes": "",
+    "files": [],
+    "shapeFiles": [
+      "../_CONNECTOR_SHAPES/shape-trs-3.5/02_END_A/shape-trs-3.5__end-a__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-trs-3.5/02_END_A/shape-trs-3.5__end-a__secondary-commons__02.jpg",
+      "../_CONNECTOR_SHAPES/shape-trs-6.35/02_END_A/shape-trs-6.35__end-a__official-manufacturer__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-phone-plugs-labeled/05_TECHNICAL_DRAWINGS/shape-phone-plugs-labeled__diagram__secondary-commons__01.jpg",
+      "../AUD-TRS-635-35/01_FULL_CABLE/aud-trs-635-35__full-cable__manufacturer-hosa__01.jpg",
+      "../AUD-TRS-635-35/01_FULL_CABLE/aud-trs-635-35__full-cable__manufacturer-hosa__02.jpg",
+      "../AUD-TRS-635-35/01_FULL_CABLE/aud-trs-635-35__full-cable__manufacturer-hosa__03.jpg",
+      "../AUD-TRS-635-35/01_FULL_CABLE/aud-trs-635-35__full-cable__manufacturer-hosa__04.jpg"
+    ],
+    "pack": "02_CABLES_AND_CONNECTORS/AUD-RX-MIXER-3.5/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "AUD-RX-MIXER-XLR": {
+    "folder": "02_CABLES_AND_CONNECTORS/AUD-RX-MIXER-XLR",
+    "identity": "",
+    "exactness": "CONNECTOR_SHAPE_REFERENCE_ONLY (game does not bind cable to a brand/SKU)",
+    "readiness": "COMPLETE_SHAPE_REFERENCE",
+    "evidenceClass": "shape-reference",
+    "missing": "RX is GENERIC",
+    "notes": "RX is GENERIC",
+    "files": [
+      "01_FULL_CABLE/aud-rx-mixer-xlr__full-cable__secondary__01.jpg"
+    ],
+    "shapeFiles": [
+      "../_CONNECTOR_SHAPES/shape-xlr3/06_BOTH_ENDS/shape-xlr3__both-ends__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-xlr3/01_FULL_CABLE/shape-xlr3__full-cable__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-xlr3/02_END_A/shape-xlr3__end-a__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-xlr3/02_END_A/shape-xlr3__end-a__secondary-commons__02.jpg",
+      "../_CONNECTOR_SHAPES/shape-xlr3/02_END_A/shape-xlr3__end-a__official-manufacturer__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-xlr3/03_END_B/shape-xlr3__end-b__official-manufacturer__01.jpg",
+      "../AUD-XLR-MIC/01_FULL_CABLE/aud-xlr-mic__full-cable__manufacturer-hosa__01.jpg",
+      "../AUD-XLR-MIC/01_FULL_CABLE/aud-xlr-mic__full-cable__manufacturer-hosa__02.jpg",
+      "../AUD-XLR-MIC/01_FULL_CABLE/aud-xlr-mic__full-cable__manufacturer-hosa__03.jpg",
+      "../AUD-XLR-MIC/01_FULL_CABLE/aud-xlr-mic__full-cable__manufacturer-hosa__04.jpg"
+    ],
+    "pack": "02_CABLES_AND_CONNECTORS/AUD-RX-MIXER-XLR/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "AUD-TRRS-3.5": {
+    "folder": "02_CABLES_AND_CONNECTORS/AUD-TRRS-3.5",
+    "identity": "",
+    "exactness": "CONNECTOR_SHAPE_REFERENCE_ONLY (game does not bind cable to a brand/SKU)",
+    "readiness": "COMPLETE_SHAPE_REFERENCE",
+    "evidenceClass": "shape-reference",
+    "missing": "",
+    "notes": "",
+    "files": [
+      "06_BOTH_ENDS/aud-trrs-3.5__both-ends__manufacturer-rode__01.png",
+      "05_TECHNICAL_DRAWINGS/aud-trrs-3.5__diagram__manufacturer-rode__01.pdf",
+      "01_FULL_CABLE/aud-trrs-3.5__full-cable__official-pdf-render__01.png"
+    ],
+    "shapeFiles": [
+      "../_CONNECTOR_SHAPES/shape-trrs-3.5/04_CONNECTOR_CLOSEUPS/shape-trrs-3.5__connector__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-trrs-3.5/02_END_A/shape-trrs-3.5__end-a__secondary-commons__01.jpg"
+    ],
+    "pack": "02_CABLES_AND_CONNECTORS/AUD-TRRS-3.5/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "AUD-TRS-3.5": {
+    "folder": "02_CABLES_AND_CONNECTORS/AUD-TRS-3.5",
+    "identity": "",
+    "exactness": "CONNECTOR_SHAPE_REFERENCE_ONLY (game does not bind cable to a brand/SKU)",
+    "readiness": "COMPLETE_SHAPE_REFERENCE",
+    "evidenceClass": "shape-reference",
+    "missing": "",
+    "notes": "",
+    "files": [
+      "01_FULL_CABLE/aud-trs-3.5__full-cable__manufacturer-hosa__01.jpg",
+      "01_FULL_CABLE/aud-trs-3.5__full-cable__manufacturer-hosa__02.jpg",
+      "01_FULL_CABLE/aud-trs-3.5__full-cable__manufacturer-hosa__03.jpg",
+      "01_FULL_CABLE/aud-trs-3.5__full-cable__manufacturer-hosa__04.jpg",
+      "01_FULL_CABLE/aud-trs-3.5__full-cable__manufacturer-hosa__12.jpg",
+      "01_FULL_CABLE/aud-trs-3.5__full-cable__secondary-henrys__01.jpg",
+      "01_FULL_CABLE/aud-trs-3.5__full-cable__secondary-sweetwater__01.jpg"
+    ],
+    "shapeFiles": [
+      "../_CONNECTOR_SHAPES/shape-trs-3.5/02_END_A/shape-trs-3.5__end-a__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-trs-3.5/02_END_A/shape-trs-3.5__end-a__secondary-commons__02.jpg",
+      "../_CONNECTOR_SHAPES/shape-phone-plugs-labeled/05_TECHNICAL_DRAWINGS/shape-phone-plugs-labeled__diagram__secondary-commons__01.jpg"
+    ],
+    "pack": "02_CABLES_AND_CONNECTORS/AUD-TRS-3.5/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "AUD-TRS-635-35": {
+    "folder": "02_CABLES_AND_CONNECTORS/AUD-TRS-635-35",
+    "identity": "",
+    "exactness": "CONNECTOR_SHAPE_REFERENCE_ONLY (game does not bind cable to a brand/SKU)",
+    "readiness": "COMPLETE_SHAPE_REFERENCE",
+    "evidenceClass": "shape-reference",
+    "missing": "",
+    "notes": "",
+    "files": [
+      "01_FULL_CABLE/aud-trs-635-35__full-cable__secondary__01.jpg",
+      "01_FULL_CABLE/aud-trs-635-35__full-cable__manufacturer-hosa__01.jpg",
+      "01_FULL_CABLE/aud-trs-635-35__full-cable__manufacturer-hosa__02.jpg",
+      "01_FULL_CABLE/aud-trs-635-35__full-cable__manufacturer-hosa__03.jpg",
+      "01_FULL_CABLE/aud-trs-635-35__full-cable__manufacturer-hosa__04.jpg"
+    ],
+    "shapeFiles": [
+      "../_CONNECTOR_SHAPES/shape-trs-6.35/02_END_A/shape-trs-6.35__end-a__official-manufacturer__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-trs-3.5/02_END_A/shape-trs-3.5__end-a__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-trs-3.5/02_END_A/shape-trs-3.5__end-a__secondary-commons__02.jpg",
+      "../_CONNECTOR_SHAPES/shape-phone-plugs-labeled/05_TECHNICAL_DRAWINGS/shape-phone-plugs-labeled__diagram__secondary-commons__01.jpg"
+    ],
+    "pack": "02_CABLES_AND_CONNECTORS/AUD-TRS-635-35/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "AUD-TRS-6.35-BAL": {
+    "folder": "02_CABLES_AND_CONNECTORS/AUD-TRS-6.35-BAL",
+    "identity": "",
+    "exactness": "CONNECTOR_SHAPE_REFERENCE_ONLY (game does not bind cable to a brand/SKU)",
+    "readiness": "COMPLETE_SHAPE_REFERENCE",
+    "evidenceClass": "shape-reference",
+    "missing": "",
+    "notes": "",
+    "files": [
+      "01_FULL_CABLE/aud-trs-6.35-bal__full-cable__manufacturer-hosa__01.jpg",
+      "01_FULL_CABLE/aud-trs-6.35-bal__full-cable__manufacturer-hosa__02.jpg",
+      "01_FULL_CABLE/aud-trs-6.35-bal__full-cable__manufacturer-hosa__03.jpg",
+      "01_FULL_CABLE/aud-trs-6.35-bal__full-cable__manufacturer-hosa__04.jpg",
+      "01_FULL_CABLE/aud-trs-6.35-bal__full-cable__manufacturer-farsince__01.webp"
+    ],
+    "shapeFiles": [
+      "../_CONNECTOR_SHAPES/shape-trs-6.35/02_END_A/shape-trs-6.35__end-a__official-manufacturer__01.jpg"
+    ],
+    "pack": "02_CABLES_AND_CONNECTORS/AUD-TRS-6.35-BAL/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "AUD-TS-6.35": {
+    "folder": "02_CABLES_AND_CONNECTORS/AUD-TS-6.35",
+    "identity": "",
+    "exactness": "CONNECTOR_SHAPE_REFERENCE_ONLY (game does not bind cable to a brand/SKU)",
+    "readiness": "COMPLETE_SHAPE_REFERENCE",
+    "evidenceClass": "shape-reference",
+    "missing": "",
+    "notes": "",
+    "files": [
+      "01_FULL_CABLE/aud-ts-6.35__full-cable__manufacturer-hosa__01.jpg",
+      "01_FULL_CABLE/aud-ts-6.35__full-cable__manufacturer-hosa__02.jpg",
+      "01_FULL_CABLE/aud-ts-6.35__full-cable__manufacturer-hosa__03.jpg",
+      "01_FULL_CABLE/aud-ts-6.35__full-cable__manufacturer-hosa__04.jpg"
+    ],
+    "shapeFiles": [
+      "../_CONNECTOR_SHAPES/shape-ts-6.35/02_END_A/shape-ts-6.35__end-a__official-manufacturer__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-phone-plugs-labeled/05_TECHNICAL_DRAWINGS/shape-phone-plugs-labeled__diagram__secondary-commons__01.jpg"
+    ],
+    "pack": "02_CABLES_AND_CONNECTORS/AUD-TS-6.35/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "AUD-XLR-LINE-BAL": {
+    "folder": "02_CABLES_AND_CONNECTORS/AUD-XLR-LINE-BAL",
+    "identity": "",
+    "exactness": "CONNECTOR_SHAPE_REFERENCE_ONLY (game does not bind cable to a brand/SKU)",
+    "readiness": "COMPLETE_SHAPE_REFERENCE",
+    "evidenceClass": "shape-reference",
+    "missing": "",
+    "notes": "",
+    "files": [
+      "01_FULL_CABLE/aud-xlr-line-bal__full-cable__secondary__01.jpg"
+    ],
+    "shapeFiles": [
+      "../_CONNECTOR_SHAPES/shape-xlr3/06_BOTH_ENDS/shape-xlr3__both-ends__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-xlr3/01_FULL_CABLE/shape-xlr3__full-cable__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-xlr3/02_END_A/shape-xlr3__end-a__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-xlr3/02_END_A/shape-xlr3__end-a__secondary-commons__02.jpg",
+      "../_CONNECTOR_SHAPES/shape-xlr3/02_END_A/shape-xlr3__end-a__official-manufacturer__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-xlr3/03_END_B/shape-xlr3__end-b__official-manufacturer__01.jpg",
+      "../AUD-XLR-MIC/01_FULL_CABLE/aud-xlr-mic__full-cable__manufacturer-hosa__01.jpg",
+      "../AUD-XLR-MIC/01_FULL_CABLE/aud-xlr-mic__full-cable__manufacturer-hosa__02.jpg",
+      "../AUD-XLR-MIC/01_FULL_CABLE/aud-xlr-mic__full-cable__manufacturer-hosa__03.jpg",
+      "../AUD-XLR-MIC/01_FULL_CABLE/aud-xlr-mic__full-cable__manufacturer-hosa__04.jpg"
+    ],
+    "pack": "02_CABLES_AND_CONNECTORS/AUD-XLR-LINE-BAL/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "AUD-XLR-MIC": {
+    "folder": "02_CABLES_AND_CONNECTORS/AUD-XLR-MIC",
+    "identity": "",
+    "exactness": "CONNECTOR_SHAPE_REFERENCE_ONLY (game does not bind cable to a brand/SKU)",
+    "readiness": "COMPLETE_SHAPE_REFERENCE",
+    "evidenceClass": "shape-reference",
+    "missing": "",
+    "notes": "",
+    "files": [
+      "01_FULL_CABLE/aud-xlr-mic__full-cable__secondary__01.jpg",
+      "01_FULL_CABLE/aud-xlr-mic__full-cable__manufacturer-hosa__01.jpg",
+      "01_FULL_CABLE/aud-xlr-mic__full-cable__manufacturer-hosa__02.jpg",
+      "01_FULL_CABLE/aud-xlr-mic__full-cable__manufacturer-hosa__03.jpg",
+      "01_FULL_CABLE/aud-xlr-mic__full-cable__manufacturer-hosa__04.jpg"
+    ],
+    "shapeFiles": [
+      "../_CONNECTOR_SHAPES/shape-xlr3/06_BOTH_ENDS/shape-xlr3__both-ends__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-xlr3/01_FULL_CABLE/shape-xlr3__full-cable__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-xlr3/02_END_A/shape-xlr3__end-a__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-xlr3/02_END_A/shape-xlr3__end-a__secondary-commons__02.jpg",
+      "../_CONNECTOR_SHAPES/shape-xlr3/02_END_A/shape-xlr3__end-a__official-manufacturer__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-xlr3/03_END_B/shape-xlr3__end-b__official-manufacturer__01.jpg"
+    ],
+    "pack": "02_CABLES_AND_CONNECTORS/AUD-XLR-MIC/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "AUD-XLR-TRS-BAL": {
+    "folder": "02_CABLES_AND_CONNECTORS/AUD-XLR-TRS-BAL",
+    "identity": "",
+    "exactness": "CONNECTOR_SHAPE_REFERENCE_ONLY (game does not bind cable to a brand/SKU)",
+    "readiness": "COMPLETE_SHAPE_REFERENCE",
+    "evidenceClass": "shape-reference",
+    "missing": "",
+    "notes": "",
+    "files": [
+      "01_FULL_CABLE/aud-xlr-trs-bal__full-cable__manufacturer-hosa__01.jpg",
+      "01_FULL_CABLE/aud-xlr-trs-bal__full-cable__manufacturer-hosa__02.jpg",
+      "01_FULL_CABLE/aud-xlr-trs-bal__full-cable__manufacturer-hosa__03.jpg",
+      "01_FULL_CABLE/aud-xlr-trs-bal__full-cable__manufacturer-hosa__04.jpg",
+      "01_FULL_CABLE/aud-xlr-trs-bal__full-cable__manufacturer-hosa__05.jpg",
+      "01_FULL_CABLE/aud-xlr-trs-bal__full-cable__manufacturer-hosa__06.jpg",
+      "01_FULL_CABLE/aud-xlr-trs-bal__full-cable__manufacturer-hosa__07.jpg",
+      "01_FULL_CABLE/aud-xlr-trs-bal__full-cable__manufacturer-hosa__08.jpg"
+    ],
+    "shapeFiles": [
+      "../_CONNECTOR_SHAPES/shape-xlr3/06_BOTH_ENDS/shape-xlr3__both-ends__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-xlr3/01_FULL_CABLE/shape-xlr3__full-cable__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-xlr3/02_END_A/shape-xlr3__end-a__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-xlr3/02_END_A/shape-xlr3__end-a__secondary-commons__02.jpg",
+      "../_CONNECTOR_SHAPES/shape-xlr3/02_END_A/shape-xlr3__end-a__official-manufacturer__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-xlr3/03_END_B/shape-xlr3__end-b__official-manufacturer__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-trs-6.35/02_END_A/shape-trs-6.35__end-a__official-manufacturer__01.jpg"
+    ],
+    "pack": "02_CABLES_AND_CONNECTORS/AUD-XLR-TRS-BAL/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "CTRL-REPLAY": {
+    "folder": "02_CABLES_AND_CONNECTORS/CTRL-REPLAY",
+    "identity": "",
+    "exactness": "NOT_APPLICABLE_LOGICAL_LINK",
+    "readiness": "NOT_APPLICABLE_LOGICAL_LINK",
+    "evidenceClass": "logical",
+    "missing": "",
+    "notes": "Logical CONTROL-to-CONTROL relation only; no physical connector or cable defined in live game. Excluded from physical cable photo coverage denominator.",
+    "files": [],
+    "shapeFiles": [],
+    "pack": "02_CABLES_AND_CONNECTORS/CTRL-REPLAY/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "DATA-USB-A-A": {
+    "folder": "02_CABLES_AND_CONNECTORS/DATA-USB-A-A",
+    "identity": "",
+    "exactness": "CONNECTOR_SHAPE_REFERENCE_ONLY",
+    "readiness": "COMPLETE_SHAPE_REFERENCE",
+    "evidenceClass": "shape-reference",
+    "missing": "host-to-host usage validity not enforced",
+    "notes": "Magewell official image confirms included ACC10001 USB 3.0 cable only for USB Capture SDI Gen 2. It does not establish compatibility for arbitrary generic A-A host combinations; catalog remains broad.",
+    "files": [
+      "01_FULL_CABLE/data-usb-a-a__full-cable__manufacturer-nippon-labs__01.jpg",
+      "01_FULL_CABLE/magewell-acc10001-usb3-cable-official.jpg"
+    ],
+    "shapeFiles": [
+      "../_CONNECTOR_SHAPES/shape-usb-a/06_BOTH_ENDS/shape-usb-a__both-ends__secondary-commons__01.jpg",
+      "../DATA-USB-MAGEWELL/01_FULL_CABLE/data-usb-magewell__full-cable__official__01.jpg"
+    ],
+    "pack": "02_CABLES_AND_CONNECTORS/DATA-USB-A-A/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "DATA-USB-MAGEWELL": {
+    "folder": "02_CABLES_AND_CONNECTORS/DATA-USB-MAGEWELL",
+    "identity": "",
+    "exactness": "CONNECTOR_SHAPE_REFERENCE_ONLY (game does not bind cable to a brand/SKU)",
+    "readiness": "COMPLETE_SHAPE_REFERENCE",
+    "evidenceClass": "shape-reference",
+    "missing": "1 active raster image; two connector-shape refs are separate shared references. The OnePlus mismatch and duplicate files are quarantined; official Magewell image is 256×138.",
+    "notes": "Official Magewell product images and ACC10001 inclusion evidence support USB-A male-to-male cable to USB-A female device port. Reference image is only 256×138; use DATA-USB-A-A for higher-resolution generic physical cable, and do not generalize as host-to-host.",
+    "files": [
+      "01_FULL_CABLE/data-usb-magewell__full-cable__official__01.jpg"
+    ],
+    "shapeFiles": [
+      "../_CONNECTOR_SHAPES/shape-usb-a/06_BOTH_ENDS/shape-usb-a__both-ends__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-usb3-micro-b/04_CONNECTOR_CLOSEUPS/shape-usb3-micro-b__connector__secondary-commons__01.jpg"
+    ],
+    "pack": "02_CABLES_AND_CONNECTORS/DATA-USB-MAGEWELL/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "DATA-USB-WEBCAM": {
+    "folder": "02_CABLES_AND_CONNECTORS/DATA-USB-WEBCAM",
+    "identity": "",
+    "exactness": "CONNECTOR_SHAPE_REFERENCE_ONLY (game does not bind cable to a brand/SKU)",
+    "readiness": "COMPLETE_SHAPE_REFERENCE",
+    "evidenceClass": "shape-reference",
+    "missing": "Connector family can be referenced from the local full-cable/ends photos. Exact cable SKU is not bound in game.",
+    "notes": "Connector family can be referenced from the local full-cable/ends photos. Exact cable SKU is not bound in game.",
+    "files": [
+      "01_FULL_CABLE/data-usb-webcam__full-cable__secondary__01.jpg",
+      "01_FULL_CABLE/data-usb-webcam__full-cable__manufacturer-hosa__01.jpg",
+      "01_FULL_CABLE/data-usb-webcam__full-cable__manufacturer-hosa__02.jpg",
+      "01_FULL_CABLE/data-usb-webcam__full-cable__manufacturer-hosa__03.jpg",
+      "01_FULL_CABLE/data-usb-webcam__full-cable__manufacturer-hosa__04.jpg"
+    ],
+    "shapeFiles": [
+      "../_CONNECTOR_SHAPES/shape-usb-a-to-c/06_BOTH_ENDS/shape-usb-a-to-c__both-ends__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-usb-c/02_END_A/shape-usb-c__end-a__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-usb-c/01_FULL_CABLE/shape-usb-c__full-cable__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-usb-a/06_BOTH_ENDS/shape-usb-a__both-ends__secondary-commons__01.jpg"
+    ],
+    "pack": "02_CABLES_AND_CONNECTORS/DATA-USB-WEBCAM/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "FIB-CAMERA-CCU": {
+    "folder": "02_CABLES_AND_CONNECTORS/FIB-CAMERA-CCU",
+    "identity": "",
+    "exactness": "CONNECTOR_SHAPE_REFERENCE_ONLY",
+    "readiness": "READY_FOR_REFERENCE_DRIVEN_3D",
+    "evidenceClass": "shape-reference",
+    "missing": "exact game SKU not bound; none required by generic cable definition",
+    "notes": "Physical reference now includes both LEMO FUW male and PUW female ends in dealer image, plus official Camplex datasheet and PDF page-1 render. Generic game profile does not bind Camplex SKU; treat as connector-shape/family example.",
+    "files": [
+      "01_FULL_CABLE/fib-camera-ccu__full-cable__secondary__01.png",
+      "12_DOCUMENTS/camplex-hf-fuwpuw-s-official-datasheet.pdf",
+      "01_FULL_CABLE/camplex-hf-fuwpuw-s-datasheet-p1.png",
+      "01_FULL_CABLE/camplex-hf-fuwpuw-s__assembly__dealer-omega.jpg"
+    ],
+    "shapeFiles": [
+      "../_CONNECTOR_SHAPES/shape-smpte304-hybrid-fiber/02_END_A/shape-smpte304-hybrid-fiber__end-a__official-pdf-render__01.png",
+      "../_CONNECTOR_SHAPES/shape-smpte304-hybrid-fiber/03_END_B/shape-smpte304-hybrid-fiber__end-b__official-pdf-render__01.png",
+      "../_CONNECTOR_SHAPES/shape-smpte304-hybrid-fiber/03_END_B/shape-smpte304-hybrid-fiber__end-b__official-pdf-render__02.png",
+      "../_CONNECTOR_SHAPES/shape-smpte304-hybrid-fiber/02_END_A/shape-smpte304-hybrid-fiber__end-a__authorized-dealer-canford__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-smpte304-hybrid-fiber/03_END_B/shape-smpte304-hybrid-fiber__end-b__authorized-dealer-canford__01.jpg"
+    ],
+    "pack": "02_CABLES_AND_CONNECTORS/FIB-CAMERA-CCU/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "FIB-SDI-LINK": {
+    "folder": "02_CABLES_AND_CONNECTORS/FIB-SDI-LINK",
+    "identity": "",
+    "exactness": "CONNECTOR_SHAPE_REFERENCE_ONLY",
+    "readiness": "COMPLETE_SHAPE_REFERENCE",
+    "evidenceClass": "shape-reference",
+    "missing": "exact family/mode/simplex-duplex/polarity awaits owner selection",
+    "notes": "Live game uses generic TX/RX; LC versus SC, single-mode versus multimode, and cable end gender are not defined; no exact assembly can be assigned.",
+    "files": [
+      "01_FULL_CABLE/fib-sdi-link__full-cable__secondary__01.jpg",
+      "01_FULL_CABLE/fib-sdi-link__full-cable__secondary-riteav__01.jpg",
+      "01_FULL_CABLE/fib-sdi-link__full-cable__manufacturer-keline__01.jpg"
+    ],
+    "shapeFiles": [
+      "../_CONNECTOR_SHAPES/shape-fiber-lc/04_CONNECTOR_CLOSEUPS/shape-fiber-lc__connector__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-fiber-lc/06_BOTH_ENDS/shape-fiber-lc__both-ends__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-fiber-sc/02_END_A/shape-fiber-sc__end-a__secondary-commons__01.jpg"
+    ],
+    "pack": "02_CABLES_AND_CONNECTORS/FIB-SDI-LINK/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "NET-CAT5E6-ENCODER": {
+    "folder": "02_CABLES_AND_CONNECTORS/NET-CAT5E6-ENCODER",
+    "identity": "",
+    "exactness": "CONNECTOR_SHAPE_REFERENCE_ONLY (game does not bind cable to a brand/SKU)",
+    "readiness": "COMPLETE_SHAPE_REFERENCE",
+    "evidenceClass": "shape-reference",
+    "missing": "",
+    "notes": "",
+    "files": [
+      "01_FULL_CABLE/net-cat5e6-encoder__full-cable__secondary__01.jpg",
+      "01_FULL_CABLE/net-cat5e6-encoder__full-cable__manufacturer-hosa__01.jpg",
+      "01_FULL_CABLE/net-cat5e6-encoder__full-cable__manufacturer-hosa__02.jpg",
+      "01_FULL_CABLE/net-cat5e6-encoder__full-cable__manufacturer-hosa__03.jpg",
+      "01_FULL_CABLE/net-cat5e6-encoder__full-cable__manufacturer-hosa__04.jpg"
+    ],
+    "shapeFiles": [
+      "../_CONNECTOR_SHAPES/shape-rj45/02_END_A/shape-rj45__end-a__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-rj45/01_FULL_CABLE/shape-rj45__full-cable__secondary-commons__01.jpg"
+    ],
+    "pack": "02_CABLES_AND_CONNECTORS/NET-CAT5E6-ENCODER/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "NET-ROUTER-UPLINK": {
+    "folder": "02_CABLES_AND_CONNECTORS/NET-ROUTER-UPLINK",
+    "identity": "",
+    "exactness": "CONNECTOR_SHAPE_REFERENCE_ONLY (game does not bind cable to a brand/SKU)",
+    "readiness": "COMPLETE_SHAPE_REFERENCE",
+    "evidenceClass": "shape-reference",
+    "missing": "",
+    "notes": "",
+    "files": [],
+    "shapeFiles": [
+      "../_CONNECTOR_SHAPES/shape-rj45/02_END_A/shape-rj45__end-a__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-rj45/01_FULL_CABLE/shape-rj45__full-cable__secondary-commons__01.jpg",
+      "../NET-CAT5E6-ENCODER/01_FULL_CABLE/net-cat5e6-encoder__full-cable__manufacturer-hosa__01.jpg",
+      "../NET-CAT5E6-ENCODER/01_FULL_CABLE/net-cat5e6-encoder__full-cable__manufacturer-hosa__02.jpg",
+      "../NET-CAT5E6-ENCODER/01_FULL_CABLE/net-cat5e6-encoder__full-cable__manufacturer-hosa__03.jpg",
+      "../NET-CAT5E6-ENCODER/01_FULL_CABLE/net-cat5e6-encoder__full-cable__manufacturer-hosa__04.jpg"
+    ],
+    "pack": "02_CABLES_AND_CONNECTORS/NET-ROUTER-UPLINK/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "STG-MULTICORE": {
+    "folder": "02_CABLES_AND_CONNECTORS/STG-MULTICORE",
+    "identity": "",
+    "exactness": "CONNECTOR_SHAPE_REFERENCE_ONLY (game does not bind cable to a brand/SKU)",
+    "readiness": "COMPLETE_SHAPE_REFERENCE",
+    "evidenceClass": "shape-reference",
+    "missing": "channel count (6) per GENERIC reference-stagebox-6",
+    "notes": "channel count (6) per GENERIC reference-stagebox-6",
+    "files": [
+      "01_FULL_CABLE/stg-multicore__full-cable__secondary__01.jpg"
+    ],
+    "shapeFiles": [
+      "../_CONNECTOR_SHAPES/shape-multicore-stagebox/01_FULL_CABLE/shape-multicore-stagebox__full-cable__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-multicore-stagebox/04_CONNECTOR_CLOSEUPS/shape-multicore-stagebox__connector__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-xlr3/06_BOTH_ENDS/shape-xlr3__both-ends__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-xlr3/01_FULL_CABLE/shape-xlr3__full-cable__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-xlr3/02_END_A/shape-xlr3__end-a__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-xlr3/02_END_A/shape-xlr3__end-a__secondary-commons__02.jpg",
+      "../_CONNECTOR_SHAPES/shape-xlr3/02_END_A/shape-xlr3__end-a__official-manufacturer__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-xlr3/03_END_B/shape-xlr3__end-b__official-manufacturer__01.jpg"
+    ],
+    "pack": "02_CABLES_AND_CONNECTORS/STG-MULTICORE/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "VID-HDMI-A-A": {
+    "folder": "02_CABLES_AND_CONNECTORS/VID-HDMI-A-A",
+    "identity": "",
+    "exactness": "CONNECTOR_SHAPE_REFERENCE_ONLY (game does not bind cable to a brand/SKU)",
+    "readiness": "COMPLETE_SHAPE_REFERENCE",
+    "evidenceClass": "shape-reference",
+    "missing": "",
+    "notes": "",
+    "files": [
+      "01_FULL_CABLE/vid-hdmi-a-a__full-cable__secondary__01.jpg",
+      "01_FULL_CABLE/vid-hdmi-a-a__full-cable__manufacturer-hosa__01.jpg",
+      "01_FULL_CABLE/vid-hdmi-a-a__full-cable__manufacturer-hosa__02.jpg",
+      "01_FULL_CABLE/vid-hdmi-a-a__full-cable__manufacturer-hosa__03.jpg",
+      "01_FULL_CABLE/vid-hdmi-a-a__full-cable__manufacturer-hosa__04.jpg"
+    ],
+    "shapeFiles": [
+      "../_CONNECTOR_SHAPES/shape-hdmi-a/04_CONNECTOR_CLOSEUPS/shape-hdmi-a__connector__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-hdmi-a/05_TECHNICAL_DRAWINGS/shape-hdmi-a__diagram__secondary-commons__01.png"
+    ],
+    "pack": "02_CABLES_AND_CONNECTORS/VID-HDMI-A-A/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "VID-SDI-3G": {
+    "folder": "02_CABLES_AND_CONNECTORS/VID-SDI-3G",
+    "identity": "",
+    "exactness": "CONNECTOR_SHAPE_REFERENCE_ONLY (game does not bind cable to a brand/SKU)",
+    "readiness": "COMPLETE_SHAPE_REFERENCE",
+    "evidenceClass": "shape-reference",
+    "missing": "",
+    "notes": "",
+    "files": [
+      "01_FULL_CABLE/vid-sdi-3g__full-cable__secondary__01.jpg",
+      "01_FULL_CABLE/vid-sdi-3g__full-cable__manufacturer-hosa__01.jpg",
+      "01_FULL_CABLE/vid-sdi-3g__full-cable__manufacturer-hosa__02.jpg",
+      "01_FULL_CABLE/vid-sdi-3g__full-cable__manufacturer-hosa__03.jpg",
+      "01_FULL_CABLE/vid-sdi-3g__full-cable__manufacturer-hosa__04.jpg"
+    ],
+    "shapeFiles": [
+      "../_CONNECTOR_SHAPES/shape-bnc75/02_END_A/shape-bnc75__end-a__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-bnc75/02_END_A/shape-bnc75__end-a__secondary-commons__02.jpg",
+      "../_CONNECTOR_SHAPES/shape-bnc75/02_END_A/shape-bnc75__end-a__official-manufacturer__01.jpg"
+    ],
+    "pack": "02_CABLES_AND_CONNECTORS/VID-SDI-3G/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "VID-SDI-6G-12G": {
+    "folder": "02_CABLES_AND_CONNECTORS/VID-SDI-6G-12G",
+    "identity": "",
+    "exactness": "CONNECTOR_SHAPE_REFERENCE_ONLY (game does not bind cable to a brand/SKU)",
+    "readiness": "COMPLETE_SHAPE_REFERENCE",
+    "evidenceClass": "shape-reference",
+    "missing": "12G rating cannot be seen in a photo; Neutrik drawing is true-75 ohm HD-BNC family",
+    "notes": "12G rating cannot be seen in a photo; Neutrik drawing is true-75 ohm HD-BNC family",
+    "files": [
+      "01_FULL_CABLE/vid-sdi-6g-12g__full-cable__secondary__01.jpg"
+    ],
+    "shapeFiles": [
+      "../_CONNECTOR_SHAPES/shape-bnc75/02_END_A/shape-bnc75__end-a__secondary-commons__01.jpg",
+      "../_CONNECTOR_SHAPES/shape-bnc75/02_END_A/shape-bnc75__end-a__secondary-commons__02.jpg",
+      "../_CONNECTOR_SHAPES/shape-bnc75/02_END_A/shape-bnc75__end-a__official-manufacturer__01.jpg",
+      "../VID-SDI-3G/01_FULL_CABLE/vid-sdi-3g__full-cable__manufacturer-hosa__01.jpg",
+      "../VID-SDI-3G/01_FULL_CABLE/vid-sdi-3g__full-cable__manufacturer-hosa__02.jpg",
+      "../VID-SDI-3G/01_FULL_CABLE/vid-sdi-3g__full-cable__manufacturer-hosa__03.jpg",
+      "../VID-SDI-3G/01_FULL_CABLE/vid-sdi-3g__full-cable__manufacturer-hosa__04.jpg"
+    ],
+    "pack": "02_CABLES_AND_CONNECTORS/VID-SDI-6G-12G/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  },
+  "comica-wm300-owner-claim": {
+    "folder": "04_PENDING_UNVERIFIED/comica-wm300-owner-claim",
+    "identity": "Owner photo label claim: COMICA WM300 / WM300-TX; conflict evidence only not a game target",
+    "exactness": "OWNER_PHOTO_CONFLICT_ONLY",
+    "readiness": "OWNER_CONFLICT_ARCHIVE_ONLY",
+    "evidenceClass": "archive-only",
+    "missing": "exact legacy WM300 variant; receiver/transmitter labels; individual views",
+    "notes": "One owner-photo-conflict file; separate from WM100 PLUS and WM300II.",
+    "files": [
+      "01_OVERVIEW/10__owner__comica-wm300-conflict.jpg"
+    ],
+    "shapeFiles": [],
+    "pack": "04_PENDING_UNVERIFIED/comica-wm300-owner-claim/MODELING_REFERENCE_PACK.md",
+    "packRead": true
+  }
+}

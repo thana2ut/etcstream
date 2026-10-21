@@ -78,7 +78,7 @@ def build(kind):
     cube("upper front control island",(0,-d/2-.002,h*.48),(w*.75,.003,h*.17),edge,.007)
     cube("LCD gold frame",(0,-d/2-.003,h*.70),(w*.66,.003,h*.20),gold,.005)
     cube("LCD screen",(0,-d/2-.005,h*.70),(w*.59,.001,h*.17),lcd,.003)
-    text("LCD frequency", "CH 8   512.5MHz",(0,-d/2-.0058,h*.70),.009,ink)
+    text("LCD channel", "RX A/B" if rx else "TX CH --",(0,-d/2-.0058,h*.70),.009,ink)
     text("LCD group", "GROUP A     RF",(0,-d/2-.0058,h*.745),.0065,ink)
     text("COMICA wordmark","COMICA",(0,-d/2-.003,h*.16),.017)
     for x,mark in ((-w*.23,"<"),(0,"SET"),(w*.23,">")):
@@ -98,6 +98,11 @@ def build(kind):
     cyl("3.5 mm jack black well",(px,0,h+.004),.008,.001,black)
     cyl("3.5 mm jack opening",(px,0,h+.0047),.0032,.0005,panel)
     text("port label", "AUDIO OUT" if rx else "MIC IN", (px, -d*.32,h+.002), .006, white, (0,0,0))
+    # Second visible top jack from the WM100 PLUS official gallery; visual-only, no invented game port.
+    aux=-w*.08
+    cyl("monitor jack" if rx else "line input jack",(aux,0,h+.001),.009,.004,metal)
+    cyl("secondary jack well",(aux,0,h+.0035),.004,.001,black)
+    text("secondary jack label", "MONITOR" if rx else "LINE IN",(aux,-d*.32,h+.002),.005,white,(0,0,0))
     if rx:
         cyl("second receiver antenna base",(w*.39,0,h+.006),.011,.018,edge)
         cyl("second receiver antenna",(w*.39,0,h+.087),.0035,.15,black)
@@ -109,6 +114,8 @@ def build(kind):
     anchor.location=(px,0,h+.005)
     anchor["connector"]="3.5 mm TRS"
     anchor["direction"]="OUTPUT" if rx else "INPUT"
+    anchor["reference_pack"]="04_PENDING_UNVERIFIED/comica-wm100-plus/MODELING_REFERENCE_PACK.md"
+    anchor["evidence_status"]="OWNER_SELECTED_GAME_TARGET / PARTIAL_REFERENCE"
     bpy.ops.wm.save_as_mainfile(filepath=str(ROOT/f"art/blender/comica-wm100-plus-{kind}.blend"))
     bpy.ops.export_scene.gltf(filepath=str(OUT/f"comica-wm100-plus-{kind}.glb"),export_format="GLB",export_extras=True,export_animations=False,export_cameras=False,export_lights=False)
     print("COMICA",kind,(OUT/f"comica-wm100-plus-{kind}.glb").stat().st_size)

@@ -90,7 +90,7 @@ export function SamsungTv({ feed = "off|0|empty", interactive = false }: { feed?
   useEffect(() => () => texture?.dispose(), [texture]);
   return <group>
     <GlbModel url="/models/equipment/samsung-u8000f.glb" fallback={<mesh><boxGeometry args={[1, .588, .046]} /><meshStandardMaterial color="#171a1d" /></mesh>} />
-    <mesh position={[0, .003, .017]}>
+    <mesh position={[0, .003, .0185]}>
       <planeGeometry args={[.958, .532]} />
       {texture ? <meshBasicMaterial map={texture} toneMapped={false} /> : <meshStandardMaterial color="#04070c" metalness={.22} roughness={.18} />}
     </mesh>

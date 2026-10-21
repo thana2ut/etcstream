@@ -10,11 +10,12 @@ const PHASE04 = [
   "bmd-hyperdeck-studio-hd-plus", "bmd-micro-converter-hdmi-sdi-3g", "bmd-micro-converter-sdi-hdmi-3g", "bmd-smartview-duo",
   "bmd-studio-camera-4k-plus-g2", "bmd-studio-camera-4k-pro-g2", "bmd-ursa-broadcast-g2", "bmd-camera-fiber-converter", "bmd-studio-fiber-converter",
 ];
-const KIND_OF = { SDI: ["bnc"], HDMI: ["hdmi"], ETHERNET: ["rj45"], "USB-C": ["usbc"], XLR: ["xlr3f", "xlr3m"], "6.35mm": ["trs"], "3.5mm": ["jack35"], FIBER: ["smpte"] };
+const PHASE05 = ["aja-3g-ama", "magewell-usb-capture-sdi-gen2", "shure-sm58"];
+const KIND_OF = { "USB-A": ["usba"], SDI: ["bnc"], HDMI: ["hdmi"], ETHERNET: ["rj45"], "USB-C": ["usbc"], XLR: ["xlr3f", "xlr3m"], "6.35mm": ["trs"], "3.5mm": ["jack35"], FIBER: ["smpte"] };
 
-test("Phase 04: exactly the 14 verified models are modelled; pending hardware is not", () => {
-  assert.deepEqual(Object.keys(MODEL_GEOMETRY).sort(), [...PHASE04].sort());
-  for (const pending of ["aja-3g-ama", "magewell-usb-capture-sdi-gen2", "generic-4ch-mixer", "generic-studio-switcher"]) assert.equal(MODEL_GEOMETRY[pending], undefined, pending);
+test("Phase 04/05: exactly the 14 + 3 verified models are modelled; generic hardware is not", () => {
+  assert.deepEqual(Object.keys(MODEL_GEOMETRY).sort(), [...PHASE04, ...PHASE05].sort());
+  for (const pending of ["generic-4ch-mixer", "generic-studio-switcher", "generic-sdi-usb-capture"]) assert.equal(MODEL_GEOMETRY[pending], undefined, pending);
 });
 
 test("Phase 04: every registry port has exactly one 3D socket of the right connector type, and nothing extra is connectable", () => {
@@ -103,4 +104,28 @@ test("Phase 04.2: pressing an on-device button is the same state change as the O
   const m5 = solve("m-5", { stopAt: "signal" });
   const cycled = interactWithTarget(m5, { kind: "control", deviceId: "rec", key: "rec-input", value: "cycle", label: "INPUT" });
   assert.equal(cycled.sim.config.rec["rec-input"], "HDMI", "INPUT cycles SDI → HDMI");
+});
+
+test("Phase 05: AJA / Magewell SDI / SM58 sockets match the registry and real connector families", () => {
+  for (const id of PHASE05) {
+    const geo = MODEL_GEOMETRY[id], model = MODELS[id];
+    assert.deepEqual(Object.keys(geo.ports).sort(), model.ports.map((p) => p.key).sort(), `${id} port set`);
+    for (const p of model.ports) assert.ok((KIND_OF[p.connector] ?? []).includes(geo.ports[p.key].kind), `${id}:${p.key}`);
+    const [w, h, d] = geo.size;
+    for (const p of Object.values(geo.ports)) {
+      const [x, y, z] = p.at, slack = p.lead ? 0.2 : 0.025;   // attached leads reach ≤ 20 cm from the chassis
+      assert.ok(Math.abs(x) <= w / 2 + slack && y >= -0.001 && y <= h + slack && Math.abs(z) <= d / 2 + slack, `${id} socket bounds`);
+    }
+    assert.ok(geo.displayScale >= 1 && geo.displayScale <= 2.5);
+  }
+  // Magewell body jack is MCX (inert) — the BNC the player uses is on the bundled ACC00050 pigtail; USB is Type-A female.
+  const mw = MODEL_GEOMETRY["magewell-usb-capture-sdi-gen2"];
+  assert.equal(mw.inert.find((p) => p.kind === "mcx")?.name, "SDI IN (MCX, body)");
+  assert.equal(mw.ports["sdi-in"].lead, true);
+  assert.equal(mw.ports.usb.kind, "usba");
+  // AJA audio arrives on breakout XLR F inputs A/B, never on a chassis XLR; the chassis carries one DB-25.
+  const aja = MODEL_GEOMETRY["aja-3g-ama"];
+  assert.ok(aja.ports["audio-l"].lead && aja.ports["audio-r"].lead);
+  assert.equal(aja.inert.filter((p) => p.kind === "db25").length, 1);
+  assert.equal(MODEL_GEOMETRY["shure-sm58"].ports["xlr-out"].kind, "xlr3m");
 });

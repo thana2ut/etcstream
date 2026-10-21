@@ -68,7 +68,11 @@ test("classroom laptop faces its teacher seat and the camera frames the teacher"
     const dx = teacher[0] - laptop.position[0], dz = teacher[1] - laptop.position[2];
     assert.ok((Math.sin(laptop.yaw) * dx + Math.cos(laptop.yaw) * dz) / Math.hypot(dx, dz) > 0.98, "screen front must face the teacher");
     const port = scenario.ports["slides:hdmi-out"];
-    assert.ok(port.position[0] > laptop.position[0], "HDMI follows the rotated laptop side");
+    const {equipmentVisualGeometry}=load('../game/rendering/equipment-visual-profile.ts');
+    const geometry=equipmentVisualGeometry(laptop.modelId),anchor=geometry.ports['hdmi-out'];
+    const x=(anchor.at[0]*geometry.displayScale+anchor.normal[0]*.006),z=(anchor.at[2]*geometry.displayScale+anchor.normal[2]*.006);
+    assert.ok(Math.abs(port.position[0]-laptop.position[0]-x*Math.cos(laptop.yaw)-z*Math.sin(laptop.yaw))<.0002,'HDMI follows the photographed ProBook side after teacher-facing yaw');
+    assert.ok(Math.abs(port.position[2]-laptop.position[2]+x*Math.sin(laptop.yaw)-z*Math.cos(laptop.yaw))<.0002);
     const camera = scenario.devices.find((d) => d.id === "cam1");
     if (camera) {
       assert.deepEqual(camera.position, layout.places.cam1.p);
@@ -122,6 +126,7 @@ test("studio monitors reflect partial patching, selected camera, audio and strea
 
 test("studio cameras cover the interview set from three distinct angles and stored bodies fit their return desk", () => {
   const { LAYOUTS, STUDIO_MISSION_SETS, onSurface } = load("../game/training/venue-layouts.ts");
+  const { stagingFootprint } = load("../game/training/venue-scenarios.ts");
   const layout = LAYOUTS.studioMission;
   const scenario = SCENARIOS["s-5"];
   const target = STUDIO_MISSION_SETS.interview;
@@ -137,7 +142,9 @@ test("studio cameras cover the interview set from three distinct angles and stor
   for (const item of items) assert.ok(onSurface(layout.equipment, item.start[0], item.start[2]));
   for (let i = 0; i < items.length; i++) for (let j = i + 1; j < items.length; j++) {
     const a = items[i], b = items[j];
-    const apart = Math.abs(a.start[0] - b.start[0]) >= (a.device.size[0] + b.device.size[0]) / 2 || Math.abs(a.start[2] - b.start[2]) >= (a.device.size[2] + b.device.size[2]) / 2;
+    const fa = stagingFootprint(a.device), fb = stagingFootprint(b.device);
+    const apart = a.start[0] + fa.maxX <= b.start[0] + fb.minX || b.start[0] + fb.maxX <= a.start[0] + fa.minX
+      || a.start[2] + fa.maxZ <= b.start[2] + fb.minZ || b.start[2] + fb.maxZ <= a.start[2] + fa.minZ;
     assert.ok(apart, `${a.id} overlaps ${b.id}`);
   }
 });
@@ -204,7 +211,7 @@ test("equipment coverage: every non-decoy device takes part in the documented gr
     const role = (id) => MODELS[s.simDevices[id].model].role;
     // A handheld transmitter has no cable: it takes part through the RF link to a receiver that IS in the graph.
     const rfLinked = (id) => role(id) === "wireless-tx" && MODELS[s.simDevices[id].model].ports.length === 0 && s.devices.some((r) => role(r.id) === "wireless-rx" && used.has(r.id));
-    for (const d of s.devices) assert.ok(used.has(d.id) || rfLinked(d.id) || (s.stage.decoys ?? []).includes(d.id), `${s.id} orphan ${d.id}`);
+    for (const d of s.devices) assert.ok(d.stockOnly || used.has(d.id) || rfLinked(d.id) || (s.stage.decoys ?? []).includes(d.id), `${s.id} orphan ${d.id}`);
   }
 });
 test("cable coverage: every lead is a documented patch or a listed spare/decoy, with a length tag", () => {
@@ -262,6 +269,93 @@ test("venue placement: every port, control and cable start sits inside its venue
       if (s.level !== 4 && !item.installed) assert.ok(onSurface(L.equipment, item.start[0], item.start[2], 0.05), `${s.id}: ${item.id} must start in equipment storage`);
     }
   }
+});
+
+test("every mission venue uses a dedicated, stable equipment preparation table", () => {
+  const { LAYOUTS, onSurface, layoutObstacles } = load("../game/training/venue-layouts.ts");
+  const { MISSION_ROOMS } = load("../game/training/sim/rooms.ts");
+  for (const layoutId of ["classroom", "studioMission", "auditorium", "outdoor", "stadium"]) {
+    const layout = LAYOUTS[layoutId];
+    const table = layout.furniture.find((f) => f.kind === "equipmentPrep");
+    assert.ok(table, `${layoutId}: missing equipment preparation table`);
+    assert.ok(onSurface(layout.equipment, table.center[0], table.center[2]), `${layoutId}: staging surface is not on its table`);
+    assert.equal(layout.equipment.center[1], table.size[1], `${layoutId}: equipment must rest on the tabletop`);
+    assert.ok(Math.max(table.size[0], table.size[2]) >= 2.8, `${layoutId}: preparation table is too short`);
+    const scenarios = venues.filter((s) => s.layout === layoutId);
+    assert.deepEqual([...new Set(scenarios.map((s) => s.level))], [1, 2, 3, 4, 5], `${layoutId}: table layout must cover all levels`);
+
+    // Confirm there is a collision-free, navigable approach to at least one long side of the table.
+    const allBlockers = layoutObstacles(layout);
+    const tableBlocker = allBlockers.find((b) => b.center[0] === table.center[0] && b.center[2] === table.center[2]
+      && b.half[0] === table.size[0] / 2 && b.half[2] === table.size[2] / 2);
+    assert.ok(tableBlocker, `${layoutId}: the visible table must have a matching movement collider`);
+    const blockers = allBlockers.filter((b) => b !== tableBlocker);
+    const radius = 0.3, step = 0.25;
+    const free = (x, z) => x >= layout.bounds.minX + radius && x <= layout.bounds.maxX - radius
+      && z >= layout.bounds.minZ + radius && z <= layout.bounds.maxZ - radius
+      && !blockers.some((b) => Math.abs(x - b.center[0]) < b.half[0] + radius
+        && Math.abs(z - b.center[2]) < b.half[2] + radius);
+    const key = (ix, iz) => `${ix},${iz}`;
+    const point = (ix, iz) => [layout.bounds.minX + radius + ix * step, layout.bounds.minZ + radius + iz * step];
+    const nx = Math.floor((layout.bounds.maxX - layout.bounds.minX - 2 * radius) / step);
+    const nz = Math.floor((layout.bounds.maxZ - layout.bounds.minZ - 2 * radius) / step);
+    const start = [Math.round((layout.spawn[0] - (layout.bounds.minX + radius)) / step), Math.round((layout.spawn[2] - (layout.bounds.minZ + radius)) / step)];
+    const queue = [start], reached = new Set([key(...start)]);
+    assert.ok(free(...point(...start)), `${layoutId}: player spawn is blocked`);
+    for (let cursor = 0; cursor < queue.length; cursor++) {
+      const [ix, iz] = queue[cursor];
+      for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]]) {
+        const next = [ix + dx, iz + dz], nextKey = key(...next);
+        if (next[0] < 0 || next[0] > nx || next[1] < 0 || next[1] > nz || reached.has(nextKey) || !free(...point(...next))) continue;
+        if (dx && dz && (!free(...point(ix + dx, iz)) || !free(...point(ix, iz + dz)))) continue;
+        reached.add(nextKey); queue.push(next);
+      }
+    }
+    const approach = (table.size[0] >= table.size[2]
+      ? [[table.center[0], table.center[2] - table.size[2] / 2 - 0.4], [table.center[0], table.center[2] + table.size[2] / 2 + 0.4]]
+      : [[table.center[0] - table.size[0] / 2 - 0.4, table.center[2]], [table.center[0] + table.size[0] / 2 + 0.4, table.center[2]]])
+    .map(([x, z]) => [Math.round((x - (layout.bounds.minX + radius)) / step), Math.round((z - (layout.bounds.minZ + radius)) / step)]);
+    assert.ok(approach.some(([ix, iz]) => reached.has(key(ix, iz))), `${layoutId}: table has no reachable standing position`);
+
+    for (const scenario of scenarios) {
+      const staged = scenario.placeables.filter((p) => onSurface(layout.equipment, p.start[0], p.start[2]));
+      if (scenario.stage.prewired !== "all") {
+        for (const id of scenario.stage.devices.filter((deviceId) => MISSION_ROOMS[scenario.venueScale].portable.includes(deviceId))) {
+          const item = scenario.placeables.find((p) => p.id === id);
+          assert.ok(item, `${scenario.id}/${id}: required portable equipment must remain available`);
+          assert.ok(onSurface(layout.equipment, item.start[0], item.start[2]), `${scenario.id}/${id}: required portable equipment must start on the prep table`);
+        }
+      }
+      const footprints = [];
+      for (const item of staged) {
+        const [w, , d] = item.device.size;
+        const yaw = item.device.yaw ?? 0;
+        const hx = (Math.abs(Math.cos(yaw)) * w + Math.abs(Math.sin(yaw)) * d) / 2;
+        const hz = (Math.abs(Math.sin(yaw)) * w + Math.abs(Math.cos(yaw)) * d) / 2;
+        assert.equal(item.start[1], layout.equipment.center[1], `${scenario.id}/${item.id}: stored gear must rest on the tabletop`);
+        assert.ok(Math.abs(item.start[0] - layout.equipment.center[0]) + hx <= layout.equipment.size[0] / 2 + 0.01,
+          `${scenario.id}/${item.id}: stored gear extends past the tabletop width`);
+        assert.ok(Math.abs(item.start[2] - layout.equipment.center[2]) + hz <= layout.equipment.size[1] / 2 + 0.01,
+          `${scenario.id}/${item.id}: stored gear extends past the tabletop depth`);
+        for (const other of footprints) {
+          assert.ok(Math.abs(item.start[0] - other.x) >= hx + other.hx - 0.01
+            || Math.abs(item.start[2] - other.z) >= hz + other.hz - 0.01,
+          `${scenario.id}/${item.id} overlaps staged ${other.id}`);
+        }
+        footprints.push({ id: item.id, x: item.start[0], z: item.start[2], hx, hz });
+      }
+    }
+  }
+});
+
+test("Free Practice keeps its existing equipment and cable table zones", () => {
+  const { LAYOUTS } = load("../game/training/venue-layouts.ts");
+  const { STUDIO } = load("../game/training/studio-room-layout.ts");
+  const layout = LAYOUTS.studio;
+  assert.deepEqual(layout.equipment.center, STUDIO.sideTables[1]);
+  assert.deepEqual(layout.cables.center, STUDIO.sideTables[0]);
+  assert.ok(SCENARIOS["studio-full"].placeables.length > 0);
+  assert.ok(SCENARIOS["studio-full"].cables.length > 0);
 });
 test("SDI switcher takes HDMI sources only through explicit converters", () => {
   // Rebuilt topology: the HDMI graphics PC in SP reaches the SDI router/Constellation through a Micro Converter.
@@ -324,12 +418,14 @@ test("scene font loading is shared and can retry after a failed local request", 
 
 
 test("large venue sockets stay on generic equipment panels with unit normals", () => {
+ const { MODEL_GEOMETRY }=load("../game/training/sim/model-geometry.ts");
  for (const scenario of venues.filter(s => ["m", "l", "xl"].includes(s.venueScale))) {
-  for(const port of Object.values(scenario.ports)) {
+  for(const [portId,port] of Object.entries(scenario.ports)) {
    assert.ok(port.normal, `${scenario.id}: missing physical panel normal`);
    assert.ok(Math.abs(Math.hypot(...port.normal)-1)<1e-6);
    const d=scenario.devices.find(d=>d.id===port.device), dx=port.position[0]-d.position[0], dz=port.position[2]-d.position[2];
-   if(d.kind!=="camera" && d.kind!=="mic") assert.ok(Math.hypot(dx,dz)<Math.hypot(d.size[0],d.size[2])/2+0.02, `${scenario.id}: ${d.id} floating socket`);
+   const lead=d.modelId && MODEL_GEOMETRY[d.modelId]?.ports[portId.slice(d.id.length+1)]?.lead;
+   if(d.kind!=="camera" && d.kind!=="mic" && !lead) assert.ok(Math.hypot(dx,dz)<Math.hypot(d.size[0],d.size[2])/2+0.02, `${scenario.id}: ${d.id} floating socket`);
   }
  }
 });

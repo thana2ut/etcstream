@@ -552,7 +552,7 @@ const MAGEWELL_SDI: EquipmentDefinition = {
   ...SDI_CAPTURE, modelId: "magewell-usb-capture-sdi-gen2", manufacturer: "Magewell", name: "Magewell USB Capture SDI Gen 2 (32070)", generic: false, size: [0.092, 0.012, 0.04],
   sourceUrl: "https://www.magewell.com/products/usb-capture-sdi-gen-2", assetLicense: LICENSE_ORIGINAL,
   verifiedPorts: ["SDI IN (SD/HD/3G + embedded audio)", "USB 3.0 (host connection)"],
-  notes: ["สเปกทางการ: part 32070, SDI 3G in + เสียงฝัง, USB 3.0, 92.2 × 40.2 × 12.3 มม.", "ชนิดขั้ว USB ฝั่งตัวเครื่องไม่ระบุในหน้าทางการ (ในเกมแสดงปลายฝั่งคอมพิวเตอร์ USB-A)"],
+  notes: ["สเปกทางการ: part 32070, SDI 3G in + เสียงฝัง, USB 3.0, 92.2 × 40.2 × 12.3 มม.", "ตัวเครื่องจริงเป็นขั้ว MCX ใช้สายหาง MCX→BNC ACC00050 (33 ซม.) ที่แถมมา ในเกมจุดเสียบ SDI IN อยู่ที่ปลาย BNC ของสายหาง", "ขั้ว USB ฝั่งตัวเครื่องเป็น USB 3.0 Type-A ตัวเมีย (ภาพทางการด้านปลาย)"],
 };
 const VIDEOHUB_20: EquipmentDefinition = {
   modelId: "bmd-videohub-20x20-12g", manufacturer: "Blackmagic Design", name: "Blackmagic Videohub 20x20 12G", generic: false, kind: "box", size: [0.48, 0.044, 0.3],

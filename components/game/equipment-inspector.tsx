@@ -1,19 +1,17 @@
 "use client";
 
-import { simThai } from "@/game/content/sim-thai";
 import { useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Bounds, Center, OrbitControls } from "@react-three/drei";
 import { useTrainingStore } from "@/game/stores/training-store";
 import { plugFits, scenarioOf } from "@/game/training/hdmi-training";
 import { portOf } from "@/game/training/sim/engine";
-import type { DeviceDef } from "@/game/training/scenarios";
-import { EQUIPMENT_INFO } from "@/game/content/equipment-info";
-import { simEquipmentInfo } from "@/game/content/sim-equipment-info";
+import { inspectSubject } from "@/game/content/inspect-info";
 import { INSPECT_HOLD_MS } from "./first-person-controller";
 import { Hds7105Model } from "./equipment/hds7105";
 import { DeviceVisual } from "./equipment/device-visual";
 import { SamsungTv } from "./equipment/samsung-tv";
+import { CableInspector } from "@/components/ui/cable-model";
 
 /** Progress ring while E is held on a device. */
 export function InspectHoldRing() {
@@ -35,34 +33,14 @@ export function EquipmentInspector() {
   }, [id, close]);
   if (!id) return null;
 
-  // Mission venues use mission-only knowledge; free practice keeps its studio notes.
-  const info = scenario.simDevices?.[id] ? simEquipmentInfo(scenario, id) : EQUIPMENT_INFO[id];
-  const device: DeviceDef | undefined = scenario.devices.find((d) => d.id === id);
+  const subject = inspectSubject(scenario, id);
+  if (subject.kind === "cable") return <CableInspector cable={subject.catalog} definition={subject.cable} onClose={() => close(null)} />;
+  const { info, device, evidence } = subject;
   const ports = Object.values(scenario.ports).filter((p) => p.device === id);
   const inputs = ports.filter((p) => p.direction === "INPUT");
   const outputs = ports.filter((p) => p.direction === "OUTPUT");
 
-  // Mission Hall: a compact, optional card beside the 3D room (the room stays the main interface). ESC / ✕ closes it.
-  if (scenario.venueScale) return <aside className="inspector-compact glass-card" role="dialog" aria-labelledby="inspector-title">
-    <button type="button" className="inspector-close" onClick={() => close(null)} aria-label="ปิดข้อมูลอุปกรณ์">✕</button>
-    <span className="inspector-role">{info?.role ?? "อุปกรณ์"}</span>
-    <h2 id="inspector-title">{simThai(device?.label ?? id)}</h2>
-    <strong className="inspector-model">{info?.model ?? device?.model}</strong>
-    <details open><summary>คืออะไร / ใช้ทำอะไร</summary><p>{info?.summary ?? "อุปกรณ์ในระบบของด่านนี้"}</p></details>
-    {info && info.facts.length > 0 && <details><summary>ควรรู้</summary><ul>{info.facts.map((f) => <li key={f}>{f}</li>)}</ul></details>}
-    {ports.length > 0 && <details><summary>พอร์ต ({ports.length})</summary><ul>{[...inputs, ...outputs].map((p) => <li key={p.label}>{p.label} · {p.direction === "INPUT" ? "ขาเข้า" : "ขาออก"}</li>)}</ul></details>}
-    {scenario.stage && <details><summary>ดูหัวสายที่รองรับแต่ละพอร์ต</summary>
-      <p>เป็นคำแนะนำชนิดสาย ต้องเดินไปต่อที่พอร์ตจริงและตรวจไฟเลี้ยง รูปแบบ และการตั้งค่าเอง</p>
-      {Object.entries(scenario.ports).filter(([, p]) => p.device === id).map(([gid, p]) => {
-        const signal = scenario.simDevices ? portOf(scenario.simDevices, gid)?.sig : undefined;
-        const choices = scenario.cables.filter((c) => c.ends.some((end) => plugFits(end, p)) && c.signalClass && (c.signalClass === signal || (["MIC", "LINE_BAL"].includes(c.signalClass) && ["MIC", "LINE_BAL"].includes(signal ?? ""))));
-        return <details key={gid}><summary>{p.label} · {p.connector}</summary><p>{choices.length ? choices.map((c) => `${c.id} (${c.ends.join(" ↔ ")})`).join("; ") : "ยังไม่มีคำแนะนำสายที่ยืนยันชนิดสัญญาณตรงกัน ตรวจข้อมูลหัวต่อและหน้าที่พอร์ต"}</p></details>;
-      })}
-    </details>}
-    {info && <details open><summary>ในด่านนี้</summary><p>{info.inThisRoom}</p></details>}
-    <p className="inspector-unverified">สถานะข้อมูล: {device?.status === "CONFIRMED" ? "ตรวจสอบข้อมูลแล้ว" : "อุปกรณ์จำลองเพื่อฝึก"} · โมเดล 3D เป็นตัวแทนชั่วคราว (รอปั้นโมเดลจริง){info && info.unverified.length > 0 ? ` · ยังไม่ยืนยัน: ${info.unverified.join(", ")}` : ""}</p>
-  </aside>;
-
+  // Hold-E opens the same orbit viewer immediately in Free Practice and every mission.
   return <div className="inspector-overlay" role="dialog" aria-modal="true" aria-labelledby="inspector-title">
     <div className="inspector-stage">
       <Canvas camera={{ fov: 40, position: [1.6, 1.2, 2.2] }} dpr={[1, 1.7]}>
@@ -71,7 +49,7 @@ export function EquipmentInspector() {
         <directionalLight position={[3, 4, 3]} intensity={2.4} />
         <directionalLight position={[-3, 2, -2]} intensity={1.1} />
         <Bounds fit clip observe margin={1.15}>
-          <Center>{id === "switcher" ? <Hds7105Model /> : id === "monitor" ? <SamsungTv /> : device && <DeviceVisual device={device} bare />}</Center>
+          <Center>{!scenario.venueScale && id === "switcher" ? <Hds7105Model /> : !scenario.venueScale && id === "monitor" ? <SamsungTv /> : device ? <DeviceVisual device={device} bare /> : <mesh><boxGeometry args={[0.3, 0.15, 0.2]} /><meshStandardMaterial color="#4b5563" /></mesh>}</Center>
         </Bounds>
         <OrbitControls makeDefault enableDamping minDistance={0.35} maxDistance={8} minPolarAngle={Math.PI * 0.08} maxPolarAngle={Math.PI * 0.92} />
       </Canvas>
@@ -82,7 +60,8 @@ export function EquipmentInspector() {
       <span className="inspector-role">{info?.role ?? "อุปกรณ์"}</span>
       <h2 id="inspector-title">{info?.name ?? device?.label ?? id}</h2>
       <strong className="inspector-model">{info?.model ?? device?.model}</strong>
-      {device?.status && <p>{device.status === "CONFIRMED" ? "ตรวจสอบข้อมูลแล้ว" : "อุปกรณ์จำลองเพื่อฝึก"} · {device.generic ? "โมเดลฝึกแทน ยังไม่ใช่โมเดลสินค้าเหมือนจริง" : ""}</p>}
+      <p>{evidence.classLabel} · {evidence.readinessLabel}</p>
+      <p className="inspector-unverified">{evidence.note}</p>
       {info && <p>{info.summary}</p>}
       {info && info.facts.length > 0 && <><h3>ควรรู้</h3><ul>{info.facts.map((f) => <li key={f}>{f}</li>)}</ul></>}
       {info && <><h3>{scenario.venueScale ? "ในด่านนี้" : "ในห้องฝึกนี้"}</h3><p className="inspector-flow">{info.inThisRoom}</p></>}
@@ -93,6 +72,14 @@ export function EquipmentInspector() {
           {outputs.length > 0 && <div><em>ขาออก</em>{outputs.map((p) => <span key={p.label}>{p.label}</span>)}</div>}
         </div>
       </>}
+      {scenario.stage && <details><summary>ดูหัวสายที่รองรับแต่ละพอร์ต</summary>
+        <p>เป็นคำแนะนำชนิดสาย ต้องเดินไปต่อที่พอร์ตจริงและตรวจไฟเลี้ยง รูปแบบ และการตั้งค่าเอง</p>
+        {Object.entries(scenario.ports).filter(([, p]) => p.device === id).map(([gid, p]) => {
+          const signal = scenario.simDevices ? portOf(scenario.simDevices, gid)?.sig : undefined;
+          const choices = scenario.cables.filter((c) => c.ends.some((end) => plugFits(end, p)) && c.signalClass && (c.signalClass === signal || (["MIC", "LINE_BAL"].includes(c.signalClass) && ["MIC", "LINE_BAL"].includes(signal ?? ""))));
+          return <details key={gid}><summary>{p.label} · {p.connector}</summary><p>{choices.length ? choices.map((c) => `${c.id} (${c.ends.join(" ↔ ")})`).join("; ") : "ยังไม่มีคำแนะนำสายที่ยืนยันชนิดสัญญาณตรงกัน ตรวจข้อมูลหัวต่อและหน้าที่พอร์ต"}</p></details>;
+        })}
+      </details>}
       {info && info.unverified.length > 0 && <p className="inspector-unverified">ยังไม่ยืนยันกับของจริง: {info.unverified.join(" · ")}</p>}
     </aside>
   </div>;

@@ -439,7 +439,7 @@
 .inspect-hold span { font-size: .78rem; color: var(--gold-300); }
 @keyframes inspect-fill { to { stroke-dashoffset: 0; } }
 .inspector-overlay { position: fixed; inset: 0; z-index: 200; display: grid; grid-template-columns: 1fr min(440px, 38vw); background: rgba(5, 8, 13, .96); }
-.inspector-stage { position: relative; min-height: 0; }
+.inspector-stage { position: relative; min-height: 0; min-width: 0; }
 .inspector-hint { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); margin: 0; font-size: .82rem; color: var(--text-300); }
 .inspector-panel { margin: 16px; padding: 22px 22px 18px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
 .inspector-panel h2 { margin: 0; font-family: var(--font-brush); color: var(--gold-300); font-size: 1.9rem; line-height: 1.5; }
@@ -456,7 +456,7 @@
 .inspector-unverified { font-size: .78rem !important; color: var(--text-500) !important; border-top: 1px solid var(--border-soft); padding-top: 8px; }
 .inspector-close { position: absolute; top: 12px; right: 12px; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border-gold); background: rgba(10,14,22,.7); color: var(--gold-300); cursor: pointer; }
 .inspector-panel { position: relative; }
-@media (max-width: 860px) { .inspector-overlay { grid-template-columns: 1fr; grid-template-rows: 55vh 1fr; } }
+@media (max-width: 860px) { .inspector-overlay { grid-template-columns: minmax(0, 1fr); grid-template-rows: 55vh minmax(0, 1fr); } }
 
 /* Touch controls keep the full training flow playable on tablets and phones. */
 .touch-controls {

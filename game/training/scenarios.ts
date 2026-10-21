@@ -21,7 +21,8 @@ export type Direction = "INPUT" | "OUTPUT";
 export type Connector = "HDMI" | "USB-A" | "USB-C" | "3.5mm" | "6.35mm" | "XLR" | "XLR-M" | "XLR-F" | "SDI" | "RCA" | "speakON" | "IEC" | "DisplayPort" | "DC" | "ETHERNET" | "FIBER" | "MULTICORE" | "GPI" | "RS422" | "XLR4" | "COMBO" | "USB-B" | "CONTROL";
 export type SignalType = "VIDEO_HDMI" | "VIDEO_SDI" | "AUDIO_ANALOG" | "AUDIO_BALANCED" | "USB_DATA" | "NETWORK" | "FIBER_VIDEO" | "AUDIO_MULTICORE" | "CONTROL" | "COMMS";
 /** Visual style of a plug end (see components/game/cable-plugs.tsx). */
-export type PlugStyle = "fiber" | "multicore" | "control" | "ethernet" | "hdmi" | "sdi" | "xlr-m" | "xlr-f" | "trs35" | "trrs35" | "ts635" | "trs635" | "speaker635" | "rca" | "usba" | "usba3" | "usbc" | "dp" | "iec" | "dc" | "lav" | "adapter35to635" | "adapter635to35";
+export type PlugStyle = "fiber" | "multicore" | "control" | "ethernet" | "hdmi" | "sdi" | "xlr-m" | "xlr-f" | "trs35" | "trrs35" | "ts635" | "trs635" | "speaker635" | "rca" | "usba" | "usba3" | "usbc" | "dp" | "iec" | "dc" | "lav" | "adapter35to635" | "adapter635to35"
+  | "smpte" | "optical" | "lc-duplex" | "usbb" | "speakon" | "logical" | "locking35" | "rca-pair";
 export type VenueScale = "xs" | "s" | "m" | "l" | "xl";
 export type ScenarioId = "hdmi-basic" | "studio-full" | `${VenueScale}-${1 | 2 | 3 | 4 | 5}`;
 export type PlaceableItemId = string;
@@ -87,13 +88,17 @@ export interface DeviceDef {
   position: Point3; size: Point3; color: string;
   /** Rotation about Y (0 = front/ports toward +Z; cameras: lens toward −Z). */
   yaw?: number;
+  /** Venue stock: present because another level of this venue uses it; not part of this level's objective or save signature. */
+  stockOnly?: boolean;
 }
 /** Equipment the trainee carries from the equipment table (left) to its spot on the centre table. */
 export interface PlaceableDef { id: PlaceableItemId; label: string; start: Point3; zone: Point3; device?: DeviceDef;
   /** Human name of the operating position (venue layouts), shown when the player carries the item. */
   zoneLabel?: string;
   /** Desk gear that starts installed at its station (can still be lifted, carried and set back). */
-  installed?: boolean }
+  installed?: boolean;
+  /** Venue-stock item staged on the preparation table (see DeviceDef.stockOnly). */
+  stockOnly?: boolean }
 export interface Scenario {
   /** Research reconciliation remains pending until the external locked appendix is supplied. */
   selectedTopologyId?: string;
@@ -251,13 +256,13 @@ const studioCables: CableDef[] = [
   cable(7, 8, "trs635-1", "สาย 6.35 mm TRS (สเตอริโอ)", ["6.35mm", "6.35mm"], ["trs635", "trs635"], "#1b1b1f"),
   cable(8, 10, "adapter-35-635", "หัวแปลง 3.5 mm → 6.35 mm", ["6.35mm", "3.5mm"], ["adapter35to635", "adapter35to635"], "#c9a24a", { socketB: "3.5mm" }),
   cable(9, 11, "adapter-635-35", "หัวแปลง 6.35 mm → 3.5 mm", ["3.5mm", "6.35mm"], ["adapter635to35", "adapter635to35"], "#1b1b1f", { socketB: "6.35mm" }),
-  cable(10, 12, "rca-35", "สาย RCA L/R → 3.5 mm", ["RCA", "3.5mm"], ["rca", "trs35"], "#1b1b1f"),
+  cable(10, 12, "rca-35", "สาย RCA L/R → 3.5 mm", ["RCA", "3.5mm"], ["rca-pair", "trs35"], "#1b1b1f"),
   cable(11, 15, "usb-ac", "สาย USB 3.0 Type-A ↔ Type-A", ["USB-A", "USB-A"], ["usba3", "usba3"], "#1b1b1f"),
   cable(12, 18, "speaker-trs", "สายสัญญาณ Balanced 6.35 mm TRS", ["6.35mm", "6.35mm"], ["trs635", "trs635"], "#1b1b1f"),
   cable(13, 16, "xs1-xlr", "สายไมโครโฟน XLR 3-pin", ["XLR-F", "XLR-M"], ["xlr-f", "xlr-m"], "#1b1b1f"),
   cable(14, 16, "speaker-xlr", "สายสัญญาณ Balanced XLR", ["XLR-F", "XLR-M"], ["xlr-f", "xlr-m"], "#1b1b1f"),
-  { id: "lav-1", catalog: 17, label: "สายไมค์หนีบปก 1 (3.5 mm)", ends: ["3.5mm", "3.5mm"], plugs: ["lav", "trs35"], color: "#1b1b1f", start: [add(START.tx1, 0.05, 0.02, 0.1), add(START.tx1, 0.05, 0.02, 0.2)], fixedA: "lav1:mic", locked: true },
-  { id: "lav-2", catalog: 17, label: "สายไมค์หนีบปก 2 (3.5 mm)", ends: ["3.5mm", "3.5mm"], plugs: ["lav", "trs35"], color: "#1b1b1f", start: [add(START.tx2, 0.05, 0.02, 0.1), add(START.tx2, 0.05, 0.02, 0.2)], fixedA: "lav2:mic", locked: true },
+  { id: "lav-1", catalog: 17, label: "สายไมค์หนีบปก 1 (3.5 mm)", ends: ["3.5mm", "3.5mm"], plugs: ["lav", "locking35"], color: "#1b1b1f", start: [add(START.tx1, 0.05, 0.02, 0.1), add(START.tx1, 0.05, 0.02, 0.2)], fixedA: "lav1:mic", locked: true },
+  { id: "lav-2", catalog: 17, label: "สายไมค์หนีบปก 2 (3.5 mm)", ends: ["3.5mm", "3.5mm"], plugs: ["lav", "locking35"], color: "#1b1b1f", start: [add(START.tx2, 0.05, 0.02, 0.1), add(START.tx2, 0.05, 0.02, 0.2)], fixedA: "lav2:mic", locked: true },
 ];
 
 const SW_IN = ["sw:in1", "sw:in2", "sw:in3", "sw:in4"];
@@ -281,7 +286,7 @@ const studioDevices: DeviceDef[] = [
   ...cams.map((c, i): DeviceDef => ({ id: `cam${i + 1}`, label: "Camera", model: "Panasonic HC-X2000", verified: true, kind: "camera", position: c, size: [0.3, 1.5, 0.6], color: "#1c2330" })),
   { id: "capture", label: "Capture Card", model: "Magewell USB Capture HDMI Gen 2", verified: true, kind: "box", position: capture, size: [0.3072, 0.048, 0.1344], color: "#adafac" },
     { id: "computer", label: "Computer (OBS)", model: "HP 15.6-inch (ตามภาพอ้างอิง)", verified: true, kind: "laptop", position: laptop, size: [0.56, 0.03, 0.38], color: "#c5c8cc" },
-  { id: "mixer", label: "Audio Mixer", model: "YAMAHA PMX-402D-USB", verified: true, kind: "mixer", position: mixer, size: [PMX.size_web_m[0], PMX.size_web_m[1], PMX.size_web_m[2]], color: "#1f3a6b" },
+  { id: "mixer", label: "Audio Mixer", model: "PMX-402D-USB (อ้างอิงภาพเจ้าของ · ผู้ผลิตยังไม่ยืนยัน)", verified: true, kind: "mixer", position: mixer, size: [PMX.size_web_m[0], PMX.size_web_m[1], PMX.size_web_m[2]], color: "#1f3a6b" },
   { id: "mic", label: "Microphone", model: "Sennheiser XS 1", verified: true, kind: "mic", position: mic, size: [0.212, 0.052, 0.052], color: "#1a1a1a" },
   { id: "rx", label: "Wireless Receiver", model: "COMICA WM100 PLUS RX", verified: true, kind: "bodypack", position: rx, size: [0.17, 0.44, 0.07], color: "#15181d" },
   { id: "tx1", label: "Wireless TX 1", model: "COMICA WM100 PLUS TX 1", verified: true, kind: "bodypack", position: tx1, size: [0.155, 0.43, 0.065], color: "#15181d" },

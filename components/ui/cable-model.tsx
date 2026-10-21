@@ -5,38 +5,39 @@ import { Canvas } from "@react-three/fiber";
 import { Bounds, Center, OrbitControls, PerspectiveCamera, useGLTF, View } from "@react-three/drei";
 import { CatmullRomCurve3, Vector3 } from "three";
 import { PlugMesh } from "@/components/game/cable-plugs";
-import type { PlugStyle } from "@/game/training/scenarios";
+import type { CableDef, PlugStyle } from "@/game/training/scenarios";
 import type { CatalogCable } from "@/game/content/cable-catalog";
+import { referenceEvidence } from "@/game/content/reference-evidence";
+import { inspectCableKey } from "@/game/content/inspect-info";
 
 /**
  * 3D model of one catalog cable for the cable-prep lobby.
- * Now: TEMPORARY placeholder built from the game's plug meshes + a coiled lead.
- * Later: drop a sculpted GLB at `public/models/cables/<file>.glb` and register it in CABLE_MODEL_FILES — the viewer
- * then shows the real model instead of the placeholder, with no other code change.
+ * Reference-driven procedural connector family + a representative coil. Shares heads with the playable room.
+ * Unresolved optical/multicore endings stay generic. Optional authored GLBs can use the same viewer.
  */
 export const CABLE_MODEL_FILES: Record<string, string> = {
   // "VID-HDMI-A-A": "/models/cables/vid-hdmi-a-a.glb",
 };
 
-type End = PlugStyle | "box" | "multicore";
+type End = PlugStyle | "box";
 /** Plug at each end (A, B), optional scale for the A end (Mini/Micro HDMI are smaller). */
 const ENDS: Record<string, [End, End, number?]> = {
   "VID-HDMI-A-A": ["hdmi", "hdmi"], "VID-HDMI-C-A": ["hdmi", "hdmi", 0.72], "VID-HDMI-D-A": ["hdmi", "hdmi", 0.55],
   "VID-SDI-3G": ["sdi", "sdi"], "VID-SDI-6G-12G": ["sdi", "sdi"], "VID-DP-DP": ["dp", "dp"], "VID-HDMI-EXTENDER": ["ethernet", "ethernet"],
-  "FIB-SDI-LINK": ["fiber", "fiber"], "FIB-CAMERA-CCU": ["fiber", "fiber"], "FIB-PATCH-LC-SC": ["fiber", "fiber"],
+  "FIB-SDI-LINK": ["optical", "optical"], "FIB-CAMERA-CCU": ["smpte", "smpte"], "FIB-PATCH-LC-SC": ["optical", "optical"],
   "AUD-LAV-TX": ["lav", "trs35"], "AUD-XLR-MIC": ["xlr-f", "xlr-m"], "AUD-RX-MIXER-XLR": ["xlr-f", "xlr-m"], "AUD-RX-MIXER-3.5": ["trs35", "trs635"],
   "AUD-XLR-LINE-BAL": ["xlr-f", "xlr-m"], "AUD-PA-ACTIVE": ["xlr-f", "xlr-m"], "AUD-TRS-6.35-BAL": ["trs635", "trs635"], "AUD-TRS-635-35": ["trs635", "trs35"],
-  "AUD-TRS-3.5": ["trs35", "trs35"], "AUD-TRRS-3.5": ["trrs35", "trrs35"], "AUD-TS-6.35": ["ts635", "ts635"], "AUD-RCA-LR": ["rca", "rca"], "AUD-RCA-3.5": ["rca", "trs35"],
-  "AUD-XLR-TRS-BAL": ["xlr-f", "trs635"], "AUD-XLR-35": ["xlr-f", "trs35"], "AUD-PA-PASSIVE": ["speaker635", "speaker635"], "AUD-HEADPHONE": ["trs635", "trs635"],
+  "AUD-TRS-3.5": ["trs35", "trs35"], "AUD-TRRS-3.5": ["trrs35", "trrs35"], "AUD-TS-6.35": ["ts635", "ts635"], "AUD-RCA-LR": ["rca", "rca"], "AUD-RCA-3.5": ["rca-pair", "trs35"],
+  "AUD-XLR-TRS-BAL": ["xlr-f", "trs635"], "AUD-XLR-35": ["xlr-f", "trs35"], "AUD-PA-PASSIVE": ["speakon", "speakon"], "AUD-HEADPHONE": ["trs635", "trs635"],
   "STG-MULTICORE": ["multicore", "multicore"], "STG-DANTE-CAT": ["ethernet", "ethernet"],
-  "DATA-USB-WEBCAM": ["usbc", "usba3"], "DATA-USB-MAGEWELL": ["usba3", "usba3"], "DATA-USB-C-C": ["usbc", "usbc"], "DATA-USB-A-A": ["usba", "usba"], "DATA-USB-B": ["box", "usba"],
+  "DATA-USB-WEBCAM": ["usbc", "usba3"], "DATA-USB-MAGEWELL": ["usba3", "usba3"], "DATA-USB-C-C": ["usbc", "usbc"], "DATA-USB-A-A": ["usba", "usba"], "DATA-USB-B": ["usbb", "usba"],
   "NET-CAT5E6-ENCODER": ["ethernet", "ethernet"], "NET-ROUTER-UPLINK": ["ethernet", "ethernet"], "NET-POE-PTZ": ["ethernet", "ethernet"],
-  "CTRL-REPLAY": ["box", "box"], "CTRL-TALLY": ["box", "box"], "CTRL-INTERCOM": ["xlr-f", "xlr-m"], "CTRL-REFERENCE": ["sdi", "sdi"], "CTRL-TIMECODE": ["sdi", "xlr-m"],
+  "CTRL-REPLAY": ["logical", "logical"], "CTRL-TALLY": ["box", "box"], "CTRL-INTERCOM": ["xlr-f", "xlr-m"], "CTRL-REFERENCE": ["sdi", "sdi"], "CTRL-TIMECODE": ["sdi", "xlr-m"],
 };
 
 /** Generic multi-pin / D-sub style head for connectors without a dedicated plug mesh (training placeholder). */
-function BoxPlug({ big = false, color }: { big?: boolean; color: string }) {
-  const [w, h, d] = big ? [0.22, 0.12, 0.2] : [0.1, 0.05, 0.12];
+function BoxPlug({ color }: { color: string }) {
+  const [w, h, d] = [0.1, 0.05, 0.12];
   return <group>
     <mesh position={[0, 0, d / 2 - 0.02]}><boxGeometry args={[w, h, d]} /><meshStandardMaterial color="#1a1c20" roughness={0.6} /></mesh>
     <mesh position={[0, 0, -0.03]}><boxGeometry args={[w * 0.8, h * 0.7, 0.04]} /><meshStandardMaterial color="#b9bcc2" metalness={0.85} roughness={0.3} /></mesh>
@@ -44,22 +45,36 @@ function BoxPlug({ big = false, color }: { big?: boolean; color: string }) {
   </group>;
 }
 
+/** Ends that are deliberately NOT a specific physical product. */
+const INSPECTOR_NOTE: Partial<Record<End, string>> = {
+  optical: "หัวไฟเบอร์แบบทั่วไป (GENERIC) — ยังไม่ระบุว่า LC หรือ SC, single/multi-mode และขั้ว TX/RX จึงไม่วาดรายละเอียดของหัวชนิดใด",
+  multicore: "หัวสาย multicore แบบทั่วไป (GENERIC) — ไม่มีภาพหัวสาย snake จริงในคลังอ้างอิง",
+  logical: "ลิงก์ควบคุมเชิงตรรกะ (จำลอง) — ไม่ใช่สายจริง วงแหวนสีม่วงเป็นจุดจับปลายลิงก์เท่านั้น",
+  box: "หัวต่อทั่วไปเพื่อการฝึก — ยังไม่มีโมเดลหัวต่อจริงของชนิดนี้",
+};
+
 function Head({ end, color, scale = 1 }: { end: End; color: string; scale?: number }) {
-  return <group scale={scale * 1.6}>
-    {end === "box" ? <BoxPlug color={color} /> : end === "multicore" ? <BoxPlug big color={color} /> : <PlugMesh style={end} accent={color} />}
+  return <group scale={scale * 0.8}>
+    {end === "box" ? <BoxPlug color={color} /> : <PlugMesh style={end} accent={color} />}
   </group>;
 }
 
-function PlaceholderCable({ cable }: { cable: CatalogCable }) {
-  const [a, b, scaleA] = ENDS[cable.id] ?? ["box", "box"];
+function PlaceholderCable({ cable, definition }: { cable: CatalogCable; definition?: CableDef }) {
+  const [a, b, scaleA] = definition?.plugs ?? ENDS[cable.id] ?? ["box", "box"];
+  const logical = a === "logical";
   const thick = cable.family === "multicore" ? 0.03 : cable.family === "fiber" ? 0.009 : 0.016;
   // A loose coil between the two heads so both connectors face the viewer.
   const curve = useMemo(() => new CatmullRomCurve3([
     new Vector3(-0.42, 0, 0.12), new Vector3(-0.3, -0.06, 0.28), new Vector3(-0.05, -0.12, 0.34), new Vector3(0.2, -0.08, 0.22),
     new Vector3(0.12, -0.02, 0.04), new Vector3(-0.08, -0.06, 0.12), new Vector3(0.1, -0.1, 0.3), new Vector3(0.3, -0.06, 0.28), new Vector3(0.42, 0, 0.12),
   ]), []);
+  // A rigid adapter is one object with a plug and a socket, never a duplicated head on a cable coil.
+  if (definition?.socketB && definition.plugs) return <group scale={0.9}><PlugMesh style={definition.plugs[0]} /></group>;
   return <group>
-    <mesh><tubeGeometry args={[curve, 96, thick, 10, false]} /><meshStandardMaterial color={cable.family === "fiber" ? "#f2c230" : "#16181c"} roughness={0.55} /></mesh>
+    {/* CTRL-REPLAY is a logical control link: a faint translucent path, not a physical jacket. SMPTE hybrid uses a black jacket. */}
+    <mesh><tubeGeometry args={[curve, 96, thick, 10, false]} />{logical
+      ? <meshBasicMaterial color="#b98cff" transparent opacity={0.35} depthWrite={false} />
+      : <meshStandardMaterial color={cable.family === "fiber" && a !== "smpte" ? "#f2c230" : "#16181c"} roughness={0.55} />}</mesh>
     {/* plug A: tip points away to the left, plug B to the right; boots carry the catalog colour band */}
     <group position={[-0.42, 0, 0.12]} rotation={[0, Math.PI / 2, 0]}><Head end={a} color={cable.color} scale={scaleA ?? 1} /></group>
     <group position={[0.42, 0, 0.12]} rotation={[0, -Math.PI / 2, 0]}><Head end={b} color={cable.color} /></group>
@@ -72,18 +87,18 @@ function GlbCable({ url }: { url: string }) {
   return <primitive object={copy} />;
 }
 
-export function CableModel({ cable }: { cable: CatalogCable }) {
+export function CableModel({ cable, definition }: { cable: CatalogCable; definition?: CableDef }) {
   const file = CABLE_MODEL_FILES[cable.id];
-  return file ? <Suspense fallback={<PlaceholderCable cable={cable} />}><GlbCable url={file} /></Suspense> : <PlaceholderCable cable={cable} />;
+  return file && !definition ? <Suspense fallback={<PlaceholderCable cable={cable} />}><GlbCable url={file} /></Suspense> : <PlaceholderCable cable={cable} definition={definition} />;
 }
 
-function Stage({ cable, auto, margin = 1.2 }: { cable: CatalogCable; auto: boolean; margin?: number }) {
+function Stage({ cable, auto, margin = 1.2, definition }: { cable: CatalogCable; auto: boolean; margin?: number; definition?: CableDef }) {
   return <>
     <hemisphereLight args={["#eef2ff", "#2b2733", 1.5]} />
     <directionalLight position={[2, 3, 2]} intensity={2.2} />
     <directionalLight position={[-2, 1.5, -1]} intensity={0.9} />
     <pointLight position={[0, 0.2, 0.6]} intensity={1.2} distance={3} color="#4fe3ff" />
-    <Bounds fit clip observe margin={margin}><Center><CableModel key={cable.id} cable={cable} /></Center></Bounds>
+    <Bounds fit clip observe margin={margin}><Center><CableModel key={cable.id} cable={cable} definition={definition} /></Center></Bounds>
     <OrbitControls makeDefault enableDamping autoRotate={auto} autoRotateSpeed={1.6} minDistance={0.2} maxDistance={6} />
   </>;
 }
@@ -96,7 +111,8 @@ export function CablePreview({ cable }: { cable: CatalogCable }) {
 }
 
 /** Full-screen cable viewer (hold E 1 s or the 3D button): drag to rotate, wheel to zoom, ESC closes. */
-export function CableInspector({ cable, onClose }: { cable: CatalogCable; onClose: () => void }) {
+export function CableInspector({ cable, definition, onClose }: { cable: CatalogCable; definition?: CableDef; onClose: () => void }) {
+  const evidence = referenceEvidence(definition ? inspectCableKey(definition) : cable.id, true);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.code === "Escape") onClose(); };
     window.addEventListener("keydown", onKey);
@@ -106,19 +122,21 @@ export function CableInspector({ cable, onClose }: { cable: CatalogCable; onClos
     <div className="inspector-stage">
       <Canvas camera={{ fov: 35, position: [0.6, 0.45, 1.3] }} dpr={[1, 1.5]}>
         <color attach="background" args={["#10151f"]} />
-        <Stage cable={cable} auto={false} />
+        <Stage cable={cable} auto={false} definition={definition} />
       </Canvas>
       <p className="inspector-hint">ลากเพื่อหมุน · เลื่อนล้อเมาส์เพื่อซูม · ESC ปิด</p>
     </div>
     <aside className="inspector-panel glass-card">
       <button type="button" className="inspector-close" onClick={onClose} aria-label="ปิดหน้าดูสาย">✕</button>
-      <span className="inspector-role">สาย / หัวต่อ · {cable.status}</span>
+      <span className="inspector-role">{definition?.socketB ? "อะแดปเตอร์" : evidence.evidenceClass === "logical" ? "ลิงก์ควบคุมจำลอง" : "สาย / หัวต่อ"} · {cable.status}</span>
       <h2 id="cable-inspector-title">{cable.name}</h2>
       <strong className="inspector-model">{cable.id}</strong>
       <h3>หัวต่อ</h3><p>{cable.ends}</p>
       <h3>ใช้ต่อ</h3><p className="inspector-flow">{cable.use}</p>
       <h3>ควรรู้</h3><p>{cable.note}</p>
-      <p className="inspector-unverified">{CABLE_MODEL_FILES[cable.id] ? "โมเดล 3D จากไฟล์ปั้น" : "โมเดล 3D ชั่วคราว (รอปั้นโมเดลจริง) — หัวต่อเป็นรูปทรงฝึก ไม่ใช่สัดส่วนสินค้าจริง"}</p>
+      <h3>หลักฐานอ้างอิง</h3><p>{evidence.classLabel} · {evidence.readinessLabel}</p>
+      <p className="inspector-unverified">{evidence.note}</p>
+      {!evidence.pack && <p className="inspector-unverified">{INSPECTOR_NOTE[ENDS[cable.id]?.[0] ?? "box"] ?? "รูปทรงหัวต่อทั่วไปสำหรับฝึก; ขนาดบูตและความโค้งสายเป็นค่าประมาณ"}</p>}
     </aside>
   </div>;
 }

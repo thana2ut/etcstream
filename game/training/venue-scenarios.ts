@@ -1,4 +1,6 @@
 import { MODEL_GEOMETRY, portClearance, TRIPOD_TOP } from "./sim/model-geometry";
+import { equipmentVisualGeometry } from "../rendering/equipment-visual-profile";
+import { selectedGameProduct } from "../content/selected-product-info";
 import type { CableDef, Connector, DeviceDef, PlugStyle, Point3, PortDef, Scenario, VenueScale } from "./scenarios";
 import { LAYOUTS, scaleSpot, surfaceSlots, type Furniture, type LayoutId, type Spot, type VenueLayout } from "./venue-layouts";
 import { MODELS } from "./sim/equipment";
@@ -22,7 +24,9 @@ import { classroomCableRoute } from "./cable-route";
 const LAYOUT_BY_SCALE: Record<VenueScale, LayoutId> = { xs: "classroom", s: "studioMission", m: "auditorium", l: "outdoor", xl: "stadium" };
 export const LEVEL_TITLES = ["ฝึกพร้อมคำแนะนำ", "ฝึกพร้อมคำแนะนำบางส่วน", "สถานการณ์ฝึก", "แก้เหตุขัดข้อง", "ประเมินทักษะปฏิบัติ"];
 const SCALES: VenueScale[] = ["xs", "s", "m", "l", "xl"];
-const PLUGS: Partial<Record<Connector, PlugStyle>> = { FIBER: "fiber", MULTICORE: "multicore", CONTROL: "control", HDMI: "hdmi", SDI: "sdi", "XLR-F": "xlr-f", "XLR-M": "xlr-m", "3.5mm": "trs35", "6.35mm": "trs635", "USB-A": "usba3", "USB-B": "usba", "USB-C": "usbc", ETHERNET: "ethernet", speakON: "speaker635" };
+const PLUGS: Partial<Record<Connector, PlugStyle>> = { FIBER: "optical", MULTICORE: "multicore", CONTROL: "logical", HDMI: "hdmi", SDI: "sdi", "XLR-F": "xlr-f", "XLR-M": "xlr-m", "3.5mm": "trs35", "6.35mm": "trs635", "USB-A": "usba3", "USB-B": "usbb", "USB-C": "usbc", ETHERNET: "ethernet", speakON: "speakon" };
+/** Hybrid camera fiber (FIB-CAMERA-CCU) is SMPTE 304/311; any other optical link stays the generic termination. */
+const plugsFor = (ends: [Connector, Connector], purpose?: string): [PlugStyle, PlugStyle] => ends.map((c) => c === "FIBER" ? purpose === "fiber-camera" ? "smpte" : "lc-duplex" : plug(c)) as [PlugStyle, PlugStyle];
 const plug = (c: Connector): PlugStyle => PLUGS[c] ?? "dp";
 const TYPE_NAME: Partial<Record<Connector, string>> = { HDMI: "HDMI", SDI: "3G-SDI (BNC)", ETHERNET: "Ethernet Cat6", "USB-C": "USB-C", "USB-A": "USB", "USB-B": "USB", "3.5mm": "3.5 mm stereo", "6.35mm": "TRS 6.35 mm", "XLR-F": "XLR", "XLR-M": "XLR" };
 const COLOR: Partial<Record<Connector, string>> = { HDMI: "#1b1b1f", SDI: "#2a62b8", ETHERNET: "#38d6c4", "USB-C": "#8fb4ff", "USB-A": "#8fb4ff", "XLR-F": "#2f2f33", "6.35mm": "#50b899", "3.5mm": "#50b899", speakON: "#b04030" };
@@ -44,26 +48,32 @@ export function buildVenueScenario(scale: VenueScale, level: 1 | 2 | 3 | 4 | 5):
   const room = ROOMS[scale];
   const layoutId = LAYOUT_BY_SCALE[scale];
   const layout = LAYOUTS[layoutId];
-  const simDevices: Record<string, DeviceInstance> = Object.fromEntries(stage.devices.map((id) => [id, { ...room.instances[id], id }]));
-  const movable = new Set(stage.devices.filter((d) => room.portable.includes(d)));
+  // Venue master stock: every unit any of this venue's five levels uses is in the room, in the same place every level.
+  // Units this level does not use are `stockOnly` (they never count toward the objective and are outside the save signature).
+  const extras = venueStock(scale).filter((id) => !stage.devices.includes(id));
+  const roster = [...stage.devices, ...extras];
+  const simDevices: Record<string, DeviceInstance> = Object.fromEntries(roster.map((id) => [id, { ...room.instances[id], id }]));
+  const movable = new Set(roster.filter((d) => room.portable.includes(d)));
 
   // Devices: model name + verification status visible in Inspect Mode.
-  const devices: DeviceDef[] = stage.devices.map((id) => {
+  const devices: DeviceDef[] = roster.map((id) => {
     const inst = room.instances[id];
     const m = MODELS[inst.model];
-    const geo = MODEL_GEOMETRY[inst.model];
+    const geo = equipmentVisualGeometry(inst.model);
     const tower = scale === "xl" && ["enc", "enc2", "net", "net2", "wan", "wan2", "rec"].includes(id);
     // Modelled hardware: real dimensions × display scale (cameras keep their tripod footprint, stadium towers their rack).
-    const size: Point3 = geo && !geo.mount && !tower ? geo.size.map((v) => +(v * geo.displayScale).toFixed(4)) as Point3 : [...m.size];
+    const legacyGeo=MODEL_GEOMETRY[inst.model];
+    const size: Point3 = legacyGeo && !legacyGeo.mount && !tower ? legacyGeo.size.map((v) => +(v * legacyGeo.displayScale).toFixed(4)) as Point3 : [...m.size];
     if (m.role === "display" && inst.model === "generic-projector") size.splice(0, 3, 0.42, 0.16, 0.34);
     if (m.role === "ingest") size.splice(0, 3, 0.4, 0.9, 0.4);
     if (tower) size.splice(0, 3, 0.56, 1.7, 0.56);
     const mount: DeviceDef["mount"] = geo?.mount === "tripod" ? { kind: "tripod", offset: [0, TRIPOD_TOP, 0] }
       : geo && tower ? { kind: "rack", offset: [0, 1.0, +(-0.28 + (geo.size[2] * geo.displayScale) / 2 + 0.01).toFixed(4)] } : undefined;
     return {
-      id, modelId: inst.model, ...(mount ? { mount } : {}), equipmentRole: m.role, label: `${inst.label} (${inst.tag})`, model: m.generic ? `อุปกรณ์จำลองเพื่อฝึก · ${m.name}` : m.name,
+      id, modelId: inst.model, ...(mount ? { mount } : {}), equipmentRole: m.role, label: `${inst.label} (${inst.tag})`, model: m.generic ? `อ้างอิงภาพ GAME · ${selectedGameProduct(inst.model)?.name??m.name}` : m.name,
       status: scale === "s" && !["capture", "speaker", "monitor"].includes(id) ? "PROVISIONAL" : m.generic ? "GENERIC TRAINING MODEL" : "DESIGN_REFERENCE", generic: m.generic, verified: false,
       kind: m.kind, position: [0, 0.78, 0], size, color: m.role === "switcher" ? "#1d2633" : m.role === "mixer" ? "#22262c" : "#263345",
+      ...(extras.includes(id) ? { stockOnly: true } : {}),
     };
   });
 
@@ -96,6 +106,17 @@ export function buildVenueScenario(scale: VenueScale, level: 1 | 2 | 3 | 4 | 5):
     }
   }
 
+  // Preserve which existing items can be handled. New visual dimensions must not silently add/remove item IDs in saves.
+  const handlingSizes=new Map(devices.map(d=>[d.id,[...d.size]]));
+  for(const d of devices) {
+    const geo=equipmentVisualGeometry(d.modelId),tower=scale==='xl'&&['enc','enc2','net','net2','wan','wan2','rec'].includes(d.id);
+    if(geo&&!geo.mount&&!tower&&d.kind!=='camera'&&d.equipmentRole!=='ingest') d.size=geo.size.map(v=>+(v*geo.displayScale).toFixed(4)) as Point3;
+    if(geo&&d.equipmentRole==='ingest'&&!tower) {
+      d.size=[Math.max(d.size[0],geo.size[0]*geo.displayScale+.03),d.size[1],Math.max(d.size[2],geo.size[2]*geo.displayScale+.03)];
+      d.mount={kind:'rack',offset:[0,d.size[1]/2,0]};
+    }
+  }
+
   // Mounted units (Camera Fiber Converter on its camera's battery-plate mount) sit behind and level with the host body.
   for (const d of devices) {
     const host = room.instances[d.id].mountedOn ? devices.find((h) => h.id === room.instances[d.id].mountedOn) : undefined;
@@ -117,7 +138,7 @@ export function buildVenueScenario(scale: VenueScale, level: 1 | 2 | 3 | 4 | 5):
   // Speakers on stands, stage boxes/snake tails, routers and rack-mounted CCUs are installed infrastructure: inspect only.
   const FIXED_ROLES = new Set(["display", "ingest", "router", "speaker", "stagebox", "snake-tail"]);
   const handled = new Set(devices.filter((d) => !movable.has(d.id) && d.kind !== "camera" && !FIXED_ROLES.has(d.equipmentRole ?? "")
-    && !["reference-ccu", "bmd-studio-fiber-converter"].includes(room.instances[d.id].model) && !room.instances[d.id].mountedOn && d.position[1] >= 0.5 && Math.max(...(d.modelId && MODEL_GEOMETRY[d.modelId] ? MODEL_GEOMETRY[d.modelId].size : d.size)) <= 0.65).map((d) => d.id));
+    && !["reference-ccu", "bmd-studio-fiber-converter"].includes(room.instances[d.id].model) && !room.instances[d.id].mountedOn && d.position[1] >= 0.5 && Math.max(...(d.modelId && MODEL_GEOMETRY[d.modelId] ? MODEL_GEOMETRY[d.modelId].size : handlingSizes.get(d.id)!)) <= 0.65).map((d) => d.id));
   const liftable = (id: string) => movable.has(id) || handled.has(id);
 
   // Ports: EVERY modelled port of every device, on its real panel face.
@@ -166,7 +187,7 @@ export function buildVenueScenario(scale: VenueScale, level: 1 | 2 | 3 | 4 | 5):
     const ti = MODELS[simDevices[to.split(":")[0]].model];
     const srcModel = simDevices[from.split(":")[0]].model;
     const purpose = ti.modelId === "bmd-camera-fiber-converter" && ends[0] === "SDI" ? "camera-mount" : ends[0] === "FIBER" ? ["reference-fiber-camera", "bmd-camera-fiber-converter"].includes(srcModel) ? "fiber-camera" : "optical-field" : srcModel === "generic-lav-mic" ? "lav-1" : srcModel === "generic-wireless-rx" ? "rx-mix" : so.sig === "MIC" ? "mic" : so.sig === "HEADPHONE" ? "phones" : so.sig === "LINE_BAL" ? (ti.role === "speaker" ? "mix-pa" : "mix-bc") : so.sig === "WAN" ? "destination" : "lead";
-    cables.push({ id, label, ends, plugs: [plug(ends[0]), plug(ends[1])], color: COLOR[ends[0]] ?? "#72aadd", start: [[0, 0, 0], [0, 0, 0]], purpose, stockRole: "required", signalClass: so.sig });
+    cables.push({ id, label, ends, plugs: plugsFor(ends, purpose), color: COLOR[ends[0]] ?? "#72aadd", start: [[0, 0, 0], [0, 0, 0]], purpose, stockRole: "required", signalClass: so.sig });
     cableMeta[id] = { id, label, lengthM, ratedM };
   });
   for (const x of stage.extraCables ?? []) {
@@ -176,11 +197,14 @@ export function buildVenueScenario(scale: VenueScale, level: 1 | 2 | 3 | 4 | 5):
   storeCables(layoutId, cables);
 
   // Portable gear starts in its labelled case/storage (L4 broken show: already installed).
-  const carried = devices.filter((d) => movable.has(d.id));
-  const storage = packStorage(layoutId, carried);
+  const carried = devices.filter((d) => movable.has(d.id) || d.stockOnly && handled.has(d.id));
+  // Allocate the complete venue's liftable stock, even when some units start installed for this exercise.
+  // An unused slot stays empty rather than moving every other item between levels.
+  const pool = devices.filter((d) => liftable(d.id)), slots = packStorage(layoutId, pool);
+  const storage = carried.map((d) => slots[pool.findIndex((p) => p.id === d.id)]);
   const prewiredAll = stage.prewired === "all";
-  const startOf: Record<string, Point3> = Object.fromEntries(carried.map((d, i) => [d.id, prewiredAll ? [...d.position] as Point3 : storage[i]]));
-  for (const d of devices) if (handled.has(d.id)) startOf[d.id] = [...d.position] as Point3;
+  const startOf: Record<string, Point3> = Object.fromEntries(carried.map((d, i) => [d.id, prewiredAll && !d.stockOnly ? [...d.position] as Point3 : storage[i]]));
+  for (const d of devices) if (handled.has(d.id) && !d.stockOnly) startOf[d.id] = [...d.position] as Point3;
 
   // Start state: pre-wired pairs, then L4 faults (unplug / repatch with a wrong lead).
   const pairs: { cableId: string; from: string; to: string }[] = [];
@@ -220,7 +244,7 @@ export function buildVenueScenario(scale: VenueScale, level: 1 | 2 | 3 | 4 | 5):
     referenceStatus: stage.researchStatus ?? "DESIGN_REFERENCE",
     id: `${scale}-${level}`, venueScale: scale, level, title: `${stage.id} · ${stage.title.split(" · ")[0]}`, layout: layoutId,
     devices, ports, cables, requirements, actions: [], job: stage.ticket,
-    placeables: devices.filter((d) => liftable(d.id)).map((d) => ({ id: d.id, label: d.label, start: startOf[d.id], zone: [...d.position] as Point3, zoneLabel: spotOf(d.id)?.label ?? d.zoneLabel, device: d, ...(handled.has(d.id) ? { installed: true } : {}) })),
+    placeables: devices.filter((d) => liftable(d.id)).map((d) => ({ id: d.id, label: d.label, start: startOf[d.id], zone: [...d.position] as Point3, zoneLabel: spotOf(d.id)?.label ?? d.zoneLabel, device: d, ...(handled.has(d.id) && !d.stockOnly ? { installed: true } : {}), ...(d.stockOnly ? { stockOnly: true } : {}) })),
     canonical: stage.solution.map(([from, to]) => ({ cableId: leadFor[`${from}>${to}`], from, to })),
     initialConnections: initial,
     faults: guided ? (stage.faults ?? []).map((f) => f.label) : [],
@@ -234,6 +258,18 @@ export function buildVenueScenario(scale: VenueScale, level: 1 | 2 | 3 | 4 | 5):
   annotateApproaches(scenario);
   scenario.designIssues = missionDesignIssues(scenario);
   return scenario;
+}
+
+/** Union of the device instances used by any of the venue's five levels, in level order (first use wins). */
+const STOCK = new Map<VenueScale, string[]>();
+export function venueStock(scale: VenueScale): string[] {
+  let ids = STOCK.get(scale);
+  if (!ids) {
+    ids = [];
+    for (const s of STAGES.filter((x) => x.room === scale).sort((a, b) => a.level - b.level)) for (const id of s.devices) if (!ids.includes(id)) ids.push(id);
+    STOCK.set(scale, ids);
+  }
+  return ids;
 }
 
 function groupOf(p: PortDef): "video" | "audio" | "capture" | "monitor" {
@@ -268,13 +304,13 @@ function placePorts(devices: DeviceDef[], ports: Record<string, PortDef>, classr
       if (p.panel === "side" && d.kind !== "mic") { z = lx; normal = [1, 0, 0]; }
       let x = d.kind === "laptop" ? -d.size[0] / 2 - 0.006 : p.panel === "side" && d.kind !== "mic" ? d.size[0] / 2 + 0.006 : lx;
       // Modelled hardware: the socket sits exactly where it is on the real panel (scaled uniformly with the model).
-      const geo = d.modelId ? MODEL_GEOMETRY[d.modelId] : undefined;
+      const geo = equipmentVisualGeometry(d.modelId);
       const key = keyOf.get(p)!.slice(d.id.length + 1), at = geo?.ports[key];
       if (geo && at) {
-        const k = geo.displayScale, o = d.mount?.offset ?? [0, 0, 0];
+        const k = geo.displayScale, o = d.mount?.offset ?? (d.kind==='mic'&&d.position[1]<.3?[0,1.39,0]:[0,0,0]);
         x = o[0] + at.at[0] * k + at.normal[0] * 0.006; y = o[1] + at.at[1] * k + at.normal[1] * 0.006; z = o[2] + at.at[2] * k + at.normal[2] * 0.006; normal = [...at.normal];
       }
-      const zz = d.kind === "laptop" ? (j - (owned.length - 1) / 2) * 0.06 : z;
+      const zz = d.kind === "laptop" && !at ? (j - (owned.length - 1) / 2) * 0.06 : z;
       const [ox, oz] = turnBy(d.yaw ?? 0, x, zz);
       const [nx, nz] = turnBy(d.yaw ?? 0, normal[0], normal[2]);
       p.normal = [nx, normal[1], nz];
@@ -352,23 +388,53 @@ function annotateApproaches(scenario: Scenario) {
   }
 }
 
-/** Pack stored bodies along the storage surface's long axis without overlap (two rows when one is full). */
+/** Full world-axis footprint, including supplied breakout tails; never changes registry size or saved IDs. */
+export function stagingFootprint(device: DeviceDef) {
+  const geo = equipmentVisualGeometry(device.modelId);
+  const bounds = geo?.stagingBounds;
+  const k = geo?.displayScale ?? 1;
+  const min = bounds ? bounds.min.map((v) => v * k) : [-device.size[0] / 2, 0, -device.size[2] / 2];
+  const max = bounds ? bounds.max.map((v) => v * k) : [device.size[0] / 2, device.size[1], device.size[2] / 2];
+  // The lavalier's captive lead reaches its existing training connector; include it in the shelf footprint.
+  if(device.modelId==='generic-lav-mic') { min[0]=Math.min(min[0],-.025);max[0]=Math.max(max[0],.035);max[2]=Math.max(max[2],.11); }
+  const c = Math.cos(device.yaw ?? 0), s = Math.sin(device.yaw ?? 0);
+  const corners = [min[0], max[0]].flatMap((x) => [min[2], max[2]].map((z) => [x * c + z * s, -x * s + z * c]));
+  const minX = Math.min(...corners.map(([x]) => x)), maxX = Math.max(...corners.map(([x]) => x));
+  const minZ = Math.min(...corners.map(([, z]) => z)), maxZ = Math.max(...corners.map(([, z]) => z));
+  return { minX, maxX, minZ, maxZ, width: maxX - minX, depth: maxZ - minZ };
+}
+
+/** Shelf packing uses true rotated visual extents, with a real gap between rows and between bodies. */
 function packStorage(layoutId: LayoutId, items: DeviceDef[]): Point3[] {
   const s = LAYOUTS[layoutId].equipment, [w, d] = s.size ?? [1.4, 1.4], longX = w >= d, L = longX ? w : d, S = longX ? d : w;
-  const extent = (x: DeviceDef) => (longX ? x.size[0] : x.size[2]) + 0.04;
+  const footprints = new Map(items.map((it) => [it.id, stagingFootprint(it)]));
+  const extent = (x: DeviceDef) => footprints.get(x.id)![longX ? "width" : "depth"];
+  const depth = (x: DeviceDef) => footprints.get(x.id)![longX ? "depth" : "width"];
+  // Keep the same category order in every level: image -> audio -> control -> monitor/record -> accessories.
+  const categoryOrder: Record<string, number> = { camera: 0, source: 0, microphone: 1, mic: 1, "wireless-tx": 1, "wireless-rx": 1, mixer: 1,
+    switcher: 2, controller: 2, router: 2, converter: 2, interface: 2, embedder: 2, display: 3, recorder: 3, capture: 3, ingest: 3, computer: 3, host: 3, encoder: 3, network: 3 };
+  const category = (x: DeviceDef) => categoryOrder[x.equipmentRole ?? ""] ?? 4;
+  const ordered = [...items].sort((a, b) => category(a) - category(b) || a.id.localeCompare(b.id));
   const rows: DeviceDef[][] = [[]];
-  let used = 0.1;
-  for (const it of items) {
-    if (used + extent(it) > L - 0.1 && rows[rows.length - 1].length) { rows.push([]); used = 0.1; }
-    rows[rows.length - 1].push(it); used += extent(it);
+  const pad = 0.04, gap = 0.035;
+  let used = pad;
+  for (const it of ordered) {
+    if (extent(it) > L - 2 * pad || depth(it) > S - 2 * pad) throw new Error(`${layoutId}: prep table cannot support ${it.id}`);
+    if (used + extent(it) > L - pad && rows[rows.length - 1].length) { rows.push([]); used = pad; }
+    rows[rows.length - 1].push(it); used += extent(it) + gap;
   }
+  const depths = rows.map((row) => Math.max(0, ...row.map(depth)));
+  const totalDepth = depths.reduce((sum, value) => sum + value, 0) + gap * (rows.length - 1);
+  if (totalDepth > S - 2 * pad) throw new Error(`${layoutId}: prep table needs ${totalDepth.toFixed(2)} m depth, has ${(S - 2 * pad).toFixed(2)}`);
   const out = new Map<string, Point3>();
+  let acrossStart = -totalDepth / 2;
   rows.forEach((row, r) => {
-    let at = -L / 2 + 0.1;
-    const across = rows.length === 1 ? 0 : -S / 2 + (r + 0.5) * (S / rows.length);
+    let at = -L / 2 + pad;
+    const across = acrossStart + depths[r] / 2; acrossStart += depths[r] + gap;
     for (const it of row) {
-      const c = at + extent(it) / 2; at += extent(it);
-      out.set(it.id, longX ? [+(s.center[0] + c).toFixed(3), s.center[1], +(s.center[2] + across).toFixed(3)] : [+(s.center[0] + across).toFixed(3), s.center[1], +(s.center[2] + c).toFixed(3)]);
+      const c = at + extent(it) / 2; at += extent(it) + gap;
+      const f = footprints.get(it.id)!, ox = (f.minX + f.maxX) / 2, oz = (f.minZ + f.maxZ) / 2;
+      out.set(it.id, [+(s.center[0] + (longX ? c : across) - ox).toFixed(3), s.center[1], +(s.center[2] + (longX ? across : c) - oz).toFixed(3)]);
     }
   });
   return items.map((it) => out.get(it.id)!);

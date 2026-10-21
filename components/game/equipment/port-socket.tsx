@@ -1,9 +1,17 @@
 "use client";
 
-import type { Connector } from "@/game/training/scenarios";
+import type { Connector, Direction } from "@/game/training/scenarios";
+import type { SocketKind } from "@/game/training/sim/model-geometry";
+import { HardwareSocket } from "./hardware-model";
 
 /** Physical generic training sockets, centred on the same anchor as their interactive target. +Z is outward. */
-export function PortSocket({ connector }: { connector: Connector }) {
+export function PortSocket({ connector, direction }: { connector: Connector; direction?: Direction }) {
+  const kinds: Partial<Record<Connector, SocketKind>> = { HDMI: "hdmi", SDI: "bnc", "USB-A": "usba", "USB-B": "usbb", "USB-C": "usbc", ETHERNET: "rj45", "XLR-M": "xlr3m", "XLR-F": "xlr3f", XLR: direction === "OUTPUT" ? "xlr3m" : "xlr3f", XLR4: "xlr4", "3.5mm": "jack35", "6.35mm": "trs", DC: "dc", IEC: "iec", RCA: "rca", COMBO: "xlr3f" };
+  const kind = kinds[connector];
+  if (kind) return <group scale={1.4}><HardwareSocket kind={kind} at={[0, 0, 0]} n={[0, 0, 1]} />
+    {connector === "COMBO" && <mesh position={[0, 0, 0.0045]}><circleGeometry args={[0.0032, 16]} /><meshStandardMaterial color="#050608" /></mesh>}
+  </group>;
+  if (connector === "CONTROL") return <mesh><torusGeometry args={[0.014, 0.0015, 6, 20]} /><meshBasicMaterial color="#b98cff" transparent opacity={0.8} /></mesh>;
   const circular = ["SDI", "XLR", "XLR-M", "XLR-F", "XLR4", "3.5mm", "6.35mm", "DC", "RCA", "speakON"].includes(connector);
   const radius = connector.startsWith("XLR") ? 0.015 : connector === "3.5mm" ? 0.006 : 0.01;
   if (circular) return <group>

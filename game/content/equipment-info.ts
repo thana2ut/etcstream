@@ -31,7 +31,7 @@ export const EQUIPMENT_INFO: Record<string, EquipmentInfo> = {
   },
   mixer: {
     name: "Audio Mixer",
-    model: "YAMAHA PMX-402D-USB",
+    model: "PMX-402D-USB · อ้างอิงภาพเจ้าของ (ยังไม่ยืนยันผู้ผลิต)",
     role: "ปรับและผสมเสียงก่อนส่งต่อ (อุปกรณ์กลาง)",
     summary: "รับเสียงจากไมค์/อุปกรณ์หลายช่อง ปรับความดังและโทนแต่ละช่อง แล้วรวมเป็นเสียงหลัก (MAIN) ส่งออก",
     facts: [
@@ -43,7 +43,7 @@ export const EQUIPMENT_INFO: Record<string, EquipmentInfo> = {
       "PHANTOM (+48V) ใช้กับไมค์คอนเดนเซอร์ ไมค์ไดนามิกไม่ต้องเปิด",
     ],
     inThisRoom: "Wireless RX → CH LINE · ตั้ง Gain/Fader · MAIN OUT → Switcher LINE IN (ให้เสียงเดินทางพร้อมภาพ)",
-    unverified: ["ขนาดจริงของตัวเครื่อง", "ช่องที่ใช้ต่อลำโพงในห้องจริง"],
+    unverified: ["ผู้ผลิตจริง — ป้ายในภาพไม่เพียงพอยืนยันว่าเป็น Yamaha", "ขนาดจริงของตัวเครื่อง", "ช่องที่ใช้ต่อลำโพงในห้องจริง"],
   },
   capture: {
     name: "Capture Card",
@@ -110,9 +110,9 @@ export const EQUIPMENT_INFO: Record<string, EquipmentInfo> = {
   },
   monitor: {
     name: "TV / Production Monitor",
-    model: "Samsung 43\" Crystal UHD U8000F · UA43U8000FKXXT",
+    model: "Samsung 85\" Crystal UHD U8000F · UA85U8000FKXXT",
     role: "ปลายทางภาพสำหรับตรวจดู Program และ Multi View",
-    summary: "ทีวี 4K ขนาด 43 นิ้ว รับภาพจาก Video Switcher เพื่อให้ผู้ควบคุมตรวจภาพก่อนบันทึกหรือถ่ายทอดสด",
+    summary: "ทีวี 4K ขนาด 85 นิ้ว รับภาพจาก Video Switcher เพื่อให้ผู้ควบคุมตรวจภาพก่อนบันทึกหรือถ่ายทอดสด",
     facts: ["HDMI INPUT มี 3 ช่องสำหรับรับภาพและเสียง", "รับได้ทั้ง PGM OUT และ MULTIVIEW OUT ของ HDS7105", "จอแสดงภาพจำลองตามเส้นทางสัญญาณที่ต่อจริงในห้องฝึก", "ทีวีแสดงภาพ ไม่ได้ทำหน้าที่สลับกล้อง"],
     inThisRoom: "HDS7105 MULTIVIEW หรือ PGM HDMI OUT → HDMI Cable → Samsung TV HDMI IN",
     unverified: ["ตำแหน่งช่อง HDMI ด้านหลังประมาณจากภาพอ้างอิง"],

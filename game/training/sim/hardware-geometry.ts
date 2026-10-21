@@ -298,15 +298,24 @@ function studioCamera(pro: boolean): ModelGeometry {
     inert(pro ? "3.5mm HEADPHONE (with mic)" : "3.5mm HEADPHONE", v3(-95, 12, -24), LEFT, "jack35"),
   ];
   const parts: Part[] = [
-    box(0, 75, -25, 190, 150, 110, "#16181b", true),                     // main body
+    {t:"loft",c:"#16181b",finish:"plastic",chamfer:.13,
+      sections:[[-80,78,90,112],[-40,75,136,135],[-26,75,190,150],[30,75,190,150]].map(([z,y,w,h])=>[M(z),M(y),M(w),M(h)])}, // central lens housing tapers into the wide display body
     box(0, 80, 47, 228, 150, 34, "#1b1e22", true),                        // rear LCD housing
     { t: "screen", p: v3(0, 82, 64.3), n: FRONT, s: [M(155), M(87)], feed: "view" },
-    { t: "cyl", p: v3(0, 78, -86), r: M(33), h: M(12), n: BACK, c: "#3a3e44" },  // lens mount ring
-    { t: "cyl", p: v3(0, 78, -92), r: M(23), h: M(2), n: BACK, c: "#0c0e12" },
+    // Hollow MFT mount as seen in the local official front photograph (not a solid metal disc).
+    { t: "lathe", p: v3(0, 78, -80), n: BACK, c: "#8b9095", finish: "metal",
+      profile: [[24,0],[32,0],[33,2],[33,10],[31,12],[24,12],[24,0]].map(([r,y])=>[M(r),M(y)]) },
+    { t: "cyl", p: v3(0, 78, -80.3), r: M(23), h: M(0.6), n: BACK, c: "#090c10" },
+    box(0, 78, -81, 17.3, 13, 0.5, "#354741"), // recessed sensor; no invented lens SKU
     { t: "tally", p: v3(0, 158, -20), s: v3(34, 18, 28) },                // numbered top tally
     text(v3(0, 167.2, -20), UP, "8", 12, "#ffffff"),
-    box(-118, 85, 47, 12, 150, 22, "#121417", true), box(118, 85, 47, 12, 150, 22, "#121417", true),  // carry handles
-    ...[-1, 1].map((sx) => box(sx * 108, 160, 10, 20, 10, 90, "#121417", true)),
+    // Both handles are open loops in the photographs, not filled rectangular blocks.
+    ...[-1,1].map((sx): Part=>({t:"tube",r:M(4.5),c:"#131519",finish:"plastic",
+      points:[[sx*112,145,43],[sx*127,145,51],[sx*131,135,57],[sx*131,28,57],[sx*126,17,51],[sx*112,17,43]].map(([x,y,z])=>v3(x,y,z))})),
+    // Fold-out sunshade, open at the viewing side; hinges/angles are photo estimates.
+    box(0,153,71,174,3,20,"#121417"),
+    ...[-1,1].map((sx): Part=>({t:"prism",x:[M(sx*85-1.5),M(sx*85+1.5)],c:"#121417",
+      profile:[[64,42],[81,53],[81,145],[64,153]].map(([z,y])=>[M(z),M(y)])})),
     ...([["PGM", 58], ["F1", 44], ["F2", 31], ["F3", 18]] as [string, number][]).map(([l, y]) => key(v3(-100, y + 50, 64.4), FRONT, 8, 6, l)),
     // Rear power switch (official connections diagram: "Power Switch" below the function buttons).
     key(v3(-100, 50, 64.4), FRONT, 8, 9, "ON", "#2a2d31", [{ key: "power", eq: true, color: GREEN }], { key: "power", value: "toggle", label: "POWER · เปิด/ปิดกล้อง" }),
@@ -343,11 +352,22 @@ function ursaBroadcastG2(): ModelGeometry {
   const parts: Part[] = [
     box(0, 12.5, 30, 110, 25, 200, "#1a1c1f", true),                       // shoulder pad
     box(0, 100, 20, 150, 150, 230, "#1f2226", true),                       // body
-    box(0, 215, 5, 40, 12, 140, "#15171a", true), ...[-60, 60].map((z) => box(0, 196, z, 30, 34, 14, "#15171a", true)),   // carry handle
+    ...[-1,1].map((sx): Part=>({t:"tube",r:M(4),c:"#15171a",finish:"plastic",
+      points:[[sx*12,176,-58],[sx*12,223,-77],[sx*12,247,-55],[sx*12,247,52],[sx*12,223,72],[sx*12,176,58]].map(([x,y,z])=>v3(x,y,z))})),
+    box(0,244,0,24,6,80,"#22262a",true), // grip bridges the two hollow rails
     { t: "cyl", p: v3(0, 105, -110), r: M(42), h: M(60), n: BACK, c: "#121418" },   // B4 lens barrel stub
-    { t: "cyl", p: v3(0, 105, -139), r: M(36), h: M(2), n: BACK, c: "#23384f" },
+    {t:"lathe",p:v3(0,105,-134),n:BACK,c:"#7a8086",finish:"metal",profile:[[31,0],[40,0],[41,2],[39,5],[31,5],[31,0]].map(([r,y])=>[M(r),M(y)])},
+    { t: "cyl", p: v3(0, 105, -133), r: M(30), h: M(0.5), n: BACK, c: "#172522" },
     box(0, 105, 132, 100, 120, 10, "#2a2d31"),                              // V-mount battery plate
     { t: "screen", p: v3(-75.2, 130, 30), n: LEFT, s: [M(60), M(26)], feed: "view" },  // status LCD (left side)
+    // Left-side control cluster and panel seams visible in the owner library's official left view.
+    ...[0,1,2,3,4,5].map(i=>key(v3(-75.4,102,-2+i*12),LEFT,8,5)),
+    ...[0,1,2,3].map(i=>key(v3(-75.4,90,8+i*15),LEFT,10,5)),
+    {t:"knob",p:v3(-75.4,86,64),n:LEFT,r:M(6)},
+    {t:"knob",p:v3(-75.4,142,-61),n:LEFT,r:M(9)},
+    key(v3(-75.4,68,-60),LEFT,13,6,"REC","#b62928"),
+    box(-75.15,116,-17,0.3,105,1,"#090b0e"),
+    box(-75.15,66,21,0.3,1,99,"#090b0e"),
     text(v3(75.3, 155, -95), RIGHT, "4K BROADCAST", 3.5, "#e8eaec"),
     text(Sd(885, 270), RIGHT, "SDI OUT", 2.4), text(v3(0, 182.4, -78), UP, "XLR AUDIO IN", 2.6),
   ];
@@ -373,12 +393,15 @@ function cameraFiberConverter(): ModelGeometry {
     inert("TRACKER", O(-30, 64), FRONT, "jack35"), inert("DC OUT", O(10, 64), FRONT, "dc"),
   ];
   const parts: Part[] = [
-    box(0, 85, 0, 120, 170, 110, "#1b1d21", true),
+    // Official side views show a tapered shoulder and full-width connector faces, not a plain cuboid.
+    {t:"prism",x:[M(-69),M(69)],c:"#1b1d21",profile:[[70,0],[70,173],[46,187],[-38,187],[-67,156],[-67,66],[-44,43],[-44,0]].map(([z,y])=>[M(z),M(y)])},
     box(0, 180, -10, 60, 22, 70, "#24272c"),                                    // V-lock plate (top)
     box(0, 95, -62, 110, 150, 14, "#202327"),                                   // camera mounting plate
     ...([[-32, GREEN], [0, RED], [32, GREEN]] as [number, string][]).map(([x, c]): Part => ({ t: "key", p: O(x, 170), n: FRONT, s: [M(14), M(3)], c })),
     ...([["POWER", -32], ["TALLY", 0], ["FIBER", 32]] as [string, number][]).map(([l, x]) => text(O(x, 176), FRONT, l, 2.2)),
     ...[-35, -12, 12, 35].map((x): Part => ({ t: "knob", p: O(x, 125), r: M(5.5), n: FRONT })),
+    ...[-35,-12,12,35].map((x): Part=>({t:"knob",p:O(x,146),r:M(4.5),n:FRONT})),
+    box(0,137,70.3,101,47,0.6,"#111316",true),
     text(O(-23, 112), FRONT, "INTERCOM 1", 2.2), text(O(23, 112), FRONT, "INTERCOM 2", 2.2),
     key(O(48, 150), FRONT, 10, 6, "FOCUS"), key(O(48, 140), FRONT, 10, 6, "REC", "#c9302a"),
     text(S(307, 380), RIGHT, "SDI IN", 2.2),
@@ -411,7 +434,8 @@ function studioFiberConverter(): ModelGeometry {
     { t: "screen", p: F(360, 120), n: FRONT, s: [M(98), M(74)], feed: "view" },
     key(F(40, 85), FRONT, 14, 26, "I/O", "#0f1114", [{ key: "power", eq: true, color: GREEN }], { key: "power", value: "toggle", label: "POWER · เปิด/ปิดเครื่อง" }),
     ...([["MENU", 55], ["SET", 97], ["▲", 140], ["▼", 183]] as [string, number][]).map(([l, y]) => key(F(540, y), FRONT, 10, 9, l)),
-    { t: "cyl", p: v3(F(128, 175)[0] * 1000, F(128, 175)[1] * 1000, 192), r: M(14), h: M(12), n: FRONT, c: "#16181b" },   // fiber dust-cap holder
+    {t:"lathe",p:[F(128,175)[0],F(128,175)[1],M(186)],n:FRONT,c:"#16181b",finish:"rubber",
+      profile:[[0,0],[14,0],[14,10],[13,12],[10,12],[10,2],[0,2]].map(([r,y])=>[M(r),M(y)])}, // open dust-cap cup
     text(F(470, 230), FRONT, "Blackmagicdesign", 3, "#eef0f2"),
     text(R(1190, 115), BACK, "12G DIGITAL I/O", 2.6), text(R(1165, 222), BACK, "RETURN IN", 2.2), text(R(1165, 40), BACK, "AUDIO ANALOG OUT", 2.6),
   ];
@@ -422,7 +446,105 @@ function studioFiberConverter(): ModelGeometry {
   };
 }
 
-export const HARDWARE_GEOMETRY: Record<string, ModelGeometry> = {
+
+/* ───────────────────────── Phase 05: remaining verified items ───────────────────────── */
+
+/**
+ * AJA 3G-AMA — 147.32 × 78.74 × 25.4 mm (manual v1.2r1 p.21). Body ends carry the BNC pair and the single DB-25;
+ * analog audio reaches the player on the supplied breakout (manual p.7, Fig. 2): 4 × XLR F inputs (A–D) and
+ * 4 × XLR M outputs (A–D). The registry's `audio-l` / `audio-r` are breakout inputs A / B, so their sockets sit on
+ * those XLR barrels, not on the chassis. The archive has no orthographic end-panel photo: end-face placement of the
+ * BNC pair, DB-25, USB and DC jack is an estimate from the manual illustration (p.4).
+ */
+function aja3gAma(): ModelGeometry {
+  const L = 147.32, D = 78.74, H = 25.4;
+  const fanX = L / 2 + 70, dz = 24, z0 = -3.5 * dz;
+  const xlrIn = (i: number) => v3(fanX, 12.7, z0 + i * dz), xlrOut = (i: number) => v3(fanX, 12.7, z0 + (i + 4) * dz);
+  const ports: Record<string, ModelPortGeometry> = {
+    "sdi-in": port(v3(-L / 2, 12.7, -16), LEFT, "bnc"), "sdi-out": port(v3(-L / 2, 12.7, 6), LEFT, "bnc"),
+    "audio-l": { ...port(xlrIn(0), RIGHT, "xlr3f"), lead: true }, "audio-r": { ...port(xlrIn(1), RIGHT, "xlr3f"), lead: true },
+  };
+  const inertList = [
+    inert("SDI OUT 2 (BNC)", v3(-L / 2, 12.7, 26), LEFT, "bnc"),
+    inert("ANALOG AUDIO (DB-25)", v3(L / 2, 12.7, -8), RIGHT, "db25"),
+    inert("USB (Mini-Config)", v3(L / 2, 12.7, 22), RIGHT, "usbb"), inert("+5–20 VDC", v3(L / 2, 12.7, 32), RIGHT, "dc"),
+    inert("BREAKOUT XLR IN C", xlrIn(2), RIGHT, "xlr3f"), inert("BREAKOUT XLR IN D", xlrIn(3), RIGHT, "xlr3f"),
+    ...[0, 1, 2, 3].map((i) => inert(`BREAKOUT XLR OUT ${"ABCD"[i]}`, xlrOut(i), RIGHT, "xlr3m")),
+  ];
+  const parts: Part[] = [
+    box(0, H / 2, 0, L, H, D, "#2a2d33", true),
+    box(L / 2 + 8, 12.7, -8, 16, 14, 56, "#9aa0a8"),                                  // DB-25 shell of the breakout
+    ...Array.from({ length: 8 }, (_, i): Part => ({ t: "tube", r: M(1.5), c: "#16181b", finish: "rubber",
+      points: [v3(L / 2 + 16, 12.7, -8), v3(L / 2 + 30, 5, (z0 + i * dz) * 0.6), v3(fanX - 40, 12.7, z0 + i * dz)] })),
+    ...Array.from({ length: 8 }, (_, i): Part => ({ t: "cyl", p: v3(fanX - 20, 12.7, z0 + i * dz), r: M(9.5), h: M(40), n: RIGHT, c: "#25282d", finish: "plastic" })),
+    text(v3(0, H + 0.2, -10), UP, "AJA", 9, "#0089bf"), text(v3(0, H + 0.2, 10), UP, "3G-AMA", 6, "#e6e8ea"),
+    text(v3(fanX + 1, 20, z0 + 1.5 * dz), RIGHT, "INPUT A–D", 3), text(v3(fanX + 1, 20, z0 + 5.5 * dz), RIGHT, "OUTPUT A–D", 3),
+  ];
+  return {
+    displayScale: 1.6, size: v3(L, H, D),
+    source: ["https://www.aja.com/products/3g-ama/spec-sheet.pdf", "https://www.aja.com/support/item-download/9589/AJA_3G-AMA_Manual_v1.2r1.pdf"],
+    ports, inert: inertList, parts,
+    stagingBounds: { min: v3(-L / 2 - 7, 0, z0 - 12), max: v3(fanX + 8, H, z0 + 7 * dz + 12) },
+    estimates: ["ตำแหน่ง BNC/DB-25/USB/DC บนปลายตัวเครื่องประมาณจากภาพคู่มือหน้า 4 (ไม่มีภาพด้านปลายแบบตั้งฉาก)", "สาย breakout วาดแบบพับเก็บสั้น ไม่ใช่ความยาวจริง"],
+  };
+}
+
+/**
+ * Magewell USB Capture SDI Gen 2 (32070) — 92.2 × 40.2 × 12.3 mm (official tech-spec PDF). The official end view shows
+ * a gold MCX jack on the body (not BNC) and a blue USB 3.0 Type-A female on the other end. The bundled MCX→BNC cable
+ * (ACC00050, 33 cm) is modelled as an attached pigtail; registry port `sdi-in` sits on its BNC end, so the save
+ * signature (port keys) is unchanged and the player still lands a 3G-SDI BNC plug there. BNC gender of ACC00050 is
+ * not shown in any official image: drawn as a neutral BNC receptacle.
+ */
+function magewellSdiGen2(): ModelGeometry {
+  const L = 92.2, W = 40.2, H = 12.3;
+  const bnc = v3(-L / 2 - 70, 7, 0);
+  return {
+    displayScale: 2.5, size: v3(L, H, W),
+    source: ["https://www.magewell.com/static/tech-specs/USB_Capture/USBCaptureSDIGen2EN.pdf", "https://www.magewell.com/static/press-images/USBCaptureSDIGen2/USBCaptureSDIGen2.zip"],
+    ports: { "sdi-in": { ...port(bnc, LEFT, "bnc"), lead: true }, "usb": port(v3(L / 2, H / 2, 0), RIGHT, "usba") },
+    inert: [{ name: "SDI IN (MCX, body)", at: v3(-L / 2, H / 2, 0), normal: LEFT, kind: "mcx" }],
+    parts: [
+      box(0, H / 2, 0, L, H, W, "#d9dadc", true),
+      { t: "tube", r: M(1.8), c: "#141518", finish: "rubber", points: [v3(-L / 2 - 2, H / 2, 0), v3(-L / 2 - 24, 3, -10), v3(-L / 2 - 47, 3, -10), v3(-L / 2 - 54, 7, 0)] },
+      { t: "cyl", p: v3(-L / 2 - 62, 7, 0), r: M(5.5), h: M(16), n: LEFT, c: "#9aa0a8", finish: "metal" },
+      text(v3(0, H + 0.2, -3), UP, "USB Capture SDI", 5, "#5b5f66"), text(v3(0, H + 0.2, 5), UP, "MAGEWELL", 4, "#5b5f66"),
+      text(v3(-L / 2 + 6, H + 0.2, 0), UP, "SDI IN", 2.4, "#5b5f66"),
+      { t: "cyl", p: v3(L / 2 - 9, H + 0.1, -10), r: M(0.9), h: M(0.4), n: UP, c: "#2fd86a" },
+      { t: "cyl", p: v3(L / 2 - 9, H + 0.1, 10), r: M(0.9), h: M(0.4), n: UP, c: "#2fd86a" },
+      text(v3(L / 2 - 4, H + 0.2, -10), UP, "POWER", 1.8, "#5b5f66"), text(v3(L / 2 - 4, H + 0.2, 10), UP, "STATUS", 1.8, "#5b5f66"),
+    ],
+    stagingBounds: { min: v3(-L / 2 - 78, 0, -W / 2), max: v3(L / 2 + 3, H, W / 2) },
+    estimates: ["ปลาย BNC ของสาย ACC00050 วาดพับใกล้ตัวเครื่อง ไม่ใช่ความยาว 33 cm จริง", "เพศของปลาย BNC บนสาย ACC00050 ไม่มีภาพทางการยืนยัน"],
+  };
+}
+
+/**
+ * Shure SM58 — 162 mm long, 51 mm grille, 23 mm tail (official spec sheet, Overall Dimensions). Drawn lying on its side:
+ * grille toward −X, the XLR 3-pin male connector in the tail facing +X.
+ */
+function shureSm58(): ModelGeometry {
+  const L = 162, R = 25.5, cy = R;
+  const along = (x: number, r: number, h: number, c: string): Part => ({ t: "cyl", p: v3(x, cy, 0), r: M(r), h: M(h), n: RIGHT, c });
+  return {
+    displayScale: 1.5, size: v3(L, 51, 51),
+    source: ["https://content-files.shure.com/publications/specSheet/en/sm58-spec-sheet.pdf", "https://www.shure.com/en-US/docs/guide/SM58"],
+    ports: { "xlr-out": port(v3(L / 2, cy, 0), RIGHT, "xlr3m") },
+    inert: [],
+    parts: [
+      { t: "lathe", p: v3(0, cy, 0), n: RIGHT, c: "#aeb1b7", finish: "grille",
+        profile: [[0, -81], [8, -79], [16, -74], [22, -66], [25.5, -56], [25.5, -49], [24.8, -42], [22, -35], [20.5, -33], [0, -33]].map(([r, x]) => [M(r), M(x)]) },
+      along(-L / 2 + 24, 25.6, 2, "#9ea3a9"), // retaining band seen across the spherical grille
+      along(-L / 2 + 45, 21, 6, "#2b2e33"),                                 // grille ring / Shure badge band
+      { t: "lathe", p: v3(0, cy, 0), n: RIGHT, c: "#25282d", finish: "metal",
+        profile: [[0, -36], [20.5, -36], [18, -30], [16, -22], [14.5, -10], [11.5, 72], [11.5, 81], [0, 81]].map(([r, x]) => [M(r), M(x)]) },
+      text(v3(-L / 2 + 58, cy + 16, 0), UP, "SHURE", 4, "#e6e8ea"),
+    ],
+    estimates: ["ส่วนโค้งหัว/ด้ามอ่านจากภาพผลิตภัณฑ์และ bounding dimensions 162 × 51 mm; ลายตะแกรงเป็นวัสดุ procedural", "ไม่เพิ่มสวิตช์เพราะรุ่นย่อย LC/S ยังไม่ยืนยัน"],
+  };
+}
+
+const BASE_HARDWARE_GEOMETRY: Record<string, ModelGeometry> = {
   "bmd-atem-television-studio-hd8-iso": tvsHd8Iso(),
   "bmd-atem-2me-constellation-4k": constellation2me4k(),
   "bmd-videohub-20x20-12g": videohub20(),
@@ -436,4 +558,33 @@ export const HARDWARE_GEOMETRY: Record<string, ModelGeometry> = {
   "bmd-ursa-broadcast-g2": ursaBroadcastG2(),
   "bmd-camera-fiber-converter": cameraFiberConverter(),
   "bmd-studio-fiber-converter": studioFiberConverter(),
+  "aja-3g-ama": aja3gAma(),
+  "magewell-usb-capture-sdi-gen2": magewellSdiGen2(),
+  "shure-sm58": shureSm58(),
 };
+
+/** Surface details supported by the local front/side product photos; hole pitch is a visual approximation. */
+function refineCase(id: string, geo: ModelGeometry): ModelGeometry {
+  const parts = [...(geo.parts ?? [])], [w, h, d] = geo.size;
+  const ventCases: Record<string, number> = { "bmd-atem-2me-constellation-4k": 0.431, "bmd-videohub-20x20-12g": 0.431,
+    "bmd-streaming-encoder-hd": w, "bmd-hyperdeck-studio-hd-plus": w, "bmd-studio-fiber-converter": w };
+  const caseWidth = ventCases[id];
+  if (caseWidth) {
+    const cols = Math.min(28, Math.max(12, Math.round(d / 0.009))), rows = Math.min(9, Math.max(4, Math.round(h / 0.007)));
+    for (const side of [-1, 1]) parts.push({ t: "pattern", p: [side * (caseWidth / 2 + 0.0002), h / 2, 0], n: [side, 0, 0], r: 0.0014, c: "#07090c",
+      points: Array.from({ length: cols * rows }, (_, i) => [(i % cols / (cols - 1) - 0.5) * d * 0.58, (Math.floor(i / cols) / (rows - 1) - 0.5) * h * 0.66]) });
+  }
+  if (w > 0.48 && h < 0.14) parts.push({ t: "pattern", p: [0, h / 2, d / 2 + 0.0003], n: FRONT, r: 0.0035, c: "#090a0c",
+    points: [-1, 1].flatMap((sx) => [-1, 1].map((sy): [number, number] => [sx * (w / 2 - 0.010), sy * (h / 2 - 0.009)])) });
+  if (id.startsWith("bmd-micro-converter")) for (const side of [-1, 1]) parts.push({ t: "pattern", p: [0, h / 2, side * (d / 2 + 0.0002)], n: [0, 0, side], r: 0.002, c: "#111316", points: [[-0.021, 0], [0.021, 0]] });
+  if (geo.mount === "tripod") {
+    const z = id.includes("studio-camera") ? -0.0802 : -0.0952;
+    parts.push({ t: "pattern", p: [0, id.includes("studio-camera") ? 0.078 : 0.105, z], n: BACK, r: 0.002, c: "#8b9095", points: [[-0.038, -0.038], [-0.038, 0.038], [0.038, -0.038], [0.038, 0.038]] });
+  }
+  // Enclosures are metal; camera grips are moulded plastic. Other explicit finishes (lead/grille) win.
+  const finished = parts.map((p): Part => "c" in p && !p.finish && (p.t === "box" || p.t === "cyl") ? { ...p,
+    ...(p.t === "box" && Math.max(...p.s)>0.06 && Math.min(...p.s)>0.003 ? {round:true}:{}),
+    finish: geo.mount === "tripod" || id === "bmd-camera-fiber-converter" ? "plastic" : "metal" } : p);
+  return { ...geo, parts: finished, estimates: [...(geo.estimates ?? []), ...(caseWidth ? ["ลายช่องระบายอากาศด้านข้างประมาณความถี่จากภาพ local; ไม่ใช่ CAD รูเจาะ"] : [])] };
+}
+export const HARDWARE_GEOMETRY: Record<string, ModelGeometry> = Object.fromEntries(Object.entries(BASE_HARDWARE_GEOMETRY).map(([id, geo]) => [id, refineCase(id, geo)]));

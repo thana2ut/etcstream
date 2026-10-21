@@ -99,8 +99,19 @@ cyl('cam_lens_barrel', P(0, .13, .07), .036 * S, .09 * S, body_m)
 cyl('cam_lens_red_ring', P(0, .09, .07), .038 * S, .008 * S, red)
 for k, yy in enumerate((.115, .15)):
     cyl(f'cam_lens_grip_{k}', P(0, yy, .07), .039 * S, .014 * S, rubber, verts=40)
-box('cam_lens_hood', P(0, .205, .07), (.1 * S, .06 * S, .085 * S), rubber, .008 * S)
-box('cam_lens_hood_cut', P(0, .236, .07), (.09 * S, .002 * S, .075 * S), glass)
+# Hollow, tapered rectangular hood from the local front 3/4 photograph. The old solid green
+# rectangle hid the actual lens. Corner radius/taper are conservative photo estimates.
+hood_vertices=[]
+for yy,ww,hh in [(.175,.080,.065),(.235,.100,.085),(.175,.068,.053),(.235,.088,.073)]:
+    cut=.009
+    for x,z in [(-ww/2+cut,-hh/2),(ww/2-cut,-hh/2),(ww/2,-hh/2+cut),(ww/2,hh/2-cut),(ww/2-cut,hh/2),(-ww/2+cut,hh/2),(-ww/2,hh/2-cut),(-ww/2,-hh/2+cut)]:
+        hood_vertices.append(P(x,yy,.07+z))
+hood_faces=[]
+for i in range(8):
+    j=(i+1)%8
+    hood_faces.extend([(i,j,8+j,8+i),(16+i,24+i,24+j,16+j),(8+i,8+j,24+j,24+i),(i,16+i,16+j,j)])
+hood_mesh=bpy.data.meshes.new('photo-derived hollow hood'); hood_mesh.from_pydata(hood_vertices,[],hood_faces); hood_mesh.update()
+hood=bpy.data.objects.new('cam_lens_hood',hood_mesh); scene.collection.objects.link(hood); link(hood,rubber)
 cyl('cam_lens_front', P(0, .19, .07), .03 * S, .004 * S, glass)
 box('cam_battery', P(0, -.12, .06), (.07 * S, .04 * S, .075 * S), body_m, .006 * S)
 cyl('cam_evf', P(-.02, -.12, .115), .018 * S, .05 * S, body_m)
@@ -112,6 +123,14 @@ rod('cam_handle_top', P(0, -.08, .168), P(0, .07, .168), .01 * S, body_m)
 box('cam_xlr_unit', P(0, .1, .17), (.075 * S, .05 * S, .035 * S), body_m, .004 * S)
 box('cam_led_light', P(0, .128, .17), (.055 * S, .004 * S, .02 * S), led)
 cyl('cam_mic_holder', P(-.025, .1, .2), .014 * S, .03 * S, rubber)
+# Side audio sockets on the handle unit. Visual only; not new connectable ports.
+socket_ink=mat('audio_socket_insert',(.004,.004,.004),.8)
+socket_metal=mat('audio_socket_metal',(.3,.31,.33),.36,.65)
+for yy in (.088,.112):
+    cyl('handle_XLR_collar',P(.038,yy,.17),.011*S,.003*S,socket_metal,axis='X')
+    cyl('handle_XLR_female_insert',P(.040,yy,.17),.009*S,.001*S,rubber,axis='X')
+    for dy,dz in [(-.003,.002),(.003,.002),(0,-.003)]:
+        cyl('handle_XLR_female_contact',P(.0406,yy+dy,.17+dz),.0012*S,.0006*S,socket_ink,axis='X',verts=12)
 # Closed LCD lid on the operator's left (-X); Panasonic / 4K branding is printed on it (photos 70-74).
 box('cam_lcd_lid', P(-.054, -.01, .07), (.008 * S, .12 * S, .065 * S), body_m, .003 * S)
 # printed branding on the right side (faces +X)
@@ -146,7 +165,10 @@ report = {'model': 'Panasonic HC-X2000 on fluid-head tripod', 'blender': bpy.app
           'video_out_web_m': [round(port.x, 4), round(port.z, 4), round(-port.y, 4)],
           'verified': ['overall look, lens hood, red lens ring, top handle with XLR unit, LCD, EVF (photos 70-74)'],
           'unverified': ['rear panel / HDMI or SDI OUT position', 'exact dimensions (built from photo proportions)', 'tripod model'],
-          'references': 'art/reference/hc-x2000 (70-74)'}
+          'references': 'art/reference/hc-x2000 (70-74)',
+          'local_reference_pack': '04_PENDING_UNVERIFIED/panasonic-hc-x2000/MODELING_REFERENCE_PACK.md',
+          'evidence_status': 'PENDING_EVIDENCE / owner unit unverified',
+          'photo_refinement': ['hollow tapered lens hood with recessed round glass', 'visual-only handle audio sockets; game anchor unchanged']}
 (ROOT / 'art/blender/hc-x2000-manifest.json').write_text(json.dumps(report, indent=2))
 print('HCX_REPORT', json.dumps(report))
 for o in scene.objects:
