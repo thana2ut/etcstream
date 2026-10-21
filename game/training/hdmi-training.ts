@@ -263,11 +263,15 @@ export function missionRoutes(state: Pick<TrainingState, "scenarioId" | "cables"
     return x && y ? [{ def: c, x, y }] : [];
   });
   // A port the game accepted for this route: the documented port, or a sibling on the same device with the
-  // same direction and connector (e.g. SDI IN 2 instead of IN 1, monitor input B instead of A).
+  // same direction and connector (e.g. SDI IN 2 instead of IN 1), or the same port on an identical unit.
   const fits = (port: string, want: string) => {
     if (port === want) return true;
     const a = scenario.ports[port], b = scenario.ports[want];
-    return Boolean(a && b && a.device === b.device && a.direction === b.direction && a.connector === b.connector);
+    if (!a || !b || a.direction !== b.direction || a.connector !== b.connector) return false;
+    if (a.device === b.device) return true;
+    // The same kind of equipment counts too (e.g. camera B in place of camera A): same model, same role.
+    const da = scenario.devices.find((d) => d.id === a.device), db = scenario.devices.find((d) => d.id === b.device);
+    return Boolean(da && db && (da.modelId ?? da.model) === (db.modelId ?? db.model) && da.kind === db.kind);
   };
   const sameLead = (c: CableDef, d: CableDef) => catalogIdFor(c) === catalogIdFor(d) || (c.ends[0] === d.ends[0] && c.ends[1] === d.ends[1]) || (c.ends[0] === d.ends[1] && c.ends[1] === d.ends[0]);
   const joins = (l: { x: string; y: string }, from: string, to: string, exact: boolean) => exact
