@@ -9,11 +9,12 @@ export function ControlsGuide() {
     const el = ref.current;
     if (!el) return;
     const root = document.documentElement;
-    const publish = () => root.style.setProperty("--guide-h", `${Math.ceil(el.getBoundingClientRect().height)}px`);
+    const publish = () => { const r = el.getBoundingClientRect(); root.style.setProperty("--guide-h", `${Math.ceil(r.height)}px`); root.style.setProperty("--guide-top", `${Math.floor(r.top)}px`); };
     publish();
     const ro = new ResizeObserver(publish);
     ro.observe(el);
-    return () => { ro.disconnect(); root.style.removeProperty("--guide-h"); };
+    window.addEventListener("resize", publish);
+    return () => { ro.disconnect(); window.removeEventListener("resize", publish); root.style.removeProperty("--guide-h"); root.style.removeProperty("--guide-top"); };
   }, []);
   return (
     <div ref={ref} className="controls-guide-card glass-panel" aria-label="คู่มือการควบคุม">

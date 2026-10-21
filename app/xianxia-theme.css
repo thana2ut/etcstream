@@ -1208,3 +1208,7 @@ html[data-overlay] .cloud-layer { transition: none; }
 .game-screen .prompt-action-pill { min-height: 32px; padding: 4px 14px 4px 5px; gap: 9px; font-size: .84rem; line-height: 1.4; border-radius: 12px; }
 .game-screen .prompt-action-pill.is-info { padding-left: 14px; }
 .game-screen .prompt-action-key { min-width: 22px; height: 22px; padding: 0 5px; border-radius: 6px; font-size: .72rem; line-height: 22px; }
+
+/* Objective panel always ends 16px above the controls card, measured from where the card really sits (every stage, mission and practice). */
+.hud-objective-panel { max-height: calc(var(--guide-top, 100dvh) - 70px - 16px); }
+.game-screen .hud-objective-panel { max-height: calc(var(--guide-top, 100dvh) - 14px - 16px); }
