@@ -1116,7 +1116,7 @@ html[data-overlay] .cloud-layer { transition: none; }
 /* V22.1: portrait circle fitted to the ring opening (measured on the starter frame: ~75% wide x 70% tall,
    centre 50% / 50.8%). The art is scaled to hide its own transparent margin so no gap shows inside the ring. */
 .profile-avatar.has-frame .profile-avatar-face { inset: auto; left: 13.5%; top: 14.3%; width: 73%; height: 73%; box-shadow: inset 0 0 0 1px #0b162a, 0 0 0 1px #0b162a99; }
-.profile-avatar-face img { transform: scale(1.09); }
+.profile-avatar-face img { object-position: 50% 50%; transform: scale(1.03); }
 .profile-avatar-face::after { content: ""; position: absolute; inset: 0; border-radius: 50%; box-shadow: inset 0 0 10px 2px #050c1a88; pointer-events: none; }
 
 /* V24 compact nameplate: equipped strip as the pill background only (cover-fit, centred, never stretched);
