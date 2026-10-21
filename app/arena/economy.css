@@ -396,3 +396,26 @@
     mask-image: radial-gradient(ellipse 96% 92% at 50% 50%, #000 62%, transparent 100%);
     filter: blur(6px); }
 }
+
+/* V23.13 (supersedes the shade experiments above): like the market cover preview - one dark translucent
+   panel over the cover interior, its edges feathered into the frame. Overlay mode from 1100px up. */
+@media (min-width: 1100px) {
+  .profile-cover.has-cover { aspect-ratio: 3 / 1 !important; }
+  .profile-cover.has-cover .profile-cover-art { position: absolute !important; inset: 0 !important; height: 100% !important; }
+  .profile-cover.has-cover .profile-cover-body { position: absolute !important; inset: 12% 10% !important; z-index: 2; display: flex; align-items: center; overflow: visible !important; padding: 8px 20px !important; background: none !important; backdrop-filter: none !important; border-radius: 0 !important; }
+  .profile-cover.has-cover::before { content: ""; position: absolute; inset: 10.5% 7% 11.5% 7%; z-index: 1; pointer-events: none; border-radius: 26px;
+    background: rgba(12, 10, 22, .64); box-shadow: 0 0 34px 22px rgba(12, 10, 22, .5);
+    -webkit-mask-image: none; mask-image: none; filter: none; }
+  .profile-cover .profile-hub-portrait .profile-avatar { width: clamp(96px, 9vw, 156px) !important; height: clamp(96px, 9vw, 156px) !important; }
+  .profile-cover .profile-hub-pet { width: clamp(52px, 5vw, 88px) !important; height: auto !important; }
+  .profile-cover .profile-hub-identity h2 { font-size: clamp(20px, 2vw, 32px); }
+  .profile-cover .profile-hub-identity .arena-eyebrow, .profile-cover .profile-hub-identity .arena-note, .profile-cover .profile-hub-stats dt { font-size: clamp(11px, .9vw, 14px); }
+  .profile-cover .profile-hub-stats dd { font-size: clamp(14px, 1.2vw, 18px); }
+  .profile-cover .profile-hub-stats.has-icons { margin-top: clamp(4px, .6vw, 12px); padding-top: clamp(4px, .6vw, 12px); }
+  .profile-cover .profile-hub-header { gap: clamp(12px, 1.6vw, 26px); }
+}
+/* Root-cause fix: .arena-panel's corner ornament gives ::before a fixed 28x28px size; reset it so the
+   cover shade really spans the interior (all earlier shade rules were rendering as a 28px square). */
+@media (min-width: 1100px) {
+  .arena-public .profile-cover.has-cover.arena-panel::before { width: auto !important; height: auto !important; border: 0 !important; transform: none !important; background-image: none; }
+}
