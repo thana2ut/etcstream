@@ -1371,3 +1371,7 @@ html[data-overlay] .cloud-layer { transition: none; }
   .mo-stats { gap: 6px; } .mo-stats dd { font-size: 1.2rem; }
   .mo-actions { grid-auto-flow: row; grid-auto-columns: auto; }
 }
+
+/* Arena time attack only: the objective panel starts below the competition bar instead of under it. */
+.game-screen:has(> .arena-game-bar) .hud-objective-panel { top: 116px; max-height: calc(var(--guide-top, 100dvh) - 116px - 16px); }
+.game-screen:has(> .arena-game-bar) .hud-objective-mini-pill { top: 116px; }
