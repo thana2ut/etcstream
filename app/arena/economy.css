@@ -653,3 +653,4 @@
 .friend-card .econ-friend-portrait > img { display: none; }
 .friend-card .econ-friend-portrait { width: 88px; height: 88px; display: grid; place-items: center; align-self: center; }
 .friend-card .econ-friend-portrait > :first-child { margin: 0 auto; }
+.profile-hub-actions.is-above-cover { justify-content: flex-start; }
