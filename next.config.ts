@@ -10,7 +10,8 @@ const contentSecurityPolicy = [
   "default-src 'self'",
   `script-src 'self' blob: 'unsafe-inline' 'wasm-unsafe-eval'${isDevelopment ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "img-src 'self' data: blob:",
+  // Live market CMS images come from the public catalog-media bucket of the confirmed project.
+  `img-src 'self' data: blob: ${onlineOrigin}`,
   "font-src 'self' https://fonts.gstatic.com",
   "media-src 'self' blob:",
   // GLTFLoader decodes textures embedded in local GLB files through a temporary blob URL.
@@ -25,6 +26,7 @@ const contentSecurityPolicy = [
 const nextConfig: NextConfig = {
   devIndicators: false,
   poweredByHeader: false,
+  images: { remotePatterns: [{ protocol: "https", hostname: "unohixcxthiilnkmjunc.supabase.co", pathname: "/storage/v1/object/public/catalog-media/**" }] },
   async headers() {
     return [{
       source: "/:path*",

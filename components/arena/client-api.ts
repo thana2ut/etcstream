@@ -30,3 +30,14 @@ export function writeCache(path: string, value: unknown) {
 export function clearCache() {
   try { for (const k of Object.keys(sessionStorage)) if (k.startsWith(CACHE_PREFIX)) sessionStorage.removeItem(k); } catch {}
 }
+
+/** Keep the online profile name in step with the local trainee name. Resolves to an error message or "". */
+export async function syncOnlineName(name: string): Promise<string> {
+  try {
+    const r = await fetch("/api/arena/profile", { method: "POST", credentials: "same-origin", cache: "no-store", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name }) });
+    if (r.status === 401 || r.status === 503) return "";
+    if (!r.ok) { const v = await r.json().catch(() => ({})); return String(v.error || "ยังเปลี่ยนชื่อออนไลน์ไม่ได้"); }
+    clearCache();
+    return "";
+  } catch { return ""; }
+}

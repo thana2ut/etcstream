@@ -11,13 +11,19 @@ import { moderate, settings, attemptView } from "@/server/arena/service";
 import {seasonAdmin,seasonView,activeSeason} from "@/server/arena/ranked";
 import { cloudEnabled } from "@/server/online/supabase";
 import { cloudAdmin } from "@/server/online/admin";
+import { catalogUpload } from "@/server/online/admin-catalog";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 type Context = { params: Promise<{ path: string[] }> };
 async function respond(request: Request, context: Context) {
   // Vercel must never fall back to the legacy SQLite owner credential.
-  if (cloudEnabled() || process.env.VERCEL === "1") return cloudAdmin(request, (await context.params).path);
+  if (cloudEnabled() || process.env.VERCEL === "1") {
+    const path = (await context.params).path;
+    // Multipart image upload for the live market CMS (JSON body parser in cloudAdmin must not consume it).
+    if (path.join("/") === "catalog/upload") return catalogUpload(request);
+    return cloudAdmin(request, path);
+  }
   try {
     const { path } = await context.params, route = path.join("/"), post = request.method === "POST";
     const body = post ? await input(request) : {};

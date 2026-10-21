@@ -21,6 +21,9 @@ export function selectedMission(id: string) {
   const chapter = missionChapters.find((c) => scales[c.venueId] === scale);
   return { chapter, level: chapter?.difficulties.find((d) => d.level === Number(level)) };
 }
+/** Mirrors the server/database canonical form of reserved display names (UI hint only; the server decides). */
+const RESERVED_NAMES = new Set(["admin", "administrator", "แอดมิน", "แอดมิ้น", "ผู้ดูแล", "ผู้ดูแลระบบ", "ระบบ"]);
+const isReservedName = (n: string) => RESERVED_NAMES.has(n.normalize("NFKC").replace(/[\u200B-\u200D\u2060\uFEFF\u00AD]/g, "").replace(/[\s\p{P}\p{S}]+/gu, "").toLowerCase());
 export function ScenarioPicker({ value, onChange }: { value: string; onChange: (id: string) => void }) {
   const [scale, level] = value.split("-");
   return <div className="arena-form-row arena-scenario-picker"><label>สถานที่ประลอง<select value={scale} onChange={(e) => onChange(`${e.target.value}-${level}`)}>{missionChapters.map((c) => <option value={scales[c.venueId]} key={c.id}>{c.venue}</option>)}</select></label><label>ระดับบททดสอบ<select value={level} onChange={(e) => onChange(`${scale}-${e.target.value}`)}>{[1,2,3,4,5].map((n) => <option key={n} value={n}>ระดับ {n}</option>)}</select></label></div>;
@@ -34,11 +37,17 @@ const modes = [
 const subtitles: Record<string, string> = { home: "ฝึกวิชาให้แม่นยำ แล้วก้าวสู่บททดสอบแห่งสำนัก", "time-attack": "ห้าสถานที่ ยี่สิบห้าบททดสอบ · ทุกสายต่อด้วยฝีมือของเจ้า", duel: "สองกระบี่ หนึ่งบททดสอบ · ความยุติธรรมต้องมาก่อนชัยชนะ", leaderboard: "จารึกเฉพาะผลที่ผ่านการยืนยันจากระบบกลาง", friends: "ร่วมเส้นทางกับสหาย โดยเคารพความเป็นส่วนตัว", profile: "ตัวตน ความเป็นส่วนตัว และประวัติการฝึกของเจ้า",ranked:"วิถีกระบี่แห่งสายสัญญาณ · ผลยืนยันคนละด่าน สู่การจัดอันดับประจำฤดูกาล", market: "แลกหินวิญญาณจากการประลองจริง เป็นเครื่องตกแต่งที่ไม่เพิ่มความได้เปรียบ", bag: "ถุงเฉียนคุน · เก็บและสวมใส่ของสะสม แยกจากถุงอุปกรณ์ในภารกิจ", player: "ดูโปรไฟล์ที่ผู้ฝึกยินยอมเปิดเผย ส่งคำขอเป็นสหาย หรือคำท้าทำเวลา" };
 export function ArenaPortal({ section = "home",initialScope="all",initialSeason,playerCode }: { section?: string;initialScope?:string;initialSeason?:string;playerCode?:string }) {
   const [profile, setProfile] = useState<Profile | null>(null), [error, setError] = useState(""), [loading, setLoading] = useState(true);
-  const [register, setRegister] = useState(false), [name, setName] = useState(""), [joining, setJoining] = useState(false);
+  const [register, setRegister] = useState(false), [name, setName] = useState(""), [joining, setJoining] = useState(false), [claimCode, setClaimCode] = useState("");
   const joiningRef = useRef(false);
   const [connection,setConnection]=useState<"connecting"|"connected"|"disconnected">("connecting");
   const season=useArenaResource<RankedResponse>(profile ? "ranked" : null);
   const localName = useAcademyStore((s) => s.player?.nickname);
+  const localPlayer = useAcademyStore((s) => s.player), setLocalPlayer = useAcademyStore((s) => s.setPlayer);
+  // One name everywhere: whenever the online profile name differs, the local trainee name follows it.
+  useEffect(() => {
+    const online = profile?.player.name;
+    if (online && localPlayer && localPlayer.nickname !== online && validateNickname(online)) setLocalPlayer({ ...localPlayer, nickname: online });
+  }, [profile?.player.name, localPlayer, setLocalPlayer]);
   const reload = useCallback(async () => {
     try { const data = await api<Profile>("profile"); writeCache("profile", data); setProfile(data); setRegister(false); setError(""); }
     catch (e) { const message = (e as Error).message; if (message === "กรุณาเข้าสู่ระบบก่อน") {setProfile(null);setRegister(true);setError("");} else setError(message); }
@@ -51,7 +60,7 @@ export function ArenaPortal({ section = "home",initialScope="all",initialSeason,
     const visible=()=>{if(!document.hidden)beat();else setConnection("connecting");};
     beat(); const timer = window.setInterval(beat, 30000);document.addEventListener("visibilitychange",visible); return () => {clearInterval(timer);document.removeEventListener("visibilitychange",visible);};
   }, [profile]);
-  const join = async (e: FormEvent) => { e.preventDefault(); if (joiningRef.current) return; joiningRef.current = true; setJoining(true); try { await api("register", { name: name || localName }); await reload(); } catch (e) { setError((e as Error).message); } finally { joiningRef.current = false; setJoining(false); } };
+  const join = async (e: FormEvent) => { e.preventDefault(); if (joiningRef.current) return; joiningRef.current = true; setJoining(true); try { const typed = name || localName || ""; if (isReservedName(typed)) { await api("owner-claim", { name: typed, code: claimCode }); setClaimCode(""); } else await api("register", { name: typed }); await reload(); } catch (e) { setError((e as Error).message); } finally { joiningRef.current = false; setJoining(false); } };
   const title = section === "home" ? "หอประลองเซียน" : section === "profile" ? "บันทึกวิถีเซียน" : section === "ranked" ? "จัดอันดับฤดูกาล" : section === "market" ? "ตลาดสวรรค์" : section === "player" ? "โปรไฟล์ผู้ฝึก" : section === "bag" ? "ถุงเฉียนคุน" : modes.find((m) => m[0] === section)?.[1] || "หอประลองเซียน";
   // Hold the loading veil until identity AND wallet/equipped look are known, so nothing renders in a placeholder state.
   const bootEconomy = useEconomySummary(true);
@@ -59,7 +68,7 @@ export function ArenaPortal({ section = "home",initialScope="all",initialSeason,
   return <ArenaShell booting={booting} player={profile?.player} rank={season.stale ? null : season.data?.mine} rankState={season.error?"stale":season.loading?"loading":"ready"} connection={connection}>{section !== "home" && <ArenaBackButton section={section} />}<ArenaBanner file={section === "home" ? "hero-celestial-gate" : section === "friends" ? "banner-friends" : section === "profile" ? "banner-profile" : section === "ranked" ? "card-leaderboard" : modes.find((m) => m[0] === section)?.[3] || "hero-celestial-gate"} title={title} panorama={false}><p>{subtitles[section]}</p></ArenaBanner>
     {loading && <div className="arena-panel arena-skeleton" role="status" aria-live="polite">กำลังเชื่อมต่อข้อมูลผู้ฝึก…</div>}
     {error && <div className="arena-error" role="alert"><span>{error}</span><button className="arena-button-secondary" onClick={() => void reload()}>ลองอีกครั้ง</button></div>}
-    {register && <form className="arena-panel arena-join" onSubmit={join}><ArenaIcon name="profile" /><h2>เข้าร่วมหอประลอง</h2><p>ตัวตนเฉพาะเบราว์เซอร์นี้ ชื่อซ้ำไม่ใช่บัญชีเดียวกัน และคะแนนฝึกเดิมไม่ถูกนำมาจัดอันดับ</p><label>ชื่อผู้ฝึก<input required minLength={2} maxLength={20} value={name || localName || ""} onChange={(e) => setName(e.target.value)} /></label><p className="arena-note">เริ่มต้นไม่เปิดเผยรายชื่อหรือสถานะออนไลน์ ตั้งค่าเพิ่มเติมได้ภายหลัง</p><button type="submit" disabled={joining}>{joining ? "กำลังสร้างตัวตน…" : "สร้างตัวตนผู้ฝึก"}</button></form>}
+    {register && <form className="arena-panel arena-join" onSubmit={join}><ArenaIcon name="profile" /><h2>เข้าร่วมหอประลอง</h2><p>ตัวตนเฉพาะเบราว์เซอร์นี้ ชื่อซ้ำไม่ใช่บัญชีเดียวกัน และคะแนนฝึกเดิมไม่ถูกนำมาจัดอันดับ</p><label>ชื่อผู้ฝึก<input required minLength={2} maxLength={20} value={name || localName || ""} onChange={(e) => setName(e.target.value)} /></label>{isReservedName(name || localName || "") ? <label>รหัสยืนยันชื่อสงวน<input required type="password" inputMode="numeric" autoComplete="off" maxLength={64} value={claimCode} onChange={(e) => setClaimCode(e.target.value)} /><small className="arena-note">ชื่อนี้สงวนไว้สำหรับเจ้าของ ใส่รหัสเพื่อกลับเข้าบัญชีเดิม</small></label> : <p className="arena-note">เริ่มต้นไม่เปิดเผยรายชื่อหรือสถานะออนไลน์ ตั้งค่าเพิ่มเติมได้ภายหลัง</p>}<button type="submit" disabled={joining}>{joining ? "กำลังดำเนินการ…" : isReservedName(name || localName || "") ? "ยืนยันรหัสและเข้าบัญชี" : "สร้างตัวตนผู้ฝึก"}</button></form>}
     {register && <RecoveryPanel onRecovered={reload}/>}
     {section === "home" && <>
       {profile && <div className="arena-hub-summary"><Link className="arena-identity arena-identity-link" href="/arena/profile" aria-label={`เปิดโปรไฟล์ของ ${profile.player.name}`}><MyIdentityArt name={profile.player.name} size={72} /><div><span className="arena-eyebrow">ผู้ฝึกแห่งหอประลอง</span><strong>{profile.player.name}</strong></div></Link><div className="arena-summary-metrics"><span>ยืนยันแล้ว <strong>{profile.stats.verified ?? "—"} รอบ</strong></span><span>เวลายืนยันสั้นสุด <strong>{timeText(profile.stats.bestMs)}</strong></span></div></div>}

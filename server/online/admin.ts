@@ -10,6 +10,7 @@ import { trainingStatus } from "@/server/arena/training-status";
 import type { AdminPreviewContext } from "@/game/security/admin-preview-types";
 import { ensureCloudCatalog, stageVersions, seasonDTO, type CloudSeason } from "./ranked";
 import { verificationEnabled } from "./ranked";
+import { catalogAdmin } from "./admin-catalog";
 
 const cookie = "etc_cloud_admin";
 const digest = (s: string) => createHash("sha256").update(s).digest("hex");
@@ -68,6 +69,7 @@ export async function cloudAdmin(request: Request, path: string[]) {
     }
     if (route === "preview-end" && post) { check(await db.from("etc_admin_sessions").update({ preview: null }).eq("token_hash", admission.token_hash)); return reply({ ok: true }); }
     if (route === "training" && !post) return reply(trainingStatus());
+    if (route.startsWith("catalog/")) return await catalogAdmin(route, post, body);
     // V19 economy chamber: read views + audited, reason-required mutations through etc_economy_admin only.
     if (route.startsWith("economy/")) {
       const op = route.slice(8);

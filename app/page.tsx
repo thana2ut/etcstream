@@ -14,6 +14,7 @@ import { FantasyBackground } from "@/components/ui/fantasy-background";
 import { BackButton } from "@/components/ui/back-button";
 import { soundEngine } from "@/game/audio/sound-engine";
 import { validateNickname } from "@/game/security/nickname-validation";
+import { syncOnlineName } from "@/components/arena/client-api";
 
 type EntryPhase = "landing" | "name" | "inscribing" | "welcome";
 
@@ -109,7 +110,8 @@ export default function Home() {
     if (!trimmed) { setRenameError(copy.name.invalid); return; }
     if (!setPlayer({ ...player, nickname: trimmed, lastPlayedAt: new Date().toISOString() })) { setRenameError(copy.name.saveError); return; }
     setNickname(trimmed);
-    setRenameOpen(false);
+    // Same name everywhere: also rename the online Arena profile (no-op if not signed in online).
+    void syncOnlineName(trimmed).then((problem) => { if (problem) setRenameError(`บันทึกชื่อในเครื่องแล้ว แต่ชื่อในหอประลองไม่เปลี่ยน: ${problem}`); else setRenameOpen(false); });
   };
 
   // Submit name (REF 03 -> REF 04)

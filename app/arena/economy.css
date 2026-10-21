@@ -606,3 +606,8 @@
 .arena-shell .arena-content > :nth-child(3) { animation-delay: .04s; } .arena-shell .arena-content > :nth-child(4) { animation-delay: .08s; } .arena-shell .arena-content > :nth-child(n+5) { animation-delay: .12s; }
 @keyframes arena-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .arena-shell .arena-content > * { animation: none !important; transition: none !important; transform: none !important; } }
+
+/* Showcase cards are display-only: clicking/hovering an item shows nothing (no zoom, selection or drag ghost). */
+.profile-showcase-grid li, .profile-showcase-grid li * { user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; cursor: default; }
+.profile-showcase-grid img { pointer-events: none; -webkit-user-drag: none; }
+.profile-showcase-grid li:hover .profile-showcase-art img { transform: none !important; }
