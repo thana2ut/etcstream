@@ -495,8 +495,8 @@
 }
 
 /* V25 spirit seal: sixth showcase card (same card style), detail dialog; transparent PNG on navy, contain. */
-@media (min-width: 900px) { .profile-showcase-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (min-width: 561px) and (max-width: 899px) { .profile-showcase-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* One row of six cards at the original card size (the grid wraps only when there is no room). */
+@media (min-width: 1100px) { .profile-showcase-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
 .profile-showcase-seal { cursor: pointer; }
 .profile-showcase-seal:focus-visible { outline: 2px solid #f6e2a8; outline-offset: 2px; }
 .profile-showcase-seal .profile-showcase-art img { object-fit: contain; }
