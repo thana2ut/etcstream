@@ -1231,3 +1231,12 @@ html[data-overlay] .cloud-layer { transition: none; }
 .mission-detail-page .mission-choice-footer > div { padding-block: 0; }
 .mission-detail-page .mission-difficulty-grid + .mission-choice-footer { margin-top: clamp(12px, 2vh, 22px); }
 @media (max-width: 760px) { .mission-detail-page { overflow-y: auto; } .mission-detail-inner { height: auto; min-height: 100%; } }
+
+/* Level select balance: the panel sizes to its content and sits centred with even breathing room (no empty tail). */
+.mission-detail-inner { justify-content: center; gap: clamp(10px, 1.8vh, 18px); }
+.mission-detail-page .mission-choice-panel { flex: 0 1 auto; padding: clamp(18px, 3.4vh, 36px) clamp(20px, 3vw, 40px); }
+.mission-detail-page .mission-choice-intro h2 { font-size: clamp(1.7rem, 5.6vh, 2.9rem); margin: clamp(4px, 1vh, 12px) 0 clamp(6px, 1.2vh, 14px); }
+.mission-detail-page .mission-choice-intro :is(p, small) { margin: clamp(3px, .8vh, 8px) 0; font-size: clamp(.82rem, 2vh, 1.02rem); line-height: 1.6; }
+.mission-detail-page .mission-difficulty-heading { margin: clamp(12px, 2.6vh, 28px) 0 clamp(10px, 1.6vh, 16px); }
+.mission-detail-page .mission-difficulty-tile { padding: clamp(12px, 2.2vh, 20px) 16px; gap: clamp(4px, .9vh, 8px); }
+.mission-detail-page .mission-choice-footer, .mission-detail-page .mission-difficulty-grid + .mission-choice-footer { margin-top: clamp(16px, 3vh, 30px); padding: clamp(12px, 2vh, 18px) 20px clamp(12px, 2vh, 18px) 24px; }
