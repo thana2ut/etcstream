@@ -14,7 +14,7 @@ import type { Json } from "./types";
 import { SKU_PATTERN } from "@/game/content/economy-catalog";
 import { cloudAdminSession } from "./admin";
 import { replayCloudRun } from "./replay";
-import { cloudStages as stages, stageVersion as version, ensureCloudCatalog, verificationEnabled, seasonDTO, standingDTO, type CloudSeason } from "./ranked";
+import { cloudStages as stages, stageVersion as version, ensureCloudCatalog, verificationEnabled, seasonDTO, standingDTO, loadAdminShowcase, type CloudSeason } from "./ranked";
 
 const OWNER_ID = "49bad05a-38ae-49ae-b8b1-b2318b2d98fc";
 const OWNER_LOGIN_EMAIL = "owner.etcstream@example.com";
@@ -66,7 +66,10 @@ export async function cloudArena(request: Request, path: string[]) {
         message: state === "READY" ? "เชื่อมต่อ Supabase แล้ว" : state === "SERVER_KEY_REJECTED" ? "คีย์ฝั่งเซิร์ฟเวอร์ถูกปฏิเสธ · ผู้ดูแลต้องตั้ง SUPABASE_SECRET_KEY ของโครงการนี้ใหม่ (ดูอันดับได้ แต่บันทึกรอบแข่งขันยังไม่ได้)" : "ยังเชื่อมต่อโครงสร้างข้อมูลออนไลน์ไม่ได้ กรุณาติดต่อผู้ดูแล", serverNow: Date.now() });
     }
     // Public hall works without signing in: consented verified ranks, real presence count, labelled test profiles.
-    if (route === "public" && !post) return response(checked(await client.rpc("etc_public_hall")));
+    if (route === "public" && !post) {
+      const hall = checked(await client.rpc("etc_public_hall")) as { season: { id: string } | null };
+      return response({ ...hall, adminShowcase: await loadAdminShowcase(hall.season?.id ?? null) });
+    }
     let { data: { user } } = await client.auth.getUser();
     // Owner recovery for the reserved display name: code verified against a salted scrypt hash (env secret),
     // globally rate-limited, and bound to the single owner account id. Grants NO /admin rights.
@@ -161,7 +164,9 @@ export async function cloudArena(request: Request, path: string[]) {
       const id = url.searchParams.get("season");
       if (id && !uuid(id)) throw new ArenaError(400, "รหัสฤดูกาลไม่ถูกต้อง");
       const board = checked(await client.rpc("etc_ranked", { season_id: id || null, scope: url.searchParams.get("scope") || "all", page_offset: Math.min(100000, Math.max(0, Math.floor(Number(url.searchParams.get("offset")) || 0))) })) as { season: CloudSeason | null; rows: Record<string, unknown>[]; mine: Record<string, unknown> | null };
-      return response({ ...board, season: board.season ? seasonDTO(board.season) : null, rows: board.rows.map(standingDTO), mine: standingDTO(board.mine), serverNow: Date.now() });
+      return response({ ...board, season: board.season ? seasonDTO(board.season) : null,
+        rows: board.rows.map(standingDTO), mine: standingDTO(board.mine),
+        adminShowcase: await loadAdminShowcase(board.season?.id ?? null, user.id), serverNow: Date.now() });
     }
     const scenario = (url.searchParams.get("scenario") || "xs-1") as ScenarioId;
     if (["leaderboard", "my-standing", "stage-summary", "compare"].includes(route) && !post) {

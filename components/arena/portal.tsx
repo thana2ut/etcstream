@@ -8,7 +8,7 @@ import { useAcademyStore } from "@/game/stores/academy-store";
 import { validateNickname } from "@/game/security/nickname-validation";
 import { ArenaBanner, ArenaConfirmDialog, ArenaEmptyState, ArenaFriendCode, ArenaIcon, ArenaShell, ArenaStatsStrip, arenaAsset } from "./shell";
 import { api, readCache, statusText, timeText, writeCache, type AttemptView, type PlayerView, type Profile } from "./client-api";
-import {DuelArena,HallOfImmortals,OnlineLeaderboard,RankedPage,MySeasonCapsule,OnlineFriendsSignal,ProfileRecords,PlayerSessionControls,RecoveryPanel,FriendCompare,type RankedResponse,type SeasonStanding} from "./online";
+import {DuelArena,HallOfImmortals,OnlineLeaderboard,RankedPage,MySeasonCapsule,AdminShowcaseCard,OnlineFriendsSignal,ProfileRecords,PlayerSessionControls,RecoveryPanel,FriendCompare,type RankedResponse,type SeasonStanding} from "./online";
 import {useArenaResource} from "./use-arena-resource";
 import { CloudLobby } from "./cloud-lobby";
 import { RankBadge } from "./rank-badge";
@@ -84,7 +84,7 @@ export function ArenaPortal({ section = "home",initialScope="all",initialSeason,
     {section === "market" && (profile ? <CelestialMarket /> : !loading && <p className="arena-note">สร้างตัวตนผู้ฝึกก่อน จึงจะเข้าตลาดสวรรค์ได้</p>)}
     {section === "bag" && (profile ? <QiankunBag name={profile.player.name} /> : !loading && <p className="arena-note">สร้างตัวตนผู้ฝึกก่อน จึงจะเปิดถุงเฉียนคุนได้</p>)}
     {section === "player" && playerCode && (profile ? <PlayerProfilePage code={playerCode} /> : !loading && <p className="arena-note">สร้างตัวตนผู้ฝึกก่อน จึงจะดูโปรไฟล์ผู้อื่นได้</p>)}
-    {section === "profile" && profile && <><ProfileHub profile={profile} standing={season.stale ? null : season.data?.mine}/><MySeasonCapsule resource={season}/><PlayerProfile profile={profile} onChange={reload}/><ProfileRecords/><RecoveryPanel/><PlayerSessionControls onChange={reload}/></>}
+    {section === "profile" && profile && <><ProfileHub profile={profile} standing={season.stale ? null : season.data?.mine}/><MySeasonCapsule resource={season}/>{season.data?.adminShowcase?.isMe && <AdminShowcaseCard showcase={season.data.adminShowcase}/>}<PlayerProfile profile={profile} onChange={reload}/><ProfileRecords/><RecoveryPanel/><PlayerSessionControls onChange={reload}/></>}
   </ArenaShell>;
 }
 function MissionSelector({ value, onChange }: { value: string; onChange: (id: string) => void }) {
