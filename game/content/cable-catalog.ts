@@ -130,7 +130,7 @@ export function catalogIdFor(cable: CableDef): string {
 }
 
 /** Leads the trainee must bring: every scenario lead not already installed (fault levels) and not a fixed lav lead. */
-function packableCables(scenario: Scenario): CableDef[] {
+export function packableCables(scenario: Scenario): CableDef[] {
   const preinstalled = new Set((scenario.initialConnections ?? []).map((c) => c.cableId));
   return scenario.cables.filter((c) => !preinstalled.has(c.id) && !c.fixedA);
 }

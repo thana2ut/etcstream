@@ -41,9 +41,9 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
   onConfirm: (bag: Record<string, number>) => void; onBack: () => void;
 }) {
   const catalog = useMemo(() => {
-    if (scenario.stage) return PHYSICAL_CABLE_CATALOG;
-    return only ? CABLE_CATALOG.filter((c) => only.includes(c.id)) : CABLE_CATALOG;
-  }, [only, scenario]);
+    // Free Practice and missions share one lobby: the full physical catalog and the exact-bag check.
+    return PHYSICAL_CABLE_CATALOG;
+  }, []);
   // Every physical choice has the same training stock; the cap does not reveal this level's answer.
   const stock = useMemo(() => venueCandidateStock(scenario), [scenario]);
   const categories = useMemo(() => CABLE_CATEGORIES.filter((cat) => catalog.some((c) => c.category === cat.id)), [catalog]);
@@ -68,18 +68,18 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
   const step = total > 0 ? 4 : 3;
 
   const add = (c: CatalogCable, n = 1) => {
-    const amount = scenario.stage ? Math.min(n, Math.max(0, (stock[c.id] ?? 0) - count(c.id))) : n;
-    if (amount > 0) { addOne(c, amount, scenario.stage ? stock[c.id] ?? 0 : undefined); soundEngine.play("button_hover"); }
+    const amount = Math.min(n, Math.max(0, (stock[c.id] ?? 0) - count(c.id)));
+    if (amount > 0) { addOne(c, amount, stock[c.id] ?? 0); soundEngine.play("button_hover"); }
   };
   // Quantity picked in the detail stepper: only goes into the bag when "ใส่กระเป๋า" is pressed (resets to 1 per cable).
   const [draft, setDraft] = useState<{ id: string; n: number }>({ id: "", n: 1 });
-  const remaining = scenario.stage ? Math.max(0, (stock[selected.id] ?? 0) - count(selected.id)) : 20;
+  const remaining = Math.max(0, (stock[selected.id] ?? 0) - count(selected.id));
   const qty = Math.min(Math.max(1, remaining), draft.id === selected.id ? draft.n : 1);
-  const setQty = (n: number) => setDraft({ id: selected.id, n: Math.min(scenario.stage ? stock[selected.id] ?? 0 : 20, Math.max(1, remaining), Math.max(1, n)) });
+  const setQty = (n: number) => setDraft({ id: selected.id, n: Math.min(stock[selected.id] ?? 0, Math.max(1, remaining), Math.max(1, n)) });
   const putInBag = () => { add(selected, qty); setDraft({ id: selected.id, n: 1 }); };
   const remove = (c: CatalogCable) => { removeOne(c); soundEngine.play("button_hover"); };
   const pick = (c: CatalogCable) => { setSelected(c); soundEngine.play("button_hover"); };
-  const mission = Boolean(scenario.stage);
+  const mission = true;
   const canEnter = mission ? true : total > 0;
   // Problem found by the last entry attempt: opens the centred red warning (one dialog per invalid click).
   const [rejected, setRejected] = useState<BagProblem | null>(null);
@@ -130,7 +130,7 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
         <h1>{title}</h1>
         {levelLabel && <p className="cl-level">{levelLabel}</p>}
         {objective && <p className="cl-objective">{objective}</p>}
-        {scenario.stage && <p className="cl-objective">คลังนี้มีสายหลายชนิด บางชนิดไม่จำเป็นสำหรับด่านนี้ จงเลือกชนิดและจำนวนด้วยตนเอง</p>}
+        {<p className="cl-objective">คลังนี้มีสายหลายชนิด บางชนิดไม่จำเป็นสำหรับด่านนี้ จงเลือกชนิดและจำนวนด้วยตนเอง</p>}
         <ol className="cl-steps" aria-label="ขั้นตอน">
           {["เลือกหมวด", "เลือกสาย", "ใส่กระเป๋า", "เข้าสู่ด่าน"].map((t, i) => <li key={t} className={i + 1 < step ? "is-done" : i + 1 === step ? "is-now" : ""} aria-current={i + 1 === step ? "step" : undefined}><b>{i + 1}</b>{t}</li>)}
         </ol>
@@ -202,7 +202,7 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
             <div className="cl-stepper" role="group" aria-label="จำนวนที่จะใส่กระเป๋า">
               <button type="button" onClick={() => setQty(qty - 1)} disabled={qty <= 1} aria-label="ลดจำนวน">−</button>
               <output aria-live="polite">{qty}</output>
-              <button type="button" onClick={() => setQty(qty + 1)} disabled={qty >= Math.min(scenario.stage ? stock[selected.id] ?? 0 : 20, remaining)} aria-label="เพิ่มจำนวน">+</button>
+              <button type="button" onClick={() => setQty(qty + 1)} disabled={qty >= Math.min(stock[selected.id] ?? 0, remaining)} aria-label="เพิ่มจำนวน">+</button>
             </div>
             <button type="button" className="cl-btn is-primary" onClick={putInBag} disabled={remaining === 0}>{remaining === 0 ? "จัดครบแล้ว" : <><span className="cl-plus">+</span> ใส่กระเป๋า{qty > 1 ? ` ${qty} เส้น` : ""}</>}</button>
           </div>

@@ -1,5 +1,5 @@
 import { SCENARIOS, type Scenario } from "@/game/training/scenarios";
-import { catalogIdFor, PHYSICAL_CABLE_CATALOG } from "./cable-catalog";
+import { catalogIdFor, packableCables, PHYSICAL_CABLE_CATALOG } from "./cable-catalog";
 
 /**
  * Mission-mode cable preparation (25 venue levels only; Free Practice keeps its own bag rules).
@@ -12,6 +12,16 @@ const venueLevels = (scenario: Scenario): Scenario[] =>
 
 /** Leads the trainee must bring: the level's canonical routes, minus anything pre-installed or factory-attached. */
 export function requiredBag(scenario: Scenario): Record<string, number> {
+  // Free Practice uses the same exact-bag rule: every working (non-distractor) lead of the room, nothing else.
+  if (!scenario.stage) {
+    const need: Record<string, number> = {};
+    for (const cable of packableCables(scenario)) {
+      if (cable.purpose === "distractor") continue;
+      const id = catalogIdFor(cable);
+      if (id !== "CTRL-REPLAY") need[id] = (need[id] ?? 0) + 1;
+    }
+    return need;
+  }
   const preinstalled = new Set((scenario.initialConnections ?? []).map((c) => c.cableId));
   const need: Record<string, number> = {};
   for (const route of scenario.canonical ?? []) {
