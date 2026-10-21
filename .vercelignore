@@ -1,6 +1,7 @@
 /.arena/
 /.env*
 /.git/
+/.claude/
 /docs/
 /tests/
 /art/

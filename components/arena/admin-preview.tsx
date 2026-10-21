@@ -5,6 +5,7 @@ import { TrainingHud } from "@/components/game/training-hud";
 import { FirstPersonHands } from "@/components/game/first-person-hands";
 import { EquipmentInspector, InspectHoldRing } from "@/components/game/equipment-inspector";
 import { BagPanel } from "@/components/game/bag-panel";
+import { catalogIdFor } from "@/game/content/cable-catalog";
 import { OperatorConsole, ReviewOverlay } from "@/components/game/operator-console";
 import { TouchControls } from "@/components/game/touch-controls";
 import { useTrainingStore } from "@/game/stores/training-store";
@@ -60,7 +61,7 @@ export function AdminPreview({ context, onExit }: { context: AdminPreviewContext
     if (!confirmed) return;
     const frame = requestAnimationFrame(() => {
       const installed = new Set((scenario.initialConnections ?? []).map((c) => c.cableId));
-      const hidden = scenario.cables.filter((c) => !c.fixedA && !installed.has(c.id) && !context.loadout.leads.includes(c.id)).map((c) => c.id);
+      const hidden = scenario.cables.filter((c) => !c.fixedA && !installed.has(c.id) && catalogIdFor(c) !== "CTRL-REPLAY" && !context.loadout.leads.includes(c.id)).map((c) => c.id);
       useTrainingStore.getState().reset(context.scenarioId, hidden, context.loadout.leads);
       setReady(true); setBagOpen(false); setPaused(false);
     });

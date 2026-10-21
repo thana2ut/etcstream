@@ -132,5 +132,6 @@ export function CategoryIcon({ id }: { id: string }) {
     {id === "usb" && <><path d="M16 4 v22" {...s} /><path d="M12 8 l4 -4 4 4" {...s} /><path d="M16 18 l-6 -4 v-3 M16 22 l6 -4 v-3" {...s} /><circle cx="16" cy="27" r="2.5" fill="#ffe3a3" /></>}
     {id === "network" && <><path d="M11 11 a4 4 0 1 1 4 -4 v18 a4 4 0 1 1 -4 -4 h10 a4 4 0 1 1 -4 4 v-18 a4 4 0 1 1 4 4 z" {...s} strokeWidth={1.8} /></>}
     {id === "control" && <><circle cx="16" cy="16" r="11" {...s} /><circle cx="16" cy="16" r="6" {...s} /><circle cx="16" cy="16" r="2" fill="#ffe3a3" /></>}
+    {id === "accessory" && <><circle cx="11" cy="16" r="5" {...s} /><circle cx="22" cy="16" r="5" {...s} /><path d="M16 16h1 M6 8l4-3 M22 27l4-3" {...s} /></>}
   </svg>;
 }

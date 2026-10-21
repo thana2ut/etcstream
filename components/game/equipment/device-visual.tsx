@@ -14,6 +14,7 @@ import { SamsungTv } from "./samsung-tv";
 import { useTrainingStore } from "@/game/stores/training-store";
 import { studioSignalFeed, venueScreenFeed } from "@/game/training/monitor-feed";
 import { DoubleSide } from "three";
+import { playerEquipmentText } from "@/game/content/sim-thai";
 
 const ROOM_FONT = SCENE_FONT;
 
@@ -31,7 +32,7 @@ function Box({ position, scale, color }: { position: [number, number, number]; s
 /** Placeholder body + name/model label for a studio device (model marked when unverified). Drawn at its own origin. */
 /** Floating name plate: always faces the player, centred over the device (model on top, role below). */
 export function DeviceLabel({ device, y }: { device: Pick<DeviceDef, "label" | "model"> & { id?: string }; y: number }) {
-  return <EquipmentNameplate title={device.label} subtitle={device.model} y={y} deviceId={device.id} />;
+  return <EquipmentNameplate title={playerEquipmentText(device.label)} subtitle={playerEquipmentText(device.model)} y={y} deviceId={device.id} />;
 }
 
 /** `bare` hides the floating name label (used in the inspector). */

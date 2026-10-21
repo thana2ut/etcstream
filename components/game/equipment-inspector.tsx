@@ -7,6 +7,7 @@ import { useTrainingStore } from "@/game/stores/training-store";
 import { plugFits, scenarioOf } from "@/game/training/hdmi-training";
 import { portOf } from "@/game/training/sim/engine";
 import { inspectSubject } from "@/game/content/inspect-info";
+import { playerEquipmentText } from "@/game/content/sim-thai";
 import { INSPECT_HOLD_MS } from "./first-person-controller";
 import { Hds7105Model } from "./equipment/hds7105";
 import { DeviceVisual } from "./equipment/device-visual";
@@ -35,7 +36,7 @@ export function EquipmentInspector() {
 
   const subject = inspectSubject(scenario, id);
   if (subject.kind === "cable") return <CableInspector cable={subject.catalog} definition={subject.cable} onClose={() => close(null)} />;
-  const { info, device, evidence } = subject;
+  const { info, device } = subject;
   const ports = Object.values(scenario.ports).filter((p) => p.device === id);
   const inputs = ports.filter((p) => p.direction === "INPUT");
   const outputs = ports.filter((p) => p.direction === "OUTPUT");
@@ -58,10 +59,8 @@ export function EquipmentInspector() {
     <aside className="inspector-panel glass-card">
       <button type="button" className="inspector-close" onClick={() => close(null)} aria-label="ปิดหน้าดูอุปกรณ์">✕</button>
       <span className="inspector-role">{info?.role ?? "อุปกรณ์"}</span>
-      <h2 id="inspector-title">{info?.name ?? device?.label ?? id}</h2>
-      <strong className="inspector-model">{info?.model ?? device?.model}</strong>
-      <p>{evidence.classLabel} · {evidence.readinessLabel}</p>
-      <p className="inspector-unverified">{evidence.note}</p>
+      <h2 id="inspector-title">{playerEquipmentText(info?.name ?? device?.label ?? id)}</h2>
+      <strong className="inspector-model">{playerEquipmentText(info?.model ?? device?.model ?? "อุปกรณ์ฝึกจำลอง")}</strong>
       {info && <p>{info.summary}</p>}
       {info && info.facts.length > 0 && <><h3>ควรรู้</h3><ul>{info.facts.map((f) => <li key={f}>{f}</li>)}</ul></>}
       {info && <><h3>{scenario.venueScale ? "ในด่านนี้" : "ในห้องฝึกนี้"}</h3><p className="inspector-flow">{info.inThisRoom}</p></>}
@@ -80,7 +79,6 @@ export function EquipmentInspector() {
           return <details key={gid}><summary>{p.label} · {p.connector}</summary><p>{choices.length ? choices.map((c) => `${c.id} (${c.ends.join(" ↔ ")})`).join("; ") : "ยังไม่มีคำแนะนำสายที่ยืนยันชนิดสัญญาณตรงกัน ตรวจข้อมูลหัวต่อและหน้าที่พอร์ต"}</p></details>;
         })}
       </details>}
-      {info && info.unverified.length > 0 && <p className="inspector-unverified">ยังไม่ยืนยันกับของจริง: {info.unverified.join(" · ")}</p>}
     </aside>
   </div>;
 }

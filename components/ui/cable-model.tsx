@@ -7,8 +7,6 @@ import { CatmullRomCurve3, Vector3 } from "three";
 import { PlugMesh } from "@/components/game/cable-plugs";
 import type { CableDef, PlugStyle } from "@/game/training/scenarios";
 import type { CatalogCable } from "@/game/content/cable-catalog";
-import { referenceEvidence } from "@/game/content/reference-evidence";
-import { inspectCableKey } from "@/game/content/inspect-info";
 
 /**
  * 3D model of one catalog cable for the cable-prep lobby.
@@ -33,6 +31,7 @@ const ENDS: Record<string, [End, End, number?]> = {
   "DATA-USB-WEBCAM": ["usbc", "usba3"], "DATA-USB-MAGEWELL": ["usba3", "usba3"], "DATA-USB-C-C": ["usbc", "usbc"], "DATA-USB-A-A": ["usba", "usba"], "DATA-USB-B": ["usbb", "usba"],
   "NET-CAT5E6-ENCODER": ["ethernet", "ethernet"], "NET-ROUTER-UPLINK": ["ethernet", "ethernet"], "NET-POE-PTZ": ["ethernet", "ethernet"],
   "CTRL-REPLAY": ["logical", "logical"], "CTRL-TALLY": ["box", "box"], "CTRL-INTERCOM": ["xlr-f", "xlr-m"], "CTRL-REFERENCE": ["sdi", "sdi"], "CTRL-TIMECODE": ["sdi", "xlr-m"],
+  "ADAPTER-35-635": ["adapter35to635", "adapter35to635"], "ADAPTER-635-35": ["adapter635to35", "adapter635to35"],
 };
 
 /** Generic multi-pin / D-sub style head for connectors without a dedicated plug mesh (training placeholder). */
@@ -45,14 +44,6 @@ function BoxPlug({ color }: { color: string }) {
   </group>;
 }
 
-/** Ends that are deliberately NOT a specific physical product. */
-const INSPECTOR_NOTE: Partial<Record<End, string>> = {
-  optical: "หัวไฟเบอร์แบบทั่วไป (GENERIC) — ยังไม่ระบุว่า LC หรือ SC, single/multi-mode และขั้ว TX/RX จึงไม่วาดรายละเอียดของหัวชนิดใด",
-  multicore: "หัวสาย multicore แบบทั่วไป (GENERIC) — ไม่มีภาพหัวสาย snake จริงในคลังอ้างอิง",
-  logical: "ลิงก์ควบคุมเชิงตรรกะ (จำลอง) — ไม่ใช่สายจริง วงแหวนสีม่วงเป็นจุดจับปลายลิงก์เท่านั้น",
-  box: "หัวต่อทั่วไปเพื่อการฝึก — ยังไม่มีโมเดลหัวต่อจริงของชนิดนี้",
-};
-
 function Head({ end, color, scale = 1 }: { end: End; color: string; scale?: number }) {
   return <group scale={scale * 0.8}>
     {end === "box" ? <BoxPlug color={color} /> : <PlugMesh style={end} accent={color} />}
@@ -63,13 +54,22 @@ function PlaceholderCable({ cable, definition }: { cable: CatalogCable; definiti
   const [a, b, scaleA] = definition?.plugs ?? ENDS[cable.id] ?? ["box", "box"];
   const logical = a === "logical";
   const thick = cable.family === "multicore" ? 0.03 : cable.family === "fiber" ? 0.009 : 0.016;
-  // A loose coil between the two heads so both connectors face the viewer.
+  // A balanced symmetrical coil between the two heads so both connectors face the viewer evenly.
   const curve = useMemo(() => new CatmullRomCurve3([
-    new Vector3(-0.42, 0, 0.12), new Vector3(-0.3, -0.06, 0.28), new Vector3(-0.05, -0.12, 0.34), new Vector3(0.2, -0.08, 0.22),
-    new Vector3(0.12, -0.02, 0.04), new Vector3(-0.08, -0.06, 0.12), new Vector3(0.1, -0.1, 0.3), new Vector3(0.3, -0.06, 0.28), new Vector3(0.42, 0, 0.12),
+    new Vector3(-0.42, 0, 0.12),
+    new Vector3(-0.30, -0.06, 0.28),
+    new Vector3(-0.14, -0.10, 0.32),
+    new Vector3(0.08, -0.08, 0.26),
+    new Vector3(0.18, -0.02, 0.10),
+    new Vector3(0.00, -0.05, 0.06),
+    new Vector3(-0.18, -0.02, 0.10),
+    new Vector3(-0.08, -0.08, 0.26),
+    new Vector3(0.14, -0.10, 0.32),
+    new Vector3(0.30, -0.06, 0.28),
+    new Vector3(0.42, 0, 0.12),
   ]), []);
   // A rigid adapter is one object with a plug and a socket, never a duplicated head on a cable coil.
-  if (definition?.socketB && definition.plugs) return <group scale={0.9}><PlugMesh style={definition.plugs[0]} /></group>;
+  if ((definition?.socketB && definition.plugs) || cable.id.startsWith("ADAPTER-")) return <group scale={0.9}><PlugMesh style={a as PlugStyle} /></group>;
   return <group>
     {/* CTRL-REPLAY is a logical control link: a faint translucent path, not a physical jacket. SMPTE hybrid uses a black jacket. */}
     <mesh><tubeGeometry args={[curve, 96, thick, 10, false]} />{logical
@@ -112,7 +112,6 @@ export function CablePreview({ cable }: { cable: CatalogCable }) {
 
 /** Full-screen cable viewer (hold E 1 s or the 3D button): drag to rotate, wheel to zoom, ESC closes. */
 export function CableInspector({ cable, definition, onClose }: { cable: CatalogCable; definition?: CableDef; onClose: () => void }) {
-  const evidence = referenceEvidence(definition ? inspectCableKey(definition) : cable.id, true);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.code === "Escape") onClose(); };
     window.addEventListener("keydown", onKey);
@@ -128,15 +127,12 @@ export function CableInspector({ cable, definition, onClose }: { cable: CatalogC
     </div>
     <aside className="inspector-panel glass-card">
       <button type="button" className="inspector-close" onClick={onClose} aria-label="ปิดหน้าดูสาย">✕</button>
-      <span className="inspector-role">{definition?.socketB ? "อะแดปเตอร์" : evidence.evidenceClass === "logical" ? "ลิงก์ควบคุมจำลอง" : "สาย / หัวต่อ"} · {cable.status}</span>
+      <span className="inspector-role">{definition?.socketB ? "อะแดปเตอร์" : cable.id === "CTRL-REPLAY" ? "ลิงก์ควบคุมจำลอง" : "สาย / หัวต่อ"} · {cable.status}</span>
       <h2 id="cable-inspector-title">{cable.name}</h2>
       <strong className="inspector-model">{cable.id}</strong>
       <h3>หัวต่อ</h3><p>{cable.ends}</p>
       <h3>ใช้ต่อ</h3><p className="inspector-flow">{cable.use}</p>
       <h3>ควรรู้</h3><p>{cable.note}</p>
-      <h3>หลักฐานอ้างอิง</h3><p>{evidence.classLabel} · {evidence.readinessLabel}</p>
-      <p className="inspector-unverified">{evidence.note}</p>
-      {!evidence.pack && <p className="inspector-unverified">{INSPECTOR_NOTE[ENDS[cable.id]?.[0] ?? "box"] ?? "รูปทรงหัวต่อทั่วไปสำหรับฝึก; ขนาดบูตและความโค้งสายเป็นค่าประมาณ"}</p>}
     </aside>
   </div>;
 }
@@ -145,17 +141,27 @@ export function CableInspector({ cable, definition, onClose }: { cable: CatalogC
 /** Catalog cards show the cable at a fixed three-quarter angle (both plugs visible, never edge-on); the detail
  *  preview and the full-screen inspector are where it turns. */
 function CardTurn({ cable }: { cable: CatalogCable }) {
-  return <group rotation={[0.55, 0, 0]}><Center><CableModel cable={cable} /></Center></group>;
+  const isAdapter = cable.id.startsWith("ADAPTER-");
+  return (
+    <Center precise>
+      <group
+        rotation={isAdapter ? [0.35, -0.65, 0.2] : [0.48, 0, 0]}
+        scale={isAdapter ? 1.4 : 1}
+      >
+        <CableModel cable={cable} />
+      </group>
+    </Center>
+  );
 }
 
 export function CardCableScene({ cable }: { cable: CatalogCable }) {
   return <>
-    <PerspectiveCamera makeDefault position={[0, 0, 1.45]} fov={34} />
+    <PerspectiveCamera makeDefault position={[0, 0, 1.55]} fov={34} />
     <hemisphereLight args={["#eef2ff", "#2a3050", 2.2]} />
     <directionalLight position={[1.5, 2, 2]} intensity={2.8} />
     <directionalLight position={[-1.5, 0.6, -1]} intensity={1.2} color="#9fd8ff" />
     <pointLight position={[0, 0.1, 0.7]} intensity={1.4} distance={3} color={cable.color} />
-    <Bounds fit clip observe margin={1.15}><CardTurn cable={cable} /></Bounds>
+    <CardTurn cable={cable} />
   </>;
 }
 
@@ -165,7 +171,7 @@ export function CardCableScene({ cable }: { cable: CatalogCable }) {
  * viewport (position: fixed) and `.cl-catalog-wrap` clips it to the card grid; pointer events pass through.
  */
 export function CatalogCanvas() {
-  return <Canvas className="cl-catalog-gl" dpr={1} gl={{ alpha: true, antialias: true }} style={{ position: "fixed", inset: 0, width: "100vw", height: "100vh", pointerEvents: "none" }}>
+  return <Canvas className="cl-catalog-gl" dpr={1} camera={{ fov: 34, position: [0, 0, 1.55] }} gl={{ alpha: true, antialias: true }} style={{ position: "fixed", inset: 0, width: "100vw", height: "100vh", pointerEvents: "none" }}>
     <View.Port />
   </Canvas>;
 }

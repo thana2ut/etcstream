@@ -9,7 +9,7 @@ import { CONCEPTS } from "@/game/training/sim/library";
 import { PREFLIGHT } from "@/game/training/sim/stages";
 import { describe, portOf, testRoute, traceTo, validateLevel, type StageResult } from "@/game/training/sim/engine";
 import type { EvalContext, TestStage } from "@/game/training/sim/types";
-import { simThai } from "@/game/content/sim-thai";
+import { playerEquipmentNote, playerEquipmentText, simThai } from "@/game/content/sim-thai";
 import { LAYOUTS } from "@/game/training/venue-layouts";
 
 /**
@@ -183,12 +183,10 @@ function DevicesTab({ ctx, selected, onSelect }: { ctx: EvalContext; selected: s
     </div>
     <div>
       <div style={C.card}>
-        <H>{simThai(inst.label)} · {simThai(m.name)}</H>
-        <div style={C.muted}>{simThai(m.manufacturer)}{m.generic ? " (อุปกรณ์จำลองเพื่อฝึก)" : ""} · รหัสรุ่น {m.modelId}</div>
-        {m.sourceUrl && <div style={{ fontSize: "0.8em" }}>แหล่งอ้างอิง: <a href={m.sourceUrl} target="_blank" rel="noreferrer" style={{ color: "#8be4f4" }}>{m.sourceUrl}</a></div>}
-        <div style={{ fontSize: "0.8em" }}>{m.generic ? "พอร์ตตามโปรไฟล์ฝึก" : "พอร์ตตามข้อมูลอ้างอิง"}: {m.verifiedPorts.join(" · ")}</div>
-        <div style={{ fontSize: "0.8em", ...C.muted }}>สิทธิ์การใช้ชิ้นงาน: {m.assetLicense}</div>
-        {m.notes.map((n) => <div key={n} style={{ fontSize: "0.8em" }}>ⓘ {simThai(n)}</div>)}
+        <H>{simThai(inst.label)} · {playerEquipmentText(m.name)}</H>
+        {m.generic && <div style={C.muted}>อุปกรณ์ฝึกจำลอง</div>}
+        <div style={{ fontSize: "0.8em" }}>พอร์ต: {m.verifiedPorts.filter((p) => playerEquipmentNote(p) !== null).join(" · ")}</div>
+        {m.notes.map((n) => playerEquipmentNote(n)).filter((n): n is string => Boolean(n)).map((n) => <div key={n} style={{ fontSize: "0.8em" }}>ⓘ {n}</div>)}
         <div style={{ marginTop: 6 }}>สถานะ: <b>{simThai(v?.status ?? "—")}</b>{v?.problem && !cert ? <span style={{ color: "#ff8a7a" }}> · {simThai(v.problem.text)}</span> : null}</div>
       </div>
       {m.controls.length > 0 && <div style={C.card}><H>การตั้งค่า</H>

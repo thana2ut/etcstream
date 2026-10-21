@@ -15,6 +15,7 @@ import { genericLocalPorts, genericPresentation } from "@/game/rendering/generic
 import { PortSocket } from "./port-socket";
 import { photoLoftGeometry } from "@/game/rendering/hardware-detail-geometry";
 import {selectedGameProduct} from '@/game/content/selected-product-info';
+import { playerEquipmentText } from "@/game/content/sim-thai";
 
 const FONT = SCENE_FONT;
 const grillePixels=new Uint8Array(32*32*4);
@@ -45,8 +46,8 @@ function Rod({ a, b, r = 0.012, c = "#22252a" }: { a: [number, number, number]; 
 
 export function GenericLabel({ device, y }: { device: DeviceDef; y: number }) {
   const selected=selectedGameProduct(device.modelId);
-  const tag = selected?`${selected.name} · อ้างอิงภาพ GAME`:device.status === "CONFIRMED" ? device.model : device.status === "PROVISIONAL" ? "รุ่นรอการยืนยัน" : device.status === "UNKNOWN" ? "ยังไม่ทราบรุ่น" : "อุปกรณ์แบบฝึก";
-  return <EquipmentNameplate title={device.label} subtitle={tag} y={y} deviceId={device.id} />;
+  const tag = device.generic ? "อุปกรณ์ฝึกจำลอง" : selected ? selected.name : device.status === "CONFIRMED" ? device.model : "อุปกรณ์ฝึกจำลอง";
+  return <EquipmentNameplate title={playerEquipmentText(device.label)} subtitle={playerEquipmentText(tag)} y={y} deviceId={device.id} />;
 }
 
 function TripodCamera({ device }: { device: DeviceDef }) {

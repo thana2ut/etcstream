@@ -21,7 +21,7 @@ export function buildAdminLoadout(scenario: Scenario): AdminLoadout {
   for (const route of scenario.canonical) {
     const cable = scenario.cables.find((c) => c.id === route.cableId);
     if (!cable) { issues.push(`${id}: เส้นทาง ${route.from} → ${route.to} อ้างถึงสาย ${route.cableId} ที่ไม่มีในคลังของด่าน`); continue; }
-    if (cable.fixedA || preinstalled.has(cable.id)) continue;
+    if (cable.fixedA || preinstalled.has(cable.id) || catalogIdFor(cable) === "CTRL-REPLAY") continue;
     if (!scenario.ports[route.from] || !scenario.ports[route.to]) { issues.push(`${id}: พอร์ต ${route.from} หรือ ${route.to} ไม่มีในด่าน`); continue; }
     if (leads.includes(cable.id)) { issues.push(`${id}: สาย ${cable.id} ถูกใช้ซ้ำในสองเส้นทาง`); continue; }
     leads.push(cable.id);

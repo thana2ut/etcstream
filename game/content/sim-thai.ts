@@ -10,7 +10,7 @@ const LABELS: Record<string, string> = {
   "Full-frame graphics only: a plain HDMI picture is not a fill/key pair.": "ส่งกราฟิกเต็มจอเท่านั้น ภาพ HDMI ปกติไม่ใช่คู่ภาพและคีย์โปร่งใส",
   "•••• (private test)": "•••• (ปลายทางทดสอบส่วนตัว)",
   "Generic training device: HDMI OUT only.": "อุปกรณ์จำลองเพื่อฝึก มีพอร์ต HDMI ขาออกเท่านั้น",
-  "Generic training display.": "จอแสดงผลจำลองสำหรับฝึก ไม่ใช่การยืนยันรุ่นสินค้าจริง",
+  "Generic training display.": "จอแสดงผลจำลองสำหรับฝึก",
   "Generic HDMI Training Monitor": "จอ HDMI จำลองสำหรับฝึก",
   guided: "ฝึกพร้อมคำแนะนำ", partial: "คำแนะนำบางส่วน", scenario: "สถานการณ์ฝึก", disruption: "แก้เหตุขัดข้อง", certification: "ประเมินทักษะปฏิบัติ",
   CERTIFIED: "ผ่านการประเมิน", PASS: "ผ่าน", FAIL: "ไม่ผ่าน", RETRY: "ลองใหม่",
@@ -39,4 +39,22 @@ export function simThai(value: string): string {
   return value.replace(/TEACHER VOICE|HOST VOICE|GUEST VOICE|PRESENTER VOICE|COMMENTATOR [12]|CROWD AMBIENCE|LAPTOP SYSTEM SOUNDS|WIND NOISE|TEACHER CAM|KEYNOTE SLIDES|FIELD SLIDES|DOC CAM|BOOK PAGE|SCOREBOARD|HOLDING SLATE|GFX TEST PATTERN|CAM MIC|ROOM SOUND|NO PROGRAM AUDIO|NO PROGRAM|NO INPUT|NO SIGNAL|POWER OFF|NOT READY|STREAM LIVE|STUDIO SIM|\bOFFLINE\b|\bREADY\b|\bSLIDES\b|\bBLACK\b|\bINPUTS\b|\bSIM\b/g, (text) => ({
     "TEACHER VOICE": "เสียงผู้สอน", "HOST VOICE": "เสียงพิธีกร", "GUEST VOICE": "เสียงแขก", "PRESENTER VOICE": "เสียงผู้บรรยาย", "COMMENTATOR 1": "ผู้บรรยาย 1", "COMMENTATOR 2": "ผู้บรรยาย 2", "CROWD AMBIENCE": "บรรยากาศผู้ชม", "LAPTOP SYSTEM SOUNDS": "เสียงระบบโน้ตบุ๊ก", "WIND NOISE": "เสียงลม", "TEACHER CAM": "กล้องผู้สอน", "KEYNOTE SLIDES": "สไลด์บรรยาย", "FIELD SLIDES": "สไลด์ภาคสนาม", "DOC CAM": "กล้องเอกสาร", "BOOK PAGE": "หน้าเอกสาร", SCOREBOARD: "คะแนน", "HOLDING SLATE": "ภาพพักรายการ", "GFX TEST PATTERN": "ภาพทดสอบกราฟิก", "CAM MIC": "ไมค์กล้อง", "ROOM SOUND": "เสียงในห้อง", "NO PROGRAM AUDIO": "ไม่มีเสียงออกอากาศ", "NO PROGRAM": "ไม่มีภาพออกอากาศ", "NO INPUT": "ไม่มีขาเข้า", "NO SIGNAL": "ไม่มีสัญญาณ", "POWER OFF": "ยังไม่เปิดไฟ", "NOT READY": "ยังไม่พร้อม", "STREAM LIVE": "กำลังถ่ายทอด", "STUDIO SIM": "สตูดิโอจำลอง", OFFLINE: "ออฟไลน์", READY: "พร้อม", SLIDES: "สไลด์", BLACK: "ภาพดำ", INPUTS: "ขาเข้า", SIM: "จำลอง",
   } as Record<string, string>)[text] ?? text);
+}
+
+/** Player-only wording. Keep the original equipment identity and evidence in the registries. */
+export function playerEquipmentText(value: string): string {
+  if (value.includes("HP 15.6-inch (ตามภาพอ้างอิง)")) return value.replaceAll("HP 15.6-inch (ตามภาพอ้างอิง)", "โน้ตบุ๊ก 15.6 นิ้ว");
+  return value
+    .replaceAll("PMX-402D-USB (อ้างอิงภาพเจ้าของ · ผู้ผลิตยังไม่ยืนยัน)", "PMX-402D-USB")
+    .replaceAll("PMX-402D-USB · อ้างอิงภาพเจ้าของ (ยังไม่ยืนยันผู้ผลิต)", "PMX-402D-USB")
+    .replaceAll("อ้างอิงภาพ GAME · ", "")
+    .replaceAll(" · อ้างอิงภาพสำหรับเกม", "")
+    .replace(/\s*\((?:ตามภาพอ้างอิง|อ้างอิงภาพเจ้าของ|ผู้ผลิตยังไม่ยืนยัน)\)/g, "")
+    .trim();
+}
+
+/** Research and asset-production notes belong in internal records, not equipment help. */
+export function playerEquipmentNote(note: string): string | null {
+  if (/อ้างอิงภาพ|ภาพอ้างอิง|ภาพถ่าย|แผงหลังยังไม่ได้เทียบ|ผู้ผลิตยังไม่ยืนยัน|ยังไม่ยืนยันรุ่น|รุ่นย่อย.*ยังไม่ยืนยัน|ไม่ยืนยัน.*ของจริง|หน้าสินค้าไม่ระบุ|หน้าสเปกไม่ระบุ|สเปกทางการ:|โมเดลสินค้า|อุปกรณ์อ้างอิง|สิทธิ์การใช้ชิ้นงาน|Appendix|reference image|manufacturer unverified|modeling reference/i.test(note)) return null;
+  return simThai(note);
 }

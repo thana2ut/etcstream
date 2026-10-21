@@ -5,6 +5,7 @@ import { useTrainingStore } from "@/game/stores/training-store";
 import { isItemPlaced, scenarioOf } from "@/game/training/hdmi-training";
 import { catalogById, catalogIdFor } from "@/game/content/cable-catalog";
 import { CableThumbnail, CatalogCanvas } from "@/components/ui/cable-model";
+import { playerEquipmentText } from "@/game/content/sim-thai";
 
 type Row = { id: string; packed: number; inBag: string[]; inHand: number; placed: number; plugged: number; spare: number };
 
@@ -161,7 +162,7 @@ function MissionStockPanel({ onClose }: { onClose: () => void }) {
       </>}
       {tab === "equipment" && <ul className="bag-list">{scenario.devices.map((d) => {
         const portable = scenario.placeables.find((p) => p.id === d.id);
-        return <li key={d.id}><strong>{d.label}</strong><p>{portable ? state.heldItem === d.id ? "กำลังถือ" : isItemPlaced(state, d.id) ? "วางที่จุดใช้งานแล้ว" : "นำไปวางที่จุดใช้งาน" : "อุปกรณ์ติดตั้งประจำ"} · {portable?.zoneLabel ?? d.zoneLabel ?? "ตรวจป้ายประจำจุด"}</p><small>พอร์ต {Object.values(scenario.ports).filter((p) => p.device === d.id).length} ช่อง · {d.generic ? "โมเดลจำลองเพื่อฝึก" : "โมเดลอ้างอิงของโครงการ"}</small></li>;
+        return <li key={d.id}><strong>{playerEquipmentText(d.label)}</strong><p>{portable ? state.heldItem === d.id ? "กำลังถือ" : isItemPlaced(state, d.id) ? "วางที่จุดใช้งานแล้ว" : "นำไปวางที่จุดใช้งาน" : "อุปกรณ์ติดตั้งประจำ"} · {portable?.zoneLabel ?? d.zoneLabel ?? "ตรวจป้ายประจำจุด"}</p><small>พอร์ต {Object.values(scenario.ports).filter((p) => p.device === d.id).length} ช่อง · {d.generic ? "อุปกรณ์ฝึกจำลอง" : "ตรวจชื่อและหน้าที่พอร์ตก่อนต่อ"}</small></li>;
       })}</ul>}
       {tab === "routes" && <><p className="cl-note">แสดงเฉพาะสายที่ต่อเองหรือมีอยู่เมื่อเริ่มงาน ยังไม่ยืนยันการส่งสัญญาณ</p><ul className="bag-list">{installed.map(({ def, lead }) => <li key={def.id}><strong>{def.id}</strong><p>{scenario.ports[lead.a.portId!]?.label} ↔ {scenario.ports[lead.b.portId!]?.label}</p><small>ถอดหรือเปลี่ยนสายด้วย E ที่พอร์ตจริง</small></li>)}</ul>{installed.length === 0 && <p>ยังไม่มีสายที่ต่อครบสองปลาย</p>}</>}
       <CatalogCanvas />

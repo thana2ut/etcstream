@@ -228,7 +228,7 @@ export function MissionHall({ admin = false, embedded = false, active = true, on
                   >
                     <span className="mission-difficulty-number">{unlocked ? `ระดับ ${item.level}` : `🔒 ระดับ ${item.level}`}</span>
                     <strong>{item.title}</strong>
-                    <span>{item.flavor}</span>
+                    <span>{item.flavor.replace(/\s*·\s*\d+[–-]\d+\s*นาที\s*$/, "")}</span>
                     {completed && <em>ผ่านแล้ว ✓</em>}
                   </button>
                 );

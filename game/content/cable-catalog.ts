@@ -7,7 +7,7 @@ import type { CableDef, Scenario } from "@/game/training/scenarios";
  * Decoys (Mini/Micro HDMI, DisplayPort, TRRS, RCA, Dante Cat, USB-A↔A …) are real cables that the selected
  * venue routes do not use — picking them wastes bag space.
  */
-export type CableCategory = "video" | "fiber" | "audio" | "stagebox" | "usb" | "network" | "control";
+export type CableCategory = "video" | "fiber" | "audio" | "stagebox" | "usb" | "network" | "control" | "accessory";
 export type ConnectorFamily = "hdmi" | "bnc" | "fiber" | "xlr" | "trs" | "rca" | "usb" | "rj45" | "multicore" | "control";
 
 export interface CatalogCable {
@@ -30,6 +30,7 @@ export const CABLE_CATEGORIES: { id: CableCategory; label: string; glyph: string
   { id: "usb", label: "USB และอุปกรณ์รับภาพ", glyph: "⌁" },
   { id: "network", label: "เครือข่าย", glyph: "⌘" },
   { id: "control", label: "ควบคุม", glyph: "◎" },
+  { id: "accessory", label: "หัวแปลง", glyph: "⌁" },
 ];
 
 const C = (id: string, name: string, category: CableCategory, family: ConnectorFamily, ends: string, use: string, status: CatalogCable["status"], note: string, color: string): CatalogCable =>
@@ -78,7 +79,12 @@ export const CABLE_CATALOG: CatalogCable[] = [
   C("CTRL-INTERCOM", "Intercom XLR-4", "control", "xlr", "XLR-4 ↔ XLR-4", "สถานีสื่อสาร ↔ ชุดสื่อสารพกพาหรือชุดผู้บรรยาย", "หลัก", "สัญญาณสื่อสาร ไม่ใช่เสียงรายการ", "#9ad0ff"),
   C("CTRL-REFERENCE", "Reference / Genlock (BNC)", "control", "bnc", "REF OUT → REF IN", "Sync Generator → อุปกรณ์ที่มี REF IN", "มีเงื่อนไข", "เป็นสัญญาณ Sync ไม่ใช่ SDI Program", "#b08cff"),
   C("CTRL-TIMECODE", "Timecode (LTC)", "control", "control", "TC OUT → TC IN", "แหล่งรหัสเวลา → เครื่องบันทึกหรือภาพซ้ำ", "ทางเลือก", "ไม่บังคับทุกอุปกรณ์", "#c7a0e0"),
+  C("ADAPTER-35-635", "หัวแปลง 3.5 → 6.35 มม.", "accessory", "trs", "ปลั๊ก 6.35 มม. ↔ ช่องรับ 3.5 มม.", "ใช้เมื่อพอร์ตและระดับสัญญาณรองรับจริง", "มีเงื่อนไข", "หัวแปลงไม่เปลี่ยน Mic ให้เป็น Line", "#c9a24a"),
+  C("ADAPTER-635-35", "หัวแปลง 6.35 → 3.5 มม.", "accessory", "trs", "ปลั๊ก 3.5 มม. ↔ ช่องรับ 6.35 มม.", "ใช้เมื่อพอร์ตและระดับสัญญาณรองรับจริง", "มีเงื่อนไข", "หัวแปลงไม่ลดระดับเสียงอัตโนมัติ", "#8f9ba8"),
 ];
+
+/** Replay control is a simulated logical action, never a physical item in a mission bag. */
+export const PHYSICAL_CABLE_CATALOG = CABLE_CATALOG.filter((c) => c.id !== "CTRL-REPLAY");
 
 export const catalogById = (id: string) => CABLE_CATALOG.find((c) => c.id === id);
 
@@ -156,7 +162,7 @@ export function packedLeadsFor(scenario: Scenario, bag: Record<string, number>):
     const left = { ...bag };
     return packableCables(scenario).filter((c) => {
       const id = catalogIdFor(c);
-      if (!(left[id] > 0)) return false;
+      if (id === "CTRL-REPLAY" || !(left[id] > 0)) return false;
       left[id]--;
       return true;
     }).map((c) => c.id);

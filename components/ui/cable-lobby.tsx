@@ -6,7 +6,7 @@ import { createPortal } from "react-dom";
 import { checkMissionBag, venueCandidateStock, type BagProblem } from "@/game/content/mission-bag";
 import { CableInspector, CablePreview, CableThumbnail, CatalogCanvas } from "./cable-model";
 import { CategoryIcon } from "./lobby-ornaments";
-import { CABLE_CATALOG, CABLE_CATEGORIES, catalogById, MAX_WRONG_STREAK, type CableCategory, type CatalogCable, type ConnectorFamily } from "@/game/content/cable-catalog";
+import { CABLE_CATALOG, PHYSICAL_CABLE_CATALOG, CABLE_CATEGORIES, catalogById, MAX_WRONG_STREAK, type CableCategory, type CatalogCable, type ConnectorFamily } from "@/game/content/cable-catalog";
 import type { Scenario } from "@/game/training/scenarios";
 import { soundEngine } from "@/game/audio/sound-engine";
 import { preloadRoomModels } from "@/game/assets/preload-models";
@@ -36,16 +36,15 @@ export function ConnectorIcon({ family, color }: { family: ConnectorFamily; colo
  */
 export function CableLobby({ scenario, title, levelLabel, objective, playerName, only, onConfirm, onBack, backLabel = "กลับหอภารกิจ" }: {
   scenario: Scenario; title: string; levelLabel: string; objective?: string; playerName?: string; backLabel?: string;
-  /** Limit the catalog to these catalog ids (e.g. the classroom: only the leads laid out on its table). */
+  /** Optional Free Practice limit; missions always show every physical catalog choice. */
   only?: string[];
   onConfirm: (bag: Record<string, number>) => void; onBack: () => void;
 }) {
   const catalog = useMemo(() => {
-    // Missions list the venue's whole candidate pool (all five levels), never just this level's answer.
-    const allowed = scenario.stage ? Object.keys(venueCandidateStock(scenario)) : only;
-    return allowed ? CABLE_CATALOG.filter((c) => allowed.includes(c.id)) : CABLE_CATALOG;
+    if (scenario.stage) return PHYSICAL_CABLE_CATALOG;
+    return only ? CABLE_CATALOG.filter((c) => only.includes(c.id)) : CABLE_CATALOG;
   }, [only, scenario]);
-  // Selectable caps come from the venue-wide training stock, so a cap never equals the answer count.
+  // Every physical choice has the same training stock; the cap does not reveal this level's answer.
   const stock = useMemo(() => venueCandidateStock(scenario), [scenario]);
   const categories = useMemo(() => CABLE_CATEGORIES.filter((cat) => catalog.some((c) => c.category === cat.id)), [catalog]);
   const [category, setCategory] = useState<CableCategory>(() => categories[0]?.id ?? "video");
@@ -76,7 +75,7 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
   const [draft, setDraft] = useState<{ id: string; n: number }>({ id: "", n: 1 });
   const remaining = scenario.stage ? Math.max(0, (stock[selected.id] ?? 0) - count(selected.id)) : 20;
   const qty = Math.min(Math.max(1, remaining), draft.id === selected.id ? draft.n : 1);
-  const setQty = (n: number) => setDraft({ id: selected.id, n: Math.min(20, Math.max(1, remaining), Math.max(1, n)) });
+  const setQty = (n: number) => setDraft({ id: selected.id, n: Math.min(scenario.stage ? stock[selected.id] ?? 0 : 20, Math.max(1, remaining), Math.max(1, n)) });
   const putInBag = () => { add(selected, qty); setDraft({ id: selected.id, n: 1 }); };
   const remove = (c: CatalogCable) => { removeOne(c); soundEngine.play("button_hover"); };
   const pick = (c: CatalogCable) => { setSelected(c); soundEngine.play("button_hover"); };
@@ -131,6 +130,7 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
         <h1>{title}</h1>
         {levelLabel && <p className="cl-level">{levelLabel}</p>}
         {objective && <p className="cl-objective">{objective}</p>}
+        {scenario.stage && <p className="cl-objective">คลังนี้มีสายหลายชนิด บางชนิดไม่จำเป็นสำหรับด่านนี้ จงเลือกชนิดและจำนวนด้วยตนเอง</p>}
         <ol className="cl-steps" aria-label="ขั้นตอน">
           {["เลือกหมวด", "เลือกสาย", "ใส่กระเป๋า", "เข้าสู่ด่าน"].map((t, i) => <li key={t} className={i + 1 < step ? "is-done" : i + 1 === step ? "is-now" : ""} aria-current={i + 1 === step ? "step" : undefined}><b>{i + 1}</b>{t}</li>)}
         </ol>
@@ -202,7 +202,7 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
             <div className="cl-stepper" role="group" aria-label="จำนวนที่จะใส่กระเป๋า">
               <button type="button" onClick={() => setQty(qty - 1)} disabled={qty <= 1} aria-label="ลดจำนวน">−</button>
               <output aria-live="polite">{qty}</output>
-              <button type="button" onClick={() => setQty(qty + 1)} disabled={qty >= Math.min(20, remaining)} aria-label="เพิ่มจำนวน">+</button>
+              <button type="button" onClick={() => setQty(qty + 1)} disabled={qty >= Math.min(scenario.stage ? stock[selected.id] ?? 0 : 20, remaining)} aria-label="เพิ่มจำนวน">+</button>
             </div>
             <button type="button" className="cl-btn is-primary" onClick={putInBag} disabled={remaining === 0}>{remaining === 0 ? "จัดครบแล้ว" : <><span className="cl-plus">+</span> ใส่กระเป๋า{qty > 1 ? ` ${qty} เส้น` : ""}</>}</button>
           </div>
@@ -235,7 +235,7 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
       <div className="cl-footer-text">
         <strong>{mission ? "เลือกชนิดและจำนวนสายให้ตรงกับภารกิจ ระบบจะตรวจกระเป๋าก่อนเปิดประตูด่าน" : "ใส่สายอย่างน้อย 1 เส้นก่อนเข้าสู่ด่าน แล้วตรวจจำนวนให้ตรงกับงาน"}</strong>
         <small>{scenario.stage
-          ? "อุปกรณ์รออยู่ในห้องแล้ว · สายที่ไม่ได้จัดใส่กระเป๋ายังหยิบได้จากจุดเก็บสาย · ผิดพลาดด้านการต่อสายครบ 3 ครั้ง จะพักเพื่อทบทวน"
+          ? "อุปกรณ์และสายประจำฉากยังอยู่ตามเดิม · สายตัวเลือกที่ไม่จำเป็นไม่เพิ่มเป็นงานของด่าน · ต่อผิดครบ 3 ครั้งจะพักเพื่อทบทวน"
           : <>อุปกรณ์รออยู่ในห้องแล้ว · สายที่ไม่ได้นำไปจะไม่มีในห้อง · ต่อผิดติดต่อกัน {MAX_WRONG_STREAK} ครั้ง = ไม่ผ่าน</>}</small>
       </div>
       <div className="cl-enter-wrap">

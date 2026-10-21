@@ -5,6 +5,7 @@ import { requirementDone, scenarioOf, targetInstruction, trainingProgress, train
 import type { FlowGroup } from "@/game/training/scenarios";
 import { ControlsGuide } from "@/components/ui/controls-guide";
 import { MAX_WRONG_STREAK } from "@/game/content/cable-catalog";
+import { playerEquipmentText } from "@/game/content/sim-thai";
 
 import { useEffect, useState } from "react";
 
@@ -45,7 +46,7 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
   const rows = GROUPS.map((group) => ({
     ...group,
     items: [
-      ...scenario.requirements.filter((r) => r.group === group.id).map((r) => ({ id: r.id, label: r.verified || scenario.venueScale ? r.label : `${r.label} *`, done: requirementDone(state, r) })),
+      ...scenario.requirements.filter((r) => r.group === group.id).map((r) => ({ id: r.id, label: r.label, done: requirementDone(state, r) })),
       ...scenario.actions.filter((a) => a.group === group.id).map((a) => ({ id: a.id, label: a.label, done: Boolean(state.actionsDone[a.id]) })),
     ],
   })).filter((group) => group.items.length > 0);
@@ -88,13 +89,12 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
           {objective && !scenario.venueScale && <p className="hud-panel-sub">{objective}</p>}
           {scenario.job && !scenario.venueScale && <p className="hud-panel-sub">งาน: {scenario.job}</p>}
           {pickMode !== "whole" && <p className="hud-pick-mode" role="status">{`โหมด ${pickMode === "a" ? 1 : 2} · ${touch ? "เล็งสายแล้วแตะปุ่มใช้งาน" : "กด E ที่สาย"}เพื่อหยิบเฉพาะ${pickMode === "a" ? "หัวสาย" : "ปลายสาย"}`} ({touch ? "แตะปุ่มเลขเดิมซ้ำ" : "กดเลขซ้ำ"}เพื่อยกเลิก)</p>}
-          {scenario.venueScale && state.heldItem && <p className="hud-panel-sub" role="status">กำลังถือ: {scenario.placeables.find((p) => p.id === state.heldItem)?.label} → นำไปที่ {scenario.placeables.find((p) => p.id === state.heldItem)?.zoneLabel ?? "ตำแหน่งใช้งาน"}</p>}
+          {scenario.venueScale && state.heldItem && <p className="hud-panel-sub" role="status">กำลังถือ: {playerEquipmentText(scenario.placeables.find((p) => p.id === state.heldItem)?.label ?? "อุปกรณ์")} → นำไปที่ {scenario.placeables.find((p) => p.id === state.heldItem)?.zoneLabel ?? "ตำแหน่งใช้งาน"}</p>}
           {scenario.stage && state.held && (() => {
             const cable = scenario.cables.find((c) => c.id === state.held!.cableId);
             const lead = state.cables[state.held.cableId];
             return <p className="hud-panel-sub" role="status">{cable?.id} · {cable?.ends.join(" ↔ ")} · {lead.a.portId || lead.b.portId ? "ปลายแรกติดแล้ว นำปลายที่เหลือไปต่อ" : "เลือกพอร์ตสำหรับปลายแรก"}</p>;
           })()}
-          {scenario.stage && Boolean(scenario.designIssues?.length) && <p className="hud-panel-sub" role="alert">ข้อมูลใบงานยังมีจุดไม่สอดคล้อง กรุณาแจ้งผู้ดูแลพร้อมรหัสด่าน</p>}
           <div className="hud-panel-sub">
             <span>◈</span>
             <span>ความคืบหน้า: {progress}/{total} ขั้น</span>
@@ -123,7 +123,6 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
               </div>
             )}
             {scenario.venueScale && scenario.faults?.map((fault) => <small className="hud-check-note" key={fault}>⚠ {fault}</small>)}
-            {rows.length > 1 && <small className="hud-check-note">{scenario.venueScale ? "อุปกรณ์เป็นแบบจำลองเพื่อฝึกเส้นทาง รุ่นและพอร์ตที่ระบุว่ารอยืนยันยังต้องตรวจของจริง" : "* เส้นทางชั่วคราว รอตรวจสายจริงในห้อง"}</small>}
           </div>
         </aside>
       )}
@@ -135,7 +134,7 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
       <div className={`interaction-prompt-center${touch ? " is-touch" : ""}`} role="status">
         {(state.held || state.heldItem) && (
           <div className="prompt-holding-pill">
-            <span>{heldCable ? `กำลังถือ${heldCable.label}` : `กำลังถือ${(state.items[state.heldItem!]?.label ?? "อุปกรณ์")}`} · {touch ? "ใช้ปุ่มวางบนโต๊ะกลาง · ปุ่มหมุนปรับครั้งละ 45°" : "เล็งจุดบนโต๊ะกลางแล้วกด F วาง · T หมุน 45°"}</span>
+            <span>{heldCable ? `กำลังถือ${heldCable.label}` : `กำลังถือ${playerEquipmentText(state.items[state.heldItem!]?.label ?? "อุปกรณ์")}`} · {touch ? "ใช้ปุ่มวางบนโต๊ะกลาง · ปุ่มหมุนปรับครั้งละ 45°" : "เล็งจุดบนโต๊ะกลางแล้วกด F วาง · T หมุน 45°"}</span>
           </div>
         )}
 

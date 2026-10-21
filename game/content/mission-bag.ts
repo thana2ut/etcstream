@@ -1,10 +1,9 @@
 import { SCENARIOS, type Scenario } from "@/game/training/scenarios";
-import { catalogIdFor } from "./cable-catalog";
+import { catalogIdFor, PHYSICAL_CABLE_CATALOG } from "./cable-catalog";
 
 /**
  * Mission-mode cable preparation (25 venue levels only; Free Practice keeps its own bag rules).
- * - The lobby offers the venue's whole candidate pool (union of its five levels), so the
- *   current level's answer is never revealed by what is listed.
+ * - The lobby offers the full physical catalog, including non-required training distractors.
  * - Entry requires the bag to match the level's required multiset exactly.
  */
 
@@ -19,6 +18,7 @@ export function requiredBag(scenario: Scenario): Record<string, number> {
     const cable = scenario.cables.find((c) => c.id === route.cableId);
     if (!cable || cable.fixedA || preinstalled.has(cable.id)) continue;
     const id = catalogIdFor(cable);
+    if (id === "CTRL-REPLAY") continue;
     need[id] = (need[id] ?? 0) + 1;
   }
   return need;
@@ -30,17 +30,18 @@ function levelStock(scenario: Scenario): Record<string, number> {
   const stock: Record<string, number> = {};
   for (const cable of scenario.cables) if (!cable.fixedA && !installed.has(cable.id)) {
     const id = catalogIdFor(cable);
+    if (id === "CTRL-REPLAY") continue;
     stock[id] = (stock[id] ?? 0) + 1;
   }
   return stock;
 }
 
 /**
- * Venue candidate pool: every catalog id stocked by any of the venue's five levels, with the largest
- * quantity any of those levels stocks (so the cap is venue-wide, not the current answer count).
+ * Uniform candidate stock avoids leaking the answer through a level-specific limit.
+ * These are training choices only; the actual room's cable stock is unchanged.
  */
 export function venueCandidateStock(scenario: Scenario): Record<string, number> {
-  const pool: Record<string, number> = {};
+  const pool: Record<string, number> = Object.fromEntries(PHYSICAL_CABLE_CATALOG.map((c) => [c.id, 32]));
   for (const level of venueLevels(scenario)) for (const [id, n] of Object.entries(levelStock(level))) pool[id] = Math.max(pool[id] ?? 0, n);
   return pool;
 }
@@ -67,5 +68,5 @@ export const BAG_PROBLEM_TEXT: Record<BagProblem, string> = {
   missing: "สายสัญญาณยังไม่ครบตามภารกิจ โปรดตรวจสอบจำนวนอีกครั้ง",
   excess: "สายบางชนิดมีจำนวนเกินกว่าที่ภารกิจต้องใช้ โปรดตรวจสอบจำนวนอีกครั้ง",
   wrong: "พบสายที่ไม่สอดคล้องกับค่ายกลของด่าน โปรดจัดกระเป๋าใหม่",
-  stock: "จำนวนสายเกินกว่าคลังฝึกจะรองรับ โปรดปรับจำนวนใหม่",
+  stock: "จำนวนสายที่เลือกมากเกินไป โปรดปรับจำนวนใหม่",
 };
