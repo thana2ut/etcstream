@@ -365,3 +365,6 @@
 .profile-cover.has-cover .profile-hub-identity h2 { text-shadow: 0 2px 3px #000, 0 0 10px #000d, 0 0 24px #000a, 0 0 40px #4a1a1a88; }
 .profile-cover.has-cover .profile-hub-identity .arena-eyebrow, .profile-cover.has-cover .profile-hub-stats dt { color: #f3dca6; }
 .profile-cover.has-cover .profile-hub-identity .arena-note { color: #f1e6d2; }
+
+/* V23.10: cover tools without the long bar - just the two buttons under the cover. */
+.profile-cover.has-cover .profile-cover-tools { padding: 0; border: 0; border-radius: 0; background: none; right: auto; }
