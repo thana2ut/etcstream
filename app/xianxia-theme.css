@@ -401,7 +401,7 @@
 }
 /* One source of truth for the open centre between the hands; the prompt pill is sized from it. */
 /* Inner edge of each hand from screen centre. --fp-hand-asym pulls the right (gripping) hand in a touch further so the pose is not robotically mirrored. */
-:root { --fp-hand-gap: max(192px, 11vw); --fp-hand-asym: 6px; }
+:root { --fp-hand-gap: max(108px, 6.2vw); --fp-hand-asym: 6px; }
 .fp-hand {
   position: absolute;
   bottom: calc(var(--hand-size) * -0.26);
@@ -949,7 +949,7 @@
 .game-screen .room-map-scroll { font-family: var(--font-thai); font-size: var(--type-map-label); }
 
 /* One-line interaction prompt: a single compact frame that always fits the open centre between the hands. */
-.prompt-action-pill { width: max-content; min-height: 33px; max-width: min(calc(2 * (var(--fp-hand-gap) - var(--fp-hand-asym)) - 32px), calc(100vw - 32px)); padding: 3px 14px 3px 4px; gap: 8px; font-family: var(--font-thai); font-size: .8rem; line-height: 1.45; letter-spacing: 0; white-space: nowrap; }
+.prompt-action-pill { width: max-content; min-height: 33px; max-width: min(560px, calc(100vw - 32px)); padding: 3px 14px 3px 4px; gap: 8px; font-family: var(--font-thai); font-size: .8rem; line-height: 1.45; letter-spacing: 0; white-space: nowrap; }
 .prompt-action-pill.is-info { padding-left: 16px; }
 /* One complete line: the copy is kept short at the source (promptName), so no clipping or ellipsis is needed. */
 .prompt-action-pill > span:last-child { padding-block: 2px; overflow: visible; text-overflow: clip; overflow-wrap: normal; white-space: nowrap; }
