@@ -1306,3 +1306,8 @@ html[data-overlay] .cloud-layer { transition: none; }
 .touch-joy-knob { position: absolute; left: 50%; top: 50%; width: 58px; height: 58px; border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, .5); background: rgba(255, 255, 255, .22); pointer-events: none; transition: transform .12s ease-out; }
 .touch-joy-knob.is-active { transition: none; background: rgba(255, 255, 255, .3); }
 .game-screen:has(.touch-controls) .hud-objective-panel { max-height: calc(100dvh - env(safe-area-inset-top, 0px) - 14px - 184px - max(18vh, calc(env(safe-area-inset-bottom, 0px) + 120px)) - 20px) !important; }
+
+/* Interaction prompt: always one line, smaller but readable; very long names end with … (full text in the tooltip). */
+.prompt-action-pill { max-width: min(760px, calc(100vw - 32px)); white-space: nowrap; align-items: center; gap: 10px; padding: 7px 16px 7px 8px; }
+.prompt-action-pill > span:last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: clamp(12.5px, 0.95vw, 14px); line-height: 1.4; }
+.prompt-action-pill .prompt-action-key { flex: none; }
