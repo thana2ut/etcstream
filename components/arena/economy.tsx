@@ -225,7 +225,7 @@ export function QiankunBag({ name }: { name: string }) {
   };
   return <div className="econ-bag">
     <div className="arena-split">
-      <section className="arena-panel econ-bag-preview"><span className="arena-eyebrow">ภาพตัวตน (ภาพประกอบ ไม่ใช่โมเดล 3 มิติ)</span><h2>{name}</h2><CharacterCard name={name} equipped={equipped} />
+      <section className="arena-panel econ-bag-preview"><h2>{name}</h2><CharacterCard name={name} equipped={equipped} />
         {equipped.residenceDecor && <div className="econ-residence"><Image src={equipped.residenceDecor.asset} alt={equipped.residenceDecor.name} width={220} height={220} /><span>แผงตำหนัก · {equipped.residenceDecor.name}</span></div>}
       </section>
       <section className="arena-panel"><span className="arena-eyebrow">ถุงเฉียนคุน · แยกจากถุงอุปกรณ์และสายสัญญาณ</span><h2>ของสะสมของข้า</h2>
