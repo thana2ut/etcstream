@@ -247,3 +247,31 @@
   .profile-activity { grid-template-columns: 1fr; }
   .profile-activity > .arena-privacy { grid-column: 1; grid-row: auto; padding-left: 0; border-left: 0; border-top: 1px solid #cda86c33; padding-top: 14px; }
 }
+
+/* V24 nameplate thumbnails keep the strip's native ~5.7:1 ratio. */
+.econ-nameplate-thumb { width: 100% !important; height: auto !important; aspect-ratio: 939 / 165; object-fit: contain; border-radius: 8px; background: #0a1322; }
+.econ-item:has(.econ-nameplate-thumb) { grid-column: span 2; }
+.econ-nameplate-mock { max-width: 100%; }
+.cover-thumb.is-nameplate, .cover-picker-preview.is-nameplate { aspect-ratio: 939 / 165; }
+.profile-cover-tools { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* V23.1: profile content sits INSIDE the cover's opening (no inner scrollbar, no panel over the ornaments). */
+@media (min-width: 1360px) {
+  .profile-cover.has-cover .profile-cover-body { inset: 12% 10%; overflow: visible; display: flex; align-items: center; padding: 12px 22px; background: rgba(9, 16, 30, .58); }
+  .profile-cover .profile-hub-header { width: 100%; margin: 0; padding: 0 !important; gap: 26px; background: none !important; border: 0 !important; box-shadow: none !important; }
+  .profile-cover .profile-hub-portrait { padding: 0 26px 0 0; }
+  .profile-cover .profile-hub-portrait .profile-avatar { width: clamp(118px, 9.5vw, 156px) !important; height: clamp(118px, 9.5vw, 156px) !important; }
+  .profile-cover .profile-hub-pet { width: clamp(64px, 5vw, 88px) !important; height: auto !important; }
+  .profile-cover .profile-hub-identity h2 { font-size: clamp(24px, 2vw, 32px); margin: 0 0 6px; }
+  .profile-cover .profile-hub-rank { margin: 6px 0; }
+  .profile-cover .profile-hub-stats dd { font-size: 18px; }
+  .profile-cover .profile-hub-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); width: clamp(300px, 25vw, 400px); min-width: 0; gap: 8px; }
+  .profile-cover .profile-hub-actions > * { min-height: 40px !important; padding: 6px 10px !important; font-size: 14px; }
+  .profile-cover .profile-hub-actions > .arena-note { grid-column: 1 / -1; }
+}
+/* Between 1100 and 1359px the opening is too short for the content: show the cover as a banner above it. */
+@media (min-width: 1100px) and (max-width: 1359px) {
+  .profile-cover.has-cover { aspect-ratio: auto; }
+  .profile-cover.has-cover .profile-cover-art { position: static; height: auto; }
+  .profile-cover.has-cover .profile-cover-body { position: relative; inset: auto; border-radius: 0; backdrop-filter: none; overflow: visible; padding: 18px; background: linear-gradient(180deg, rgba(9, 16, 30, .78), rgba(9, 16, 30, .9)); }
+}
