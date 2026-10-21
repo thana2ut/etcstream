@@ -1291,3 +1291,6 @@ html[data-overlay] .cloud-layer { transition: none; }
 /* Room for Thai tone marks and descenders inside the compact action pill. */
 .game-screen .interaction-prompt-center .prompt-action-pill { min-height: 34px; padding-block: 4px; line-height: 1.75; overflow: visible; }
 .game-screen .interaction-prompt-center .prompt-action-pill > span:last-child { padding-block: 1px; line-height: 1.75; overflow: visible; }
+/* Long action prompts wrap inside the pill instead of running past its edge. */
+.game-screen .interaction-prompt-center .prompt-action-pill { width: auto; max-width: 100%; white-space: normal; }
+.game-screen .interaction-prompt-center .prompt-action-pill > span:last-child { min-width: 0; white-space: normal; text-wrap: balance; overflow-wrap: break-word; }
