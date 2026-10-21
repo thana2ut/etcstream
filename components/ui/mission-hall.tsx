@@ -6,7 +6,7 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { getDifficultyMeta, getMissionBySlug, missionChapters } from "@/game/content/mission-catalog";
 import { isDifficultyUnlocked } from "@/game/persistence/mission-progress-repository";
-import { useTester } from "@/components/game/use-tester";
+import { useTester, checkTester } from "@/components/game/use-tester";
 import { missionDrawRepository, MAX_REROLLS } from "@/game/persistence/mission-draw-repository";
 import { cryptoRandom } from "@/game/content/mission-ranks";
 import { useAcademyStore } from "@/game/stores/academy-store";
@@ -70,13 +70,15 @@ export function MissionHall({ admin = false, embedded = false, active = true, on
   // A redraw is only possible on a fresh assignment (nothing of it cleared yet) and only MAX_REROLLS times.
   const canReroll = !canDraw && Boolean(drawn) && rerollsUsed < MAX_REROLLS && clearedOf(drawn!) === 0;
 
-  const spin = (reroll: boolean) => {
+  const spin = async (reroll: boolean) => {
     if (rolling) return;
+    // Ask the server at the moment of the draw, so a just-claimed test account always counts.
+    const isTester = tester || await checkTester();
     // Equal chance among venues not yet fully cleared (all venues once everything is done); a redraw never repeats.
     const all = missionChapters.map((m, i) => ({ m, i }));
     let pool = all.filter(({ m }) => clearedOf(m.slug) < 5 && !(reroll && m.slug === drawn));
     if (!pool.length) pool = all.filter(({ m }) => !(reroll && m.slug === drawn));
-    const live = tester ? all.find(({ m }) => m.venueId === "stadium") : undefined;
+    const live = isTester ? all.find(({ m }) => m.venueId === "stadium") : undefined;
     const target = live ?? pool[Math.floor(cryptoRandom() * pool.length)];
     const n = missionChapters.length, laps = 4;
     const steps = n * laps + ((target.i - (n * laps) % n) + n) % n;
@@ -158,7 +160,7 @@ export function MissionHall({ admin = false, embedded = false, active = true, on
         {!admin && <MissionDrawPanel
           rolling={rolling} canDraw={canDraw} canReroll={canReroll} rerollsUsed={rerollsUsed} maxRerolls={MAX_REROLLS}
           drawnTitle={drawn ? getMissionBySlug(drawn)?.title ?? null : null} drawnCleared={drawn ? clearedOf(drawn) : 0}
-          onRoll={() => spin(false)} onReroll={() => spin(true)}
+          onRoll={() => void spin(false)} onReroll={() => void spin(true)}
           onOpen={() => { if (!drawn) return; const m = getMissionBySlug(drawn); setSelectedSlug(drawn); setSelectedLevel(m?.difficulties.find((d) => !progress.completed[drawn]?.includes(d.level))?.level ?? 1); setError(""); soundEngine.play("mission_reveal"); }}
         />}
 
