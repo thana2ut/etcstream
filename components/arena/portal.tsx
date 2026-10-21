@@ -22,7 +22,7 @@ export function selectedMission(id: string) {
   return { chapter, level: chapter?.difficulties.find((d) => d.level === Number(level)) };
 }
 /** Mirrors the server/database canonical form of reserved display names (UI hint only; the server decides). */
-const RESERVED_NAMES = new Set(["admin", "administrator", "แอดมิน", "แอดมิ้น", "ผู้ดูแล", "ผู้ดูแลระบบ", "ระบบ"]);
+const RESERVED_NAMES = new Set(["admin", "administrator", "แอดมิน", "แอดมิ้น", "ผู้ดูแล", "ผู้ดูแลระบบ", "ระบบ", "admin1", "admin2", "admin3"]);
 const isReservedName = (n: string) => RESERVED_NAMES.has(n.normalize("NFKC").replace(/[\u200B-\u200D\u2060\uFEFF\u00AD]/g, "").replace(/[\s\p{P}\p{S}]+/gu, "").toLowerCase());
 export function ScenarioPicker({ value, onChange }: { value: string; onChange: (id: string) => void }) {
   const [scale, level] = value.split("-");

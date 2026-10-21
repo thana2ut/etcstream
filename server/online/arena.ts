@@ -20,7 +20,11 @@ const OWNER_ID = "49bad05a-38ae-49ae-b8b1-b2318b2d98fc";
 const OWNER_LOGIN_EMAIL = "owner.etcstream@example.com";
 const RESERVED = new Set(["admin", "administrator", "แอดมิน", "แอดมิ้น", "ผู้ดูแล", "ผู้ดูแลระบบ", "ระบบ"]);
 /** Same canonical form as etc_private.canonical_name in the database. */
-export const reservedName = (n: unknown) => typeof n === "string" && RESERVED.has(n.normalize("NFKC").replace(/[\u200B-\u200D\u2060\uFEFF\u00AD]/g, "").replace(/[\s\p{P}\p{S}]+/gu, "").toLowerCase());
+// Owner test accounts: normal players seeded with 500,000 stones, unlocked with their own code (ADMIN_TEST_CLAIM_HASH).
+const TEST_ACCOUNTS = new Set(["admin1", "admin2", "admin3"]);
+const canonicalName = (n: string) => n.normalize("NFKC").replace(/[​-‍⁠﻿­]/g, "").replace(/[\s\p{P}\p{S}]+/gu, "").toLowerCase();
+const testAccount = (n: unknown) => typeof n === "string" && TEST_ACCOUNTS.has(canonicalName(n)) ? canonicalName(n) : null;
+export const reservedName = (n: unknown) => typeof n === "string" && (TEST_ACCOUNTS.has(canonicalName(n)) || RESERVED.has(canonicalName(n)));
 const rules = { connector_ms: 5000, route_ms: 10000, hint_ms: 15000, failed_ms: 10000, version: 1, board: 1, time_attack: 1 };
 const protocol = "server-command-v1";
 type Run = {
@@ -72,6 +76,24 @@ export async function cloudArena(request: Request, path: string[]) {
     let { data: { user } } = await client.auth.getUser();
     // Owner recovery for the reserved display name: code verified against a salted scrypt hash (env secret),
     // globally rate-limited, and bound to the single owner account id. Grants NO /admin rights.
+    if (post && route === "owner-claim" && testAccount(body.name)) {
+      const account = testAccount(body.name)!, hash = process.env.ADMIN_TEST_CLAIM_HASH;
+      if (!hash) throw new ArenaError(503, "ยังไม่ได้ตั้งค่าการยืนยันบัญชีทดสอบ กรุณาติดต่อผู้ดูแล");
+      const trusted = trustedClient();
+      checked(await trusted.rpc("etc_trusted_budget", { k: "test-claim", maximum: 10, seconds: 900 }));
+      if (typeof body.code !== "string" || body.code.length > 64 || !passwordMatches(body.code.trim(), hash)) throw new ArenaError(401, "ชื่อหรือรหัสยืนยันไม่ถูกต้อง");
+      const email = `test-${account}@etcstream.example.com`, password = randomBytes(32).toString("hex");
+      let id = (checked(await trusted.rpc("etc_test_account", { operation: "get", account })) as { player: string | null }).player;
+      if (!id) {
+        const created = await trusted.auth.admin.createUser({ email, password, email_confirm: true });
+        if (created.error || !created.data.user) throw new ArenaError(503, "ยังสร้างบัญชีทดสอบไม่ได้ กรุณาลองใหม่");
+        id = created.data.user.id;
+      } else if ((await trusted.auth.admin.updateUserById(id, { email, password, email_confirm: true })).error) throw new ArenaError(503, "ยังเปิดบัญชีทดสอบไม่ได้ กรุณาลองใหม่");
+      checked(await trusted.rpc("etc_test_account", { operation: "setup", account, target: id }));
+      if (user) await client.auth.signOut();
+      if ((await client.auth.signInWithPassword({ email, password })).error) throw new ArenaError(503, "ยังเปิดบัญชีทดสอบไม่ได้ กรุณาลองใหม่");
+      return response({ ok: true });
+    }
     if (post && route === "owner-claim") {
       const hash = process.env.ADMIN_DISPLAY_NAME_CLAIM_HASH;
       if (!hash) throw new ArenaError(503, "ยังไม่ได้ตั้งค่าการยืนยันชื่อสงวน กรุณาติดต่อผู้ดูแล");
