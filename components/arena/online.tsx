@@ -9,6 +9,7 @@ import {api,statusText,timeText,type AttemptView} from "./client-api";
 import {useArenaResource} from "./use-arena-resource";
 import { CloudRecovery } from "./cloud-lobby";
 import { RankBadge, tierForScore } from "./rank-badge";
+import { MyIdentityArt } from "./economy";
 
 type Season={id:string;name:string;starts:number;ends:number;status:string;scoringVersion:string;revision:number};
 export type SeasonStanding={name:string;friendCode:string;rank:number;globalRank:number;score:number;stages:number;provisional:boolean;tier:string;nextTier:string|null;nextThreshold:number|null;isMe:boolean};
@@ -30,7 +31,7 @@ function PageButtons({offset,hasMore,onChange}:{offset:number;hasMore:boolean;on
 
 export function MySeasonCapsule({resource}:{resource:ReturnType<typeof useArenaResource<RankedResponse>>}) {
   const {data,error,stale,loading,retry}=resource;
-  return <section className="arena-panel arena-my-season" aria-label="ตำแหน่งของข้า">{data?.mine?.tier?<RankBadge tier={data.mine.tier} size={88} current/>:<ArenaIcon name="profile" />}<div><span className="arena-eyebrow">ตำแหน่งของข้า · จัดอันดับฤดูกาล</span>{loading?<p role="status">กำลังเชื่อมต่ออันดับ…</p>:data?.season?<><h2>{data.mine?.tier || "ยังไม่จัดอันดับ"}</h2><p>{data.season.name} · {data.mine?`${data.mine.score} คะแนน · อันดับทั้งหมด ${data.mine.globalRank} · ${data.mine.stages} ด่านยืนยัน`:"ยังไม่มีผลยืนยันที่เปิดเผยในฤดูกาลนี้"}</p>{data.mine?.provisional&&<span className="arena-status is-muted">อันดับชั่วคราว · กลุ่มผู้แข่งขันยังน้อยหรือด่านยังไม่ครบ</span>}</>:<h2>{error?"ยังโหลดอันดับไม่ได้":"ยังไม่มีฤดูกาลที่เปิดอยู่"}</h2>}</div><Link className="arena-text-link" href="/arena/ranked">ดูวิถีกระบี่ →</Link><ConnectionNotice error={error} stale={stale} retry={retry}/></section>;
+  return <section className="arena-panel arena-my-season" aria-label="ตำแหน่งของข้า">{data?.mine?.tier?<RankBadge tier={data.mine.tier} size={88} current/>:<MyIdentityArt name="ข้า" size={88} />}<div><span className="arena-eyebrow">ตำแหน่งของข้า · จัดอันดับฤดูกาล</span>{loading?<p role="status">กำลังเชื่อมต่ออันดับ…</p>:data?.season?<><h2>{data.mine?.tier || "ยังไม่จัดอันดับ"}</h2><p>{data.season.name} · {data.mine?`${data.mine.score} คะแนน · อันดับทั้งหมด ${data.mine.globalRank} · ${data.mine.stages} ด่านยืนยัน`:"ยังไม่มีผลยืนยันที่เปิดเผยในฤดูกาลนี้"}</p>{data.mine?.provisional&&<span className="arena-status is-muted">อันดับชั่วคราว · กลุ่มผู้แข่งขันยังน้อยหรือด่านยังไม่ครบ</span>}</>:<h2>{error?"ยังโหลดอันดับไม่ได้":"ยังไม่มีฤดูกาลที่เปิดอยู่"}</h2>}</div><Link className="arena-text-link" href="/arena/ranked">ดูวิถีกระบี่ →</Link><ConnectionNotice error={error} stale={stale} retry={retry}/></section>;
 }
 export function OnlineFriendsSignal(){const source=useArenaResource<{onlineFriends:number}>("online-summary",30000);return <p className="arena-note" role="status">{source.error?"ยังเชื่อมต่อสถานะสหายไม่ได้":source.loading?"กำลังเชื่อมต่อสถานะสหาย…":`สหายที่ยินยอมแสดงออนไลน์ ${source.data?.onlineFriends ?? "—"} คน`}</p>;}
 export function OnlineLeaderboard({initialScope="all",initialSeason}:{initialScope?:string;initialSeason?:string}) {

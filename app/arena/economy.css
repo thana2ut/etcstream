@@ -190,3 +190,8 @@
 
 /* V22 starter look: frame layer is always present (starter fallback), labels for free starter items. */
 .econ-starter-note { color: #9fe3d2; font-size: 12px; }
+
+/* Profile history: long lists scroll inside the panel instead of stretching the page. */
+.arena-public .arena-history { max-height: min(560px, 62vh); overflow-y: auto; overscroll-behavior: contain; padding-right: 10px; scrollbar-width: thin; scrollbar-color: #cda86c88 transparent; }
+.arena-public .arena-history::-webkit-scrollbar { width: 8px; }
+.arena-public .arena-history::-webkit-scrollbar-thumb { background: #cda86c66; border-radius: 8px; }
