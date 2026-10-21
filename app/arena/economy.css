@@ -555,3 +555,10 @@
 .econ-character:not(.is-compact) .econ-sword { top: 96px; bottom: auto; }
 .econ-character:not(.is-compact) .econ-pet { top: 92px; bottom: auto; }
 .econ-character:not(.is-compact) figcaption { position: relative; z-index: 2; margin-top: 30px; max-width: 280px; line-height: 1.5; color: #e9dcc3; text-shadow: 0 1px 2px #000a; }
+
+/* V23.25: bigger, more prominent portrait + frame on the profile cover (all covers). */
+@media (min-width: 1100px) {
+  .profile-cover .profile-hub-portrait .profile-avatar { width: clamp(132px, 12.5vw, 212px) !important; height: clamp(132px, 12.5vw, 212px) !important; filter: drop-shadow(0 6px 18px rgba(0, 0, 0, .55)) drop-shadow(0 0 14px rgba(255, 226, 170, .25)); }
+  .profile-cover .profile-hub-pet { width: clamp(64px, 6.2vw, 112px) !important; right: -18px; bottom: -4px; }
+  .profile-cover .profile-hub-portrait { padding: 0 34px 0 0; }
+}
