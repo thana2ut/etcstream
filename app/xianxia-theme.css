@@ -1189,3 +1189,10 @@ html[data-overlay] .cloud-layer { transition: none; }
 .game-screen .hud-objective-mini-pill { top: 14px; }
 .game-pause-btn { top: 14px; }
 .cl-bag-button.is-touch { top: max(66px, calc(env(safe-area-inset-top) + 66px)); }
+
+/* No veil or line behind the top bar in any room: brand and icons float flush with the top edge; no handle strip. */
+.academy-main-header.is-autohide,
+.fantasy-viewport:not(.game-screen) > .academy-main-header.is-autohide { background: none; backdrop-filter: none; box-shadow: none; border: 0; padding-top: 6px; padding-bottom: 0; align-items: flex-start; }
+.academy-main-header.is-autohide::before,
+.academy-main-header.is-autohide::after { content: none; }
+.academy-header-handle { display: none; }
