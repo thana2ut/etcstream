@@ -1262,3 +1262,7 @@ html[data-overlay] .cloud-layer { transition: none; }
 .game-screen:has(.touch-controls) .hud-objective-panel { top: calc(14px + env(safe-area-inset-top, 0px)); max-height: calc(100dvh - env(safe-area-inset-top, 0px) - 14px - 184px - max(18px, env(safe-area-inset-bottom, 0px)) - 20px) !important; }
 .game-screen:has(.touch-controls) .hud-objective-mini-pill { top: calc(14px + env(safe-area-inset-top, 0px)); }
 @media (max-width: 760px) { .touch-move-pad { transform: scale(.82); transform-origin: left bottom; } }
+
+/* Prompts never sit under the hands: narrower centre column that wraps, drawn above the hands layer. */
+.game-screen .interaction-prompt-center { z-index: 5; width: min(460px, calc(100vw - 32px)); }
+.game-screen .interaction-prompt-center .prompt-holding-pill { max-width: 100%; white-space: normal; text-wrap: balance; text-align: center; font-size: .8rem; line-height: 1.5; padding: 5px 14px; }
