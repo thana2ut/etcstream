@@ -679,7 +679,3 @@
 .social-challenge-list .arena-actions > * { min-height: 44px; }
 .arena-person-row .arena-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .arena-person-row .arena-actions > :is(button, .arena-action, form) { min-height: 44px; }
-
-/* iPad/iPhone (viewport-fit=cover): keep the arena header below the status bar instead of under it. */
-.arena-public .arena-content { padding-top: env(safe-area-inset-top, 0px) !important; }
-.arena-shell.is-admin .arena-content { padding-top: max(18px, env(safe-area-inset-top, 0px)) !important; }
