@@ -1203,3 +1203,8 @@ html[data-overlay] .cloud-layer { transition: none; }
 .touch-move-pad::after { content: ""; position: absolute; left: 50%; top: 50%; width: 34px; height: 34px; transform: translate(-50%, -50%); border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, .42); background: rgba(255, 255, 255, .1); pointer-events: none; }
 .touch-move-pad .touch-control-button { border: 0; border-radius: 50%; background: transparent; box-shadow: none; color: rgba(255, 255, 255, .9); font-size: 1rem; }
 .touch-move-pad .touch-control-button:active { background: rgba(255, 255, 255, .18); transform: none; }
+
+/* Compact, balanced interaction prompt in play: smaller copy and key chip with even breathing room. */
+.game-screen .prompt-action-pill { min-height: 32px; padding: 4px 14px 4px 5px; gap: 9px; font-size: .84rem; line-height: 1.4; border-radius: 12px; }
+.game-screen .prompt-action-pill.is-info { padding-left: 14px; }
+.game-screen .prompt-action-key { min-width: 22px; height: 22px; padding: 0 5px; border-radius: 6px; font-size: .72rem; line-height: 22px; }
