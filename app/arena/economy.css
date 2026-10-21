@@ -385,3 +385,14 @@
 .arena-public .arena-banner.is-panorama::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(90deg, rgba(8, 14, 30, .82) 0%, rgba(8, 14, 30, .55) 32%, rgba(8, 14, 30, .12) 60%, rgba(8, 14, 30, 0) 80%); }
 .arena-public .arena-banner.is-panorama > div { position: relative; z-index: 2; }
 .arena-public .arena-banner.is-panorama h1, .arena-public .arena-banner.is-panorama p { text-shadow: 0 2px 4px #000c, 0 0 18px #000a; }
+
+/* V23.12: deep night shade over the whole frame interior (like the dark cover), feathered into the frame. */
+@media (min-width: 1360px) {
+  .profile-cover.has-cover::before { inset: 9% 5.5% 10% 5.5%; border-radius: 28px;
+    background:
+      radial-gradient(ellipse 55% 70% at 28% 50%, rgba(10, 8, 18, .55) 0%, rgba(10, 8, 18, 0) 70%),
+      linear-gradient(90deg, rgba(10, 8, 18, .86) 0%, rgba(10, 8, 18, .8) 40%, rgba(10, 8, 18, .66) 70%, rgba(10, 8, 18, .5) 100%);
+    -webkit-mask-image: radial-gradient(ellipse 96% 92% at 50% 50%, #000 62%, transparent 100%);
+    mask-image: radial-gradient(ellipse 96% 92% at 50% 50%, #000 62%, transparent 100%);
+    filter: blur(6px); }
+}
