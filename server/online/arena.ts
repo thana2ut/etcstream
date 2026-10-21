@@ -7,7 +7,7 @@ import { ArenaError } from "@/server/arena/db";
 import { apply, commandCost } from "@/server/arena/command-replay";
 import { validateNickname } from "@/game/security/nickname-validation";
 import { SCENARIOS, type ScenarioId } from "@/game/training/scenarios";
-import { initialTrainingState, initSim, type TrainingState } from "@/game/training/hdmi-training";
+import { initialTrainingState, initSim, missionWired, type TrainingState } from "@/game/training/hdmi-training";
 import { checkMissionBag } from "@/game/content/mission-bag";
 import { hiddenCablesFor, packedLeadsFor } from "@/game/content/cable-catalog";
 import type { Json } from "./types";
@@ -131,6 +131,27 @@ export async function cloudArena(request: Request, path: string[]) {
     // V19 economy: identity comes from the verified Supabase session (auth.uid()); never from the body.
     const economy = async (action: string, value: unknown = {}) => checked(await client.rpc("etc_economy", { action, body: json(value) }));
     if (route === "economy" && !post) return response(await economy("summary"));
+    // V30 Mission Hall stones: run times come from the database clock; the wiring is re-checked here before any reward.
+    if (route.startsWith("mission/") && post) {
+      const mission = async (action: string, value: unknown) => checked(await trustedClient().rpc("etc_mission", { p_player: user.id, action, body: json(value) }));
+      if (route === "mission/start") {
+        const stage = String(body.stage || "");
+        if (!/^(xs|s|m|l|xl)-[1-5]$/.test(stage) || !SCENARIOS[stage as ScenarioId]?.stage) throw new ArenaError(400, "ไม่พบด่านภารกิจนี้");
+        return response(await mission("start", { stage }));
+      }
+      if (!uuid(body.run)) throw new ArenaError(400, "รหัสรอบภารกิจไม่ถูกต้อง");
+      if (route === "mission/revive") {
+        if (!uuid(body.idempotencyKey)) throw new ArenaError(400, "คำขอไม่ถูกต้อง");
+        return response(await mission("revive", { run: body.run, idempotencyKey: body.idempotencyKey }));
+      }
+      if (route === "mission/finish") {
+        const stage = String(body.stage || ""), cables = body.cables;
+        if (!SCENARIOS[stage as ScenarioId]?.stage || !cables || typeof cables !== "object" || Array.isArray(cables) || JSON.stringify(cables).length > 60000) throw new ArenaError(400, "ข้อมูลการต่อสายไม่ถูกต้อง");
+        if (!missionWired({ scenarioId: stage as ScenarioId, cables: cables as TrainingState["cables"] })) throw new ArenaError(409, "การต่อสายยังไม่ครบตามภารกิจ ระบบจึงยังไม่มอบหินวิญญาณ");
+        const mistakes = Math.min(3, Math.max(0, Math.trunc(Number(body.mistakes) || 0)));
+        return response(await mission("finish", { run: body.run, mistakes }));
+      }
+    }
     if (route === "economy/ledger" && !post) return response(await economy("ledger", { offset: Math.min(100000, Math.max(0, Math.floor(Number(url.searchParams.get("offset")) || 0))) }));
     if (route === "economy/receipt" && !post) {
       if (!uuid(url.searchParams.get("run"))) throw new ArenaError(400, "รหัสรอบไม่ถูกต้อง");
@@ -289,6 +310,8 @@ export async function cloudArena(request: Request, path: string[]) {
     if (/FRIENDS_ONLY/.test(code)) return response({ error: "ส่งคำท้าทำเวลาได้เฉพาะสหายที่ตอบรับแล้ว" }, 403);
     if (/PURCHASE_CONFLICT/.test(code)) return response({ error: "รหัสคำขอซื้อนี้ถูกใช้กับสินค้าอื่นแล้ว กรุณาลองใหม่", code: "CONFLICT" }, 409);
     if (/INSUFFICIENT_STONES/.test(code)) return response({ error: "หินวิญญาณไม่พอสำหรับรายการนี้", code: "INSUFFICIENT_STONES" }, 409);
+    if (/RUN_TOO_FAST/.test(code)) return response({ error: "รอบนี้จบเร็วผิดปกติ ระบบจึงไม่มอบหินวิญญาณ", code: "RUN_TOO_FAST" }, 409);
+    if (/RUN_NOT_FOUND|RUN_CLOSED/.test(code)) return response({ error: "ไม่พบรอบภารกิจที่ยังเปิดอยู่ กรุณาเริ่มด่านใหม่", code: "RUN_CLOSED" }, 409);
     if (/ALREADY_OWNED/.test(code)) return response({ error: "เจ้ามีของสะสมชิ้นนี้ในถุงเฉียนคุนแล้ว ไม่มีการหักหินซ้ำ", code: "ALREADY_OWNED" }, 409);
     if (/ITEM_UNAVAILABLE/.test(code)) return response({ error: "สินค้านี้ยังไม่เปิดขายในตลาดสวรรค์", code: "ITEM_UNAVAILABLE" }, 409);
     if (/NOT_OWNED/.test(code)) return response({ error: "ต้องเป็นเจ้าของของสะสมก่อนจึงจะสวมใส่ได้", code: "NOT_OWNED" }, 403);

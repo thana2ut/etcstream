@@ -35,6 +35,8 @@ interface TrainingStore extends TrainingState {
   setPickMode: (mode: PickMode) => void;
   /** C: whole lead → head only → tail only → whole lead. */
   cyclePickMode: () => void;
+  /** Paid revive (Mission Hall): keep every placed device and correct lead, clear the failure, one last chance left. */
+  revive: () => void;
   drop: (position: Point3, facing?: number) => void;
   /** Extra yaw (T key, 45° steps) applied to the held device when it is placed. */
   heldTurn: number;
@@ -116,6 +118,8 @@ export const useTrainingStore = create<TrainingStore>((set, get) => ({
   pickMode: "whole",
   setPickMode: (mode) => set((state) => state.failed || (scenarioOf(state).stage && state.completed) ? state : ({ pickMode: state.pickMode === mode ? "whole" : mode })),
   cyclePickMode: () => set((state) => state.failed || (scenarioOf(state).stage && state.completed) ? state : ({ pickMode: state.pickMode === "whole" ? "a" : state.pickMode === "a" ? "b" : "whole" })),
+  // The failing plug was rejected and never connected, so the current room is already the last valid checkpoint.
+  revive: () => set((state) => state.failed ? { failed: false, wrongStreak: MAX_MISSION_CONNECTION_MISTAKES, notice: null, focusedTarget: null } : state),
   heldTurn: 0,
   inspecting: null,
   inspectHoldStart: null,

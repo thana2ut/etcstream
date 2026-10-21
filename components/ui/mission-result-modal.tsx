@@ -5,6 +5,7 @@ import Image from "next/image";
 import { resultCopy } from "@/game/content/result-copy";
 import { ActionButton } from "./action-buttons";
 import { BackButton } from "./back-button";
+import { REVIVE_COST, type StoneReward } from "@/components/game/mission-stones";
 
 interface MissionResultModalProps {
   playerName: string;
@@ -177,7 +178,7 @@ export function MissionResultModal({
 }
 
 /** Mission Hall only; Free Practice keeps its existing result screen. */
-export function MissionOutcomeModal({ status, missionTitle, venue, level, completed, total, mistakes, reward, merit, rankUp, progressError, onNext, onRetry, onReturn }: {
+export function MissionOutcomeModal({ status, missionTitle, venue, level, completed, total, mistakes, reward, stones, stonesError, stonesTracked, merit, rankUp, progressError, reviving, onRevive, onNext, onRetry, onReturn }: {
   status: "success" | "failed";
   missionTitle: string;
   venue: string;
@@ -186,43 +187,88 @@ export function MissionOutcomeModal({ status, missionTitle, venue, level, comple
   total: number;
   mistakes: number;
   reward?: string;
+  /** Server receipt of this clear's Spirit Stones (null while it is being recorded). */
+  stones?: StoneReward | null;
+  stonesError?: string;
+  /** False for the admin preview: no stone line at all. */
+  stonesTracked?: boolean;
   merit?: number;
   rankUp?: string;
   progressError?: string;
+  reviving?: boolean;
+  onRevive?: () => void;
   onNext?: () => void;
   onRetry: () => void;
   onReturn: () => void;
 }) {
   const success = status === "success";
+  const b = stones?.breakdown;
+  const time = b ? `${Math.floor(b.seconds / 60)}:${String(b.seconds % 60).padStart(2, "0")}` : null;
+  const target = b ? `${Math.floor(b.targetSeconds / 60)}:${String(b.targetSeconds % 60).padStart(2, "0")}` : null;
   return <div className={`mission-outcome-overlay is-${status}`} role="dialog" aria-modal="true" aria-labelledby="mission-outcome-title">
     <div className="mission-outcome-mist" aria-hidden="true" />
-    <section className="mission-outcome-panel gold-border-frame">
-      <div className={`mission-outcome-emblem${success ? "" : " is-broken"}`} aria-hidden="true">
-        <span className="mission-outcome-blade" />
-        <Image src="/images/xianxia/emblem.webp" alt="" width={86} height={74} />
-      </div>
-      <p className="mission-outcome-kicker">{success ? "✦ ผลแห่งวิถีกระบี่ ✦" : "✦ บททดสอบยังไม่สิ้นสุด ✦"}</p>
-      <h1 id="mission-outcome-title">{success ? "ภารกิจสำเร็จ" : "ภารกิจล้มเหลว"}</h1>
-      <p className="mission-outcome-subtitle">{success ? "ท่านฝ่าบททดสอบแห่งวิถีกระบี่ได้สำเร็จ" : "วิถีกระบี่ยังไม่สมบูรณ์ จงกลับไปฝึกฝนและเริ่มต้นใหม่อีกครั้ง"}</p>
-      <div className="mission-outcome-info">
+    <section className="mission-outcome-panel mo-scroll gold-border-frame">
+      <header className="mo-head">
+        <div className={`mission-outcome-emblem${success ? "" : " is-broken"}`} aria-hidden="true">
+          <span className="mission-outcome-blade" />
+          <Image src="/images/xianxia/emblem.webp" alt="" width={86} height={74} />
+        </div>
+        <p className="mission-outcome-kicker">{success ? "✦ พิธีผ่านด่าน · วิชาสำเร็จ ✦" : "✦ บททดสอบยังไม่สิ้นสุด ✦"}</p>
+        <h1 id="mission-outcome-title">{success ? "ภารกิจสำเร็จ" : "ภารกิจล้มเหลว"}</h1>
+        <p className="mission-outcome-subtitle">{success ? "เส้นทางสัญญาณครบถ้วน ท่านผ่านบททดสอบแห่งวิถีกระบี่แล้ว" : "การฝึกวิชายังไม่สำเร็จ ตั้งหลักให้มั่น แล้วกลับไปต่อสายอีกครั้ง"}</p>
+      </header>
+
+      <div className="mo-stage">
+        <span className="mo-stage-venue">{venue}</span>
         <strong>{missionTitle}</strong>
-        <span>{venue} · ระดับ {level}</span>
+        <span className="mo-stage-level">ระดับ {level}</span>
       </div>
-      {success ? <div className="mission-outcome-stats">
-        <span>เงื่อนไขสำเร็จ <strong>{completed}/{total}</strong></span>
-        <span>ความผิดพลาด <strong>{mistakes}</strong> ครั้ง</span>
-        {reward && <span>รางวัล <strong>{reward}</strong></span>}
-        {merit !== undefined && <span>เกียรติภูมิ <strong>+{merit}</strong></span>}
-        {rankUp && <span>เลื่อนขั้น <strong>{rankUp}</strong></span>}
-      </div> : <div className="mission-outcome-stats">
-        <span>จำนวนครั้งที่ผิดพลาด: <strong>{mistakes}</strong></span>
-        <span>จำนวนครั้งที่อนุญาต: <strong>3</strong></span>
-      </div>}
+
+      {success ? <>
+        <dl className="mo-stats">
+          <div><dt>เวลาที่ใช้</dt><dd>{time ?? "—"}</dd>{target && <small>เป้าหมาย {target}</small>}</div>
+          <div><dt>ความผิดพลาด</dt><dd>{mistakes}</dd><small>ครั้ง</small></div>
+          <div><dt>เงื่อนไขสำเร็จ</dt><dd>{completed}/{total}</dd><small>เส้นทาง</small></div>
+        </dl>
+        {stonesTracked && <section className="mo-reward" aria-label="รางวัลหินวิญญาณ">
+          <h2>รางวัลหินวิญญาณ</h2>
+          {b ? <>
+            <ul className="mo-reward-rows">
+              <li><span>หินพื้นฐาน (ระดับ {level})</span><strong>{b.base.toLocaleString("th-TH")}</strong></li>
+              <li><span>โบนัสเวลา (×{Number(b.multiplier).toFixed(2)})</span><strong className={b.timeBonus < 0 ? "is-minus" : ""}>{b.timeBonus >= 0 ? "+" : ""}{b.timeBonus.toLocaleString("th-TH")}</strong></li>
+              <li><span>โบนัสเล่นแม่น (ไม่ผิดเลย)</span><strong>+{b.cleanBonus.toLocaleString("th-TH")}</strong></li>
+              {b.total > b.base + b.timeBonus + b.cleanBonus && <li><span>รางวัลขั้นต่ำ 40%</span><strong>{b.floor.toLocaleString("th-TH")}</strong></li>}
+            </ul>
+            <p className="mo-reward-total"><span>รวมรอบนี้</span><strong>+{stones!.reward.toLocaleString("th-TH")}</strong><small>คงเหลือ {stones!.balance.toLocaleString("th-TH")} หิน</small></p>
+          </> : <p className="mo-reward-pending" role="status">{stonesError || "กำลังบันทึกหินวิญญาณ…"}</p>}
+        </section>}
+        {(reward || merit !== undefined || rankUp) && <p className="mo-extras">
+          {reward && <span>รางวัลภารกิจ <strong>{reward}</strong></span>}
+          {merit !== undefined && <span>เกียรติภูมิ <strong>+{merit}</strong></span>}
+          {rankUp && <span>เลื่อนขั้น <strong>{rankUp}</strong></span>}
+        </p>}
+      </> : <>
+        <dl className="mo-stats">
+          <div><dt>ผิดพลาด</dt><dd>{mistakes}</dd><small>ครั้ง</small></div>
+          <div><dt>อนุญาต</dt><dd>3</dd><small>ครั้ง</small></div>
+          <div><dt>เงื่อนไขสำเร็จ</dt><dd>{completed}/{total}</dd><small>เส้นทาง</small></div>
+        </dl>
+        <p className="mo-reason"><strong>เหตุที่ล้มเหลว</strong>ต่อสายผิดเกินจำนวนที่อนุญาต สายที่ต่อถูกและอุปกรณ์ที่วางไว้ยังอยู่ครบ</p>
+        {onRevive && <p className="mo-choice">ฟื้นจากจุดพลาดด้วยหิน {REVIVE_COST} ก้อน: เล่นต่อจากห้องเดิมทันที เหลือโอกาสผิดอีก 1 ครั้ง</p>}
+        {stonesError && <p className="form-error" role="alert">{stonesError}</p>}
+      </>}
       {progressError && <p className="form-error" role="alert">{progressError}</p>}
-      <div className="mission-outcome-actions">
-        {success && onNext && <button type="button" className="cultivation-btn btn-gold btn-md" onClick={onNext} autoFocus>ด่านถัดไป</button>}
-        <button type="button" className="cultivation-btn btn-gold-subtle btn-md" onClick={onRetry} autoFocus={!onNext}> {success ? "เล่นอีกครั้ง" : "ลองใหม่อีกครั้ง"}</button>
-        <button type="button" className="cultivation-btn btn-glass btn-md" onClick={onReturn}>กลับหน้าภารกิจ</button>
+
+      <div className="mo-actions">
+        {success ? <>
+          {onNext && <button type="button" className="cultivation-btn btn-gold btn-md" onClick={onNext} autoFocus>ด่านถัดไป</button>}
+          <button type="button" className="cultivation-btn btn-gold-subtle btn-md" onClick={onRetry}>เล่นอีกครั้ง</button>
+          <button type="button" className={`cultivation-btn ${onNext ? "btn-glass" : "btn-gold"} btn-md`} onClick={onReturn} autoFocus={!onNext}>กลับหน้าภารกิจ</button>
+        </> : <>
+          {onRevive && <button type="button" className="cultivation-btn btn-gold btn-md" onClick={onRevive} disabled={reviving} autoFocus>{reviving ? "กำลังฟื้น…" : `ฟื้นจากจุดพลาด · ${REVIVE_COST} หิน`}</button>}
+          <button type="button" className="cultivation-btn btn-gold-subtle btn-md" onClick={onRetry} autoFocus={!onRevive}>เริ่มใหม่ทั้งด่าน</button>
+          <button type="button" className="cultivation-btn btn-glass btn-md" onClick={onReturn}>กลับหน้าภารกิจ</button>
+        </>}
       </div>
     </section>
   </div>;

@@ -30,6 +30,7 @@ import { deleteRun, loadRun, type LoadResult, type RunKey } from "@/game/persist
 import { ResumeRunDialog, SaveStatusPill, useRunAutosave } from "@/components/game/run-persistence";
 import { missionBriefing } from "@/game/content/mission-briefing";
 import { BagPanel } from "@/components/game/bag-panel";
+import { useMissionStones } from "@/components/game/mission-stones";
 import { ReviewOverlay } from "@/components/game/operator-console";
 import { hiddenCablesFor, packableCatalogIds, packedLeadsFor } from "@/game/content/cable-catalog";
 
@@ -145,6 +146,8 @@ function PlayExperience() {
     ? `${scaleByVenue[mission.venueId]}-${difficulty.level}` as ScenarioId
     : "studio-full";
   const activeScenario = SCENARIOS[scenarioId];
+  // Spirit Stone run for the 25 Mission Hall levels only (never Free Practice or the admin preview).
+  const stones = useMissionStones(routeMode === "mission" && !progress?.selected?.admin, scenarioId);
   // Load the scenario only when it actually changes: re-running this (dev hot reload, remounts) must not wipe the
   // room and the bag the trainee packed in the cable-prep lobby.
   useEffect(() => {
@@ -192,7 +195,7 @@ function PlayExperience() {
       return () => clearTimeout(timer);
     }
     if (trainingCompleted) {
-      if (routeMode === "mission") settledAttemptRef.current = scenarioId;
+      if (routeMode === "mission") { settledAttemptRef.current = scenarioId; void stones.finish(useTrainingStore.getState().cables, useTrainingStore.getState().wrongStreak); }
       // Rank / merit are derived from cleared levels: compare before and after this completion.
       const before = useAcademyStore.getState().progress;
       const selected = before?.selected;
@@ -209,7 +212,9 @@ function PlayExperience() {
       return () => clearTimeout(timer);
     } else {
       startMission();
+      if (routeMode === "mission") stones.begin();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- stones.begin/finish are stable per level
   }, [introOpen, bag, trainingCompleted, trainingFailed, loadedScenarioId, scenarioId, routeMode, completeMission, startMission, progress?.selected?.admin]);
 
   useEffect(() => {
@@ -342,6 +347,7 @@ function PlayExperience() {
     discardRun();
     if (runKey) deleteRun(runKey);
     resetTraining(scenarioId);
+    stones.reset();
     settledAttemptRef.current = null;
     setReward(null);
     // Every new attempt returns to briefing, followed by cable preparation.
@@ -597,13 +603,15 @@ function PlayExperience() {
       {routeMode === "mission" && trainingFailed && !showResultModal && (
         <MissionOutcomeModal status="failed" missionTitle={currentTitle} venue={mission?.venue ?? "ห้องภารกิจ"} level={difficultyLevel}
           completed={connectedRoutes} total={trainingTotal({ scenarioId })} mistakes={mistakeCount}
+          stonesError={stones.error} reviving={stones.reviving}
+          onRevive={stones.canRevive ? async () => { if (await stones.revive()) useTrainingStore.getState().revive(); } : undefined}
           onRetry={handleRetry} onReturn={() => router.push("/missions")} />
       )}
 
       {routeMode === "mission" && showResultModal && trainingCompleted && !trainingFailed && (
         <MissionOutcomeModal status="success" missionTitle={currentTitle} venue={mission?.venue ?? "ห้องภารกิจ"} level={difficultyLevel}
           completed={connectedRoutes} total={trainingTotal({ scenarioId })} mistakes={mistakeCount}
-          reward={activeScenario.stage?.reward} merit={reward?.merit} rankUp={reward?.rankUp} progressError={progressError}
+          reward={activeScenario.stage?.reward} stones={stones.reward} stonesError={stones.error} stonesTracked={stones.canRevive} merit={reward?.merit} rankUp={reward?.rankUp} progressError={progressError}
           onNext={difficultyLevel < 5 && (Boolean(progress?.selected?.admin) || Boolean(progress?.completed[mission?.slug ?? ""]?.includes(difficultyLevel))) ? handleNextMission : undefined}
           onRetry={handleRetry} onReturn={() => router.push("/missions")} />
       )}
