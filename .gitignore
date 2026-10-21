@@ -55,8 +55,6 @@ next-env.d.ts
 *.har
 *.zip
 /supabase/.temp/
-# Keep the owner's uncommitted merged font local; deploy uses the already tracked font.
-/public/fonts/scene-sarabun.ttf
 
 .vercel
 .env*
