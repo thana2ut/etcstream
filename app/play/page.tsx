@@ -463,8 +463,8 @@ function PlayExperience() {
               className="cultivation-btn btn-gold btn-sm"
               style={{
                 position: "absolute",
-                // below the top bar (72px) and the pause button
-                top: "134px",
+                // under the pause button (no top bar during play)
+                top: "66px",
                 right: "14px",
                 zIndex: 45,
                 boxShadow: "0 0 15px var(--gold-glow)",
