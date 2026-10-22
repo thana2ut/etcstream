@@ -80,11 +80,10 @@ export function useRunAutosave(key: RunKey | null, active: boolean, lobbyBag: Re
 }
 
 export function SaveStatusPill({ status, onRetry }: { status: SaveStatus; onRetry: () => void }) {
-  if (status.state === "idle") return null;
+  // Autosave runs silently in every level/mode; only a failed save is shown so the player can retry.
+  if (status.state !== "error") return null;
   return <div className={`run-save-pill is-${status.state}`} role="status" aria-live="polite">
-    {status.state === "saving" && "กำลังบันทึก…"}
-    {status.state === "saved" && <>บันทึกล่าสุดแล้ว · {formatSavedAt(status.at)}</>}
-    {status.state === "error" && <>บันทึกไม่สำเร็จ โปรดลองอีกครั้ง <button type="button" onClick={onRetry}>ลองอีกครั้ง</button></>}
+    <>บันทึกไม่สำเร็จ โปรดลองอีกครั้ง <button type="button" onClick={onRetry}>ลองอีกครั้ง</button></>
   </div>;
 }
 
