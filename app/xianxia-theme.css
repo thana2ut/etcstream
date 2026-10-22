@@ -1398,3 +1398,9 @@ html[data-overlay] .cloud-layer { transition: none; }
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
+
+/* Failure revive button: two-line label (action + cost) so the Thai text never clips */
+.mo-actions .cultivation-btn.mo-revive-btn { flex-direction: column; gap: 2px; white-space: normal; padding-block: 6px; line-height: 1.25; }
+.mo-revive-main { font-size: .95rem; font-weight: 700; }
+.mo-revive-cost { font-size: .74rem; font-weight: 600; opacity: .9; letter-spacing: .01em; }
+.mo-actions .cultivation-btn { overflow: hidden; text-overflow: ellipsis; }

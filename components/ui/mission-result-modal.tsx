@@ -273,7 +273,7 @@ export function MissionOutcomeModal({ status, missionTitle, venue, level, comple
           <button type="button" className="cultivation-btn btn-gold-subtle btn-md" onClick={onRetry}>เล่นอีกครั้ง</button>
           <button type="button" className={`cultivation-btn ${onNext ? "btn-glass" : "btn-gold"} btn-md`} onClick={onReturn} autoFocus={!onNext}>กลับหน้าภารกิจ</button>
         </> : <>
-          {onRevive && <button type="button" className="cultivation-btn btn-gold btn-md" onClick={() => setConfirming(true)} disabled={reviving} autoFocus={!short}>{reviving ? "กำลังฟื้น…" : `เริ่มต่อจากจุดที่พลาด · ${REVIVE_COST} หิน`}</button>}
+          {onRevive && <button type="button" className="cultivation-btn btn-gold btn-md mo-revive-btn" onClick={() => setConfirming(true)} disabled={reviving} autoFocus={!short}>{reviving ? "กำลังฟื้น…" : <><span className="mo-revive-main">เล่นต่อจากจุดที่พลาด</span><span className="mo-revive-cost">💎 ใช้ {REVIVE_COST} หินวิญญาณ</span></>}</button>}
           <button type="button" className="cultivation-btn btn-gold-subtle btn-md" onClick={onRetry} autoFocus={!onRevive || short}>เริ่มใหม่ทั้งด่าน</button>
           <button type="button" className="cultivation-btn btn-glass btn-md" onClick={onReturn}>กลับหน้าภารกิจ</button>
         </>}
