@@ -94,7 +94,7 @@ export function PlayerSessionControls({onChange}:{onChange:()=>Promise<void>}) {
   return <div className="arena-actions"><button className="arena-button-secondary" onClick={()=>setConfirm(true)}>ออกจากตัวตนในเบราว์เซอร์นี้</button><ArenaConfirmDialog open={confirm} title="ออกจากตัวตนนี้หรือไม่?" busy={busy} onCancel={()=>setConfirm(false)} onConfirm={async()=>{if(pending.current)return;pending.current=true;setBusy(true);try{await api("logout",{});setConfirm(false);await onChange();}catch(e){setError((e as Error).message);}finally{pending.current=false;setBusy(false);}}}>ประวัติยังเก็บไว้ แต่ต้องมีรหัสกู้คืนที่ยังใช้ได้เพื่อกลับมาใช้ตัวตนเดิม ชื่อเล่นและรหัสสหายใช้เข้าสู่ระบบแทนไม่ได้{error&&<span role="alert">{error}</span>}</ArenaConfirmDialog></div>;
 }
 
-type PublicHall={season:{id:string;name:string;ends:number}|null;top:{name:string;rank:number;score:number;stages:number}[];rankedPlayers:number;onlineNow:number;serverNow:number};
+type PublicHall={season:{id:string;name:string;ends:number}|null;top:{name:string;rank:number;score:number;stages:number}[];rankedPlayers:number;onlineNow:number;serverNow:number;featured?:{name:string;friendCode:string;online:boolean}[]};
 // ทำเนียบเซียน: every tab renders real server state only.
 export function HallOfImmortals({signedIn,mine}:{signedIn:boolean;mine:ReturnType<typeof useArenaResource<RankedResponse>>}) {
   const [tab,setTab]=useState("all");
@@ -110,7 +110,12 @@ export function HallOfImmortals({signedIn,mine}:{signedIn:boolean;mine:ReturnTyp
   const err=tab==="me"?mine.error:tab==="friends"?friends.error:hall.error, retry=tab==="me"?mine.retry:tab==="friends"?friends.retry:hall.retry;
   return <section className="arena-panel arena-hall" aria-label="ทำเนียบเซียน"><header><ArenaIcon name="leaderboard"/><div><span className="arena-eyebrow">{hall.data?.season?.name || "ฤดูกาลปัจจุบัน"}</span><h2>ทำเนียบเซียน</h2></div><p role="status" className="arena-hall-online">{hall.error?"สถานะออนไลน์: —":hall.loading?"กำลังนับผู้ฝึกออนไลน์…":`ผู้ฝึกที่ยินยอมแสดงออนไลน์ขณะนี้ ${hall.data?.onlineNow} คน`}</p></header>
     <div className="arena-scope-tabs" role="tablist">{tabs.map(([v,l])=><button key={v} type="button" role="tab" aria-selected={tab===v} onClick={()=>setTab(v)}>{l}</button>)}</div>
-    {body}<ConnectionNotice error={err} stale={false} retry={retry}/></section>;
+    {body}<ConnectionNotice error={err} stale={false} retry={retry}/>
+    {tab==="all"&&hall.data?.featured?.length?<div className="arena-featured" aria-label="ผู้ฝึกแนะนำ">
+      <span className="arena-eyebrow">ผู้ฝึกแนะนำ · ไม่อยู่ในการจัดอันดับ</span>
+      <ul>{hall.data.featured.map((f)=><li key={f.friendCode}><a href={`/arena/players/${f.friendCode}`}><strong>{f.name}</strong><code>@{f.friendCode}</code></a><span className={`friend-card-online${f.online?" is-online":""}`}><i className={`chip-dot is-${f.online?"connected":"offline"}`} aria-hidden="true"/>{f.online?"ออนไลน์":"ออฟไลน์"}</span></li>)}</ul>
+      <small>รายชื่อที่เจ้าของสำนักเลือกแสดง แยกจากผลที่เซิร์ฟเวอร์รับรอง ไม่มีผลต่อคะแนนหรืออันดับของผู้เล่นใด</small>
+    </div>:null}</section>;
 }
 
 type DuelFriend={name:string;friendCode:string;status:string;online:boolean};
