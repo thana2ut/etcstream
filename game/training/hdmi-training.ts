@@ -105,8 +105,16 @@ function cloneCables(cables: TrainingState["cables"]): TrainingState["cables"] {
   return Object.fromEntries(Object.entries(cables).map(([id, c]) => [id, { a: { ...c.a }, b: { ...c.b } }]));
 }
 
+/** Keeps model codes ("L-SW", "HD8-ISO") and key hints ("กด F") on one line so wrapped notices read naturally. */
+export function tidyBreaks(text: string) {
+  return text
+    .replace(/([A-Za-z0-9])-(?=[A-Za-z0-9])/g, "$1‑")
+    .replace(/(กด|ปุ่ม|คีย์) ([A-Za-z0-9]{1,5})\b/g, "$1 $2")
+    .replace(/\( */g, "(").replace(/ *\)/g, ")");
+}
+
 function notice(title: string, detail: string, tone: TrainingNotice["tone"]): TrainingNotice {
-  return { title, detail, tone };
+  return { title: tidyBreaks(title), detail: tidyBreaks(detail), tone };
 }
 
 function rejectConnection(state: TrainingState, title: string, detail: string): TrainingState {

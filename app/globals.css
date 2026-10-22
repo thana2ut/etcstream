@@ -18,7 +18,12 @@ html,body{
   font-family:Tahoma,"Noto Sans Thai",Arial,sans-serif
 }
 body{
-  overflow-x:hidden
+  overflow-x:hidden;
+  /* Thai/English wrapping: break at word boundaries, avoid orphans, never split mid-word unless forced */
+  line-break:strict;
+  word-break:normal;
+  overflow-wrap:break-word;
+  text-wrap:pretty
 }
 button,input{
   font:inherit

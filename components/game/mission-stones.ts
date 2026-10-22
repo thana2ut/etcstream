@@ -20,6 +20,7 @@ export function useMissionStones(enabled: boolean, stage: string) {
   const [reward, setReward] = useState<StoneReward | null>(null);
   const [error, setError] = useState("");
   const [reviving, setReviving] = useState(false);
+  const [balance, setBalance] = useState<number | null>(null);
 
   useEffect(() => { run.current = enabled ? read(stage) : null; starting.current = null; setReward(null); setError(""); }, [enabled, stage]);
 
@@ -49,15 +50,22 @@ export function useMissionStones(enabled: boolean, stage: string) {
     reviveKey.current ??= crypto.randomUUID();
     setReviving(true); setError("");
     try {
-      await api("mission/revive", { run: run.current, idempotencyKey: reviveKey.current });
+      const r = await api<{ balance: number }>("mission/revive", { run: run.current, idempotencyKey: reviveKey.current });
+      setBalance(r.balance);
       reviveKey.current = null;
       return true;
     } catch (e) { setError((e as Error).message); return false; }
     finally { setReviving(false); }
   }, [enabled, reviving]);
 
+  /** Wallet balance for the failure screen (revive is disabled below REVIVE_COST); the server still re-checks on charge. */
+  const loadBalance = useCallback(async () => {
+    if (!enabled) return;
+    try { setBalance((await api<{ balance: number }>("economy")).balance); } catch { setBalance(null); }
+  }, [enabled]);
+
   /** A fresh attempt ("เริ่มใหม่ทั้งด่าน") gets a new run. */
   const reset = useCallback(() => { write(stage, null); run.current = null; reviveKey.current = null; setReward(null); setError(""); }, [stage]);
 
-  return { begin, finish, revive, reset, reward, error, reviving, canRevive: enabled };
+  return { begin, finish, revive, reset, loadBalance, balance, reward, error, reviving, canRevive: enabled };
 }

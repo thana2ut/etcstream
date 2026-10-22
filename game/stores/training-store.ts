@@ -119,7 +119,7 @@ export const useTrainingStore = create<TrainingStore>((set, get) => ({
   setPickMode: (mode) => set((state) => state.failed || (scenarioOf(state).stage && state.completed) ? state : ({ pickMode: state.pickMode === mode ? "whole" : mode })),
   cyclePickMode: () => set((state) => state.failed || (scenarioOf(state).stage && state.completed) ? state : ({ pickMode: state.pickMode === "whole" ? "a" : state.pickMode === "a" ? "b" : "whole" })),
   // The failing plug was rejected and never connected, so the current room is already the last valid checkpoint.
-  revive: () => set((state) => state.failed ? { failed: false, wrongStreak: MAX_MISSION_CONNECTION_MISTAKES, notice: null, focusedTarget: null } : state),
+  revive: () => set((state) => state.failed ? { failed: false, wrongStreak: Math.max(0, state.wrongStreak - 1), notice: null, focusedTarget: null } : state),
   heldTurn: 0,
   inspecting: null,
   inspectHoldStart: null,

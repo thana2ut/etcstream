@@ -1,5 +1,6 @@
 "use client";
 
+import { NoSplit } from "./no-split";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useCableBag } from "./use-cable-bag";
 import { createPortal } from "react-dom";
@@ -179,8 +180,8 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
                 <CableThumbnail className="cl-slot-3d" cable={c} />
                 <span className="cl-slot-text">
                   {/* non-breaking hyphen: "Type-A" never splits across lines */}
-                  <span className="cl-slot-name">{c.name.replace(/-/g, "‑")}</span>
-                  <span className="cl-slot-ends">{c.ends}</span>
+                  <span className="cl-slot-name"><NoSplit text={c.name} /></span>
+                  <span className="cl-slot-ends"><NoSplit text={c.ends} /></span>
                   {view === "list" && <span className="cl-slot-use">{c.use}</span>}
                 </span>
               </button>
@@ -199,7 +200,7 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
             <button type="button" className="cl-preview-wrap" onClick={() => setInspecting(selected)} aria-label={`ดูโมเดล 3D ของ ${selected.name}`} title="กดเพื่อดูโมเดล 3D แบบเต็มจอ">
               <CablePreview cable={selected} />
             </button>
-            <div><strong>{selected.name}</strong><small>{selected.id} · {selected.status}</small></div>
+            <div><strong><NoSplit text={selected.name} /></strong><small>{selected.id} · {selected.status}</small></div>
           </div>
           <dl className="cl-facts cl-facts-scroll" tabIndex={0} role="region" aria-label="หัวต่อและวิธีใช้สาย เลื่อนเพื่ออ่านข้อความทั้งหมด">
             <div><dt>หัวต่อ</dt><dd>{selected.ends}</dd></div>
@@ -331,7 +332,7 @@ export function BagOverlay({ bag, usage, ready, holding, onTake, onStow, onClose
         {entries.map(({ c, n, u, r }) => <li key={c.id}>
           <button type="button" className="cl-bag-pick" disabled={r === 0} onClick={() => onTake(c.id)} title={r ? `หยิบ ${c.name}` : u === 0 ? "ด่านนี้ไม่มีพอร์ตรองรับสายนี้" : "ใช้ครบแล้ว"}>
             <CableThumbnail className="bag-cable-thumbnail" cable={c} />
-            <div><strong>{c.name}</strong><small>{c.ends}</small></div>
+            <div><strong><NoSplit text={c.name} /></strong><small><NoSplit text={c.ends} /></small></div>
             <span className={`cl-pick-state ${r > 0 ? "is-on" : "is-off"}`}>
               {r > 0 ? <><b>เลือกได้</b>{r} เส้น</> : <><b>เลือกไม่ได้</b>{u === 0 ? "ด่านนี้ไม่ใช้" : `ต่อครบแล้ว ${u}/${n}`}</>}
             </span>

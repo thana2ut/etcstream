@@ -656,9 +656,14 @@
 .cl-screen.cl-v3 .cl-bag-scroll { scroll-snap-type: none; }
 .cl-screen.cl-v3 .cl-bag-slot { height: auto; }
 .cl-screen.cl-v3 .cl-bag { border-color: #d8ad6288; background: radial-gradient(circle at 50% 0, #15324a66, transparent 36%), linear-gradient(180deg, #101c31f2, #091225f2); box-shadow: inset 0 1px 0 #fff1, 0 16px 34px #0005; }
-.cl-screen.cl-v3 .cl-bag-head { padding-bottom: 10px; border-bottom: 1px solid #d8ad6233; }
-.cl-screen.cl-v3 .cl-bag-empty { display: flex; align-items: center; gap: .3em; min-height: 0; margin: 8px 0 6px; padding: 5px 12px; border-radius: 9px; background: #07112699; color: #b8c4da; font-size: .9rem; line-height: 1.3; letter-spacing: -.005em; }
+.cl-screen.cl-v3 .cl-bag-head { padding-bottom: 5px; border-bottom: 1px solid #d8ad6233; }
+.cl-screen.cl-v3 .cl-bag-empty { display: flex; align-items: center; gap: .3em; min-height: 36px; margin: -4px 0 6px; padding: 6px 12px 8px; border-radius: 9px; background: #07112699; color: #b8c4da; font-size: .82rem; line-height: 1.5; letter-spacing: -.005em; }
 .cl-screen.cl-v3 .cl-bag-empty b { font-size: 1.05em; }
+@media (max-width: 1000px) {
+  .cl-screen.cl-v3 .cl-side { grid-template-rows: auto auto; }
+  .cl-screen.cl-v3 .cl-bag { min-height: clamp(248px, 50vw, 280px); }
+  .cl-screen.cl-v3 .cl-bag-slot { aspect-ratio: 1 / 1.18; }
+}
 /* card + button: glyph centred in the circle */
 .cl-screen.cl-v3 .cl-slot-add { display: grid; place-items: center; padding: 0; line-height: 0; font-size: 1.25rem; }
 .cl-screen.cl-v3 .cl-slot-add svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; fill: none; }

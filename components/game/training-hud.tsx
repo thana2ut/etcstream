@@ -1,7 +1,7 @@
 "use client";
 
 import { useTrainingStore } from "@/game/stores/training-store";
-import { missionRoutes, requirementDone, scenarioOf, targetInstruction } from "@/game/training/hdmi-training";
+import { missionRoutes, tidyBreaks, requirementDone, scenarioOf, targetInstruction } from "@/game/training/hdmi-training";
 import type { FlowGroup } from "@/game/training/scenarios";
 import { ControlsGuide } from "@/components/ui/controls-guide";
 import { MAX_WRONG_STREAK } from "@/game/content/cable-catalog";
@@ -187,9 +187,9 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
           role="status"
         >
           <strong style={{ color: state.notice.tone === "success" ? "var(--success)" : state.notice.tone === "error" ? "var(--danger)" : "var(--cyan-primary)" }}>
-            {state.notice.title}
+            {tidyBreaks(state.notice.title)}
           </strong>
-          <span style={{ color: "var(--text-secondary)" }}>{state.notice.detail}</span>
+          <span style={{ color: "var(--text-secondary)" }}>{tidyBreaks(state.notice.detail)}</span>
         </div>
       )}
     </>

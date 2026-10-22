@@ -183,6 +183,8 @@ function PlayExperience() {
   useEffect(() => {
     if (routeMode === "mission" && (trainingCompleted || trainingFailed) && document.pointerLockElement) document.exitPointerLock();
   }, [routeMode, trainingCompleted, trainingFailed]);
+  // Failure screen: fetch the wallet so the 100-stone revive can be disabled up front when the balance is short.
+  useEffect(() => { if (routeMode === "mission" && trainingFailed) void stones.loadBalance(); }, [routeMode, trainingFailed, stones.loadBalance]);
 
   useEffect(() => {
     if (introOpen || bag === null || loadedScenarioId !== scenarioId) return;
@@ -603,8 +605,8 @@ function PlayExperience() {
       {routeMode === "mission" && trainingFailed && !showResultModal && (
         <MissionOutcomeModal status="failed" missionTitle={currentTitle} venue={mission?.venue ?? "ห้องภารกิจ"} level={difficultyLevel}
           completed={connectedRoutes} total={trainingTotal({ scenarioId })} mistakes={mistakeCount}
-          stonesError={stones.error} reviving={stones.reviving}
-          onRevive={stones.canRevive ? async () => { if (await stones.revive()) useTrainingStore.getState().revive(); } : undefined}
+          stonesError={stones.error} reviving={stones.reviving} balance={stones.balance}
+          freeRevive={!stones.canRevive} onRevive={async () => { if (!stones.canRevive || await stones.revive()) useTrainingStore.getState().revive(); }}
           onRetry={handleRetry} onReturn={() => router.push("/missions")} />
       )}
 
