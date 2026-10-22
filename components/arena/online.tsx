@@ -63,6 +63,7 @@ export function RankedPage({initialScope="all",initialSeason}:{initialScope?:str
     <div className="arena-split"><section className="arena-panel"><h2>ทำเนียบฤดูกาล</h2><ScopeButtons scope={scope} onChange={(v)=>{setScope(v);setOffset(0);}}/>
       {resource.loading?<p className="arena-skeleton" role="status">กำลังเชื่อมต่อฤดูกาล…</p>:resource.error&&!data?<p className="arena-note">ยังโหลดรายชื่อฤดูกาลไม่ได้ กรุณาลองเชื่อมต่อใหม่</p>:data?.enabled===false?<ArenaEmptyState title="พักการแสดงอันดับฤดูกาลชั่วคราว">ผู้ดูแลปิดการแสดงทำเนียบ ข้อมูลส่วนตัวยังคงอยู่</ArenaEmptyState>:data?.rows.length?<div className="arena-season-rows">{data.rows.map((p)=><article key={p.friendCode} className={`arena-season-row${p.isMe?" is-me":""}`}><strong>#{p.rank}</strong><RankBadge tier={p.tier} size={40} decorative/><div><b>{p.name}{p.isMe?" · ฉัน":""}</b><span>{p.tier} · {p.stages} ด่าน{scope==="friends"?` · อันดับทั้งหมด #${p.globalRank}`:""}</span>{p.provisional&&<small>อันดับชั่วคราว</small>}</div><strong>{p.score}<small>คะแนน</small></strong></article>)}</div>:<ArenaEmptyState title="ยังไม่มีผลการแข่งขันที่ยืนยันแล้ว" href="/arena/time-attack" action="ไปฝึกวิชา">ไม่ให้คะแนนจากการเปิดหน้า การส่งผลที่รอตรวจ หรือการเล่นซ้ำที่ไม่ใช่ผลดีที่สุด</ArenaEmptyState>}
       <PageButtons offset={offset} hasMore={Boolean(data?.hasMore)} onChange={setOffset}/>
+      {scope==="all"&&<FeaturedPlayers/>}
     </section><aside className="arena-panel"><h2>เส้นทางวิถีกระบี่</h2><ol className="arena-tier-track">{SEASON_RULES_V1.tiers.map((tier)=><li key={tier.min} aria-current={data?.mine?.tier===tier.name?"step":undefined}><RankBadge tier={tier.name} size={56} current={data?.mine?.tier===tier.name}/><div><strong>{tier.name}</strong><span>{tier.min.toLocaleString("th-TH")} คะแนนขึ้นไป</span></div></li>)}</ol>{data?.mine?.nextTier&&<p className="arena-note">เป้าหมายถัดไป {data.mine.nextTier} ที่ {data.mine.nextThreshold} คะแนน</p>}</aside></div>
     <details className="arena-details"><summary>กติกาจัดอันดับ V1</summary><p>แต่ละด่านมีผู้เล่นผลยืนยัน N คน อันดับ r ได้ round(1000 × (N − r + 1) ÷ N) คะแนน รวมเฉพาะ 5 ด่านที่มีคะแนนสูงที่สุดและเป็นคนละด่าน สูงสุด 5000 คะแนน ผลซ้ำไม่นับเพิ่ม คะแนนเท่ากันใช้จำนวนด่านยืนยันมากกว่า แล้วเวลาที่ได้ผลครบก่อน และรหัสผู้เล่นถาวร</p><p>เมื่อมีผู้ร่วมแข่งขันน้อยกว่า 3 คน ด่านที่มีผู้ยืนยันน้อย หรือผู้เล่นยืนยันยังไม่ครบ 3 ด่าน จะแสดงอันดับชั่วคราว ค่าชั้นอันดับเป็นกติกาเกม ไม่ใช่การรับรองทักษะวิชาชีพ</p></details>
   </>;
@@ -96,6 +97,17 @@ export function PlayerSessionControls({onChange}:{onChange:()=>Promise<void>}) {
 
 type PublicHall={season:{id:string;name:string;ends:number}|null;top:{name:string;rank:number;score:number;stages:number}[];rankedPlayers:number;onlineNow:number;serverNow:number;featured?:{name:string;friendCode:string;online:boolean}[]};
 // ทำเนียบเซียน: every tab renders real server state only.
+/** Owner-chosen featured players: labelled, never part of the verified ranking. Fetches the hall when no list is given. */
+export function FeaturedPlayers({list}:{list?:{name:string;friendCode:string;online:boolean}[]}) {
+  const hall=useArenaResource<PublicHall>(list?null:"public",30000);
+  list=list??hall.data?.featured;
+  if(!list?.length) return null;
+  return <div className="arena-featured" aria-label="ผู้ฝึกแนะนำ">
+      <span className="arena-eyebrow">ผู้ฝึกแนะนำ · ไม่อยู่ในการจัดอันดับ</span>
+      <ul>{list.map((f)=><li key={f.friendCode}><a href={`/arena/players/${f.friendCode}`}><strong>{f.name}</strong><code>@{f.friendCode}</code></a><span className={`friend-card-online${f.online?" is-online":""}`}><i className={`chip-dot is-${f.online?"connected":"offline"}`} aria-hidden="true"/>{f.online?"ออนไลน์":"ออฟไลน์"}</span></li>)}</ul>
+      <small>รายชื่อที่เจ้าของสำนักเลือกแสดง แยกจากผลที่เซิร์ฟเวอร์รับรอง ไม่มีผลต่อคะแนนหรืออันดับของผู้เล่นใด</small>
+    </div>;
+}
 export function HallOfImmortals({signedIn,mine}:{signedIn:boolean;mine:ReturnType<typeof useArenaResource<RankedResponse>>}) {
   const [tab,setTab]=useState("all");
   const hall=useArenaResource<PublicHall>("public",30000);
@@ -111,11 +123,7 @@ export function HallOfImmortals({signedIn,mine}:{signedIn:boolean;mine:ReturnTyp
   return <section className="arena-panel arena-hall" aria-label="ทำเนียบเซียน"><header><ArenaIcon name="leaderboard"/><div><span className="arena-eyebrow">{hall.data?.season?.name || "ฤดูกาลปัจจุบัน"}</span><h2>ทำเนียบเซียน</h2></div><p role="status" className="arena-hall-online">{hall.error?"สถานะออนไลน์: —":hall.loading?"กำลังนับผู้ฝึกออนไลน์…":`ผู้ฝึกที่ยินยอมแสดงออนไลน์ขณะนี้ ${hall.data?.onlineNow} คน`}</p></header>
     <div className="arena-scope-tabs" role="tablist">{tabs.map(([v,l])=><button key={v} type="button" role="tab" aria-selected={tab===v} onClick={()=>setTab(v)}>{l}</button>)}</div>
     {body}<ConnectionNotice error={err} stale={false} retry={retry}/>
-    {tab==="all"&&hall.data?.featured?.length?<div className="arena-featured" aria-label="ผู้ฝึกแนะนำ">
-      <span className="arena-eyebrow">ผู้ฝึกแนะนำ · ไม่อยู่ในการจัดอันดับ</span>
-      <ul>{hall.data.featured.map((f)=><li key={f.friendCode}><a href={`/arena/players/${f.friendCode}`}><strong>{f.name}</strong><code>@{f.friendCode}</code></a><span className={`friend-card-online${f.online?" is-online":""}`}><i className={`chip-dot is-${f.online?"connected":"offline"}`} aria-hidden="true"/>{f.online?"ออนไลน์":"ออฟไลน์"}</span></li>)}</ul>
-      <small>รายชื่อที่เจ้าของสำนักเลือกแสดง แยกจากผลที่เซิร์ฟเวอร์รับรอง ไม่มีผลต่อคะแนนหรืออันดับของผู้เล่นใด</small>
-    </div>:null}</section>;
+    {tab==="all"&&<FeaturedPlayers list={hall.data?.featured}/>}</section>;
 }
 
 type DuelFriend={name:string;friendCode:string;status:string;online:boolean};
