@@ -90,10 +90,7 @@ export async function cloudArena(request: Request, path: string[]) {
     }
     // Public hall works without signing in: consented verified ranks, real presence count, labelled test profiles.
     if (route === "public" && !post) {
-      const hall = checked(await client.rpc("etc_public_hall")) as Record<string, unknown>;
-      // Owner-chosen featured players: a separate, labelled list (never mixed into verified rankings).
-      const featured = await client.rpc("etc_featured_players");
-      return response({ ...hall, featured: featured.error ? [] : featured.data });
+      return response(checked(await client.rpc("etc_public_hall")));
     }
     let { data: { user } } = await client.auth.getUser();
     // Owner recovery for the reserved display name: code verified against a salted scrypt hash (env secret),

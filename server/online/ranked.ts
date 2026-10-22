@@ -15,6 +15,13 @@ export async function ensureCloudCatalog() {
     scenario, version: stageVersion(scenario), rules_version: 1, eligible: stageEligible(scenario), definition: SCENARIOS[scenario] as unknown as Json,
   })), { onConflict: "scenario,version,rules_version", ignoreDuplicates: true });
   if (result.error) throw new Error("CATALOG_REQUIRED");
+  // Open seasons always rank the CURRENT stage versions; otherwise new runs get no season and never reach the board.
+  const open = await trustedClient().from("etc_seasons").select("id").eq("status", "open");
+  if (open.error) return;
+  for (const season of open.data ?? []) {
+    const synced = await trustedClient().from("etc_season_stages").upsert(cloudStages.map((scenario) => ({ season: season.id, scenario, version: stageVersion(scenario), rules_version: 1 })), { onConflict: "season,scenario" });
+    if (synced.error) console.error("Season stage sync failed", season.id, synced.error.message);
+  }
 }
 export type CloudSeason = { id: string; name: string; starts: string; ends: string; status: string; scoring_version: string; revision: number };
 export function seasonDTO(s: CloudSeason) {
