@@ -51,6 +51,25 @@ function checked<T>(result: { data: T; error: { message: string } | null }): T {
 const json = (value: unknown) => value as Json;
 const uuid = (s: unknown) => typeof s === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
 
+/**
+ * A finished run whose server replay proves the wiring becomes VERIFIED. Runs left UNDER_REVIEW by an earlier failed
+ * certification are re-proven (fresh server replay of the stored commands) the next time the player views them.
+ * Never certifies without a valid replay; failures are logged with their reason and the run stays under review.
+ */
+async function certifyIfProven(run: Run, proof?: Awaited<ReturnType<typeof replayCloudRun>>): Promise<Run> {
+  if (run.status !== "UNDER_REVIEW" || !run.graph_valid || run.invalid || !verificationEnabled(run.scenario)) return run;
+  try {
+    const evidence = proof ?? await replayCloudRun(run);
+    if (!evidence.valid) return run;
+    const result = await trustedClient().rpc("etc_certify_run", { run_id: run.id, expected_revision: run.revision, proof: json(evidence) });
+    if (result.error) { console.error("Run certification failed", run.id, result.error.message); return run; }
+    return result.data as Run;
+  } catch (error) {
+    console.error("Run certification failed", run.id, error instanceof Error ? error.message : "unknown");
+    return run;
+  }
+}
+
 export async function cloudArena(request: Request, path: string[]) {
   try {
     const post = request.method === "POST", body = post ? await input(request) : {};
@@ -260,6 +279,11 @@ export async function cloudArena(request: Request, path: string[]) {
     }
     const scenario = (url.searchParams.get("scenario") || "xs-1") as ScenarioId;
     if (["leaderboard", "my-standing", "stage-summary", "compare"].includes(route) && !post) {
+      // Heal this player's runs left UNDER_REVIEW by an earlier failed certification (server replay proof only).
+      if (route === "stage-summary" || route === "my-standing") {
+        const stuck = await trustedClient().from("etc_runs").select("*").eq("player", user.id).eq("status", "UNDER_REVIEW").eq("graph_valid", true).eq("invalid", false).limit(5);
+        for (const run of (stuck.data ?? []) as Run[]) await certifyIfProven(run);
+      }
       // Remain explicit about eligibility. No unverified times are exposed as rankings.
       if (route === "compare") {
         if (!stages.includes(scenario)) throw new ArenaError(400, "ไม่พบภารกิจที่เลือก");
@@ -298,8 +322,8 @@ export async function cloudArena(request: Request, path: string[]) {
       if (path.length !== 2 || !uuid(path[1])) throw new ArenaError(404, "ไม่พบรอบแข่งขันนี้");
       const r = checked(await db.from("etc_runs").select("*").eq("id", path[1]).eq("player", user.id).maybeSingle()) as Run | null;
       if (!r) throw new ArenaError(404, "ไม่พบรอบแข่งขันนี้");
-      if (!post) return response(view(r, true));
-      if (!['PENDING', 'RUNNING'].includes(r.status)) return response(view(r));
+      if (!post) return response(view(await certifyIfProven(r), true));
+      if (!['PENDING', 'RUNNING'].includes(r.status)) return response(view(await certifyIfProven(r)));
       if (version(r.scenario) !== r.scenario_version) throw new ArenaError(409, "ข้อมูลด่านเปลี่ยนแล้ว กรุณาเริ่มรอบใหม่");
       const patch: Record<string, unknown> = { action: body.action };
       let command: { method: string; args: unknown[] } | null = null;
@@ -330,9 +354,7 @@ export async function cloudArena(request: Request, path: string[]) {
         patch.valid = evidence.valid;
       } else if (body.action !== "abandon") throw new ArenaError(400, "ไม่รองรับคำสั่งนี้");
       let saved = checked(await db.rpc("etc_save_run", { run_id: r.id, expected_revision: r.revision, patch: json(patch), command: json(command) })) as Run;
-      if (evidence?.valid && saved.status === "UNDER_REVIEW" && verificationEnabled(saved.scenario)) {
-        saved = checked(await db.rpc("etc_certify_run", { run_id: saved.id, expected_revision: saved.revision, proof: json(evidence) })) as Run;
-      }
+      if (evidence?.valid) saved = await certifyIfProven(saved, evidence);
       return response(view(saved));
     }
     throw new ArenaError(404, "ไม่พบรายการนี้");
