@@ -10,7 +10,9 @@ export function tidyText(text: string) {
   return text
     .replace(/([A-Za-z0-9])-(?=[A-Za-z0-9])/g, "$1‑")
     .replace(/(กด|ปุ่ม|คีย์) ([A-Za-z0-9]{1,5})\b/g, "$1 $2")
-    .replace(/\([^()\n]{1,32}\)/g, (group) => group.replace(/ /g, " ").replace(/([฀-๿])(?=[฀-๿])/g, `$1${WJ}`).replace(new RegExp(`${WJ}+`, "g"), WJ));
+    .replace(/ตัว(ผู้|เมีย)/g, `ตัว${WJ}$1`)
+    // only short groups are held together; long ones wrap normally so they never overflow a card
+    .replace(/\([^()\n]{1,14}\)/g, (group) => group.replace(/ /g, " ").replace(/([฀-๿])(?=[฀-๿])/g, `$1${WJ}`).replace(new RegExp(`${WJ}+`, "g"), WJ));
 }
 
 function fix(node: Node) {
