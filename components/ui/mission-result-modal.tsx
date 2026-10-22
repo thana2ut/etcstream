@@ -251,7 +251,7 @@ export function MissionOutcomeModal({ status, missionTitle, venue, level, comple
               <li><span>โบนัสเล่นแม่น (ไม่ผิดเลย)</span><strong>+{b.cleanBonus.toLocaleString("th-TH")}</strong></li>
               {b.total > b.base + b.timeBonus + b.cleanBonus && <li><span>รางวัลขั้นต่ำ 40%</span><strong>{b.floor.toLocaleString("th-TH")}</strong></li>}
             </ul>
-            <p className="mo-reward-total"><span>รวมรอบนี้</span><strong>💎 +{stones!.reward.toLocaleString("th-TH")} <em>หิน</em></strong><small>{stonesPreview ? "ตัวอย่างโหมดแอดมิน · ไม่บันทึกจริง" : `คงเหลือ ${stones!.balance.toLocaleString("th-TH")} หิน`}</small></p>
+            <p className="mo-reward-total"><span>รวมรอบนี้</span><strong><img className="mo-stone-icon is-lg" src="/arena/economy/currencies/spirit-stone-v2.webp" alt="" /> +{stones!.reward.toLocaleString("th-TH")} <em>หิน</em></strong><small>{stonesPreview ? "ตัวอย่างโหมดแอดมิน · ไม่บันทึกจริง" : `คงเหลือ ${stones!.balance.toLocaleString("th-TH")} หิน`}</small></p>
           </> : <p className="mo-reward-pending" role="status">{stonesError || "กำลังบันทึกหินวิญญาณ…"}</p>}
         </section>}
         {(reward || merit !== undefined || rankUp) && <p className="mo-extras">
@@ -278,7 +278,7 @@ export function MissionOutcomeModal({ status, missionTitle, venue, level, comple
           <button type="button" className="cultivation-btn btn-gold-subtle btn-md" onClick={onRetry}>เล่นอีกครั้ง</button>
           <button type="button" className={`cultivation-btn ${onNext ? "btn-glass" : "btn-gold"} btn-md`} onClick={onReturn} autoFocus={!onNext}>กลับหน้าภารกิจ</button>
         </> : <>
-          {onRevive && <button type="button" className="cultivation-btn btn-gold btn-md mo-revive-btn" onClick={() => setConfirming(true)} disabled={reviving} autoFocus={!short}>{reviving ? "กำลังฟื้น…" : <><span className="mo-revive-main">เล่นต่อจากจุดที่พลาด</span><span className="mo-revive-cost">💎 ใช้ {REVIVE_COST} หินวิญญาณ</span></>}</button>}
+          {onRevive && <button type="button" className="cultivation-btn btn-gold btn-md mo-revive-btn" onClick={() => setConfirming(true)} disabled={reviving} autoFocus={!short}>{reviving ? "กำลังฟื้น…" : <><span className="mo-revive-main">เล่นต่อจากจุดที่พลาด</span><span className="mo-revive-cost"><img className="mo-stone-icon" src="/arena/economy/currencies/spirit-stone-v2.webp" alt="" /> ใช้ {REVIVE_COST} หินวิญญาณ</span></>}</button>}
           <button type="button" className="cultivation-btn btn-gold-subtle btn-md" onClick={onRetry} autoFocus={!onRevive || short}>เริ่มใหม่ทั้งด่าน</button>
           <button type="button" className="cultivation-btn btn-glass btn-md" onClick={onReturn}>กลับหน้าภารกิจ</button>
         </>}

@@ -11,7 +11,7 @@ export const ECONOMY_ASSET_ROOT = "/arena/economy";
 export const economyAsset = (path: string) => `${ECONOMY_ASSET_ROOT}/${path}`;
 
 export const ECONOMY_ASSETS = {
-  spiritStone: economyAsset("currencies/spirit-stone.png"),
+  spiritStone: economyAsset("currencies/spirit-stone-v2.webp"),
   spiritStoneGlow: economyAsset("animations/spirit-stone-glow.gif"),
   spiritStoneGlowStatic: economyAsset("animations/spirit-stone-glow-fallback.png"),
   rewardAcquired: economyAsset("animations/reward-acquired.gif"),
