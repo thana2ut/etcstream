@@ -179,7 +179,7 @@ export function MissionResultModal({
 }
 
 /** Mission Hall only; Free Practice keeps its existing result screen. */
-export function MissionOutcomeModal({ status, missionTitle, venue, level, completed, total, mistakes, reward, stones, stonesError, stonesTracked, merit, rankUp, progressError, reviving, balance, freeRevive, onRevive, onNext, onRetry, onReturn }: {
+export function MissionOutcomeModal({ status, missionTitle, venue, level, completed, total, mistakes, reward, stones, stonesError, stonesTracked, stonesPreview, elapsed, merit, rankUp, progressError, reviving, balance, freeRevive, onRevive, onNext, onRetry, onReturn }: {
   status: "success" | "failed";
   missionTitle: string;
   venue: string;
@@ -193,6 +193,10 @@ export function MissionOutcomeModal({ status, missionTitle, venue, level, comple
   stonesError?: string;
   /** False for the admin preview: no stone line at all. */
   stonesTracked?: boolean;
+  /** Admin preview: reward is computed locally and not credited. */
+  stonesPreview?: boolean;
+  /** Client-measured seconds, shown when the server receipt has no time yet. */
+  elapsed?: number | null;
   merit?: number;
   rankUp?: string;
   progressError?: string;
@@ -210,7 +214,8 @@ export function MissionOutcomeModal({ status, missionTitle, venue, level, comple
   const short = !freeRevive && typeof balance === "number" && balance < REVIVE_COST;
   const [confirming, setConfirming] = useState(false);
   const b = stones?.breakdown;
-  const time = b ? `${Math.floor(b.seconds / 60)}:${String(b.seconds % 60).padStart(2, "0")}` : null;
+  const clock = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  const time = b ? clock(b.seconds) : typeof elapsed === "number" ? clock(elapsed) : null;
   const target = b ? `${Math.floor(b.targetSeconds / 60)}:${String(b.targetSeconds % 60).padStart(2, "0")}` : null;
   return <div className={`mission-outcome-overlay is-${status}`} role="dialog" aria-modal="true" aria-labelledby="mission-outcome-title">
     <div className="mission-outcome-mist" aria-hidden="true" />
@@ -246,7 +251,7 @@ export function MissionOutcomeModal({ status, missionTitle, venue, level, comple
               <li><span>โบนัสเล่นแม่น (ไม่ผิดเลย)</span><strong>+{b.cleanBonus.toLocaleString("th-TH")}</strong></li>
               {b.total > b.base + b.timeBonus + b.cleanBonus && <li><span>รางวัลขั้นต่ำ 40%</span><strong>{b.floor.toLocaleString("th-TH")}</strong></li>}
             </ul>
-            <p className="mo-reward-total"><span>รวมรอบนี้</span><strong>+{stones!.reward.toLocaleString("th-TH")}</strong><small>คงเหลือ {stones!.balance.toLocaleString("th-TH")} หิน</small></p>
+            <p className="mo-reward-total"><span>รวมรอบนี้</span><strong>💎 +{stones!.reward.toLocaleString("th-TH")} <em>หิน</em></strong><small>{stonesPreview ? "ตัวอย่างโหมดแอดมิน · ไม่บันทึกจริง" : `คงเหลือ ${stones!.balance.toLocaleString("th-TH")} หิน`}</small></p>
           </> : <p className="mo-reward-pending" role="status">{stonesError || "กำลังบันทึกหินวิญญาณ…"}</p>}
         </section>}
         {(reward || merit !== undefined || rankUp) && <p className="mo-extras">

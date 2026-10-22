@@ -613,7 +613,7 @@ function PlayExperience() {
       {routeMode === "mission" && showResultModal && trainingCompleted && !trainingFailed && (
         <MissionOutcomeModal status="success" missionTitle={currentTitle} venue={mission?.venue ?? "ห้องภารกิจ"} level={difficultyLevel}
           completed={connectedRoutes} total={trainingTotal({ scenarioId })} mistakes={mistakeCount}
-          reward={activeScenario.stage?.reward} stones={stones.reward} stonesError={stones.error} stonesTracked={stones.canRevive} merit={reward?.merit} rankUp={reward?.rankUp} progressError={progressError}
+          reward={activeScenario.stage?.reward} stones={stones.reward} stonesError={stones.error} stonesTracked={stones.canRevive || !!stones.reward} stonesPreview={stones.preview} elapsed={stones.elapsed} merit={reward?.merit} rankUp={reward?.rankUp} progressError={progressError}
           onNext={difficultyLevel < 5 && (Boolean(progress?.selected?.admin) || Boolean(progress?.completed[mission?.slug ?? ""]?.includes(difficultyLevel))) ? handleNextMission : undefined}
           onRetry={handleRetry} onReturn={() => router.push("/missions")} />
       )}

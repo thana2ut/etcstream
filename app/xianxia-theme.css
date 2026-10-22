@@ -1404,3 +1404,14 @@ html[data-overlay] .cloud-layer { transition: none; }
 .mo-revive-main { font-size: .95rem; font-weight: 700; }
 .mo-revive-cost { font-size: .74rem; font-weight: 600; opacity: .9; letter-spacing: .01em; }
 .mo-actions .cultivation-btn { overflow: hidden; text-overflow: ellipsis; }
+
+/* Success screen: time + stone reward as the centrepiece (big total, clear rows, balanced spacing) */
+.mo-stats dd { font-variant-numeric: tabular-nums; }
+.mo-reward { margin-top: 16px; padding: 14px 20px 16px; text-align: left; }
+.mo-reward h2 { text-align: center; font-size: 1.05rem; margin-bottom: 10px; }
+.mo-reward-rows li { padding: 6px 4px; font-size: .92rem; }
+.mo-reward-total { align-items: center; margin-top: 12px; padding: 10px 14px; border-radius: 12px; background: rgba(255, 215, 122, .08); border: 1px solid rgba(255, 215, 122, .28); }
+.mo-reward-total strong { font-size: 1.9rem; line-height: 1.1; }
+.mo-reward-total strong em { font-style: normal; font-size: .95rem; color: #f7da9e; text-shadow: none; }
+.mo-reward-total small { margin-top: 2px; }
+@media (max-width: 560px) { .mo-reward { padding: 12px 14px 14px; } .mo-reward-total strong { font-size: 1.55rem; } }
