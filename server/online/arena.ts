@@ -57,15 +57,23 @@ const uuid = (s: unknown) => typeof s === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-
  * Never certifies without a valid replay; failures are logged with their reason and the run stays under review.
  */
 async function certifyIfProven(run: Run, proof?: Awaited<ReturnType<typeof replayCloudRun>>): Promise<Run> {
-  if (run.status !== "UNDER_REVIEW" || !run.graph_valid || run.invalid || !verificationEnabled(run.scenario)) return run;
+  // Every reason a proven run is NOT certified is written to the audit table, so a stuck run can be diagnosed.
+  const note = async (reason: string) => {
+    console.error("Run certification failed", run.id, reason);
+    await trustedClient().from("etc_admin_audit").insert({ actor: "system", action: "certify-failed", target: run.id, reason: reason.slice(0, 480) });
+  };
+  if (run.status !== "UNDER_REVIEW" || !run.graph_valid || run.invalid) return run;
+  if (!verificationEnabled(run.scenario)) { await note(`verification disabled for ${run.scenario} (env=${process.env.ARENA_VERIFIED_SLICE_ENABLED ?? "unset"})`); return run; }
   try {
-    const evidence = proof ?? await replayCloudRun(run);
-    if (!evidence.valid) return run;
-    const result = await trustedClient().rpc("etc_certify_run", { run_id: run.id, expected_revision: run.revision, proof: json(evidence) });
-    if (result.error) { console.error("Run certification failed", run.id, result.error.message); return run; }
+    const fresh = checked(await trustedClient().from("etc_runs").select("*").eq("id", run.id).single()) as Run;
+    if (fresh.status !== "UNDER_REVIEW") return fresh;
+    const evidence = proof ?? await replayCloudRun(fresh);
+    if (!evidence.valid) { await note("replay not valid"); return fresh; }
+    const result = await trustedClient().rpc("etc_certify_run", { run_id: fresh.id, expected_revision: fresh.revision, proof: json(evidence) });
+    if (result.error) { await note(`certify rpc: ${result.error.message}`); return fresh; }
     return result.data as Run;
   } catch (error) {
-    console.error("Run certification failed", run.id, error instanceof Error ? error.message : "unknown");
+    await note(`exception: ${error instanceof Error ? error.message : "unknown"}`);
     return run;
   }
 }
