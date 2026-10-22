@@ -169,9 +169,10 @@ export function CardCableScene({ cable }: { cable: CatalogCable }) {
  * One WebGL canvas for every catalog card: each card holds a drei <View> slot and this canvas draws the cables into
  * those slots. drei's offscreen test assumes the canvas starts at the viewport top, so the canvas covers the whole
  * viewport (position: fixed) and `.cl-catalog-wrap` clips it to the card grid; pointer events pass through.
+ * Scroll is measured without debounce so packed-bag thumbnails stay locked to their slots while the page scrolls.
  */
 export function CatalogCanvas() {
-  return <Canvas className="cl-catalog-gl" dpr={1} camera={{ fov: 34, position: [0, 0, 1.55] }} gl={{ alpha: true, antialias: true }} style={{ position: "fixed", inset: 0, width: "100vw", height: "100vh", pointerEvents: "none" }}>
+  return <Canvas className="cl-catalog-gl" dpr={1} resize={{ scroll: true, debounce: { scroll: 0, resize: 0 } }} camera={{ fov: 34, position: [0, 0, 1.55] }} gl={{ alpha: true, antialias: true }} style={{ position: "fixed", inset: 0, width: "100vw", height: "100vh", pointerEvents: "none" }}>
     <View.Port />
   </Canvas>;
 }
