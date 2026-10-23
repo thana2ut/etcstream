@@ -6,7 +6,7 @@ import { useTrainingStore } from "@/game/stores/training-store";
 import { SCENARIOS, type ScenarioId } from "@/game/training/scenarios";
 import { initSim } from "@/game/training/hdmi-training";
 import { hiddenCablesFor, packedLeadsFor } from "@/game/content/cable-catalog";
-import { missionChapters } from "@/game/content/mission-catalog";
+import { getDifficultyMeta, getMissionDifficultyLabel, missionChapters } from "@/game/content/mission-catalog";
 import { loadSceneFont } from "@/game/rendering/scene-font";
 import { GameCanvas } from "@/components/game/game-canvas";
 import { TrainingHud } from "@/components/game/training-hud";
@@ -177,7 +177,13 @@ export function ArenaPlay({ id }: { id: string }) {
   const scenario = SCENARIOS[attempt.scenario as ScenarioId];
   if (!scenario?.stage) return <ArenaShell><ArenaBanner title="ข้อมูลด่านไม่พร้อม" file="card-time-attack" /><section className="arena-panel"><ArenaEmptyState icon="time-attack" title="ยังเปิดใบภารกิจนี้ไม่ได้" href="/arena/time-attack" action="กลับไปเลือกภารกิจ">ข้อมูลด่านของรอบนี้ยังไม่พร้อมใช้งาน</ArenaEmptyState></section></ArenaShell>;
   const venue = ({ xs: "classroom", s: "studio", m: "auditorium", l: "outdoor", xl: "stadium" } as const)[scenario.venueScale!];
-  const venueLabel = missionChapters.find((chapter) => chapter.venueId === venue)?.venue;
+  // Same stage data as Mission mode: title, level label and objective come from the mission catalog.
+  const missionChapter = missionChapters.find((chapter) => chapter.venueId === venue);
+  const venueLabel = missionChapter?.venue;
+  const missionLevel = Number(attempt.scenario.split("-")[1]) || 1;
+  const missionTitle = missionChapter?.title ?? scenario.stage.title;
+  const missionLevelLabel = missionChapter ? getMissionDifficultyLabel(missionChapter, missionLevel) : scenario.stage.id;
+  const missionObjective = (missionChapter && getDifficultyMeta(missionChapter, missionLevel)?.objective) || scenario.stage.ticket;
   const abandonDialog = <ArenaConfirmDialog open={confirmAbandon} title="ยุติรอบฝึกนี้หรือไม่?" busy={busy} onCancel={() => setConfirmAbandon(false)} onConfirm={() => void act("abandon")}>รอบนี้จะถูกบันทึกว่ายุติ และไม่นำผลไปจัดอันดับ{error && <span className="arena-dialog-error" role="alert">{error}</span>}</ArenaConfirmDialog>;
   if (!["PENDING","RUNNING"].includes(attempt.status)) return <ArenaShell>
     <ArenaBanner title="ผลรอบฝึกกาลเวลา" file="card-time-attack"><p>{venueLabel} · {scenario.stage.title}</p></ArenaBanner>
@@ -204,11 +210,11 @@ export function ArenaPlay({ id }: { id: string }) {
       <section className="arena-panel">
         <div className="arena-round-status"><span className="arena-status">{statusText(attempt.status)}</span><strong>{attempt.status !== "RUNNING" ? "ยังไม่เริ่มจับเวลา" : <ArenaClock start={Number(attempt.start)} epoch={clockEpoch} phase="briefing" />}</strong></div>
         <span className="arena-eyebrow">{scenario.stage.id} · {venueLabel}</span>
-        <h2>เป้าหมายของรอบนี้</h2><p>{scenario.stage.ticket}</p>
+        <h2>{missionTitle}</h2><p className="arena-eyebrow">{missionLevelLabel}</p><p>{missionObjective}</p>
         <ol className="arena-connection-steps">{scenario.stage.briefing.map((line, index) => <li key={line}><span>{index + 1}</span><span>{line}</span></li>)}</ol>
       </section>
       <aside className="arena-panel"><h2>เตรียมตัวก่อนเริ่ม</h2>
-        <ol className="arena-checklist"><li>อ่านใบงาน แล้วเลือกสายที่ต้องใช้</li><li>รอฉากและฟอนต์โหลดครบก่อนกดพร้อม</li><li>ตรวจการต่อและตั้งค่า ก่อนส่งผลให้ระบบตรวจ</li></ol>
+        <ol className="arena-checklist"><li>อ่านใบงาน แล้วเลือกสายที่ต้องใช้</li><li>รอฉากและฟอนต์โหลดครบก่อนกดพร้อม</li><li>ต่อสายให้ถูกพอร์ตครบทุกเส้นทาง แล้วรอบจะจบและส่งผลให้ระบบตรวจเอง</li></ol>
         <p className="arena-muted">จับเวลาตั้งแต่เริ่มจนต่อสายครบ เวลาเดินต่อเมื่อเปลี่ยนแท็บหรือหลุดการเชื่อมต่อ การโหลดหน้าซ้ำจะจัดห้องใหม่แต่ไม่เริ่มนับเวลาใหม่</p>
         {error && <p role="alert">{error}</p>}
         <div className="arena-actions"><button disabled={busy} onClick={() => setBriefing(false)}>ไปเตรียมสาย →</button><button className="arena-button-danger" disabled={busy} onClick={() => setConfirmAbandon(true)}>ยุติรอบนี้</button></div>
@@ -216,7 +222,7 @@ export function ArenaPlay({ id }: { id: string }) {
     </div>
     {abandonDialog}
   </ArenaShell>;
-  if (!bag) return <CableLobby scenario={scenario} title={scenario.stage.title} levelLabel={scenario.stage.id} objective={scenario.stage.ticket} backLabel="กลับใบงาน" onBack={() => setBriefing(true)} onConfirm={(packed) => {
+  if (!bag) return <CableLobby scenario={scenario} title={missionTitle} levelLabel={missionLevelLabel} objective={missionObjective} backLabel="กลับใบงาน" onBack={() => setBriefing(true)} onConfirm={(packed) => {
     useTrainingStore.getState().reset(attempt.scenario as ScenarioId, hiddenCablesFor(scenario, packed), packedLeadsFor(scenario, packed));
     useTrainingStore.setState({ sim: initSim(scenario, attempt.seed || 1) }); previousErrors.current = 0; setBag(packed);
   }} />;
@@ -230,5 +236,5 @@ export function ArenaPlay({ id }: { id: string }) {
       {attempt.status === "PENDING" && <button className="arena-game-primary" disabled={!assetsReady || busy} onClick={() => void act("ready")}>{assetsReady ? "พร้อม เริ่มนับถอยหลัง" : "กำลังโหลดฉากและฟอนต์…"}</button>}
       <button disabled={!running} onClick={() => { if (document.pointerLockElement) document.exitPointerLock(); setBagOpen(true); }}>กระเป๋า (R) <b className="cl-bag-badge">{bagCount}</b></button>
       <button className="arena-game-primary" disabled={!complete || !running || busy || Boolean(syncError)} onClick={() => void act("finish")}>เสร็จสิ้น</button><button className="arena-game-danger" disabled={busy} onClick={() => { if (document.pointerLockElement) document.exitPointerLock(); setConfirmAbandon(true); }}>ยุติรอบ</button>{error && <span role="alert">{error}</span>}{syncError && <span role="alert">{syncError} <button onClick={() => void drain()}>ส่งคำสั่งที่ค้างซ้ำ</button></span>}
-    </div><TrainingHud title={scenario.stage.title} touch={touch} />{bagOpen && <BagPanel bag={bag} onClose={() => setBagOpen(false)} />}<ReviewOverlay /><EquipmentInspector /><InspectHoldRing />{touch && running && !confirmAbandon && <TouchControls />}<div className="arena-public arena-game-dialog">{abandonDialog}</div></main>;
+    </div><TrainingHud title={missionTitle} difficultyLabel={missionLevelLabel} objective={missionObjective} touch={touch} />{bagOpen && <BagPanel bag={bag} onClose={() => setBagOpen(false)} />}<ReviewOverlay /><EquipmentInspector /><InspectHoldRing />{touch && running && !confirmAbandon && <TouchControls />}<div className="arena-public arena-game-dialog">{abandonDialog}</div></main>;
 }
