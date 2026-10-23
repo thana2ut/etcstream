@@ -678,3 +678,23 @@ body:has(.arena-result) { overflow: hidden; }
 .arena-public .duel-challenge-btn, .duel-challenge-btn { background: linear-gradient(180deg, #c8943f 0%, #9a6a26 55%, #6f4a18 100%) !important; border-color: #ffe3a3 !important; color: #fff6dc !important; }
 .duel-challenge-btn .duel-challenge-text strong { color: #fff8e4 !important; text-shadow: 0 1px 2px #000000b0, 0 0 10px #00000055; letter-spacing: .01em; }
 .duel-challenge-btn .duel-challenge-text small { color: #ffe9bf !important; text-shadow: 0 1px 2px #00000099; opacity: 1; }
+
+/* Duel result screen: balanced two columns, nothing clipped, crown in the winner card's corner. */
+@media (min-width: 980px) {
+  .arena-result:has(.duel-verdict) { max-height: none; overflow: visible; padding-top: clamp(16px, 2.4vh, 26px); row-gap: 8px; align-items: center; }
+  .arena-result:has(.duel-verdict) > .arena-result-seal { justify-self: center; width: 64px; height: 64px; margin: 0; }
+  .arena-result:has(.duel-verdict) > .arena-status { justify-self: center; margin: 0; }
+  .arena-result:has(.duel-verdict) > h2 { margin: 0; font-size: clamp(1.4rem, 3vh, 1.8rem); }
+  .arena-result:has(.duel-verdict) .arena-stats dd { font-size: clamp(1.25rem, 3vh, 1.7rem); }
+  .arena-result:has(.duel-verdict) > .arena-muted { font-size: 12.5px; line-height: 1.5; margin: 0; }
+  .arena-result:has(.duel-verdict) .arena-pinned-standing { margin: 4px 0 0; padding: 10px 14px; }
+  .arena-result:has(.duel-verdict) .arena-pinned-standing strong { font-size: 1rem; }
+  .arena-result:has(.duel-verdict) .arena-pinned-standing small, .arena-result:has(.duel-verdict) .arena-pinned-standing p { font-size: 12px; margin: 2px 0 0; }
+  .arena-result:has(.duel-verdict) > .arena-actions { justify-content: center; gap: 10px; margin-top: 6px; }
+  .arena-result:has(.duel-verdict) > .duel-verdict { padding: 16px 18px; }
+  .arena-result:has(.duel-verdict) .duel-verdict-card { padding: 12px 14px 10px; gap: 2px; }
+  .arena-result:has(.duel-verdict) .duel-verdict-card b { font-size: clamp(1.6rem, 4vh, 2.2rem); }
+}
+.duel-crown { top: 10px; right: 14px; left: auto; font-size: 24px; }
+.duel-verdict-card.is-winner::after { content: "ชนะ"; position: absolute; top: 12px; left: 14px; padding: 1px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; color: #2a1a05; background: linear-gradient(180deg, #f8dc98, #c9973f); }
+body:has(.arena-result) .arena-footer, body:has(.arena-result) footer { display: none; }
