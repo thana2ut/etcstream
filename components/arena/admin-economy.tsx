@@ -72,7 +72,7 @@ function AdjustForm({ mutate }: { mutate: (op: string, body: Record<string, unkn
   </form>;
 }
 
-/** V20 catalog integrity: server catalog vs the SHA-256-checked owner registry, plus live image reachability. */
+/** Catalog integrity: server catalog vs the SHA-256-checked registries, plus live image reachability. */
 function IntegrityReport({ c }: { c: Config }) {
   const [broken, setBroken] = useState<string[] | null>(null);
   useEffect(() => {
@@ -86,9 +86,9 @@ function IntegrityReport({ c }: { c: Config }) {
   const bySlot = CATALOG_SEED.reduce<Record<string, number>>((a, s) => ({ ...a, [s.slot]: (a[s.slot] || 0) + 1 }), {});
   const legacy = c.catalog.filter((i) => i.legacy);
   return <div className="admin-integrity">
-    <dl className="admin-kpi-grid">{[["SKU ในทะเบียน V20", String(CATALOG_SEED.length)], ["เปิดขายอยู่", String(c.catalog.filter((i) => i.enabled).length)], ["ของรุ่นก่อน (ปิดขาย เก็บสิทธิ์ผู้ซื้อ)", String(legacy.length)], ["ภาพที่โหลดไม่ได้", broken === null ? "กำลังตรวจ…" : String(broken.length)]].map(([l, v]) => <div key={l}><dt>{l}</dt><dd>{v}</dd></div>)}</dl>
+    <dl className="admin-kpi-grid">{[["SKU ในทะเบียนตลาด", String(CATALOG_SEED.length)], ["เปิดขายอยู่", String(c.catalog.filter((i) => i.enabled).length)], ["ของรุ่นก่อน (ปิดขาย เก็บสิทธิ์ผู้ซื้อ)", String(legacy.length)], ["ภาพที่โหลดไม่ได้", broken === null ? "กำลังตรวจ…" : String(broken.length)]].map(([l, v]) => <div key={l}><dt>{l}</dt><dd>{v}</dd></div>)}</dl>
     <p>แยกหมวด: {Object.entries(bySlot).map(([slot, n]) => `${SLOT_LABELS[slot as CosmeticSlot]} ${n}`).join(" · ")}</p>
-    <p className="arena-note">ภาพทุกไฟล์ผ่านการตรวจ SHA-256 ตอนนำเข้า (ดู tests/economy-v20-assets.test.mjs) · กระบี่ สัตว์วิญญาณ และของประดับ เป็นภาพบนโปรไฟล์ ยังไม่ใช่โมเดล 3 มิติ</p>
+    <p className="arena-note">ทะเบียนภาพเก็บค่า SHA-256 ของสินค้าที่นำเข้า · กระบี่ สัตว์วิญญาณ และของประดับเป็นภาพแสดงบนโปรไฟล์ ยังไม่ใช่โมเดล 3 มิติ</p>
     <h3>ความต่างจากทะเบียน</h3>{mismatches.length ? <ul>{mismatches.map((m) => <li key={m}>{m}</li>)}</ul> : <p>ไม่พบความต่าง ทุก SKU ตรงชื่อ หมวด ภาพ และราคาตามทะเบียน</p>}
     {broken && broken.length > 0 && <><h3>ภาพที่โหลดไม่ได้</h3><p>{broken.join(", ")}</p></>}
   </div>;

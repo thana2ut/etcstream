@@ -1,6 +1,7 @@
 import registry from "./asset-registry-v20.json";
+import decorRegistry from "./celestial-decor-registry-v21.json";
 import coverRegistry from "./profile-cover-registry-v23.json";
-import nameplateRegistry from "./nameplate-registry-v24.json";
+import nameplateRegistry from "./nameplate-registry-v25.json";
 import sealRegistry from "./spirit-seal-registry-v25.json";
 
 // V19/V20 Celestial Spirit Economy — presentation map only.
@@ -52,12 +53,12 @@ export const SLOT_CONTEXT: Record<CosmeticSlot, string> = {
 export const MARKET_SLOTS: CosmeticSlot[] = ["swordSkin", "profileAvatar", "profileFrame", "profileCover", "profileNameplate", "spiritSeal", "profileCompanion", "residenceDecor"];
 export const COSMETIC_SLOTS = [...MARKET_SLOTS, "portraitOutfit"] as CosmeticSlot[];
 
-// V20 catalog generated from the owner's checked registry (SHA-256 verified on intake; see tests/economy-v20-assets.test.mjs).
+// Seed registry combines the original V20 catalog and additive category batches; live prices and ownership remain Supabase-authoritative.
 const categorySlot: Record<string, CosmeticSlot> = { avatar: "profileAvatar", frame: "profileFrame", sword: "swordSkin", pet: "profileCompanion", decor: "residenceDecor" };
 /** Accepts V19 legacy (sword_cloud) and V20 (AV-001, PET-005) SKUs; must match the etc_catalog sku check. */
 export const SKU_PATTERN = /^[A-Za-z][A-Za-z0-9_-]{2,40}$/;
 export type CatalogSeed = { sku: string; name: string; slot: CosmeticSlot; price: number; asset: string; sha256: string };
-export const CATALOG_SEED: CatalogSeed[] = registry.items.map((i) => ({
+export const CATALOG_SEED: CatalogSeed[] = [...registry.items, ...decorRegistry.items].map((i) => ({
   sku: i.sku, name: i.thai_name, slot: categorySlot[i.category], price: i.price_spirit_stones,
   asset: "/" + i.recommended_destination.replace(/^public\//, ""), sha256: i.sha256,
 }));
@@ -69,7 +70,7 @@ export const COVER_SEED: CatalogSeed[] = coverRegistry.mapping.map((c) => ({
   sku: c.id, name: c.name_th, slot: "profileCover" as CosmeticSlot, price: c.price_spirit_stones, asset: c.recommended_web_path, sha256: c.sha256,
 }));
 
-/** V24 compact nameplates (~939x165) for the header profile pill. Empty slot = free default background. */
+/** V25 wide nameplate banners use their natural aspect ratio for the header profile pill. Empty slot = free default background. */
 export const DEFAULT_NAMEPLATE_LABEL = "พื้นหลังปกติ (ฟรี)";
 export const NAMEPLATE_SEED: CatalogSeed[] = nameplateRegistry.items.map((n) => ({
   sku: n.id, name: n.name_th, slot: "profileNameplate" as CosmeticSlot, price: n.price, asset: n.web_path, sha256: n.sha256,

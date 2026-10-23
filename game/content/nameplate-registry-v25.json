@@ -1,0 +1,185 @@
+{
+  "version": "V25",
+  "items": [
+    {
+      "id": "NP-001",
+      "name_th": "ปกหงส์เพลิงโลหิต",
+      "price": 450,
+      "web_path": "/arena/economy/nameplates/01_crimson_phoenix.png",
+      "sha256": "ac89c6e6e93d37cc7f1ec63ba633337b844881f8b722302b8f7e10de7d8d77f2",
+      "width": 939,
+      "height": 165
+    },
+    {
+      "id": "NP-002",
+      "name_th": "ปกมังกรจันทราคราม",
+      "price": 400,
+      "web_path": "/arena/economy/nameplates/02_azure_moon_dragon.png",
+      "sha256": "4b62cb18cf247fb71c15afd8996bf00ea86231e38d0324b283f4586ef5ad4e28",
+      "width": 938,
+      "height": 165
+    },
+    {
+      "id": "NP-003",
+      "name_th": "ปกบุปผาจันทราม่วง",
+      "price": 550,
+      "web_path": "/arena/economy/nameplates/03_violet_moon_wisteria.png",
+      "sha256": "c254a0cb7976f6f02c33127be4440396e022aac6e92a3f908b8e9b83cbb5d39a",
+      "width": 939,
+      "height": 164
+    },
+    {
+      "id": "NP-004",
+      "name_th": "ปกวิมานสุริยันทอง",
+      "price": 750,
+      "web_path": "/arena/economy/nameplates/04_golden_celestial_palace.png",
+      "sha256": "1388eabaef0ad54bd0d3595468fe09ec7c5161da3b5fb1963b70da2e6a27e33b",
+      "width": 938,
+      "height": 164
+    },
+    {
+      "id": "NP-005",
+      "name_th": "ปกแดนซากุระสวรรค์",
+      "price": 350,
+      "web_path": "/arena/economy/nameplates/05_pink_sakura_heaven.png",
+      "sha256": "43c17673be0017ac05ff2a5314d00dd082eeee9a957a7aa1fd9fb966363607b4",
+      "width": 939,
+      "height": 164
+    },
+    {
+      "id": "NP-006",
+      "name_th": "ปกราหูทองทมิฬ",
+      "price": 900,
+      "web_path": "/arena/economy/nameplates/06_black_gold_eclipse.png",
+      "sha256": "f7cc45786c4e851a2ee376e5b5d19025f6a2802d30dbe3dc36edc6b598bb5a04",
+      "width": 938,
+      "height": 164
+    },
+    {
+      "id": "NP-007",
+      "name_th": "ปกไผ่หยกหมอกเซียน",
+      "price": 400,
+      "web_path": "/arena/economy/nameplates/07_emerald_bamboo_mist.png",
+      "sha256": "58238a0705ded7dfa4d3cc7c786e21be694a336907caa1de6f6997f3e16556f1",
+      "width": 939,
+      "height": 164
+    },
+    {
+      "id": "NP-008",
+      "name_th": "ปกแดนผลึกเหมันต์",
+      "price": 650,
+      "web_path": "/arena/economy/nameplates/08_frost_crystal_realm.png",
+      "sha256": "de4a05c49368894172f85b4e6f655402fafccebb23de74fb5575e5f65a0081ca",
+      "width": 938,
+      "height": 164
+    },
+    {
+      "id": "NP-009",
+      "name_th": "ปกสมุทรมุกคราม",
+      "price": 600,
+      "web_path": "/arena/economy/nameplates/09_aqua_pearl_ocean.png",
+      "sha256": "0668ebe7380040579704aad41fdc70f482ff8a34f5c0a9da80dfdde7f320e787",
+      "width": 939,
+      "height": 167
+    },
+    {
+      "id": "NP-010",
+      "name_th": "ปกดาราจักรอเมทิสต์",
+      "price": 1200,
+      "web_path": "/arena/economy/nameplates/10_amethyst_cosmos.png",
+      "sha256": "5d4dd2fad1a1228b77104d0af1479579c4c2008288a9ca807286814bd1ff09df",
+      "width": 938,
+      "height": 167
+    },
+    {
+      "id": "NP-011",
+      "name_th": "ปกแดนบุปผาสวรรค์",
+      "price": 450,
+      "web_path": "/arena/economy/nameplates/np-011_sakura_heaven.png",
+      "sha256": "f323526d8c2e8d8d17e3a20ba1989bd8d34cfe394de8e729153fd9f50a870bc7",
+      "width": 2172,
+      "height": 439
+    },
+    {
+      "id": "NP-012",
+      "name_th": "ปกจันทราเหมันต์",
+      "price": 500,
+      "web_path": "/arena/economy/nameplates/np-012_frost_moon.png",
+      "sha256": "ad7e42a9e87e6ea50b1403e41060fc9e9b4207f5304986feff64ee7ebd8143ca",
+      "width": 2169,
+      "height": 457
+    },
+    {
+      "id": "NP-013",
+      "name_th": "ปกม่านหยกเมฆา",
+      "price": 550,
+      "web_path": "/arena/economy/nameplates/np-013_jade_cloud.png",
+      "sha256": "b2e935e3d00ddee0b328afc265c89c8f195bfb8a6340c7373f23c80f64387e2c",
+      "width": 2160,
+      "height": 372
+    },
+    {
+      "id": "NP-014",
+      "name_th": "ปกมังกรเพลิงโลหิต",
+      "price": 800,
+      "web_path": "/arena/economy/nameplates/np-014_bloodflame_dragon.png",
+      "sha256": "02a80d95a01fe81a17650d79c2df7aaac20c72527c60450b62754ab3aeb3ceb3",
+      "width": 2155,
+      "height": 372
+    },
+    {
+      "id": "NP-015",
+      "name_th": "ปกบุปผาวิสทีเรีย",
+      "price": 600,
+      "web_path": "/arena/economy/nameplates/np-015_wisteria_moon.png",
+      "sha256": "36385c0b42ffcd853b409f058db5f8206b2e20f077a7b78b34141df7e3e3dfd7",
+      "width": 2164,
+      "height": 380
+    },
+    {
+      "id": "NP-016",
+      "name_th": "ปกนครสมุทรไข่มุก",
+      "price": 680,
+      "web_path": "/arena/economy/nameplates/np-016_pearl_ocean.png",
+      "sha256": "b5a5045200527d15a54285aadbb28229af89aa79769eebebcede7c1c513116e6",
+      "width": 2099,
+      "height": 326
+    },
+    {
+      "id": "NP-017",
+      "name_th": "ปกวิหคสุริยันทอง",
+      "price": 900,
+      "web_path": "/arena/economy/nameplates/np-017_solar_phoenix.png",
+      "sha256": "f81760d2a85c28755eca83b385816dc0d479c4ae1816c02a0f8eeca4ec1800df",
+      "width": 2172,
+      "height": 419
+    },
+    {
+      "id": "NP-018",
+      "name_th": "ปกคราสรัตติกาลม่วง",
+      "price": 980,
+      "web_path": "/arena/economy/nameplates/np-018_violet_eclipse.png",
+      "sha256": "0551c8315fed61915e6b4986131f0f9fb499cc3ee2651f63ac4736607681f9b5",
+      "width": 2109,
+      "height": 408
+    },
+    {
+      "id": "NP-019",
+      "name_th": "ปกบัวเหมันต์จันทรา",
+      "price": 750,
+      "web_path": "/arena/economy/nameplates/np-019_frost_lotus.png",
+      "sha256": "fd564f22482bb47aef0edc4dd906bfa962df68ffa7296f33692273a23c9232da",
+      "width": 2161,
+      "height": 434
+    },
+    {
+      "id": "NP-020",
+      "name_th": "ปกจักรวาลวังสวรรค์",
+      "price": 1200,
+      "web_path": "/arena/economy/nameplates/np-020_cosmic_palace.png",
+      "sha256": "824f1ed6d5f1f516eeb146ba2c9a7b7bcabb3a9611c5f39d474c0fefed29f283",
+      "width": 2172,
+      "height": 386
+    }
+  ]
+}

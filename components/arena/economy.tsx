@@ -79,6 +79,17 @@ export function EconomyHubPanel({ name }: { name: string }) {
 }
 
 const categories: (CosmeticSlot | "all")[] = ["all", ...MARKET_SLOTS];
+const MARKET_CODE_PREFIX: Record<CosmeticSlot, string> = {
+  profileAvatar: "AV",
+  swordSkin: "SW",
+  profileFrame: "FR",
+  profileCompanion: "PET",
+  residenceDecor: "DE",
+  portraitOutfit: "PO",
+  profileCover: "COVER",
+  profileNameplate: "NP",
+  spiritSeal: "SS",
+};
 type PurchaseReceipt = { sku: string; name: string; asset: string; price: number; balance: number; ledgerId: string };
 type PurchaseResult = { status: string; retry: boolean; sku: string; price: number; balance: number; ledgerId: string };
 export function CelestialMarket() {
@@ -92,6 +103,16 @@ export function CelestialMarket() {
   }, []);
   useEffect(() => { const t = window.setTimeout(() => { const cached = readCache<{ items: EconomyItem[]; balance: number }>("market"); if (cached) { setData(cached); setLoading(false); } void load(); }, 0); return () => clearTimeout(t); }, [load]);
   useEconomyChanged(load);
+  const marketCodes = useMemo(() => {
+    const visible = (data?.items || []).filter((i) => !i.starter && !i.legacy);
+    const codes = new Map<string, string>();
+    for (const slot of MARKET_SLOTS) {
+      visible.filter((i) => i.slot === slot).sort((a, b) => a.price - b.price || a.sku.localeCompare(b.sku)).forEach((i, index) => {
+        codes.set(i.sku, `${MARKET_CODE_PREFIX[slot]}-${String(index + 1).padStart(3, "0")}`);
+      });
+    }
+    return codes;
+  }, [data]);
   const items = useMemo(() => (data?.items || [])
     .filter((i) => !i.starter && !i.legacy && (category === "all" || i.slot === category))
     .sort((a, b) => a.price - b.price), [data, category]);
@@ -145,7 +166,7 @@ export function CelestialMarket() {
     <div className="econ-market-body">
       <div className="econ-grid-wrap"><ul className="econ-grid" aria-label="รายการสินค้า">{shown.map((i) => <li key={i.sku}><button type="button" className={`econ-item${i.owned ? " is-owned" : ""}`} aria-pressed={item?.sku === i.sku} onClick={() => setSelected(i.sku)}>
         {i.slot === "profileNameplate" ? <Image className="econ-nameplate-thumb" src={i.asset} alt="" width={380} height={67} sizes="380px" loading="lazy" /> : i.slot === "profileCover" ? <Image className="econ-cover-thumb" src={i.asset} alt="" width={360} height={120} sizes="360px" loading="lazy" /> : <Image src={i.asset} alt="" width={120} height={120} sizes="160px" loading="lazy" />}
-        <strong>{i.name}</strong><small>{SLOT_LABELS[i.slot]}{i.rarity ? ` · ${i.rarity}` : ""} · {i.sku}</small>
+        <strong>{i.name}</strong><small>{SLOT_LABELS[i.slot]}{i.rarity ? ` · ${i.rarity}` : ""} · {marketCodes.get(i.sku) ?? i.sku}</small>
         {i.owned ? <span className="econ-tag">{i.equipped ? "สวมใส่อยู่" : "มีแล้ว"}</span> : <SpiritStones amount={i.price} size={18} />}
       </button></li>)}</ul>
       {pages > 1 && <nav className="econ-pager" aria-label="หน้ารายการสินค้า">
@@ -156,7 +177,7 @@ export function CelestialMarket() {
       </div>
       {item && <aside className="arena-panel econ-detail" aria-label={`รายละเอียด ${item.name}`}>
         {item.slot === "profileNameplate" ? <NameplatePreview plate={item.asset} name={item.name} /> : item.slot === "profileCover" ? <CoverPreview cover={item.asset} name={item.name} /> : <div className="econ-detail-art"><Image src={item.asset} alt={item.name} fill sizes="(max-width:900px) 70vw, 320px" /></div>}
-        <span className="arena-eyebrow">{SLOT_LABELS[item.slot]} · {item.sku}</span><h3>{item.name}</h3>
+        <span className="arena-eyebrow">{SLOT_LABELS[item.slot]} · {marketCodes.get(item.sku) ?? item.sku}</span><h3>{item.name}</h3>
         {item.rarity && <p className="econ-rarity">ระดับ {item.rarity}</p>}{item.description && <p>{item.description}</p>}
         <p className="arena-note">แสดงที่: {SLOT_CONTEXT[item.slot]}</p>
         <dl className="econ-price"><div><dt>ราคา</dt><dd><SpiritStones amount={item.price} /></dd></div><div><dt>หินวิญญาณของเจ้า</dt><dd><SpiritStones amount={balance} /></dd></div><div><dt>สต็อก</dt><dd>ไม่จำกัด</dd></div></dl>
@@ -165,7 +186,7 @@ export function CelestialMarket() {
         {item.owned && <Link className="arena-text-link" href="/arena/bag">ไปที่ถุงเฉียนคุน →</Link>}
       </aside>}
     </div>}
-    {confirming && item && <PurchaseConfirm item={item} balance={balance} busy={busy} onCancel={() => setConfirming(false)} onConfirm={() => void buy()} />}
+    {confirming && item && <PurchaseConfirm item={item} code={marketCodes.get(item.sku) ?? item.sku} balance={balance} busy={busy} onCancel={() => setConfirming(false)} onConfirm={() => void buy()} />}
     {receipt && <PurchaseSuccess receipt={receipt} owned={data?.items.find((i) => i.sku === receipt.sku)} busy={busy} onEquip={() => void equip(receipt.sku)} onClose={() => setReceipt(null)} />}
   </div>;
 }
@@ -183,10 +204,10 @@ function EconModal({ label, busy, onClose, children, className }: { label: strin
     }}>{children}</div>
   </div>;
 }
-function PurchaseConfirm({ item, balance, busy, onCancel, onConfirm }: { item: EconomyItem; balance: number; busy: boolean; onCancel: () => void; onConfirm: () => void }) {
+function PurchaseConfirm({ item, code, balance, busy, onCancel, onConfirm }: { item: EconomyItem; code: string; balance: number; busy: boolean; onCancel: () => void; onConfirm: () => void }) {
   return <EconModal label={`ยืนยันการแลก ${item.name}`} busy={busy} onClose={onCancel}>
     <div className="econ-modal-art"><Image src={item.asset} alt={item.name} fill sizes="200px" /></div>
-    <span className="arena-eyebrow">ยืนยันการแลก · {item.sku}</span><h2>{item.name}</h2>
+    <span className="arena-eyebrow">ยืนยันการแลก · {code}</span><h2>{item.name}</h2>
     <dl className="econ-modal-sums"><div><dt>ราคา</dt><dd><SpiritStones amount={item.price} /></dd></div><div><dt>หินวิญญาณของเจ้า</dt><dd><SpiritStones amount={balance} /></dd></div><div><dt>คงเหลือโดยประมาณ</dt><dd><SpiritStones amount={Math.max(0, balance - item.price)} /></dd></div></dl>
     <p className="arena-note">เซิร์ฟเวอร์ตรวจราคาและยอดอีกครั้งตอนทำรายการ · ของสะสมขายคืนหรือโอนไม่ได้</p>
     <div className="arena-actions"><button type="button" className="arena-button-secondary" disabled={busy} onClick={onCancel}>ยกเลิก</button><button type="button" disabled={busy} onClick={onConfirm}>{busy ? "กำลังแลก…" : "ยืนยันการแลก"}</button></div>

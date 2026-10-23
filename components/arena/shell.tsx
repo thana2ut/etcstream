@@ -14,12 +14,19 @@ type ChipEquipped = { equipped?: Partial<Record<string, { asset: string }>> };
 type Inbox = { pendingIn: number; challengesIn: number };
 
 export const arenaAsset = (file: string) => `/assets/arena/${file}.png`;
+const competitionHallIcons: Record<string, string> = {
+  "time-attack": "/assets/ui/competition-hall/01_time_trial_icon.png",
+  arena: "/assets/ui/competition-hall/02_competition_arena_icon.png",
+  duel: "/assets/ui/competition-hall/03_dual_swords_icon.png",
+  leaderboard: "/assets/ui/competition-hall/04_immortal_register_icon.png",
+  friends: "/assets/ui/competition-hall/05_companions_icon.png",
+};
 export const arenaDestinations = [
   // Top menu keeps five destinations; other modes stay reachable from the home cards.
   ["home", "/arena", "หน้าหลัก"], ["ranked", "/arena/ranked", "จัดอันดับ"],
   ["friends", "/arena/friends", "สหาย"], ["market", "/arena/market", "ตลาดสวรรค์"], ["profile", "/arena/profile", "โปรไฟล์"],
 ] as const;
-export function ArenaIcon({ name }: { name: string }) { return <Image src={arenaAsset(`icon-${name}`)} alt="" width={44} height={44} className="arena-icon" />; }
+export function ArenaIcon({ name }: { name: string }) { return <Image src={competitionHallIcons[name] ?? arenaAsset(`icon-${name}`)} alt="" width={44} height={44} className="arena-icon" />; }
 export function ArenaShell({ children, admin = false, adminHeader, player,rank,connection,rankState,booting = false }: { children: React.ReactNode; admin?: boolean; adminHeader?: React.ReactNode; booting?: boolean; player?: PlayerView;rank?:{tier:string;score:number}|null;connection?:"connecting"|"connected"|"disconnected";rankState?:"loading"|"stale"|"ready" }) {
   const pathname = usePathname();
   const current = arenaDestinations.find(([, href]) => href !== "/arena" && pathname.startsWith(href))?.[0] ?? "home";
