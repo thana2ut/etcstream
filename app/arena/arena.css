@@ -674,3 +674,7 @@ body:has(.arena-result) { overflow: hidden; }
   .arena-result:has(.duel-verdict) .duel-verdict-card { padding: 12px 10px; }
   .arena-result:has(.duel-verdict) .duel-crown { top: -14px; }
 }
+/* Challenge button: high-contrast text on a deeper gold (theme button colours no longer wash it out). */
+.arena-public .duel-challenge-btn, .duel-challenge-btn { background: linear-gradient(180deg, #c8943f 0%, #9a6a26 55%, #6f4a18 100%) !important; border-color: #ffe3a3 !important; color: #fff6dc !important; }
+.duel-challenge-btn .duel-challenge-text strong { color: #fff8e4 !important; text-shadow: 0 1px 2px #000000b0, 0 0 10px #00000055; letter-spacing: .01em; }
+.duel-challenge-btn .duel-challenge-text small { color: #ffe9bf !important; text-shadow: 0 1px 2px #00000099; opacity: 1; }
