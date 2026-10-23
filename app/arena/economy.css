@@ -685,3 +685,18 @@
 .arena-player-chip .chip-avatar, .arena-player-chip .chip-avatar span { overflow: visible !important; }
 .arena-player-chip.has-nameplate { overflow: visible !important; }
 .arena-player-chip .chip-pet { left: -4px; bottom: -4px; width: 30px; height: 30px; z-index: 3; object-fit: contain; }
+
+/* Profile stat strip: three equal columns, identical 44px icon boxes, label over value, all vertically centred. */
+.profile-hub-stats.has-icons { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: center; gap: 0; }
+.profile-hub-stats.has-icons > div { display: flex; align-items: center; justify-content: flex-start; gap: 12px; min-width: 0; padding: 4px 20px; border-left: 1px solid #f4d69c55; }
+.profile-hub-stats.has-icons > div:first-child { padding-left: 4px; border-left: 0; }
+.profile-hub-stats.has-icons .stat-icon { flex: none; width: 44px; height: 44px; display: grid; place-items: center; }
+.profile-hub-stats.has-icons .stat-icon img, .profile-hub-stats.has-icons .stat-icon .arena-rank-badge { width: 44px !important; height: 44px !important; object-fit: contain; }
+.profile-hub-stats.has-icons .stat-icon .arena-rank-badge img { width: 100% !important; height: 100% !important; }
+.profile-hub-stats.has-icons > div > span:last-child { display: grid; gap: 2px; min-width: 0; }
+.profile-hub-stats.has-icons dt { font-size: 13px; line-height: 1.3; white-space: nowrap; }
+.profile-hub-stats.has-icons dd { margin: 0; font-size: 20px; line-height: 1.2; font-variant-numeric: tabular-nums; white-space: nowrap; }
+@media (max-width: 640px) {
+  .profile-hub-stats.has-icons { grid-template-columns: 1fr; gap: 10px; }
+  .profile-hub-stats.has-icons > div { padding: 0; border-left: 0; }
+}
