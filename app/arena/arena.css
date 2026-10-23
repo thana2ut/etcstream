@@ -577,3 +577,4 @@
 
 /* Season board rows: the player's own avatar + frame in place of the rank emblem. */
 .arena-season-row .arena-season-avatar { flex: none; }
+.arena-season-row .arena-season-avatar { margin-right: 14px; }
