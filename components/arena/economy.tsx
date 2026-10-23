@@ -92,7 +92,9 @@ export function CelestialMarket() {
   }, []);
   useEffect(() => { const t = window.setTimeout(() => { const cached = readCache<{ items: EconomyItem[]; balance: number }>("market"); if (cached) { setData(cached); setLoading(false); } void load(); }, 0); return () => clearTimeout(t); }, [load]);
   useEconomyChanged(load);
-  const items = useMemo(() => (data?.items || []).filter((i) => !i.starter && !i.legacy && (category === "all" || i.slot === category)), [data, category]);
+  const items = useMemo(() => (data?.items || [])
+    .filter((i) => !i.starter && !i.legacy && (category === "all" || i.slot === category))
+    .sort((a, b) => a.price - b.price), [data, category]);
   const item = items.find((i) => i.sku === selected) || items[0];
   const balance = data?.balance ?? 0;
   const buy = async () => {
