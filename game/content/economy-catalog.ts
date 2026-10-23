@@ -36,17 +36,17 @@ export const SLOT_LABELS: Record<CosmeticSlot, string> = {
   profileNameplate: "ปกแถบชื่อเซียน",
   spiritSeal: "ตราประทับเซียน",
 };
-// Honest description of where each slot is actually rendered today (no 3D claims).
+// Where each item appears, written for players.
 export const SLOT_CONTEXT: Record<CosmeticSlot, string> = {
-  profileAvatar: "ภาพโปรไฟล์ทรงกลมบนปุ่มโปรไฟล์ หน้าโปรไฟล์ และรายชื่อสหาย (ภาพนิ่ง ไม่ใช่ชุดในฉาก 3 มิติ)",
-  swordSkin: "จัดแสดงบนหน้าโปรไฟล์และถุงเฉียนคุน (ภาพประกอบ ไม่ใช่กระบี่ในฉาก 3 มิติ)",
-  profileFrame: "ครอบภาพโปรไฟล์บนหน้าโปรไฟล์ ปุ่มโปรไฟล์ และรายชื่อสหาย",
-  profileCompanion: "ปรากฏข้างภาพโปรไฟล์ ไม่ปรากฏในฉากเล่น",
-  residenceDecor: "จัดแสดงในแผงตำหนักบนหน้าโปรไฟล์ (ยังไม่มีการวางในฉาก 3 มิติ)",
-  portraitOutfit: "ของรุ่น V19 ที่เคยซื้อไว้ ยังเก็บและสวมได้ แต่ปิดขายแล้ว",
-  profileCover: "ภาพพื้นหลังการ์ดโปรไฟล์ใบใหญ่ (หน้าโปรไฟล์ของข้าและที่สหายเข้าชม) ไม่ใช่กรอบรูปวงกลม",
-  profileNameplate: "พื้นหลังแถบชื่อเล็กที่ปุ่มโปรไฟล์ด้านบนเกม (รูปวงกลมและกรอบยังเป็นของเดิม)",
-  spiritSeal: "จัดแสดงเป็นช่องที่ 6 ในตู้โชว์ของสะสมบนหน้าโปรไฟล์ ไม่ใช่กรอบ ปก หรือตราแรงก์ และไม่มีผลต่อการเล่น",
+  profileAvatar: "ภาพโปรไฟล์บนปุ่มโปรไฟล์ หน้าโปรไฟล์ ทำเนียบ และรายชื่อสหาย",
+  swordSkin: "จัดแสดงในตู้โชว์บนหน้าโปรไฟล์และถุงเฉียนคุน",
+  profileFrame: "กรอบรอบภาพโปรไฟล์บนปุ่มโปรไฟล์ หน้าโปรไฟล์ และรายชื่อสหาย",
+  profileCompanion: "สัตว์วิญญาณคู่กายข้างภาพโปรไฟล์",
+  residenceDecor: "ของประดับตำหนักบนหน้าโปรไฟล์",
+  portraitOutfit: "ของสะสมรุ่นก่อน สวมใส่ได้ตามเดิม",
+  profileCover: "ภาพปกการ์ดโปรไฟล์ เห็นทั้งบนหน้าโปรไฟล์ของเจ้าและตอนสหายเข้าชม",
+  profileNameplate: "พื้นหลังแถบชื่อบนปุ่มโปรไฟล์ด้านบน",
+  spiritSeal: "ตราประทับในตู้โชว์ของสะสมบนหน้าโปรไฟล์",
 };
 /** Market categories for NEW sales (V20). portraitOutfit is legacy-only and shown just to its owners. */
 export const MARKET_SLOTS: CosmeticSlot[] = ["swordSkin", "profileAvatar", "profileFrame", "profileCover", "profileNameplate", "spiritSeal", "profileCompanion", "residenceDecor"];

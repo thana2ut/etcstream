@@ -122,7 +122,7 @@ export function ChallengesPanel() {
   const [busy, setBusy] = useState(false), [error, setError] = useState("");
   const respond = async (id: string, decision: string) => { setBusy(true); setError(""); try { await api("social/challenge-respond", { id, decision }); list.retry(); } catch (e) { setError((e as Error).message); } finally { setBusy(false); } };
   const items = list.data?.challenges ?? [];
-  return <section className="arena-panel social-challenges"><span className="arena-eyebrow">คำท้าทำเวลา · ไม่ใช่การดวลสด</span><h2>คำท้าทำเวลา</h2>
+  return <section className="arena-panel social-challenges"><span className="arena-eyebrow">คำท้าทำเวลา</span><h2>คำท้าทำเวลา</h2>
     <p className="arena-note">ต่างคนต่างเล่นด่านเดียวกันภายใน 7 วันหลังตอบรับ เทียบเฉพาะเวลาที่เซิร์ฟเวอร์รับรองแล้ว ไม่มีรางวัลหรือคะแนนอันดับเพิ่ม · ดวลสด 1v1 ยังไม่เปิดใช้งาน</p>
     {error && <p className="arena-error" role="alert">{error}</p>}
     {list.loading ? <p role="status">กำลังโหลดคำท้า…</p> : list.error && !list.data ? <p className="arena-error">{list.error} <button onClick={list.retry}>ลองอีกครั้ง</button></p>

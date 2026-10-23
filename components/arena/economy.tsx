@@ -147,8 +147,8 @@ export function CelestialMarket() {
       {item && <aside className="arena-panel econ-detail" aria-label={`รายละเอียด ${item.name}`}>
         {item.slot === "profileNameplate" ? <NameplatePreview plate={item.asset} name={item.name} /> : item.slot === "profileCover" ? <CoverPreview cover={item.asset} name={item.name} /> : <div className="econ-detail-art"><Image src={item.asset} alt={item.name} fill sizes="(max-width:900px) 70vw, 320px" /></div>}
         <span className="arena-eyebrow">{SLOT_LABELS[item.slot]} · {item.sku}</span><h3>{item.name}</h3>
-        {item.rarity && <p className="econ-rarity">ระดับ {item.rarity} <small>(ระดับความหายากของภาพ ไม่ใช่ค่าพลัง)</small></p>}{item.description && <p>{item.description}</p>}
-        <p className="arena-note">ใช้งานจริงที่: {SLOT_CONTEXT[item.slot]}</p>
+        {item.rarity && <p className="econ-rarity">ระดับ {item.rarity}</p>}{item.description && <p>{item.description}</p>}
+        <p className="arena-note">แสดงที่: {SLOT_CONTEXT[item.slot]}</p>
         <dl className="econ-price"><div><dt>ราคา</dt><dd><SpiritStones amount={item.price} /></dd></div><div><dt>หินวิญญาณของเจ้า</dt><dd><SpiritStones amount={balance} /></dd></div><div><dt>สต็อก</dt><dd>ไม่จำกัด</dd></div></dl>
         {item.owned ? item.equipped ? <p className="econ-tag econ-owned-state">{item.slot === "profileCover" ? "กำลังใช้งาน" : item.slot === "profileNameplate" || item.slot === "spiritSeal" ? "กำลังใช้" : "สวมใส่อยู่"}</p> : <><p className="econ-tag econ-owned-state">มีแล้ว · อยู่ในถุงเฉียนคุน</p><button disabled={busy} onClick={() => void equip(item.sku)}>{item.slot === "profileCover" ? "ใช้เป็นปกโปรไฟล์" : "สวมใส่"}</button></>
           : <button disabled={busy || !item.enabled || balance < item.price} onClick={() => setConfirming(true)}>{busy ? "กำลังแลก…" : balance < item.price ? `หินวิญญาณไม่เพียงพอ (ขาด ${stones(item.price - balance)})` : "แลกด้วยหินวิญญาณ"}</button>}
