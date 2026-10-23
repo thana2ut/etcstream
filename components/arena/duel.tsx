@@ -135,7 +135,6 @@ export function DuelVerdict({ duel }: { duel: DuelState | null }) {
     verdict = winner === "draw" ? "เสมอกัน — ฝีมือทัดเทียม" : winner === "none" ? "ไม่มีผู้ชนะในรอบนี้" : winner === me.side ? `เจ้าชนะ!${gap}` : `${them.name} ชนะ${gap}`;
   }
   const card = (p: DuelPlayer, label: string) => <div className={`duel-verdict-card${winner === p.side ? " is-winner" : ""}`}>
-    {winner === p.side && <span className="duel-crown" aria-hidden="true">👑</span>}
     <span className="duel-verdict-label">{label}</span><strong>{p.name}</strong>
     <b>{ok(p) ? timeText(p.totalMs) : done(p) ? "ไม่จบภารกิจ" : "กำลังประลอง…"}</b>
     <small>{typeof p.mistakes === "number" ? `ผิดพลาด ${p.mistakes} ครั้ง` : " "}</small>

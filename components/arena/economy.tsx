@@ -25,11 +25,6 @@ function useReducedMotion() {
   }, []);
   return reduced;
 }
-/** Animated GIF accent with a static PNG fallback (reduced motion, data saver, or load failure). */
-function Accent({ gif, still, size, className }: { gif: string; still: string; size: number; className?: string }) {
-  const reduced = useReducedMotion(), [failed, setFailed] = useState(false);
-  return <Image className={className} src={reduced || failed ? still : gif} alt="" width={size} height={size} unoptimized onError={() => setFailed(true)} />;
-}
 
 export function SpiritStones({ amount, size = 22 }: { amount: number; size?: number }) {
   return <span className="econ-stones"><Image src={ECONOMY_ASSETS.spiritStone} alt="หินวิญญาณ" width={size} height={size} /><strong>{stones(amount)}</strong></span>;
@@ -265,7 +260,7 @@ export function RewardReceipt({ attempt }: { attempt: AttemptView }) {
   const entries = receipt.data?.entries || [], total = entries.reduce((sum, e) => sum + e.amount, 0);
   if (!entries.length) return <p className="arena-note econ-receipt-none">ด่านนี้รับรางวัลผ่านด่านครั้งแรกและเหรียญระดับนี้ไปแล้ว จึงไม่มีหินวิญญาณเพิ่มในรอบนี้</p>;
   return <section className="econ-receipt is-earned" aria-label="ใบรับรางวัล">
-    <Accent className="econ-receipt-art" gif={ECONOMY_ASSETS.rewardAcquired} still={ECONOMY_ASSETS.rewardAcquiredStatic} size={112} />
+    <Image className="econ-receipt-art" src={ECONOMY_ASSETS.spiritStone} alt="" width={112} height={112} />
     <div><span className="arena-eyebrow">ได้รับรางวัลจากผลที่ยืนยันแล้ว</span>
       <ul>{entries.map((e, i) => <li key={i}><span>{e.kind === "first_clear" ? `ผ่านด่านครั้งแรก · ระดับ ${e.meta.level}` : e.kind === "medal" ? `${MEDAL_LABELS[e.meta.tier as Medal] || "เหรียญ"} (ส่วนเพิ่ม)` : "ภารกิจประจำวัน · สามด่านต่างกัน"}</span><SpiritStones amount={e.amount} size={18} /></li>)}</ul>
       <p className="econ-receipt-total">รวม <SpiritStones amount={total} /> · คงเหลือในคลัง <SpiritStones amount={receipt.data!.balance} /></p>
