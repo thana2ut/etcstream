@@ -8,7 +8,7 @@ import { initialTrainingState, initSim, interactWithTarget, placeHeldOnCenterTab
 import type { ControlValue } from "@/game/training/sim/types";
 export const REPLAY_PROTOCOL = "server-command-v1";
 // Start with the real classroom video slice. Other levels retain ordered evidence but remain provisional.
-export const verifiableStage = (id: string) => id === "xs-1";
+export const verifiableStage = (id: string) => /^(xs|s|m|l|xl)-[1-5]$/.test(id);
 export function beginReplay(attempt: Row, value: unknown) {
   const scenario = SCENARIOS[attempt.scenario as ScenarioId];
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new ArenaError(400,"กรุณายืนยันชุดสายก่อนเริ่มจับเวลา");

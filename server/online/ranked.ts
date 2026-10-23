@@ -8,7 +8,8 @@ import type { Json } from "./types";
 export const cloudStages = Object.keys(SCENARIOS).filter((id) => /^(xs|s|m|l|xl)-[1-5]$/.test(id)) as ScenarioId[];
 export const stageVersion = (id: ScenarioId) => createHash("sha256").update(JSON.stringify(SCENARIOS[id])).digest("hex").slice(0, 24);
 export const stageVersions = () => Object.fromEntries(cloudStages.map((id) => [id, stageVersion(id)]));
-export const stageEligible = (id: ScenarioId) => id === "xs-1" && !SCENARIOS[id].designIssues?.length;
+// Every mission stage without an open design issue counts toward the season (owner opened all 25 levels).
+export const stageEligible = (id: ScenarioId) => Boolean(SCENARIOS[id]?.stage) && !SCENARIOS[id].designIssues?.length;
 export const verificationEnabled = (id: ScenarioId) => stageEligible(id) && process.env.ARENA_VERIFIED_SLICE_ENABLED === "1";
 export async function ensureCloudCatalog() {
   const result = await trustedClient().from("etc_stage_catalog").upsert(cloudStages.map((scenario) => ({
