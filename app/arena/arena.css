@@ -586,3 +586,54 @@
 .arena-season-row { grid-template-columns: 46px 72px minmax(0,1fr) auto; column-gap: 16px; }
 .arena-season-row .arena-season-avatar { margin: 0 auto; justify-self: center; }
 @media (max-width: 640px) { .arena-season-row { grid-template-columns: 32px 60px minmax(0,1fr); column-gap: 12px; } }
+
+/* ---------- V35 live duels: invitation, waiting room, verdict (xianxia ink + gold) ---------- */
+.duel-invite-veil, .duel-wait-veil { position: fixed; inset: 0; z-index: 2147482000; display: grid; place-items: center; padding: 16px; background: radial-gradient(ellipse at center, #0b1a30cc, #03060ef2 70%); backdrop-filter: blur(4px); animation: duel-fade .25s ease-out; }
+.duel-wait-veil { z-index: 40; }
+.duel-invite, .duel-wait { position: relative; width: min(560px, 94vw); max-height: calc(100dvh - 32px); overflow: auto; padding: 34px clamp(20px, 5vw, 44px) 28px; text-align: center; color: #f3e6c8;
+  border: 1px solid #e7c27c; border-radius: 20px; background: radial-gradient(ellipse at top, #2b1f3f 0%, #121c33 52%, #0a1123 100%);
+  box-shadow: 0 0 0 1px #00000080, 0 0 46px #e7c27c44, 0 30px 70px #000c; outline: 1px solid #e7c27c40; outline-offset: -9px; animation: duel-pop .3s cubic-bezier(.2,.8,.2,1); }
+.duel-invite::before, .duel-wait::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(90deg, transparent, #e7c27c22, transparent) top / 100% 2px no-repeat, linear-gradient(90deg, transparent, #e7c27c22, transparent) bottom / 100% 2px no-repeat; }
+.duel-invite-swords { width: 78px; height: 78px; margin: -4px auto 8px; display: grid; place-items: center; font-size: 42px; line-height: 1; color: #ffe3a3;
+  border: 1px solid #e7c27c99; border-radius: 50%; background: radial-gradient(circle, #3a2a14, #140f1c 70%); box-shadow: 0 0 26px #e7c27c66, inset 0 0 18px #e7c27c33; animation: duel-glow 2.4s ease-in-out infinite; }
+.duel-invite-kicker { margin: 0 0 6px; font-size: 13px; letter-spacing: .14em; color: #e7c27c; }
+.duel-invite h2, .duel-wait h2 { margin: 0 0 18px; font-family: var(--font-charm), var(--font-thai), serif; font-size: clamp(1.5rem, 4vw, 2rem); line-height: 1.6; color: #ffe9b8; text-shadow: 0 2px 14px #e7c27c55; }
+.duel-invite h2 strong { color: #fff3cf; }
+.duel-invite-detail { display: grid; gap: 8px; margin: 0 0 20px; padding: 14px 16px; text-align: left; border: 1px solid #e7c27c40; border-radius: 14px; background: #0a1224cc; }
+.duel-invite-detail > div { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 10px; align-items: baseline; }
+.duel-invite-detail dt { color: #cfae6f; font-size: 13px; }
+.duel-invite-detail dd { margin: 0; font-size: 15px; line-height: 1.55; color: #f3e6c8; }
+.duel-invite-detail code { color: #9fe3d2; font-size: 12px; }
+.duel-invite-error { color: #ff9f95; margin: -8px 0 14px; }
+.duel-invite-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.duel-accept, .duel-decline { min-height: 52px; padding: 10px 18px; border-radius: 999px; font: inherit; font-size: 1.05rem; font-weight: 700; cursor: pointer; transition: filter .15s ease, transform .15s ease; }
+.duel-accept { border: 1px solid #ffe3a3; color: #2a1a05; background: linear-gradient(180deg, #f6d48a, #c9973f); box-shadow: 0 6px 20px #c9973f66; }
+.duel-decline { border: 1px solid #b9707099; color: #ffd8d2; background: linear-gradient(180deg, #4a1d24, #2a1016); }
+.duel-accept:hover:not(:disabled), .duel-decline:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-1px); }
+.duel-accept:disabled, .duel-decline:disabled { opacity: .55; cursor: wait; }
+.duel-wait-list { list-style: none; margin: 0 0 18px; padding: 0; display: grid; gap: 10px; }
+.duel-wait-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 12px; align-items: center; padding: 12px 16px; text-align: left; border: 1px solid #e7c27c3d; border-radius: 14px; background: #0a1224cc; }
+.duel-wait-list span { font-size: 13px; color: #b8c3d6; white-space: nowrap; }
+.duel-wait-list span.is-ok { color: #8fe8b8; }
+.duel-wait .duel-accept { width: 100%; margin-bottom: 12px; }
+.duel-wait small { color: #a9b5c9; }
+.duel-send { display: grid; justify-items: start; gap: 8px; margin: 16px 0 6px; }
+.duel-send-wait { margin: 0; color: #f3e6c8; }
+.duel-verdict { margin: 18px 0; padding: 20px clamp(14px, 3vw, 26px); text-align: center; border: 1px solid #e7c27c66; border-radius: 18px; background: radial-gradient(ellipse at top, #2b1f3f, #0e1730 70%); box-shadow: 0 0 30px #e7c27c22; }
+.duel-verdict-board { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 14px; align-items: stretch; margin: 6px 0 14px; }
+.duel-verdict-card { position: relative; display: grid; gap: 4px; justify-items: center; padding: 18px 12px 14px; border: 1px solid #e7c27c40; border-radius: 14px; background: #0a1224cc; }
+.duel-verdict-card.is-winner { border-color: #ffe3a3; box-shadow: 0 0 24px #e7c27c66, inset 0 0 16px #e7c27c22; }
+.duel-verdict-card strong { font-size: 1.1rem; color: #fff3cf; }
+.duel-verdict-card b { font-size: clamp(1.4rem, 3.6vw, 2rem); color: #ffe3a3; font-variant-numeric: tabular-nums; }
+.duel-verdict-card small { color: #a9b5c9; }
+.duel-verdict-label { font-size: 12px; letter-spacing: .1em; color: #cfae6f; }
+.duel-crown { position: absolute; top: -16px; font-size: 26px; filter: drop-shadow(0 2px 6px #000a); }
+.duel-vs { align-self: center; font-family: var(--font-charm), serif; font-size: 1.6rem; color: #e7c27c; text-shadow: 0 0 12px #e7c27c88; }
+.duel-verdict h3 { margin: 0; font-size: 1.25rem; color: #f3e6c8; }
+.duel-verdict h3.is-win { color: #ffe3a3; text-shadow: 0 0 16px #e7c27c88; }
+@keyframes duel-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes duel-pop { from { opacity: 0; transform: scale(.94) translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes duel-glow { 0%, 100% { box-shadow: 0 0 22px #e7c27c55, inset 0 0 16px #e7c27c22; } 50% { box-shadow: 0 0 36px #e7c27caa, inset 0 0 22px #e7c27c44; } }
+@media (prefers-reduced-motion: reduce) { .duel-invite-veil, .duel-wait-veil, .duel-invite, .duel-wait, .duel-invite-swords { animation: none; } }
+@media (max-width: 520px) { .duel-invite-actions { grid-template-columns: 1fr; } .duel-verdict-board { grid-template-columns: 1fr; } .duel-vs { display: none; } .duel-wait-list li { grid-template-columns: 1fr; } }

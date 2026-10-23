@@ -1,4 +1,5 @@
 "use client";
+import { DuelInviteWatcher } from "./duel";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -42,6 +43,7 @@ export function ArenaShell({ children, admin = false, adminHeader, player,rank,c
         </Link>}
       </header>}
       {children}
+      {player && !admin && <DuelInviteWatcher />}
       {!admin && <footer className="arena-footer"><span>etcstream · ฝึกวิชา ประลองด้วยความเข้าใจ</span><Link href="/">กลับหน้าต้อนรับ</Link></footer>}
     </div>
   </main>;

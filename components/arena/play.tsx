@@ -19,6 +19,7 @@ import { FirstPersonHands } from "@/components/game/first-person-hands";
 import { ArenaBanner, ArenaConfirmDialog, ArenaEmptyState, ArenaIcon, ArenaShell } from "./shell";
 import { api, statusText, timeText, type AttemptView } from "./client-api";
 import { RewardReceipt } from "./economy";
+import { DuelVerdict, useDuel } from "./duel";
 import { subscribeCompetitionCommands, type CompetitionCommand } from "@/game/training/competition-commands";
 import {AttemptStanding} from "./online";
 import { useMissionStones } from "@/components/game/mission-stones";
@@ -46,7 +47,10 @@ function ArenaClock({ start, epoch, phase, frozenAt }: { start: number; epoch: R
     ? phase === "briefing" ? `เริ่มใน ${Math.ceil((start - now) / 1000)} วินาที` : `เริ่มใน ${Math.max(1, Math.ceil((start - now) / 1000))}`
     : timeText(Math.max(0, now - start))}</>;
 }
-export function ArenaPlay({ id }: { id: string }) {
+export function ArenaPlay({ id, duelId }: { id: string; duelId?: string }) {
+  // Live duel: both players prepare cables, enter together and start together; results compare both runs.
+  const { duel, send: duelSend } = useDuel(duelId);
+  const duelStartTriggered = useRef(false);
   const [attempt, setAttempt] = useState<AttemptView | null>(null), [error, setError] = useState(""), [bag, setBag] = useState<Record<string,number> | null>(null);
   const [briefing, setBriefing] = useState(true), [assetsReady, setAssetsReady] = useState(false), [bagOpen, setBagOpen] = useState(false), [fallback, setFallback] = useState(false), [busy, setBusy] = useState(false), [touch, setTouch] = useState(false);
   const [confirmAbandon, setConfirmAbandon] = useState(false);
@@ -173,6 +177,10 @@ export function ArenaPlay({ id }: { id: string }) {
   useEffect(() => { if (attempt?.status === "RUNNING" && started) stones.begin(); }, [attempt?.status, started, stones]);
   const autoFinished = useRef(false);
   const [completedAt, setCompletedAt] = useState<number | null>(null);
+  useEffect(() => {
+    if (!duelId || !duel?.bothStarted || attempt?.status !== "PENDING" || !assetsReady || duelStartTriggered.current) return;
+    duelStartTriggered.current = true; void act("ready");
+  }); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (complete && !completedAt) setCompletedAt(performance.now() + clockEpoch.current); }, [complete, completedAt]);
   useEffect(() => {
     if (!complete || attempt?.status !== "RUNNING" || !started || autoFinished.current) return;
@@ -204,6 +212,7 @@ export function ArenaPlay({ id }: { id: string }) {
       </dl>
       {stones.reward && <p className="arena-muted">หินพื้นฐาน {stones.reward.breakdown.base} · โบนัสเวลา {stones.reward.breakdown.timeBonus >= 0 ? "+" : ""}{stones.reward.breakdown.timeBonus} (×{Number(stones.reward.breakdown.multiplier).toFixed(2)}) · โบนัสเล่นแม่น +{stones.reward.breakdown.cleanBonus} · คงเหลือ {stones.reward.balance.toLocaleString("th-TH")} หิน</p>}
       {stones.error && attempt.status !== "DNF" && <p className="arena-muted" role="status">{stones.error}</p>}
+      {duelId && <DuelVerdict duel={duel} />}
       {attempt.status === "VERIFIED" && <RewardReceipt attempt={attempt}/>}
       <AttemptStanding attempt={attempt}/>
       <div className="arena-actions"><Link className="arena-action" href="/arena/time-attack">เลือกรอบฝึกใหม่</Link><Link className="arena-action arena-button-secondary" href="/arena/profile">ดูประวัติของฉัน</Link><Link className="arena-text-link" href="/arena">กลับหอประลอง →</Link></div>
@@ -229,16 +238,27 @@ export function ArenaPlay({ id }: { id: string }) {
   </ArenaShell>;
   if (!bag) return <CableLobby scenario={scenario} title={missionTitle} levelLabel={missionLevelLabel} objective={missionObjective} backLabel="กลับใบงาน" onBack={() => setBriefing(true)} onConfirm={(packed) => {
     useTrainingStore.getState().reset(attempt.scenario as ScenarioId, hiddenCablesFor(scenario, packed), packedLeadsFor(scenario, packed));
-    useTrainingStore.setState({ sim: initSim(scenario, attempt.seed || 1) }); previousErrors.current = 0; setBag(packed);
+    useTrainingStore.setState({ sim: initSim(scenario, attempt.seed || 1) }); previousErrors.current = 0; setBag(packed); if (duelId) void duelSend("packed");
   }} />;
   const running = attempt.status === "RUNNING" && started;
   return <main className="fantasy-viewport game-screen play-page" style={{ position: "fixed", inset: 0, background: "#081325" }}>
     <div className="game-viewport" style={{ position: "absolute", inset: 0, zIndex: 0 }}><GameCanvas key={scenario.id} venue={venue} active={running && !confirmAbandon && !bagOpen && !simPaused} fallbackLook={fallback} touch={touch} onExitFallback={exitFallback} onPointerLockError={enterFallback} /></div>
     <AssetGate onReady={markAssetsReady} />
+    {duelId && attempt.status === "PENDING" && (!duel?.bothPacked || !duel?.bothStarted) && <div className="duel-wait-veil" role="status" aria-live="polite">
+      <section className="duel-wait">
+        <p className="duel-invite-kicker">✦ ลานประลองสองเซียน ✦</p>
+        <h2>{!duel?.bothPacked ? "รอคู่ประลองเตรียมสายให้ครบ" : duel.me.started ? "รอคู่ประลองกดเริ่ม" : "ทั้งสองฝ่ายพร้อมแล้ว"}</h2>
+        <ul className="duel-wait-list">{(duel?.players ?? []).map((p) => { const mine = p.side === duel?.side; const { packed, started } = p; return <li key={p.side}><strong>{p.name}{mine ? " (เจ้า)" : ""}</strong><span className={packed ? "is-ok" : ""}>{packed ? "✓ เตรียมสายแล้ว" : "กำลังเตรียมสาย…"}</span>{duel?.bothPacked && <span className={started ? "is-ok" : ""}>{started ? "✓ พร้อมเริ่ม" : "ยังไม่กดเริ่ม"}</span>}</li>; })}</ul>
+        {duel?.bothPacked && !duel.me.started && <button type="button" className="duel-accept" disabled={!assetsReady || busy} onClick={() => void duelSend("start")}>{assetsReady ? "พร้อม เริ่มประลอง" : "กำลังโหลดฉาก…"}</button>}
+        <small>เวลาจะเริ่มนับพร้อมกันเมื่อทั้งสองฝ่ายกดเริ่ม</small>
+      </section>
+    </div>}
     {running && !confirmAbandon && <><FirstPersonHands /><div className="game-center-reticle" aria-hidden="true" /></>}
     {running && !touch && !pointerLocked && !fallback && !bagOpen && !confirmAbandon && <p role="status" style={{ position: "absolute", zIndex: 5, left: "50%", top: "48%", transform: "translate(-50%, -50%)", pointerEvents: "none", padding: "0.8rem 1.2rem", border: "1px solid #c8a967", borderRadius: 12, background: "#081325df", color: "#fff1d0", textAlign: "center" }}>คลิกในห้องเพื่อควบคุมเมาส์ แล้วใช้ W A S D เดิน</p>}
     <div className="arena-game-bar"><strong>{scenario.stage.id}</strong><span className="arena-live">{attempt.status === "RUNNING" ? <ArenaClock start={Number(attempt.start)} epoch={clockEpoch} phase="game" frozenAt={completedAt} /> : "รอเริ่ม"}</span><span>⏱ จับเวลา · ต่อครบแล้วเวลาหยุดทันที</span>
-      {attempt.status === "PENDING" && <button className="arena-game-primary" disabled={!assetsReady || busy} onClick={() => void act("ready")}>{assetsReady ? "พร้อม เริ่มนับถอยหลัง" : "กำลังโหลดฉากและฟอนต์…"}</button>}
+      {attempt.status === "PENDING" && (duelId
+        ? <button className="arena-game-primary" disabled={!assetsReady || busy || !duel?.bothPacked || Boolean(duel?.me.started)} onClick={() => void duelSend("start")}>{!assetsReady ? "กำลังโหลดฉากและฟอนต์…" : !duel?.bothPacked ? "รอคู่ประลองเตรียมสาย…" : duel.me.started ? "รอคู่ประลองกดเริ่ม…" : "พร้อม เริ่มประลอง"}</button>
+        : <button className="arena-game-primary" disabled={!assetsReady || busy} onClick={() => void act("ready")}>{assetsReady ? "พร้อม เริ่มนับถอยหลัง" : "กำลังโหลดฉากและฟอนต์…"}</button>)}
       <button disabled={!running} onClick={() => { if (document.pointerLockElement) document.exitPointerLock(); setBagOpen(true); }}>{touch ? "กระเป๋า" : "กระเป๋า (C)"} <b className="cl-bag-badge">{bagCount}</b></button>
       <button className="arena-game-primary" disabled={!complete || !running || busy || Boolean(syncError)} onClick={() => void act("finish")}>เสร็จสิ้น</button><button className="arena-game-danger" disabled={busy} onClick={() => { if (document.pointerLockElement) document.exitPointerLock(); setConfirmAbandon(true); }}>ยุติรอบ</button>{error && <span role="alert">{error}</span>}{syncError && <span role="alert">{syncError} <button onClick={() => void drain()}>ส่งคำสั่งที่ค้างซ้ำ</button></span>}
     </div><TrainingHud title={missionTitle} difficultyLabel={missionLevelLabel} objective={missionObjective} touch={touch} />{bagOpen && <BagPanel bag={bag} onClose={() => setBagOpen(false)} />}<ReviewOverlay /><EquipmentInspector /><InspectHoldRing />{touch && running && !confirmAbandon && <TouchControls />}<div className="arena-public arena-game-dialog">{abandonDialog}</div></main>;

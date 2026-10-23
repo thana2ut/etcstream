@@ -1,5 +1,6 @@
 "use client";
 import { ProfileAvatar } from "./profile-avatar";
+import { DuelChallengeButton } from "./duel";
 import { DemoRoster, OnlineServiceNotice } from "./demo-roster";
 import {useRef,useState} from "react";
 import Link from "next/link";
@@ -132,7 +133,7 @@ export function DuelArena() {
       <div className="arena-duel-controls"><label>คู่ประลอง<select value={rival} onChange={(e)=>setCode(e.target.value)}>{accepted.map((f)=><option key={f.friendCode} value={f.friendCode}>{f.name}{f.online?" · ออนไลน์":""}</option>)}</select></label>
       <label>ด่าน<select value={stage} onChange={(e)=>setStage(e.target.value)}>{missionChapters.flatMap((c,i)=>c.difficulties.map((d)=><option key={`${scales[i]}-${d.level}`} value={`${scales[i]}-${d.level}`}>{c.venue} · {d.title}</option>))}</select></label></div>
       {duel.loading?<p role="status">กำลังเปิดลานประลอง…</p>:duel.data&&<div className="arena-duel-board"><div className={mine!==null&&(theirs===null||mine<theirs)?"is-winner":undefined}><span>เจ้า</span><strong>{timeText(mine)}</strong><small>อันดับด่าน {duel.data.mine.globalRank??"—"}</small></div><b>VS</b><div className={theirs!==null&&(mine===null||theirs<mine)?"is-winner":undefined}><span>{duel.data.name}</span><strong>{timeText(theirs)}</strong><small>อันดับด่าน {duel.data.friend.rank??"—"}</small></div><p className="arena-duel-verdict">{verdict}{duel.data.differenceMs?` · ห่างกัน ${timeText(Math.abs(duel.data.differenceMs))}`:""}</p></div>}
-      <div className="arena-actions"><Link className="arena-action" href="/arena/time-attack">ลงสนามด่านนี้เพื่อทำเวลา</Link></div>
+      <DuelChallengeButton code={rival} name={accepted.find((f)=>f.friendCode===rival)?.name??"สหาย"} scenario={stage}/><div className="arena-actions"><Link className="arena-action arena-button-secondary" href="/arena/time-attack">ฝึกด่านนี้คนเดียวเพื่อทำเวลา</Link></div>
       <ConnectionNotice error={duel.error||friends.error} stale={duel.stale} retry={()=>{duel.retry();friends.retry();}}/></>}
   </section>;
 }

@@ -196,6 +196,23 @@ export async function cloudArena(request: Request, path: string[]) {
       if ((await trustedClient().auth.admin.updateUserById(user.id, { app_metadata: { ...(user.app_metadata ?? {}), pin } })).error) throw new ArenaError(503, "ยังบันทึก PIN ไม่ได้ กรุณาลองใหม่");
       return response({ ok: true });
     }
+    // V35 live duels: GET duel?op=incoming|active|get&id=…, POST duel {op, …}. Identity is auth.uid() inside etc_duel.
+    if (route === "duel") {
+      const op = post ? String(body.op || "") : url.searchParams.get("op") || "incoming";
+      if (!["challenge", "incoming", "active", "get", "respond", "cancel", "join", "packed", "start"].includes(op)) throw new ArenaError(400, "คำสั่งประลองไม่ถูกต้อง");
+      if (!post && !["incoming", "active", "get"].includes(op)) throw new ArenaError(405, "ใช้วิธีส่งข้อมูลไม่ถูกต้อง");
+      const payload = post ? { ...body } : { id: url.searchParams.get("id") };
+      const result = await client.rpc("etc_duel", { action: op, body: json(payload) });
+      if (result.error) {
+        const m = result.error.message;
+        if (/NOT_FRIENDS/.test(m)) throw new ArenaError(403, "ท้าประลองได้เฉพาะสหายเท่านั้น");
+        if (/DUEL_CLOSED/.test(m)) throw new ArenaError(409, "คำท้านี้ปิดไปแล้ว");
+        if (/NOT_READY/.test(m)) throw new ArenaError(409, "รออีกฝ่ายเตรียมสายให้ครบก่อน");
+        if (/NOT_FOUND/.test(m)) throw new ArenaError(404, "ไม่พบคำท้านี้");
+        throw new Error(m);
+      }
+      return response(result.data);
+    }
     // V19 economy: identity comes from the verified Supabase session (auth.uid()); never from the body.
     const economy = async (action: string, value: unknown = {}) => checked(await client.rpc("etc_economy", { action, body: json(value) }));
     if (route === "economy" && !post) return response(await economy("summary"));
