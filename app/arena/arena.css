@@ -578,3 +578,7 @@
 /* Season board rows: the player's own avatar + frame in place of the rank emblem. */
 .arena-season-row .arena-season-avatar { flex: none; }
 .arena-season-row .arena-season-avatar { margin-right: 14px; }
+/* Every arena banner (also the round briefing): room above the title for Thai upper vowels so nothing is cut. */
+.arena-banner > div { overflow: visible; }
+.arena-banner h1 { padding: .3em 0 .15em; line-height: 1.75; overflow: visible; }
+.arena-banner .arena-eyebrow { margin-bottom: 4px; }
