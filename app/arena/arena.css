@@ -705,3 +705,7 @@ body:has(.arena-result) .arena-footer, body:has(.arena-result) footer { display:
 .arena-result > h2 { text-align: center; }
 .duel-crown { display: none; }
 .econ-receipt-art { object-fit: contain; }
+/* PIN panel: status text sits below the field with breathing room, never touching the input border. */
+.arena-pin-panel [role="status"], .arena-pin-panel [role="alert"] { margin: 12px 0 0; padding: 0 2px; line-height: 1.6; font-size: 14px; color: #9fe3c4; }
+.arena-pin-panel input { margin-bottom: 4px; }
+.arena-pin-form { row-gap: 12px; }
