@@ -110,11 +110,11 @@ export function DuelChallengeButton({ code, name, scenario }: { code: string; na
     {pending ? <>
       <p className="duel-send-wait" role="status">ส่งสาส์นท้าประลองถึง <strong>{name}</strong> แล้ว · รอตอบรับ…</p>
       <button type="button" className="arena-button-secondary" onClick={async () => { try { await api("duel", { op: "cancel", id: pending }); } catch { /* ignore */ } setPending(null); setNote("ยกเลิกคำท้าแล้ว"); }}>ยกเลิกคำท้า</button>
-    </> : <button type="button" className="arena-action" disabled={busy} onClick={async () => {
+    </> : <button type="button" className="duel-challenge-btn" disabled={busy} onClick={async () => {
       setBusy(true); setNote("");
       try { setPending((await api<{ id: string }>("duel", { op: "challenge", code, scenario })).id); }
       catch (e) { setNote((e as Error).message); } finally { setBusy(false); }
-    }}>⚔ ท้าประลองสดกับ {name}</button>}
+    }}><span className="duel-challenge-icon" aria-hidden="true">⚔</span><span className="duel-challenge-text"><strong>{busy ? "กำลังส่งสาส์นท้าประลอง…" : `ท้าประลองสดกับ ${name}`}</strong><small>ส่งคำท้าให้สหาย เข้าด่านและเริ่มพร้อมกัน</small></span></button>}
     {note && <p className="arena-note" role="status">{note}</p>}
   </div>;
 }
