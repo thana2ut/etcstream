@@ -33,12 +33,15 @@ function AssetGate({ onReady }: { onReady: () => void }) {
   return null;
 }
 /** The fast clock owns its own renders; the 3D room never rerenders for each tick. */
-function ArenaClock({ start, epoch, phase }: { start: number; epoch: RefObject<number>; phase: "briefing" | "game" }) {
-  const [now, setNow] = useState(() => performance.now() + epoch.current);
+function ArenaClock({ start, epoch, phase, frozenAt }: { start: number; epoch: RefObject<number>; phase: "briefing" | "game"; frozenAt?: number | null }) {
+  const [tick, setNow] = useState(() => performance.now() + epoch.current);
   useEffect(() => {
+    if (frozenAt) return;
     const timer = window.setInterval(() => setNow(performance.now() + epoch.current), 100);
     return () => window.clearInterval(timer);
-  }, [epoch]);
+  }, [epoch, frozenAt]);
+  // Every route wired: the clock stops at that instant instead of running until the server answers.
+  const now = frozenAt ?? tick;
   return <>{now < start
     ? phase === "briefing" ? `เริ่มใน ${Math.ceil((start - now) / 1000)} วินาที` : `เริ่มใน ${Math.max(1, Math.ceil((start - now) / 1000))}`
     : timeText(Math.max(0, now - start))}</>;
@@ -169,6 +172,8 @@ export function ArenaPlay({ id }: { id: string }) {
   // Stone run opens with the clock; once every route is wired the round is submitted, the clock stops and the summary shows.
   useEffect(() => { if (attempt?.status === "RUNNING" && started) stones.begin(); }, [attempt?.status, started, stones]);
   const autoFinished = useRef(false);
+  const [completedAt, setCompletedAt] = useState<number | null>(null);
+  useEffect(() => { if (complete && !completedAt) setCompletedAt(performance.now() + clockEpoch.current); }, [complete, completedAt]);
   useEffect(() => {
     if (!complete || attempt?.status !== "RUNNING" || !started || autoFinished.current) return;
     autoFinished.current = true; if (document.pointerLockElement) document.exitPointerLock(); void act("finish");
@@ -232,9 +237,9 @@ export function ArenaPlay({ id }: { id: string }) {
     <AssetGate onReady={markAssetsReady} />
     {running && !confirmAbandon && <><FirstPersonHands /><div className="game-center-reticle" aria-hidden="true" /></>}
     {running && !touch && !pointerLocked && !fallback && !bagOpen && !confirmAbandon && <p role="status" style={{ position: "absolute", zIndex: 5, left: "50%", top: "48%", transform: "translate(-50%, -50%)", pointerEvents: "none", padding: "0.8rem 1.2rem", border: "1px solid #c8a967", borderRadius: 12, background: "#081325df", color: "#fff1d0", textAlign: "center" }}>คลิกในห้องเพื่อควบคุมเมาส์ แล้วใช้ W A S D เดิน</p>}
-    <div className="arena-game-bar"><strong>{scenario.stage.id}</strong><span className="arena-live">{attempt.status === "RUNNING" ? <ArenaClock start={Number(attempt.start)} epoch={clockEpoch} phase="game" /> : "รอเริ่ม"}</span><span>⏱ จับเวลา · ต่อครบแล้วเวลาหยุดทันที</span>
+    <div className="arena-game-bar"><strong>{scenario.stage.id}</strong><span className="arena-live">{attempt.status === "RUNNING" ? <ArenaClock start={Number(attempt.start)} epoch={clockEpoch} phase="game" frozenAt={completedAt} /> : "รอเริ่ม"}</span><span>⏱ จับเวลา · ต่อครบแล้วเวลาหยุดทันที</span>
       {attempt.status === "PENDING" && <button className="arena-game-primary" disabled={!assetsReady || busy} onClick={() => void act("ready")}>{assetsReady ? "พร้อม เริ่มนับถอยหลัง" : "กำลังโหลดฉากและฟอนต์…"}</button>}
-      <button disabled={!running} onClick={() => { if (document.pointerLockElement) document.exitPointerLock(); setBagOpen(true); }}>กระเป๋า (R) <b className="cl-bag-badge">{bagCount}</b></button>
+      <button disabled={!running} onClick={() => { if (document.pointerLockElement) document.exitPointerLock(); setBagOpen(true); }}>{touch ? "กระเป๋า" : "กระเป๋า (C)"} <b className="cl-bag-badge">{bagCount}</b></button>
       <button className="arena-game-primary" disabled={!complete || !running || busy || Boolean(syncError)} onClick={() => void act("finish")}>เสร็จสิ้น</button><button className="arena-game-danger" disabled={busy} onClick={() => { if (document.pointerLockElement) document.exitPointerLock(); setConfirmAbandon(true); }}>ยุติรอบ</button>{error && <span role="alert">{error}</span>}{syncError && <span role="alert">{syncError} <button onClick={() => void drain()}>ส่งคำสั่งที่ค้างซ้ำ</button></span>}
     </div><TrainingHud title={missionTitle} difficultyLabel={missionLevelLabel} objective={missionObjective} touch={touch} />{bagOpen && <BagPanel bag={bag} onClose={() => setBagOpen(false)} />}<ReviewOverlay /><EquipmentInspector /><InspectHoldRing />{touch && running && !confirmAbandon && <TouchControls />}<div className="arena-public arena-game-dialog">{abandonDialog}</div></main>;
 }
