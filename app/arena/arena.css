@@ -574,3 +574,6 @@
 .arena-public .arena-banner h1 { margin: 0; padding: .28em 0 .18em; line-height: 1.75; overflow: visible; }
 .arena-public .arena-banner h1 + p, .arena-public .arena-banner h1 ~ p { margin-top: 6px; line-height: 1.7; }
 
+
+/* Season board rows: the player's own avatar + frame in place of the rank emblem. */
+.arena-season-row .arena-season-avatar { flex: none; }

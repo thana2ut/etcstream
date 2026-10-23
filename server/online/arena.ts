@@ -281,9 +281,13 @@ export async function cloudArena(request: Request, path: string[]) {
       const id = url.searchParams.get("season");
       if (id && !uuid(id)) throw new ArenaError(400, "รหัสฤดูกาลไม่ถูกต้อง");
       const board = checked(await client.rpc("etc_ranked", { season_id: id || null, scope: url.searchParams.get("scope") || "all", page_offset: Math.min(100000, Math.max(0, Math.floor(Number(url.searchParams.get("offset")) || 0))) })) as { season: CloudSeason | null; rows: Record<string, unknown>[]; mine: Record<string, unknown> | null };
+      // Each ranked player's own avatar + frame (public, rank-consenting profiles only).
+      const codes = (board.rows as { friendCode?: string }[]).map((r) => r.friendCode).filter((c): c is string => Boolean(c));
+      const looks = codes.length ? await client.rpc("etc_ranked_appearance", { codes }) : null;
+      const appearance = (looks && !looks.error ? looks.data : {}) as Record<string, { profileAvatar?: string; profileFrame?: string }>;
       return response({ ...board, season: board.season ? seasonDTO(board.season) : null,
-        rows: board.rows.map(standingDTO), mine: standingDTO(board.mine),
-        serverNow: Date.now() });
+        rows: board.rows.map((r: Record<string, unknown>) => ({ ...standingDTO(r), avatar: appearance[String(r.friendCode)]?.profileAvatar ?? null, frame: appearance[String(r.friendCode)]?.profileFrame ?? null })),
+        mine: standingDTO(board.mine), serverNow: Date.now() });
     }
     const scenario = (url.searchParams.get("scenario") || "xs-1") as ScenarioId;
     if (["leaderboard", "my-standing", "stage-summary", "compare"].includes(route) && !post) {
