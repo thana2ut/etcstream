@@ -14,9 +14,9 @@ type Inbox = { pendingIn: number; challengesIn: number };
 
 export const arenaAsset = (file: string) => `/assets/arena/${file}.png`;
 export const arenaDestinations = [
-  // Top menu keeps four destinations; other modes stay reachable from the home cards.
+  // Top menu keeps five destinations; other modes stay reachable from the home cards.
   ["home", "/arena", "หน้าหลัก"], ["ranked", "/arena/ranked", "จัดอันดับ"],
-  ["friends", "/arena/friends", "สหาย"], ["profile", "/arena/profile", "โปรไฟล์"],
+  ["friends", "/arena/friends", "สหาย"], ["market", "/arena/market", "ตลาดสวรรค์"], ["profile", "/arena/profile", "โปรไฟล์"],
 ] as const;
 export function ArenaIcon({ name }: { name: string }) { return <Image src={arenaAsset(`icon-${name}`)} alt="" width={44} height={44} className="arena-icon" />; }
 export function ArenaShell({ children, admin = false, adminHeader, player,rank,connection,rankState,booting = false }: { children: React.ReactNode; admin?: boolean; adminHeader?: React.ReactNode; booting?: boolean; player?: PlayerView;rank?:{tier:string;score:number}|null;connection?:"connecting"|"connected"|"disconnected";rankState?:"loading"|"stale"|"ready" }) {
