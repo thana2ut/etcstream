@@ -582,3 +582,7 @@
 .arena-banner > div { overflow: visible; }
 .arena-banner h1 { padding: .3em 0 .15em; line-height: 1.75; overflow: visible; }
 .arena-banner .arena-eyebrow { margin-bottom: 4px; }
+/* Season row: a real 72px column for the framed avatar, so the name never touches the frame. */
+.arena-season-row { grid-template-columns: 46px 72px minmax(0,1fr) auto; column-gap: 16px; }
+.arena-season-row .arena-season-avatar { margin: 0 auto; justify-self: center; }
+@media (max-width: 640px) { .arena-season-row { grid-template-columns: 32px 60px minmax(0,1fr); column-gap: 12px; } }
