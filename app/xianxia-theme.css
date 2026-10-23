@@ -1444,3 +1444,5 @@ html[data-overlay] .cloud-layer { transition: none; }
 }
 /* The page behind the result never scrolls while it is open. */
 body:has(.mission-outcome-overlay) { overflow: hidden; }
+/* Touch: the plug/unplug button stands out from the others. */
+.touch-action-buttons .touch-plug { border-color: #e7c27c; background: rgba(90, 64, 24, .88); color: #ffe9b8; }

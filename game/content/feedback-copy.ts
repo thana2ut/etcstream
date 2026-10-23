@@ -9,7 +9,7 @@ export const feedbackCopy = {
     pickUpFirst: { title: "ยังไม่มีสายอยู่ในมือ", detail: "เล็งปลายสาย HDMI แล้วกด E เพื่อหยิบ" },
     aimHint: "เล็งปลายสายหรือพอร์ต HDMI แล้วกด E",
     pickUpHint: "E · หยิบปลายสาย HDMI",
-    disconnectHint: "E · ถอดปลายสาย HDMI",
+    disconnectHint: "E · ถอดหัวสายนี้ออกจากพอร์ต",
   },
   connection: {
     success: { title: "ปราณสัญญาณตอบสนอง", detail: "เชื่อมต่อสำเร็จ", technical: "HDMI OUT → HDMI IN" },

@@ -465,6 +465,9 @@ export function interactWithTarget(state: TrainingState, target: TrainingTarget 
   const occupied = occupiedEnd(state, target.portId);
   if (!state.held) {
     if (!occupied) return { ...state, notice: notice(feedbackCopy.training.pickUpFirst.title, feedbackCopy.training.pickUpFirst.detail, "error") };
+    // Unplugging is done at the cable head itself (aim at the plug + E), never by pressing E on the port.
+    if (!cableDef(state, occupied.cableId).locked && !(occupied.end === "a" && cableDef(state, occupied.cableId).fixedA))
+      return { ...state, notice: notice("ชี้ที่หัวสายเพื่อถอด", "เล็งไปที่หัวสายที่เสียบอยู่ แล้วกด E เพื่อถอดออก", "info") };
     if (occupied.end === "a" && cableDef(state, occupied.cableId).fixedA) return state;
     if (cableDef(state, occupied.cableId).locked) return { ...state, notice: notice("ติดตั้งมากับเครื่องแล้ว", "ไมค์หนีบปกเสียบอยู่กับตัวส่ง TX แล้ว ไม่ต้องต่อเพิ่ม", "info") };
     cables[occupied.cableId][occupied.end].portId = null;
@@ -695,7 +698,7 @@ export function targetInstruction(state: TrainingState, target: TrainingTarget |
   if (!port) return "";
   const label = `${port.label} · ${port.direction}`;
   if (state.held) return `E · ต่อสายเข้าพอร์ต ${label}`;
-  return occupiedEnd(state, target.portId) ? `E · ถอดสายจาก ${port.label}` : label;
+  return occupiedEnd(state, target.portId) ? `${port.label} · มีสายเสียบอยู่ — ชี้ที่หัวสายแล้วกด E เพื่อถอด` : label;
 }
 
 /* ═════════════════════════ Production simulation runtime (mission stages) ═════════════════════════

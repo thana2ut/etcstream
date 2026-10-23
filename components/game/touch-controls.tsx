@@ -111,6 +111,9 @@ export function TouchControls() {
         onPointerCancel={endInteract}
         onLostPointerCapture={endInteract}
       >ใช้งาน</button>
+      {/* Plug / unplug: aim at a port to plug the held lead in, or at a plugged cable head to pull it out. */}
+      <button type="button" className="touch-control-button touch-plug" aria-label="ถอดหรือใส่สาย ชี้ที่หัวสายเพื่อถอด ชี้ที่พอร์ตเพื่อเสียบ"
+        onClick={() => { emitTrainingInput({ type: "interact", pressed: true }); window.setTimeout(() => emitTrainingInput({ type: "interact", pressed: false }), 60); }}>ถอด/ใส่</button>
       <button type="button" className="touch-control-button" onClick={() => emitTrainingInput({ type: "drop" })}>วาง</button>
       <button type="button" className="touch-control-button" onClick={() => emitTrainingInput({ type: "turn" })}>หมุน</button>
     </div>
