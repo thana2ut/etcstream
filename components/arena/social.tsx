@@ -200,7 +200,7 @@ export function ProfileHub({ profile, standing }: { profile: Profile; standing: 
         <div className="profile-hub-rank">{standing ? <><RankBadge tier={standing.tier} size={48} current /><span><strong>{standing.tier}</strong> · {standing.score} คะแนนฤดูกาล</span></> : <span className="arena-note">ยังไม่จัดอันดับ (ต้องมีผลที่เซิร์ฟเวอร์รับรอง)</span>}</div>
         <dl className="profile-hub-stats has-icons">
           <div><span className="stat-icon">{standing ? <RankBadge tier={standing.tier} size={34} decorative /> : <Image src="/assets/arena/ranks/rank-01-novice.png" alt="" width={34} height={34} />}</span><span><dt>ผลที่รับรอง</dt><dd>{profile.stats.verified ?? "—"}</dd></span></div>
-          <div><span className="stat-icon"><HubIcon name="hourglass" /></span><span><dt>เวลารับรองดีที่สุด</dt><dd>{timeText(profile.stats.bestMs)}</dd></span></div>
+          <div><span className="stat-icon"><Image src="/arena/economy/currencies/hourglass-v1.webp" alt="" width={34} height={34} /></span><span><dt>เวลารับรองดีที่สุด</dt><dd>{timeText(profile.stats.bestMs)}</dd></span></div>
           <div><span className="stat-icon"><Image src="/arena/economy/currencies/spirit-stone-v2.webp" alt="" width={34} height={34} /></span><span><dt>หินวิญญาณ</dt><dd>{economy.data ? stones(economy.data.balance) : economy.error ? "โหลดไม่ได้" : "…"}</dd></span></div>
         </dl>
       </div>
