@@ -1419,3 +1419,28 @@ html[data-overlay] .cloud-layer { transition: none; }
 /* Spirit Stone logo next to stone amounts on the mission result screens */
 .mo-stone-icon { display: inline-block; width: 1.25em; height: 1.25em; object-fit: contain; vertical-align: -0.25em; filter: drop-shadow(0 0 4px rgba(90, 210, 255, .55)); }
 .mo-stone-icon.is-lg { width: 1.1em; height: 1.1em; vertical-align: -0.15em; }
+
+/* Mission result (success): landscape two-column card that fits the screen — no scrolling, page locked behind it.
+   Left: emblem, title, stage, stats. Right: stone reward, extras, actions. */
+.mission-outcome-overlay { overflow: hidden; overscroll-behavior: contain; }
+@media (min-width: 900px) and (min-height: 520px) {
+  .is-success .mission-outcome-panel.mo-scroll {
+    width: min(1180px, 94vw); max-height: calc(100dvh - 40px); overflow: hidden;
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: clamp(22px, 3vw, 44px);
+    grid-template-areas: "head reward" "stage reward" "stats extras" "stats actions";
+    grid-template-rows: auto auto 1fr auto; align-content: center;
+    padding: clamp(18px, 3vh, 30px) clamp(22px, 3vw, 40px);
+  }
+  .is-success .mo-scroll .mo-head { grid-area: head; }
+  .is-success .mo-scroll .mo-stage { grid-area: stage; margin: 10px 0 12px; }
+  .is-success .mo-scroll .mo-stats { grid-area: stats; align-self: start; margin: 0; }
+  .is-success .mo-scroll .mo-reward { grid-area: reward; align-self: center; margin: 0; }
+  .is-success .mo-scroll .mo-extras { grid-area: extras; align-self: end; margin: 12px 0 0; }
+  .is-success .mo-scroll .mo-actions { grid-area: actions; align-self: end; margin: 14px 0 0; }
+  .is-success .mo-scroll .mission-outcome-emblem { width: clamp(64px, 9vh, 92px); height: clamp(64px, 9vh, 92px); margin-bottom: 6px; }
+  .is-success .mo-scroll h1 { margin: 2px 0 4px; font-size: clamp(2rem, 5.2vh, 3rem); line-height: 1.5; }
+  .is-success .mo-scroll .mission-outcome-subtitle { margin: 0; }
+  .is-success .mo-scroll .mo-reward-rows li { padding: clamp(6px, 1.2vh, 11px) 4px; }
+}
+/* The page behind the result never scrolls while it is open. */
+body:has(.mission-outcome-overlay) { overflow: hidden; }
