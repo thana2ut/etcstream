@@ -700,3 +700,18 @@
   .profile-hub-stats.has-icons { grid-template-columns: 1fr; gap: 10px; }
   .profile-hub-stats.has-icons > div { padding: 0; border-left: 0; }
 }
+
+/* Market: three rows per page (no long scroll) with a xianxia pager underneath. */
+.econ-grid-wrap { display: grid; gap: 16px; align-content: start; min-width: 0; }
+@media (min-width: 1100px) { .econ-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+.econ-pager { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 12px 16px; border: 1px solid #cda86c55; border-radius: 999px;
+  background: linear-gradient(180deg, #15233acc, #0b1424e6); box-shadow: inset 0 1px 0 #f4d69c22, 0 8px 22px #0006; }
+.econ-pager-step { min-height: 42px; padding: 6px 18px; border-radius: 999px; font: inherit; font-weight: 700; cursor: pointer; color: #2a1a05;
+  border: 1px solid #ffe3a3; background: linear-gradient(180deg, #f2cf86, #b98634); box-shadow: 0 4px 12px #c9973f44; }
+.econ-pager-step:disabled { opacity: .35; cursor: not-allowed; box-shadow: none; }
+.econ-pager-pages { list-style: none; display: flex; gap: 8px; margin: 0; padding: 0; }
+.econ-pager-pages button { width: 40px; height: 40px; border-radius: 50%; font: inherit; font-weight: 700; cursor: pointer; color: #f3dfa6;
+  border: 1px solid #cda86c66; background: radial-gradient(circle, #1d2e48, #0c1626); }
+.econ-pager-pages button[aria-current="page"] { color: #2a1a05; border-color: #ffe3a3; background: radial-gradient(circle, #ffe7ad, #c9973f); box-shadow: 0 0 14px #e7c27c88; }
+.econ-pager-pages button:hover:not([aria-current="page"]) { border-color: #f4d69c; color: #fff3cf; }
+@media (max-width: 560px) { .econ-pager { gap: 8px; padding: 10px; border-radius: 18px; flex-wrap: wrap; } .econ-pager-step { padding: 6px 12px; } }

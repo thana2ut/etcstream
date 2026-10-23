@@ -95,6 +95,13 @@ export function CelestialMarket() {
   const items = useMemo(() => (data?.items || [])
     .filter((i) => !i.starter && !i.legacy && (category === "all" || i.slot === category))
     .sort((a, b) => a.price - b.price), [data, category]);
+  // Three rows per page (5 per row on desktop); paging resets when the category changes.
+  const PAGE = 15;
+  const [pageState, setPageState] = useState<{ key: string; page: number }>({ key: category, page: 0 });
+  const pages = Math.max(1, Math.ceil(items.length / PAGE));
+  const page = pageState.key === category ? Math.min(pageState.page, pages - 1) : 0;
+  const setPage = (n: number) => setPageState({ key: category, page: Math.max(0, Math.min(pages - 1, n)) });
+  const shown = items.slice(page * PAGE, page * PAGE + PAGE);
   const item = items.find((i) => i.sku === selected) || items[0];
   const balance = data?.balance ?? 0;
   const buy = async () => {
@@ -136,11 +143,17 @@ export function CelestialMarket() {
     <p role="status" aria-live="polite" className="econ-message">{message}</p>
     {loading ? <p className="arena-panel arena-skeleton" role="status">กำลังเปิดแผงสินค้า…</p> : !data || data.items.length === 0 ? <ArenaEmptyState icon="trophy" title="ตลาดยังไม่มีสินค้าเปิดขาย">เมื่อผู้ดูแลเปิดรายการ สินค้าจริงจะแสดงที่นี่</ArenaEmptyState> :
     <div className="econ-market-body">
-      <ul className="econ-grid" aria-label="รายการสินค้า">{items.map((i) => <li key={i.sku}><button type="button" className={`econ-item${i.owned ? " is-owned" : ""}`} aria-pressed={item?.sku === i.sku} onClick={() => setSelected(i.sku)}>
+      <div className="econ-grid-wrap"><ul className="econ-grid" aria-label="รายการสินค้า">{shown.map((i) => <li key={i.sku}><button type="button" className={`econ-item${i.owned ? " is-owned" : ""}`} aria-pressed={item?.sku === i.sku} onClick={() => setSelected(i.sku)}>
         {i.slot === "profileNameplate" ? <Image className="econ-nameplate-thumb" src={i.asset} alt="" width={380} height={67} sizes="380px" loading="lazy" /> : i.slot === "profileCover" ? <Image className="econ-cover-thumb" src={i.asset} alt="" width={360} height={120} sizes="360px" loading="lazy" /> : <Image src={i.asset} alt="" width={120} height={120} sizes="160px" loading="lazy" />}
         <strong>{i.name}</strong><small>{SLOT_LABELS[i.slot]}{i.rarity ? ` · ${i.rarity}` : ""} · {i.sku}</small>
         {i.owned ? <span className="econ-tag">{i.equipped ? "สวมใส่อยู่" : "มีแล้ว"}</span> : <SpiritStones amount={i.price} size={18} />}
       </button></li>)}</ul>
+      {pages > 1 && <nav className="econ-pager" aria-label="หน้ารายการสินค้า">
+        <button type="button" className="econ-pager-step" disabled={page === 0} onClick={() => setPage(page - 1)}>‹ ย้อนกลับ</button>
+        <ol className="econ-pager-pages">{Array.from({ length: pages }, (_, n) => <li key={n}><button type="button" aria-current={n === page ? "page" : undefined} onClick={() => setPage(n)}>{n + 1}</button></li>)}</ol>
+        <button type="button" className="econ-pager-step" disabled={page >= pages - 1} onClick={() => setPage(page + 1)}>ถัดไป ›</button>
+      </nav>}
+      </div>
       {item && <aside className="arena-panel econ-detail" aria-label={`รายละเอียด ${item.name}`}>
         {item.slot === "profileNameplate" ? <NameplatePreview plate={item.asset} name={item.name} /> : item.slot === "profileCover" ? <CoverPreview cover={item.asset} name={item.name} /> : <div className="econ-detail-art"><Image src={item.asset} alt={item.name} fill sizes="(max-width:900px) 70vw, 320px" /></div>}
         <span className="arena-eyebrow">{SLOT_LABELS[item.slot]} · {item.sku}</span><h3>{item.name}</h3>
