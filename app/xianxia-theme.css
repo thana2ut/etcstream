@@ -1724,8 +1724,8 @@ body:has(.mission-outcome-overlay) { overflow: hidden; }
 .is-success .mo-success-summary .mo-head { text-align: center; }
 .is-success .mo-success-summary .mo-stage { margin: 0; }
 .is-success .mo-success-summary .mo-stats { width: 100%; margin: 0; }
-.is-success .mo-success-summary .mo-extras { margin: 0; justify-content: center; }
-.is-success .mo-success-summary .mo-actions { margin: 0; justify-content: center; flex-wrap: wrap; }
+.is-success .mo-success-summary .mo-extras { align-self: stretch; margin: 0; justify-content: center; }
+.is-success .mo-success-summary .mo-actions { align-self: stretch; margin: 0; justify-content: center; flex-wrap: wrap; }
 .is-success .mo-success-summary .mo-actions > button { flex: 1 1 180px; }
 @media (max-width: 560px) {
   .is-success .mo-success-summary .mo-actions { display: flex; flex-direction: column; }
