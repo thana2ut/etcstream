@@ -6,7 +6,7 @@ import Image from "next/image";
 import { resultCopy } from "@/game/content/result-copy";
 import { ActionButton } from "./action-buttons";
 import { BackButton } from "./back-button";
-import { REVIVE_COST, type StoneReward } from "@/components/game/mission-stones";
+import { computeStones, REVIVE_COST, type StoneReward } from "@/components/game/mission-stones";
 
 interface MissionResultModalProps {
   playerName: string;
@@ -239,6 +239,7 @@ export function MissionOutcomeModal({ status, missionTitle, venue, level, comple
 }) {
   const success = status === "success";
   const signInRequired = stonesError === "กรุณาเข้าสู่ระบบก่อน" || /ระบบยังไม่อนุญาตให้บันทึกผล|ยังไม่ได้เข้าสู่ระบบ/i.test(stonesError ?? "");
+  const pendingStoneEstimate = success && level > 0 && signInRequired && typeof elapsed === "number" ? computeStones(level, elapsed, mistakes).total : null;
   const short = !freeRevive && typeof balance === "number" && balance < reviveCost;
   const [confirming, setConfirming] = useState(false);
   const b = stones?.breakdown;
@@ -281,10 +282,10 @@ export function MissionOutcomeModal({ status, missionTitle, venue, level, comple
             </ul>
             <p className="mo-reward-total"><span>รวมรอบนี้</span><strong><img className="mo-stone-icon is-lg" src="/arena/economy/currencies/spirit-stone-v2.webp" alt="" /> +{stones!.reward.toLocaleString("th-TH")} <em>หิน</em></strong><small>{stonesPreview ? "ยอดสำหรับตรวจดู · ไม่บันทึกเข้าคลัง" : `คงเหลือ ${stones!.balance.toLocaleString("th-TH")} หิน`}</small></p>
           </> : simpleStoneReward !== undefined ? <p className="mo-reward-total"><span>ได้รับรางวัล</span><strong><img className="mo-stone-icon is-lg" src="/arena/economy/currencies/spirit-stone-v2.webp" alt="" /> +{simpleStoneReward.toLocaleString("th-TH")} <em>หิน</em></strong></p> : <>
+            {pendingStoneEstimate !== null && <p className="mo-reward-total"><span>รางวัลรอบนี้ · รอยืนยัน</span><strong><img className="mo-stone-icon is-lg" src="/arena/economy/currencies/spirit-stone-v2.webp" alt="" /> +{pendingStoneEstimate.toLocaleString("th-TH")} <em>หิน</em></strong><small>ยอดคาดหมาย · ยังไม่เข้าคลังจนกว่าระบบจะยืนยัน</small></p>}
             <p className="mo-reward-pending" role="status">{signInRequired
-              ? "ไม่พบเซสชันผู้ฝึก จึงยังบันทึกหินไม่ได้ เข้าสู่บัญชีเดิมแล้วกลับมากดบันทึกรางวัลซ้ำได้"
+              ? "ระบบยังยืนยันการบันทึกรางวัลไม่ได้ รอบนี้ยังไม่เข้าคลัง"
               : stonesError || "กำลังบันทึกหินวิญญาณ…"}</p>
-            {signInRequired && <Link className="cultivation-btn btn-glass btn-md" href="/arena/profile">เข้าสู่ระบบผู้ฝึก</Link>}
           </>}
         </section>}
         {(reward || merit !== undefined || rankUp) && <p className="mo-extras">
@@ -316,7 +317,7 @@ export function MissionOutcomeModal({ status, missionTitle, venue, level, comple
           <button type="button" className="cultivation-btn btn-glass btn-md" onClick={onReturn}>{returnLabel}</button>
         </>}
       </div>
-      {stonesError && onRetrySync && <button type="button" className="cultivation-btn btn-glass btn-md" onClick={onRetrySync} disabled={reviving}>ลองบันทึกสถานะอีกครั้ง</button>}
+      {stonesError && onRetrySync && <button type="button" className="cultivation-btn btn-glass btn-md" onClick={onRetrySync} disabled={reviving}>{success ? "ลองบันทึกหินวิญญาณอีกครั้ง" : "ลองบันทึกสถานะอีกครั้ง"}</button>}
       {confirming && onRevive && <div className="mo-confirm" role="alertdialog" aria-modal="true" aria-labelledby="mo-confirm-title"
         style={{ position: "fixed", inset: 0, display: "grid", placeItems: "center", background: "rgba(5,8,20,.72)", zIndex: 50, padding: 16 }}>
         <div className="gold-border-frame" style={{ background: "#0d1430", padding: "20px 22px", borderRadius: 14, maxWidth: 360, width: "100%", textAlign: "center" }}>
