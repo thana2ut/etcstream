@@ -1,0 +1,10 @@
+.classroom-status { position: absolute; top: max(12px, env(safe-area-inset-top, 0px)); left: 50%; z-index: 46; display: grid; place-items: center; min-width: 174px; min-height: 54px; box-sizing: border-box; max-width: calc(100% - 32px); padding: 4px 20px; transform: translateX(-50%); color: #ffe2a3; border: 1px solid #b7995b70; border-radius: 999px; background: #0c1b2dd6; box-shadow: 0 8px 24px #0006; font-size: clamp(22px, 3vw, 32px); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.classroom-countdown { position: absolute; inset: 0; z-index: 150; display: grid; place-content: center; justify-items: center; color: #ffe2a3; background: #020a14cc; text-align: center; }
+.classroom-countdown strong { font-size: clamp(5rem, 20vw, 10rem); line-height: 1.4; }
+.classroom-objectives .hud-checklist { overflow-y: auto; min-height: 0; overscroll-behavior: contain; padding-right: 8px; }
+.classroom-objectives .hud-check-group { display: grid; gap: 10px; margin-top: 20px; }
+.classroom-objectives .hud-check-group-title { display: block; margin-bottom: 2px; line-height: 1.6; }
+.classroom-objectives .hud-check-item { display: grid; grid-template-columns: minmax(0, 1fr) 20px; align-items: start; gap: 12px; line-height: 1.65; }
+.classroom-objectives .hud-check-item > div:first-child { min-width: 0; white-space: normal; word-break: normal; overflow-wrap: normal; }
+.classroom-objectives .hud-checkbox-square { margin-top: 3px; flex-shrink: 0; }
+@media (max-width: 760px) { .classroom-status { min-width: 150px; min-height: 46px; padding-inline: 14px; font-size: 24px; } .classroom-objectives { max-width: min(300px, calc(100vw - 32px)); max-height: calc(100dvh - 180px); } }

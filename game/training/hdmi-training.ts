@@ -40,6 +40,7 @@ export interface HeldEnd { cableId: CableId; end: CableEnd; single?: boolean }
 export type PickMode = "whole" | "a" | "b";
 export interface TrainingNotice { title: string; detail: string; tone: "success" | "error" | "info" }
 export interface TrainingState {
+  selectedWireless?: "tx1" | "tx2";
   scenarioId: ScenarioId;
   cables: Record<CableId, CableState>;
   held: HeldEnd | null;
@@ -87,6 +88,7 @@ export function initialTrainingState(scenarioId: ScenarioId = "hdmi-basic", hidd
   }
   return {
     scenarioId,
+    selectedWireless: undefined,
     cables,
     held: null,
     heldItem: null,
@@ -192,14 +194,60 @@ function endConnector(state: TrainingState, held: HeldEnd): Connector {
 }
 
 function linksRequirement(req: Requirement, first: PortId, second: PortId): boolean {
+  if (req.alternatives) return req.alternatives.some((pair) => (first === pair.from && second === pair.to) || (second === pair.from && first === pair.to));
   return (req.from.includes(first) && req.to.includes(second)) || (req.from.includes(second) && req.to.includes(first));
 }
 
+function classroomLeadMatches(req: Requirement, def: CableDef): boolean {
+  if (req.catalogId && catalogIdFor(def) !== req.catalogId) return false;
+  // RX carries one selected wireless channel into a mono LINE input; it is not
+  // interpreted as balanced L-minus-R. MAIN L is routed to the switcher's LINE
+  // input by a mono-to-stereo harness, never by treating a MIC input as LINE.
+  const wiring: Record<string, CableDef["audioWiring"]> = {
+    "rx-mixer": "single-channel-to-mono-line", "mixer-switcher": "mono-line-to-stereo-line",
+    "xs1-mixer": "balanced-microphone", "mixer-speaker": "balanced-line",
+  };
+  return !wiring[req.id] || def.audioWiring === wiring[req.id];
+}
+
 export function requirementDone(state: TrainingState, req: Requirement, cables = state.cables): boolean {
+  if (state.scenarioId === "studio-full") {
+    if (req.alternatives) {
+      const pair = req.alternatives.find((option) => option.item === state.selectedWireless);
+      return Boolean(pair && state.heldItem !== pair.item && isItemPlaced(state, pair.item) && Object.values(cables).some(({ a, b }) =>
+        (a.portId === pair.from && b.portId === pair.to) || (b.portId === pair.from && a.portId === pair.to)));
+    }
+    return scenarioOf(state).cables.some((def) => {
+      if (!classroomLeadMatches(req, def)) return false;
+      if ((state.hiddenCables ?? []).includes(def.id) || (state.bagged ?? []).includes(def.id)) return false;
+      const lead = cables[def.id];
+      const x = lead?.a.portId, y = lead?.b.portId;
+      return Boolean(x && y && !x.startsWith(SOCKET) && !y.startsWith(SOCKET) && linksRequirement(req, x, y) &&
+        portAvailable(state, x) && portAvailable(state, y) && plugFits(def.ends[0], getPort(state, x)!) && plugFits(def.ends[1], getPort(state, y)!));
+    });
+  }
   return Object.values(cables).some(({ a, b }) => {
     const x = resolvePort(state, a.portId, cables), y = resolvePort(state, b.portId, cables);
     return Boolean(x && y && linksRequirement(req, x, y));
   });
+}
+
+export function requirementLabel(state: TrainingState, req: Requirement): string {
+  if (state.scenarioId !== "studio-full" || !req.alternatives || !state.selectedWireless) return req.label;
+  return state.selectedWireless === "tx1" ? "ไมค์หนีบปก 1 → TX1" : "ไมค์หนีบปก 2 → TX2";
+}
+
+/** Classroom checklist, completion and action prerequisites share the same live state. */
+export function actionDone(state: TrainingState, id: string, cables = state.cables, done = state.actionsDone, visited = new Set<string>()): boolean {
+  if (!done[id]) return false;
+  if (state.scenarioId !== "studio-full") return true;
+  if (visited.has(id)) return false;
+  visited.add(id);
+  const action = scenarioOf(state).actions.find((candidate) => candidate.id === id);
+  return Boolean(action && (!action.onItem || isItemPlaced(state, action.onItem)) && action.needs.every((need) => {
+    const requirement = scenarioOf(state).requirements.find((candidate) => candidate.id === need);
+    return requirement ? requirementDone(state, requirement, cables) : actionDone(state, need, cables, done, new Set(visited));
+  }));
 }
 
 function itemZone(state: TrainingState, itemId: PlaceableItemId): Point3 {
@@ -305,13 +353,13 @@ export const missionWired = (state: Pick<TrainingState, "scenarioId" | "cables">
 function isComplete(state: TrainingState, cables: TrainingState["cables"], actionsDone: Record<string, boolean>): boolean {
   const scenario = scenarioOf(state);
   if (scenario.stage) return missionWired(state, cables);
-  return scenario.requirements.every((req) => requirementDone(state, req, cables)) && scenario.actions.every((action) => actionsDone[action.id]);
+  return scenario.requirements.every((req) => requirementDone(state, req, cables)) && scenario.actions.every((action) => actionDone(state, action.id, cables, actionsDone));
 }
 
 export function trainingProgress(state: TrainingState): number {
   const scenario = scenarioOf(state);
   if (scenario.stage) return missionRoutes(state).filter((x) => x.done).length;
-  return scenario.requirements.filter((req) => requirementDone(state, req)).length + scenario.actions.filter((action) => state.actionsDone[action.id]).length;
+  return scenario.requirements.filter((req) => requirementDone(state, req)).length + scenario.actions.filter((action) => actionDone(state, action.id)).length;
 }
 
 export function trainingTotal(state: Pick<TrainingState, "scenarioId">): number {
@@ -337,7 +385,8 @@ function settleActions(state: TrainingState, cables: TrainingState["cables"], ac
 
 function withCables(state: TrainingState, cables: TrainingState["cables"], extra: Partial<TrainingState>): TrainingState {
   pruneSockets(cables);
-  const actionsDone = settleActions(state, cables, state.actionsDone);
+  const context = state.scenarioId === "studio-full" ? { ...state, ...extra, cables } : state;
+  const actionsDone = settleActions(context, cables, state.actionsDone);
   const programSource = state.programSource && actionsDone[`select-${state.programSource}`] ? state.programSource : undefined;
   const next = { ...state, ...extra, cables, actionsDone, programSource };
   if (next.sim) {
@@ -348,13 +397,14 @@ function withCables(state: TrainingState, cables: TrainingState["cables"], extra
     const shown = fresh ? { notice: wired ? notice("✓ ต่อสายครบทุกเส้นทาง", "ผ่านด่านแล้ว", "success") : notice(`✓ ${fresh.label}`, "ต่อสายสำเร็จ", "success") } : {};
     return settleSim({ ...next, ...shown, completed: wired });
   }
-  return { ...next, completed: isComplete(state, cables, actionsDone) };
+  return { ...next, completed: isComplete(context, cables, actionsDone) };
 }
 
 function runAction(state: TrainingState, actionId: string): TrainingState {
   const scenario = scenarioOf(state);
   const action = scenario.actions.find((a) => a.id === actionId);
   if (!action) return state;
+  if (state.scenarioId === "studio-full" && action.onItem && !isItemPlaced(state, action.onItem)) return { ...state, notice: notice("อุปกรณ์ยังไม่พร้อม", "วางอุปกรณ์บนโต๊ะทำงานก่อนตั้งค่า", "error") };
   if (state.held || state.heldItem) return { ...state, notice: notice("มือไม่ว่าง", "กด F เพื่อวางสิ่งที่ถืออยู่ก่อน", "error") };
   if (state.actionsDone[actionId] && !action.source) return { ...state, notice: notice(action.doneLabel, "ขั้นนี้เสร็จแล้ว", "info") };
   // Trace back along the flow and report the first missing link (never guess past it).
@@ -497,6 +547,7 @@ export function interactWithTarget(state: TrainingState, target: TrainingTarget 
     if (other.direction === here.direction) return rejectConnection(state, feedbackCopy.connection.invalidDirection.title, feedbackCopy.connection.invalidDirection.technical);
     if (other.signalType && here.signalType && other.signalType !== here.signalType) return rejectConnection(state, "ชนิดสัญญาณไม่ตรงกัน", "ต้องใช้อุปกรณ์แปลงสัญญาณที่ถูกต้อง");
     if (!scenario.requirements.some((req) => linksRequirement(req, otherReal, targetReal))) return rejectConnection(state, feedbackCopy.connection.invalidRoute.title, feedbackCopy.connection.invalidRoute.detail);
+    if (state.scenarioId === "studio-full" && !scenario.requirements.some((req) => linksRequirement(req, otherReal, targetReal) && classroomLeadMatches(req, lead))) return rejectConnection(state, "ชนิดสายเสียงไม่ตรงเส้นทาง", "ใช้สาย LINE สำหรับช่อง LINE และสายไมโครโฟนสำหรับช่อง MIC ตามผังห้องฝึก");
     }
   }
   cables[state.held.cableId][state.held.end].portId = target.portId;
@@ -624,6 +675,11 @@ export function placeHeldOnCenterTable(state: TrainingState, position: Point3, t
     ? clampToSurface(work, position[0], position[2], 0.2)
     : [position[0], zone[1], position[2]];
   const placed: TrainingState = { ...state, items: { ...state.items, [itemId]: { ...state.items[itemId], position: spot, turn } } };
+  if (state.scenarioId === "studio-full") {
+    const selectedWireless = itemId === "tx1" || itemId === "tx2" ? itemId : state.selectedWireless;
+    const next = withCables(placed, placed.cables, { heldItem: null, selectedWireless });
+    return { ...next, notice: notice("วางอุปกรณ์บนโต๊ะทำงานแล้ว", itemId === "tx1" || itemId === "tx2" ? `เลือกชุดไมค์ ${itemId === "tx1" ? "TX1" : "TX2"} แล้ว` : "เล็งอุปกรณ์แล้วกด E เพื่อหยิบอีกครั้ง", "success") };
+  }
   return {
     ...placed,
     heldItem: null,

@@ -11,15 +11,16 @@ export type SaveStatus = { state: "idle" } | { state: "saving" } | { state: "sav
  * (debounced), and immediately on tab hide / page hide or an explicit flush (exit). A finished run's
  * snapshot is removed so it is never resumed or re-awarded.
  */
-export function useRunAutosave(key: RunKey | null, active: boolean, lobbyBag: Record<string, number> | null) {
+export function useRunAutosave(key: RunKey | null, active: boolean, lobbyBag: Record<string, number> | null, classroomElapsedMs?: number) {
   const [status, setStatus] = useState<SaveStatus>({ state: "idle" });
   const timer = useRef<number | null>(null);
   const pending = useRef(false);
   const suppressed = useRef(false);
   const last = useRef("");
   const keyRef = useRef(key), bagRef = useRef(lobbyBag);
+  const elapsedRef = useRef(classroomElapsedMs);
   // Keep the latest key/bag for timers and lifecycle handlers (written after render, never during it).
-  useLayoutEffect(() => { keyRef.current = key; bagRef.current = lobbyBag; }, [key, lobbyBag]);
+  useLayoutEffect(() => { keyRef.current = key; bagRef.current = lobbyBag; elapsedRef.current = classroomElapsedMs; }, [key, lobbyBag, classroomElapsedMs]);
 
   const write = useCallback((k: RunKey | null, bag: Record<string, number> | null, force = false): boolean => {
     if (timer.current !== null) { window.clearTimeout(timer.current); timer.current = null; }
@@ -32,7 +33,7 @@ export function useRunAutosave(key: RunKey | null, active: boolean, lobbyBag: Re
     const body = JSON.stringify([training, st.wrongStreak, st.failed, st.heldTurn, bag]);
     if (!force && body === last.current) return true;
     setStatus({ state: "saving" });
-    const res = writeRun(k, { lobbyBag: bag, training, wrongStreak: st.wrongStreak, failed: st.failed, heldTurn: st.heldTurn });
+    const res = writeRun(k, { lobbyBag: bag, training, wrongStreak: st.wrongStreak, failed: st.failed, heldTurn: st.heldTurn, ...(k.scenarioId === "studio-full" ? { classroomElapsedMs: elapsedRef.current } : {}) });
     if (!res.ok) { setStatus({ state: "error" }); return false; }
     last.current = body;
     setStatus({ state: "saved", at: res.savedAt });

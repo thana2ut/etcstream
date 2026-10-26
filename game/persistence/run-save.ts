@@ -18,7 +18,7 @@ export type RunMode = "mission" | "mission-admin" | "free-practice";
 export interface RunKey { playerId: string; mode: RunMode; scenarioId: ScenarioId }
 
 /** Store fields that make up the playable world (everything else is UI / derived). */
-export const SAVED_FIELDS = ["cables", "held", "heldItem", "items", "actionsDone", "programSource", "completed", "hiddenCables", "bagged", "sim"] as const;
+export const SAVED_FIELDS = ["cables", "held", "heldItem", "items", "actionsDone", "programSource", "completed", "hiddenCables", "bagged", "sim", "selectedWireless"] as const;
 type SavedTraining = Pick<TrainingState, (typeof SAVED_FIELDS)[number]>;
 
 export interface RunSnapshot {
@@ -34,6 +34,7 @@ export interface RunSnapshot {
   wrongStreak: number;
   failed: boolean;
   heldTurn: number;
+  classroomElapsedMs?: number;
 }
 
 export const runStorageKey = (k: RunKey) => `${PREFIX}:${k.playerId}:${k.mode}:${k.scenarioId}`;
@@ -117,6 +118,7 @@ const AU_HD8_2026_10 = "หอประชุมเปลี่ยนเคร�
 const OUT_ENC_2026_10 = "งานกลางแจ้งเปลี่ยนตัวเข้ารหัสเป็น Blackmagic Streaming Encoder HD และตัวฝังเสียงเป็น AJA 3G-AMA ตามสเปกจริง บันทึกเดิมจึงใช้ต่อไม่ได้";
 const HW_BIND_2026_10 = "ด่านนี้เปลี่ยนอุปกรณ์เป็นรุ่นจริงที่ยืนยันสเปกแล้ว (กล้อง จอ เครื่องสลับภาพ เราเตอร์ เครื่องบันทึก หรือตัวเข้ารหัส) พอร์ตในบันทึกเดิมจึงใช้ต่อไม่ได้";
 const CONTENT_CHANGES: Partial<Record<ScenarioId, string>> = {
+  "studio-full": "ห้องฝึกปรับเป็นสายตรง 8 เส้นและเลือกไมค์ไร้สาย 1 ชุด รวม 11 ขั้นตอน บันทึกเดิมที่มีหัวแปลงใช้ต่อไม่ได้ กรุณาเลือกเริ่มรอบใหม่ โดยข้อมูลผู้เล่นยังคงอยู่",
   "xl-1": SP_FIBER_2026_10, "xl-3": SP_FIBER_2026_10, "xl-4": SP_FIBER_2026_10, "xl-5": SP_FIBER_2026_10,
   "xs-1": XS_ATEM_2026_10, "xs-3": XS_ATEM_2026_10, "xs-4": XS_ATEM_2026_10, "xs-5": XS_ATEM_2026_10,
   "m-1": AU_HD8_2026_10, "m-2": AU_HD8_2026_10, "m-3": AU_HD8_2026_10, "m-4": AU_HD8_2026_10, "m-5": AU_HD8_2026_10,

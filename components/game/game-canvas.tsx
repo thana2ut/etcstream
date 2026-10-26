@@ -14,7 +14,12 @@ import { useTrainingStore } from "@/game/stores/training-store";
 import { scenarioOf } from "@/game/training/hdmi-training";
 import { environmentViews } from "@/game/training/environment-review";
 
-export const GameCanvas = memo(function GameCanvas({ venue, active, fallbackLook, touch, onExitFallback, onPointerLockError }: { active: boolean; fallbackLook: boolean; touch: boolean; onExitFallback: () => void; onPointerLockError: () => void; venue?: VenueId }) {
+function SceneReady({ onReady }: { onReady?: () => void }) {
+  useEffect(() => { onReady?.(); }, [onReady]);
+  return null;
+}
+
+export const GameCanvas = memo(function GameCanvas({ venue, active, fallbackLook, touch, onExitFallback, onPointerLockError, onReady }: { active: boolean; fallbackLook: boolean; touch: boolean; onExitFallback: () => void; onPointerLockError: () => void; venue?: VenueId; onReady?: () => void }) {
   // Adaptive resolution: start sharp, step down on slow GPUs, back up when there is headroom — keeps motion smooth.
   const [dpr, setDpr] = useState(1);
   const [fontStatus, setFontStatus] = useState<"loading" | "ready" | "error">("loading");
@@ -65,6 +70,6 @@ export const GameCanvas = memo(function GameCanvas({ venue, active, fallbackLook
     <PerformanceMonitor bounds={() => [50, 70]} flipflops={4} onIncline={() => setDpr((d) => Math.min(d + 0.1, Math.min(window.devicePixelRatio, 1.25)))} onDecline={() => setDpr((d) => Math.max(d - 0.2, 0.6))} />
     {hasShadows && <ShadowThrottle every={8} />}
     <ShaderWarmup active={active} />
-    <Physics gravity={[0, -9.81, 0]}><TrainingRoom venue={venue} /><FirstPersonController venue={layout} active={active && !reviewView} reviewView={reviewView} reviewTelemetry={reviewEnabled} fallbackLook={fallbackLook} touch={touch} onExitFallback={onExitFallback} /></Physics>
+    <Physics gravity={[0, -9.81, 0]}><TrainingRoom venue={venue} /><FirstPersonController venue={layout} active={active && !reviewView} reviewView={reviewView} reviewTelemetry={reviewEnabled} fallbackLook={fallbackLook} touch={touch} onExitFallback={onExitFallback} /><SceneReady onReady={onReady} /></Physics>
   </Canvas></>;
 });

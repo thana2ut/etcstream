@@ -1,7 +1,7 @@
 "use client";
 
 import { useTrainingStore } from "@/game/stores/training-store";
-import { missionRoutes, tidyBreaks, requirementDone, scenarioOf, targetInstruction } from "@/game/training/hdmi-training";
+import { actionDone, missionRoutes, tidyBreaks, requirementDone, requirementLabel, scenarioOf, targetInstruction } from "@/game/training/hdmi-training";
 import type { FlowGroup } from "@/game/training/scenarios";
 import { ControlsGuide } from "@/components/ui/controls-guide";
 import { MAX_WRONG_STREAK } from "@/game/content/cable-catalog";
@@ -53,8 +53,8 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
   const connectionRows = GROUPS.map((group) => ({
     ...group,
     items: [
-      ...scenario.requirements.filter((r) => r.group === group.id).map((r) => ({ id: r.id, label: r.label, done: routeDone?.get(`${r.from[0]}>${r.to[0]}`) ?? requirementDone(state, r) })),
-      ...scenario.actions.filter((a) => a.group === group.id).map((a) => ({ id: a.id, label: a.label, done: Boolean(state.actionsDone[a.id]) })),
+      ...scenario.requirements.filter((r) => r.group === group.id).map((r) => ({ id: r.id, label: requirementLabel(state, r), done: routeDone?.get(`${r.from[0]}>${r.to[0]}`) ?? requirementDone(state, r) })),
+      ...scenario.actions.filter((a) => a.group === group.id).map((a) => ({ id: a.id, label: a.label, done: actionDone(state, a.id) })),
     ],
   })).filter((group) => group.items.length > 0);
   // Mission stages: one line per required cable route; ✓ as soon as both ends sit on the right ports.
@@ -85,7 +85,7 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
           <span className="mini-pill-arrow">▾</span>
         </button>
       ) : (
-        <aside className="hud-objective-panel glass-card hud-panel" aria-label="ภารกิจปัจจุบัน">
+        <aside className={`hud-objective-panel glass-card hud-panel${scenario.id === "studio-full" ? " classroom-objectives" : ""}`} aria-label="ภารกิจปัจจุบัน">
           <div className="hud-panel-top-row">
             <h3 className="hud-panel-title">{title}</h3>
             <button

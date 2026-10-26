@@ -48,6 +48,8 @@ export interface PortDef {
 }
 
 export interface CableDef {
+  /** Classroom harness wiring; matching plug sizes alone is not electrical compatibility. */
+  audioWiring?: "single-channel-to-mono-line" | "mono-line-to-stereo-line" | "balanced-microphone" | "balanced-line";
   /** Mission-only identity and electrical role; legacy practice stays unchanged. */
   stockRole?: "required" | "spare" | "distractor";
   signalClass?: import("./sim/types").SignalClass;
@@ -72,7 +74,9 @@ export interface CableDef {
 }
 
 export type FlowGroup = "video" | "audio" | "capture" | "monitor";
-export interface Requirement { id: string; label: string; group: FlowGroup; from: string[]; to: string[]; verified: boolean }
+export interface Requirement { id: string; label: string; group: FlowGroup; from: string[]; to: string[]; verified: boolean;
+  alternatives?: { from: string; to: string; item: string }[];
+  catalogId?: string }
 export interface ActionDef { id: string; label: string; doneLabel: string; group: FlowGroup; position: Point3; needs: string[]; onItem?: PlaceableItemId; source?: string }
 export interface DeviceDef {
   equipmentRole?: import("./sim/types").EquipmentDefinition["role"];
@@ -238,7 +242,7 @@ const adapterRow = (i: number): [Point3, Point3] => { const [a] = cableRow(i); r
 const onLeft = (dx: number, z: number): Point3 => [+(LEFT[0] + dx).toFixed(3), LEFT[1], z];
 const START: Record<string, Point3> = {
   mixer: onLeft(0, -0.5), capture: onLeft(0, 0.3), computer: onLeft(0, 1.0),
-  rx: onLeft(-0.45, 1.85), tx1: onLeft(-0.15, 1.85), tx2: onLeft(0.15, 1.85), mic: onLeft(0.45, 1.85),
+  rx: onLeft(-0.42, 1.6), tx1: onLeft(0, 1.6), tx2: onLeft(0.42, 1.6), mic: onLeft(0.35, 2.1),
 };
 type C = Connector; type P = PlugStyle;
 const cable = (i: number, catalog: number, id: string, label: string, ends: [C, C], plugs: [P, P], color: string, extra: Partial<CableDef> = {}): CableDef =>
@@ -249,18 +253,11 @@ const studioCables: CableDef[] = [
   cable(0, 1, "hdmi-1", "สาย HDMI Type-A", ["HDMI", "HDMI"], ["hdmi", "hdmi"], "#1b1b1f"),
   cable(1, 1, "hdmi-2", "สาย HDMI Type-A", ["HDMI", "HDMI"], ["hdmi", "hdmi"], "#1b1b1f"),
   cable(2, 1, "hdmi-3", "สาย HDMI Type-A", ["HDMI", "HDMI"], ["hdmi", "hdmi"], "#1b1b1f"),
-  cable(3, 2, "hdmi-patch", "สาย HDMI Patch สั้น", ["HDMI", "HDMI"], ["hdmi", "hdmi"], "#1b1b1f", { short: true }),
-  cable(4, 5, "trs35-1", "สาย 3.5 mm TRS", ["3.5mm", "3.5mm"], ["trs35", "trs35"], "#1b1b1f"),
-  cable(5, 6, "trrs35-1", "สาย 3.5 mm TRRS", ["3.5mm", "3.5mm"], ["trrs35", "trrs35"], "#1b1b1f"),
-  cable(6, 7, "ts635-1", "สาย 6.35 mm TS (โมโน)", ["6.35mm", "6.35mm"], ["ts635", "ts635"], "#1b1b1f"),
-  cable(7, 8, "trs635-1", "สาย 6.35 mm TRS (สเตอริโอ)", ["6.35mm", "6.35mm"], ["trs635", "trs635"], "#1b1b1f"),
-  cable(8, 10, "adapter-35-635", "หัวแปลง 3.5 mm → 6.35 mm", ["6.35mm", "3.5mm"], ["adapter35to635", "adapter35to635"], "#c9a24a", { socketB: "3.5mm" }),
-  cable(9, 11, "adapter-635-35", "หัวแปลง 6.35 mm → 3.5 mm", ["3.5mm", "6.35mm"], ["adapter635to35", "adapter635to35"], "#1b1b1f", { socketB: "6.35mm" }),
-  cable(10, 12, "rca-35", "สาย RCA L/R → 3.5 mm", ["RCA", "3.5mm"], ["rca-pair", "trs35"], "#1b1b1f"),
-  cable(11, 15, "usb-ac", "สาย USB 3.0 Type-A ↔ Type-A", ["USB-A", "USB-A"], ["usba3", "usba3"], "#1b1b1f"),
-  cable(12, 18, "speaker-trs", "สายสัญญาณ Balanced 6.35 mm TRS", ["6.35mm", "6.35mm"], ["trs635", "trs635"], "#1b1b1f"),
-  cable(13, 16, "xs1-xlr", "สายไมโครโฟน XLR 3-pin", ["XLR-F", "XLR-M"], ["xlr-f", "xlr-m"], "#1b1b1f"),
-  cable(14, 16, "speaker-xlr", "สายสัญญาณ Balanced XLR", ["XLR-F", "XLR-M"], ["xlr-f", "xlr-m"], "#1b1b1f"),
+  cable(3, 5, "rx-mixer-direct", "สาย RX → Mixer 3.5 → 6.35 mm", ["3.5mm", "6.35mm"], ["trs35", "trs635"], "#58c087", { purpose: "mono-line-left", audioWiring: "single-channel-to-mono-line" }),
+  cable(4, 8, "mixer-switcher-direct", "สาย Mixer → Switcher 6.35 → 3.5 mm", ["6.35mm", "3.5mm"], ["trs635", "trs35"], "#4fb36a", { purpose: "mono-line-to-stereo", audioWiring: "mono-line-to-stereo-line" }),
+  cable(5, 15, "usb-ac", "สาย USB 3.0 Type-A ↔ Type-A", ["USB-A", "USB-A"], ["usba3", "usba3"], "#1b1b1f"),
+  cable(6, 16, "xs1-xlr", "สายไมโครโฟน XLR 3-pin", ["XLR-F", "XLR-M"], ["xlr-f", "xlr-m"], "#1b1b1f", { purpose: "balanced-mic", audioWiring: "balanced-microphone" }),
+  cable(7, 16, "speaker-xlr", "สายสัญญาณ Balanced XLR", ["XLR-F", "XLR-M"], ["xlr-f", "xlr-m"], "#1b1b1f", { purpose: "balanced-line", audioWiring: "balanced-line" }),
   { id: "lav-1", catalog: 17, label: "สายไมค์หนีบปก 1 (3.5 mm)", ends: ["3.5mm", "3.5mm"], plugs: ["lav", "locking35"], color: "#1b1b1f", start: [add(START.tx1, 0.05, 0.02, 0.1), add(START.tx1, 0.05, 0.02, 0.2)], fixedA: "lav1:mic", locked: true },
   { id: "lav-2", catalog: 17, label: "สายไมค์หนีบปก 2 (3.5 mm)", ends: ["3.5mm", "3.5mm"], plugs: ["lav", "locking35"], color: "#1b1b1f", start: [add(START.tx2, 0.05, 0.02, 0.1), add(START.tx2, 0.05, 0.02, 0.2)], fixedA: "lav2:mic", locked: true },
 ];
@@ -268,19 +265,18 @@ const studioCables: CableDef[] = [
 const SW_IN = ["sw:in1", "sw:in2", "sw:in3", "sw:in4"];
 const studioRequirements: Requirement[] = [
   { id: "cam1", label: "Camera → Switcher", group: "video", from: ["cam1:video-out"], to: SW_IN, verified: false },
-  { id: "lav1", label: "Lavalier 1 → TX 1", group: "audio", from: ["lav1:mic"], to: ["tx1:mic-in"], verified: true },
-  { id: "lav2", label: "Lavalier 2 → TX 2", group: "audio", from: ["lav2:mic"], to: ["tx2:mic-in"], verified: true },
-  { id: "rx-mixer", label: "Receiver → Mixer", group: "audio", from: ["rx:audio-out"], to: ["mixer:ch1", "mixer:ch2", "mixer:ch3", "mixer:ch4"], verified: false },
-  { id: "xs1-mixer", label: "Sennheiser XS 1 → Audio Mixer", group: "audio", from: ["mic:xlr-out"], to: ["mixer:ch2-mic", "mixer:ch3-mic", "mixer:ch4-mic"], verified: true },
-  { id: "mixer-switcher", label: "Mixer → Switcher LINE IN", group: "audio", from: ["mixer:main-l", "mixer:main-r", "mixer:rec-l", "mixer:rec-r"], to: ["sw:line-in"], verified: false },
+  { id: "wireless-mic", label: "ไมค์หนีบปก 1 ชุด → TX1 หรือ TX2", group: "audio", from: [], to: [], verified: true, alternatives: [{ from: "lav1:mic", to: "tx1:mic-in", item: "tx1" }, { from: "lav2:mic", to: "tx2:mic-in", item: "tx2" }] },
+  { id: "rx-mixer", label: "Receiver → Mixer CH1 LINE", group: "audio", from: ["rx:audio-out"], to: ["mixer:ch1"], verified: false, catalogId: "AUD-RX-MIXER-3.5" },
+  { id: "xs1-mixer", label: "Sennheiser XS 1 → Mixer CH2 MIC", group: "audio", from: ["mic:xlr-out"], to: ["mixer:ch2-mic"], verified: true, catalogId: "AUD-XLR-MIC" },
+  { id: "mixer-switcher", label: "Mixer MAIN OUT L → Switcher LINE IN", group: "audio", from: ["mixer:main-l"], to: ["sw:line-in"], verified: false, catalogId: "AUD-TRS-635-35" },
   { id: "switcher-capture", label: "HDS7105 PGM OUT → Magewell HDMI IN", group: "capture", from: ["sw:pgm"], to: ["capture:hdmi-in"], verified: true },
   { id: "capture-pc", label: "Magewell USB 3.0 → HP Notebook", group: "capture", from: ["capture:usb-out"], to: ["pc:usb-in", "pc:usb-in-right"], verified: true },
-  { id: "switcher-monitor", label: "HDS7105 MULTIVIEW หรือ PGM → Samsung TV", group: "monitor", from: ["sw:multiview", "sw:pgm"], to: ["monitor:hdmi-in", "monitor:hdmi-in2", "monitor:hdmi-in3"], verified: true },
-  { id: "mixer-speaker", label: "Audio Mixer LINE OUT → Yamaha HS5", group: "monitor", from: ["mixer:main-r", "mixer:xlr-out-l", "mixer:xlr-out-r"], to: ["speaker:trs-in", "speaker:xlr-in"], verified: true },
+  { id: "switcher-monitor", label: "HDS7105 MULTIVIEW OUT → Samsung TV", group: "capture", from: ["sw:multiview"], to: ["monitor:hdmi-in", "monitor:hdmi-in2", "monitor:hdmi-in3"], verified: true },
+  { id: "mixer-speaker", label: "Mixer LINE OUT → Yamaha HS5", group: "capture", from: ["mixer:xlr-out-l", "mixer:xlr-out-r"], to: ["speaker:xlr-in"], verified: true, catalogId: "AUD-XLR-LINE-BAL" },
 ];
 const studioActions: ActionDef[] = [
-  { id: "mixer-level", label: "ตั้ง Gain / Fader ของ Mixer", doneLabel: "Mixer ส่งเสียงออกแล้ว", group: "audio", position: add(mixer, PMX.main_fader_web[0], PMX.main_fader_web[1], PMX.main_fader_web[2]), needs: ["lav1", "lav2", "rx-mixer", "xs1-mixer"], onItem: "mixer" },
-  { id: "obs-source", label: "เปิด OBS แล้วเลือก Capture Device", doneLabel: "OBS ได้ภาพและเสียงครบ", group: "capture", onItem: "computer", position: add(laptop, 0, 0.3, -0.05), needs: ["cam1", "lav1", "lav2", "rx-mixer", "mixer-level", "mixer-switcher", "switcher-capture", "capture-pc"] },
+  { id: "mixer-level", label: "ตั้ง Gain / Fader ของ Mixer", doneLabel: "Mixer ส่งเสียงออกแล้ว", group: "audio", position: add(mixer, PMX.main_fader_web[0], PMX.main_fader_web[1], PMX.main_fader_web[2]), needs: ["wireless-mic", "rx-mixer", "xs1-mixer"], onItem: "mixer" },
+  { id: "obs-source", label: "เปิด OBS แล้วเลือก Capture Device", doneLabel: "OBS ได้ภาพและเสียงครบ", group: "capture", onItem: "computer", position: add(laptop, 0, 0.3, -0.05), needs: ["cam1", "wireless-mic", "rx-mixer", "xs1-mixer", "mixer-level", "mixer-switcher", "switcher-capture", "capture-pc", "switcher-monitor", "mixer-speaker"] },
 ];
 const studioDevices: DeviceDef[] = [
   ...cams.map((c, i): DeviceDef => ({ id: `cam${i + 1}`, label: "Camera", model: "Panasonic HC-X2000", verified: true, kind: "camera", position: c, size: [0.3, 1.5, 0.6], color: "#1c2330" })),

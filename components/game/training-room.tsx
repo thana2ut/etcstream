@@ -279,6 +279,7 @@ function ZoneSigns() {
 /** Wireless TX → RX radio link: shown once both bodypacks sit at their operating spots. */
 function WirelessLink({ tx }: { tx: string }) {
   const ends = useTrainingStore((state) => {
+    if (state.scenarioId === "studio-full" && state.selectedWireless !== tx) return "";
     if (!state.items[tx] || !state.items.rx || !isItemPlaced(state, tx) || !isItemPlaced(state, "rx")) return "";
     const [a, b] = [state.items[tx].position, state.items.rx.position];
     return [a[0], a[1] + 0.3, a[2], b[0], b[1] + 0.32, b[2]].join(",");

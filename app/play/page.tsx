@@ -6,6 +6,8 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { GameCanvas } from "@/components/game/game-canvas";
+import { formatClassroomTime, useClassroomTimer } from "@/components/game/use-classroom-timer";
+import "./classroom.css";
 import { TrainingHud } from "@/components/game/training-hud";
 import { FirstPersonHands } from "@/components/game/first-person-hands";
 import { EquipmentInspector, InspectHoldRing } from "@/components/game/equipment-inspector";
@@ -91,6 +93,10 @@ function PlayExperience() {
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   // Mission Hall: cable bag packed in the prep lobby before every attempt (null = still in the lobby).
   const [bag, setBag] = useState<Record<string, number> | null>(null);
+  const [sceneReady, setSceneReady] = useState(false);
+  const handleSceneReady = useCallback(() => setSceneReady(true), []);
+  const classroomTimer = useClassroomTimer(routeMode === "classroom" && bag !== null && !introOpen && loadedScenarioId === "studio-full", sceneReady, showExitConfirm);
+  const classroomWaiting = routeMode === "classroom" && bag !== null && !introOpen && (!sceneReady || classroomTimer.countdown > 0);
   const tester = useTester();
   const missionAccess = useMissionAccess();
   const [bagOpen, setBagOpen] = useState(false);
@@ -98,7 +104,7 @@ function PlayExperience() {
   // Leads still inside the bag (badge on the 🎒 button).
   const bagCount = useTrainingStore((state) => state.bagged?.length ?? 0);
   // C opens the cable bag; R is kept for turning a held device.
-  const bagUsable = Boolean(bag) && !introOpen && !showResultModal && !showExitConfirm;
+  const bagUsable = Boolean(bag) && !introOpen && !showResultModal && !showExitConfirm && !classroomWaiting;
   useEffect(() => {
     if (!bagUsable) return;
     const onKey = (e: KeyboardEvent) => {
@@ -178,7 +184,7 @@ function PlayExperience() {
   }, [runKey, bag]);
   const inRoom = bag !== null && !introOpen && loadedScenarioId === scenarioId;
 
-  const { status: saveStatus, flush: flushRun, discard: discardRun } = useRunAutosave(runKey, inRoom, bag);
+  const { status: saveStatus, flush: flushRun, discard: discardRun } = useRunAutosave(runKey, inRoom, bag, routeMode === "classroom" ? classroomTimer.elapsed : undefined);
 
   useEffect(() => {
     if (routeMode === "mission" && (trainingCompleted || trainingFailed) && document.pointerLockElement) document.exitPointerLock();
@@ -294,7 +300,7 @@ function PlayExperience() {
   const schematicNodes = [["ต้นทาง", "กล้อง / ไมค์"], ["ประมวลผล", "เครื่องสลับภาพ / ผสมเสียง"], ["ปลายทาง", "จอ / รับภาพ / ถ่ายทอด"]];
 
   async function lockPointer() {
-    if (touch || introOpen || showExitConfirm) return;
+    if (touch || introOpen || showExitConfirm || classroomWaiting || (routeMode === "classroom" && trainingCompleted)) return;
     const canvas = document.querySelector("canvas");
     if (canvas) {
       try {
@@ -345,6 +351,7 @@ function PlayExperience() {
 
 
   const handleRetry = () => {
+    if (routeMode === "classroom") { classroomTimer.reset(); setSceneReady(false); }
     // A new attempt replaces only this level's unfinished snapshot.
     discardRun();
     if (runKey) deleteRun(runKey);
@@ -374,6 +381,7 @@ function PlayExperience() {
   const continueSavedRun = () => {
     if (resumeOffer?.status !== "ok") return;
     const snap = resumeOffer.snapshot;
+    if (routeMode === "classroom") classroomTimer.restore(snap.classroomElapsedMs ?? 0);
     // Rebuild the level from its definition, then apply the saved world state before the room is shown.
     resetTraining(scenarioId);
     const t = snap.training;
@@ -415,7 +423,7 @@ function PlayExperience() {
       onBack={() => setIntroOpen(true)}
       onConfirm={(packed) => {
         // Missions: re-validate against the level being entered (never a stale or other level's bag).
-        if (activeScenario.stage ? !checkMissionBag(activeScenario, packed).ok : !Object.values(packed).some((n) => Number.isFinite(n) && n >= 1)) return;
+        if (activeScenario.stage || validClassroom ? !checkMissionBag(activeScenario, packed).ok : !Object.values(packed).some((n) => Number.isFinite(n) && n >= 1)) return;
         setBag(packed);
         resetTraining(scenarioId, hiddenCablesFor(activeScenario, packed), packedLeadsFor(activeScenario, packed));
         setIntroOpen(false);
@@ -430,8 +438,9 @@ function PlayExperience() {
       <div className="game-viewport" style={{ position: "absolute", inset: 0, zIndex: 0 }}>
         <GameCanvas
           key={scenarioId}
+          onReady={routeMode === "classroom" ? handleSceneReady : undefined}
           venue={routeMode === "mission" ? mission?.venueId : "studio"}
-          active={!introOpen && !showResultModal && !showExitConfirm && !bagOpen && !trainingFailed && !(routeMode === "mission" && trainingCompleted) && !simPaused}
+          active={!introOpen && !showResultModal && !showExitConfirm && !classroomWaiting && !bagOpen && !trainingFailed && !((routeMode === "mission" || routeMode === "classroom") && trainingCompleted) && !simPaused}
           fallbackLook={fallbackLook}
           touch={touch}
           onExitFallback={exitFallback}
@@ -440,8 +449,11 @@ function PlayExperience() {
       </div>
 
       {/* No top bar on the play route: the briefing has its own back pill and play uses the pause button. */}
+      {routeMode === "classroom" && bag !== null && !introOpen && <aside className="classroom-status" aria-label="เวลาฝึก"><strong role="timer">{formatClassroomTime(classroomTimer.elapsed)}</strong></aside>}
+      {classroomWaiting && !showResultModal && <div className="classroom-countdown" role="status" aria-live="assertive"><p>{sceneReady ? "เตรียมพร้อม เริ่มฝึกใน" : "กำลังเตรียมห้องฝึก…"}</p>{sceneReady && <strong>{classroomTimer.countdown}</strong>}</div>}
+
       {/* While playing the top bar is gone; this small pause button is the way out (opens the exit confirmation). */}
-      {!introOpen && !showResultModal && !showExitConfirm && !trainingFailed && (
+      {!introOpen && !showResultModal && !showExitConfirm && !classroomWaiting && !trainingFailed && (
         <button type="button" className="game-pause-btn" onClick={handleTriggerGameplayBack} aria-label="หยุดเกม / ออกจากด่าน" title="หยุดเกม / ออกจากด่าน">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg>
         </button>
@@ -583,14 +595,22 @@ function PlayExperience() {
 
       {/* REF 09: EXIT CONFIRMATION MODAL */}
       {showExitConfirm && (
-        <div className="exit-confirm-backdrop" role="dialog" aria-modal="true">
+        <div className="exit-confirm-backdrop" role="dialog" aria-modal="true" aria-label={routeMode === "classroom" ? "พักการฝึก" : "ออกจากการฝึก"} onKeyDown={(event) => {
+          if (routeMode !== "classroom") return;
+          if (event.key === "Escape") { event.preventDefault(); handleCancelExit(); return; }
+          if (event.key !== "Tab") return;
+          const buttons = event.currentTarget.querySelectorAll<HTMLButtonElement>("button:not(:disabled)");
+          const first = buttons[0], last = buttons[buttons.length - 1];
+          if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+          else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+        }}>
           <div className="exit-confirm-modal glass-card dialog-panel gold-border-frame with-corner-runes">
-            <h2 className="exit-confirm-title">ออกจากการฝึกหรือไม่?</h2>
+            <h2 className="exit-confirm-title">{routeMode === "classroom" ? "พักการฝึก" : "ออกจากการฝึกหรือไม่?"}</h2>
             <p className="exit-confirm-desc">
-              “ความคืบหน้าในรอบนี้อาจถูกยกเลิก แต่ข้อมูลผู้ฝึกและภารกิจของเจ้าจะยังคงอยู่”
+              {routeMode === "classroom" ? "เวลาหยุดแล้ว กดฝึกต่อเพื่อนับเวลาต่อจากเดิม หรือออกจากห้องเพื่อบันทึกความคืบหน้า" : "“ความคืบหน้าในรอบนี้อาจถูกยกเลิก แต่ข้อมูลผู้ฝึกและภารกิจของเจ้าจะยังคงอยู่”"}
             </p>
             <div className="exit-confirm-actions">
-              <ActionButton variant="glass" size="md" onClick={handleCancelExit} arrow={false}>
+              <ActionButton variant="glass" size="md" onClick={handleCancelExit} arrow={false} autoFocus={routeMode === "classroom"}>
                 ฝึกต่อ
               </ActionButton>
               <ActionButton variant="danger" size="md" onClick={handleConfirmExit}>

@@ -91,6 +91,8 @@ export const catalogById = (id: string) => CABLE_CATALOG.find((c) => c.id === id
 /** Which catalog item a scenario lead is (by its connectors and the route it serves). */
 /** Classroom (studio-full) table leads whose connector pair alone would map to the wrong catalog entry. */
 const CLASSROOM_CATALOG_IDS: Record<string, string> = {
+  "rx-mixer-direct": "AUD-RX-MIXER-3.5",
+  "mixer-switcher-direct": "AUD-TRS-635-35",
   "trrs35-1": "AUD-TRRS-3.5",
   "ts635-1": "AUD-TS-6.35",
   "rca-35": "AUD-RCA-3.5",
@@ -138,6 +140,7 @@ export function packableCables(scenario: Scenario): CableDef[] {
 /** Bag rules for a level: how many leads may be carried and how many distinct slots. */
 export function bagLimits(scenario: Scenario) {
   const needed = packableCables(scenario).filter((c) => c.purpose !== "distractor").length;
+  if (scenario.id === "studio-full") return { capacity: needed, slots: 6 };
   return { capacity: needed + 4, slots: 16 };
 }
 
