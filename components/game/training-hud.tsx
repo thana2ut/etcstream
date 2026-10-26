@@ -36,11 +36,11 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
   const scenario = scenarioOf(state);
   const [showFinalWarning, setShowFinalWarning] = useState(false);
   useEffect(() => {
-    if (!scenario.stage || state.wrongStreak !== MAX_MISSION_CONNECTION_MISTAKES || state.failed) return;
+    if (!state.failureEnabled || !scenario.stage || state.wrongStreak !== MAX_MISSION_CONNECTION_MISTAKES || state.failed) return;
     const show = window.setTimeout(() => setShowFinalWarning(true), 0);
     const hide = window.setTimeout(() => setShowFinalWarning(false), 3200);
     return () => { window.clearTimeout(show); window.clearTimeout(hide); };
-  }, [scenario.stage, state.wrongStreak, state.failed]);
+  }, [scenario.stage, state.wrongStreak, state.failed, state.failureEnabled]);
   // Checklist in signal-flow order: each group lists its cable routes, then its procedural steps.
   const GROUPS: { id: FlowGroup; title: string }[] = [
     { id: "video", title: "สัญญาณภาพ" },
@@ -113,7 +113,7 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
             <span>◈</span>
             <span>{scenario.stage && scenario.requirements.length > 0 ? "ต่อสายถูกต้อง" : "ความคืบหน้า"}: {progress}/{total} ขั้น</span>
           </div>
-          {scenario.stage && !state.completed && !state.failed && <p className="hud-panel-sub mission-mistake-count" role="status">ความผิดพลาด {state.wrongStreak}/{MAX_MISSION_CONNECTION_MISTAKES}</p>}
+          {scenario.stage && !state.completed && !state.failed && <p className="hud-panel-sub mission-mistake-count" role="status">ความผิดพลาด {state.wrongStreak}{state.failureEnabled ? `/${MAX_MISSION_CONNECTION_MISTAKES}` : " ครั้ง"}</p>}
           {scenario.id === "studio-full" && <p className="hud-panel-sub mission-mistake-count" role="status" aria-live="polite">ความผิดพลาด {state.wrongStreak}/3</p>}
           {scenario.venueScale && !scenario.stage && !state.completed && <p className="hud-panel-sub" role="status">ต่อผิดติดต่อกัน: {state.wrongStreak}/{MAX_WRONG_STREAK}</p>}
           {scenario.venueScale && state.completed && <p className="hud-panel-sub" role="status" style={{ color: "var(--success)", fontWeight: 700 }}>✓ ผ่านด่านแล้ว — ครบทุกเงื่อนไข</p>}

@@ -115,7 +115,11 @@ export const useTrainingStore = create<TrainingStore>((set, get) => ({
         next.wrongStreak = streak;
         next.failed = streak >= MAX_WRONG_STREAK;
       }
-      if (!state.failureEnabled) { next.failed = false; if (next.classroom) next.classroom = { ...next.classroom, failed: false }; }
+      if (!state.failureEnabled) {
+        next.failed = false;
+        if (next.classroom) next.classroom = { ...next.classroom, failed: false };
+        if (outcome.invalidConnectionAttempt) next.notice = outcome.notice;
+      }
       if (next.notice?.tone === "success") {
         soundEngine.play("connection_success");
       } else if (next.notice?.tone === "error") {

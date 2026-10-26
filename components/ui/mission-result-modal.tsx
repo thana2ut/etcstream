@@ -216,7 +216,7 @@ export function MissionOutcomeModal({ status, missionTitle, venue, level, comple
   const short = !freeRevive && typeof balance === "number" && balance < reviveCost;
   const [confirming, setConfirming] = useState(false);
   const b = stones?.breakdown;
-  const clock = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  const clock = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s) % 60).padStart(2, "0")}`;
   const time = b ? clock(b.seconds) : typeof elapsed === "number" ? clock(elapsed) : null;
   const target = b ? `${Math.floor(b.targetSeconds / 60)}:${String(b.targetSeconds % 60).padStart(2, "0")}` : null;
   return <div className={`mission-outcome-overlay is-${status}`} role="dialog" aria-modal="true" aria-labelledby="mission-outcome-title">
@@ -289,6 +289,7 @@ export function MissionOutcomeModal({ status, missionTitle, venue, level, comple
         style={{ position: "fixed", inset: 0, display: "grid", placeItems: "center", background: "rgba(5,8,20,.72)", zIndex: 50, padding: 16 }}>
         <div className="gold-border-frame" style={{ background: "#0d1430", padding: "20px 22px", borderRadius: 14, maxWidth: 360, width: "100%", textAlign: "center" }}>
           <h2 id="mo-confirm-title" style={{ margin: "0 0 10px" }}>ยืนยันใช้หินวิญญาณ</h2>
+          {stonesError && <p className="form-error" role="alert">{stonesError}</p>}
           <p style={{ margin: "4px 0" }}>ค่าเริ่มต่อจากจุดที่พลาด <strong>{reviveCost}</strong> หิน</p>
           <p style={{ margin: "4px 0" }}>หินที่ท่านมี <strong>{typeof balance === "number" ? balance.toLocaleString("th-TH") : "กำลังโหลด…"}</strong> หิน</p>
           {freeRevive ? <p style={{ margin: "4px 0", color: "#e9c46a" }}>โหมดทดสอบของแอดมิน · ไม่หักหินจริง</p> : typeof balance === "number" && (short
