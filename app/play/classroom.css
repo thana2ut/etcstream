@@ -8,7 +8,7 @@
 .classroom-objectives .hud-check-item > div:first-child { min-width: 0; white-space: normal; word-break: normal; overflow-wrap: normal; }
 .classroom-objectives .hud-checkbox-square { margin-top: 3px; flex-shrink: 0; }
 @media (max-width: 760px) { .classroom-status { min-width: 150px; min-height: 46px; padding-inline: 14px; font-size: 24px; } .classroom-objectives { max-width: min(300px, calc(100vw - 32px)); max-height: calc(100dvh - 180px); } }
-Fantasy exit confirmation: keep the supplied frame and button artwork local to this dialog. */
+/* Fantasy exit confirmation: keep the supplied frame and button artwork local to this dialog. */
 .play-page .exit-confirm-backdrop {
   background: radial-gradient(ellipse at 50% 48%, rgba(19, 41, 69, .62), rgba(3, 8, 17, .88) 72%);
   backdrop-filter: blur(5px);
