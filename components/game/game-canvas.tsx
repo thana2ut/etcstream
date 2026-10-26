@@ -20,8 +20,20 @@ function SceneReady({ onReady }: { onReady?: () => void }) {
 }
 
 export const GameCanvas = memo(function GameCanvas({ venue, active, fallbackLook, touch, onExitFallback, onPointerLockError, onReady }: { active: boolean; fallbackLook: boolean; touch: boolean; onExitFallback: () => void; onPointerLockError: () => void; venue?: VenueId; onReady?: () => void }) {
-  // Adaptive resolution: start sharp, step down on slow GPUs, back up when there is headroom — keeps motion smooth.
-  const [dpr, setDpr] = useState(1);
+  // Keep Retina detail while bounding the drawing buffer on large desktop displays.
+  const [resolution, setResolution] = useState({ dpr: 1, minimum: 1, maximum: 1 });
+  useEffect(() => {
+    const update = () => {
+      const native = Math.max(1, window.devicePixelRatio || 1);
+      const pixels = Math.max(1, window.innerWidth * window.innerHeight);
+      const maximum = Math.max(1, Math.min(native, 2, Math.sqrt(8_000_000 / pixels)));
+      const minimum = Math.min(maximum, 1.5);
+      setResolution((current) => ({ dpr: Math.max(minimum, Math.min(current.dpr, maximum)), minimum, maximum }));
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
   const [fontStatus, setFontStatus] = useState<"loading" | "ready" | "error">("loading");
   const [fontAttempt, setFontAttempt] = useState(0);
   const [reviewEnabled, setReviewEnabled] = useState(false);
@@ -58,7 +70,7 @@ export const GameCanvas = memo(function GameCanvas({ venue, active, fallbackLook
       <option value={-1}>กลับไปเดินตรวจ</option>{views.map((view, i) => <option key={view.id} value={i}>{view.label}</option>)}
     </select></label>
     <p style={{ fontSize: 12 }}>{reviewView?.id ?? "เดินด้วยระบบควบคุมปกติ"} · กล้องตรวจไม่เปลี่ยนคะแนนหรือภารกิจ</p>
-  </aside>}<Canvas frameloop={active || reviewView ? "always" : "demand"} shadows={hasShadows ? "percentage" : false} gl={{ antialias: true, powerPreference: "high-performance", stencil: false }} camera={{ fov: 67, near: 0.1, far: 140, position: [0, 1.65, 3] }} dpr={dpr} onPointerDown={(event) => {
+  </aside>}<Canvas frameloop={active || reviewView ? "always" : "demand"} shadows={hasShadows ? "percentage" : false} gl={{ antialias: true, powerPreference: "high-performance", stencil: false }} camera={{ fov: 67, near: 0.1, far: 140, position: [0, 1.65, 3] }} dpr={resolution.dpr} onPointerDown={(event) => {
     const canvas = event.nativeEvent.target;
     if (active && !reviewView && !fallbackLook && !touch && !document.pointerLockElement && canvas instanceof HTMLCanvasElement) {
       // Raw (unaccelerated) deltas give a predictable turn rate; browsers without it fall back to a plain lock.
@@ -67,7 +79,10 @@ export const GameCanvas = memo(function GameCanvas({ venue, active, fallbackLook
       catch { plain(); }
     }
   }} onCreated={({ gl }) => { gl.toneMappingExposure = 1.35; gl.domElement.setAttribute("aria-label", missionCopy.play.canvasLabel); gl.domElement.tabIndex = 0; }}>
-    <PerformanceMonitor bounds={() => [50, 70]} flipflops={4} onIncline={() => setDpr((d) => Math.min(d + 0.1, Math.min(window.devicePixelRatio, 1.25)))} onDecline={() => setDpr((d) => Math.max(d - 0.2, 0.6))} />
+    <PerformanceMonitor bounds={() => [30, 50]} flipflops={4}
+      onIncline={() => setResolution((current) => ({ ...current, dpr: Math.min(current.maximum, current.dpr + 0.1) }))}
+      onDecline={() => setResolution((current) => ({ ...current, dpr: Math.max(current.minimum, current.dpr - 0.1) }))}
+      onFallback={() => setResolution((current) => ({ ...current, dpr: current.minimum }))} />
     {hasShadows && <ShadowThrottle every={8} />}
     <ShaderWarmup active={active} />
     <Physics gravity={[0, -9.81, 0]}><TrainingRoom venue={venue} /><FirstPersonController venue={layout} active={active && !reviewView} reviewView={reviewView} reviewTelemetry={reviewEnabled} fallbackLook={fallbackLook} touch={touch} onExitFallback={onExitFallback} /><SceneReady onReady={onReady} /></Physics>

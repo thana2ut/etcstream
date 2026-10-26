@@ -93,6 +93,9 @@ function PlayExperience() {
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   // Mission Hall: cable bag packed in the prep lobby before every attempt (null = still in the lobby).
   const [bag, setBag] = useState<Record<string, number> | null>(null);
+  const [admittedEntry, setAdmittedEntry] = useState<string | null>(null);
+  const entryKey = `${player?.playerId ?? ""}:${searchParams.toString()}`;
+  const continuingRun = bag !== null && admittedEntry === entryKey;
   const [sceneReady, setSceneReady] = useState(false);
   const handleSceneReady = useCallback(() => setSceneReady(true), []);
   const classroomTimer = useClassroomTimer(routeMode === "classroom" && bag !== null && !introOpen && loadedScenarioId === "studio-full", sceneReady, showExitConfirm);
@@ -252,10 +255,15 @@ function PlayExperience() {
       progress.selected?.slug === mission?.slug &&
       progress.selected?.difficulty === difficultyLevel && Boolean(difficulty);
 
+    // Admission is checked before entering. Background changes to the local
+    // selection must not eject a round already running for this player and URL.
+    if (continuingRun) return;
     if ((!validClassroom && !validMission) || selectedMissionId !== missionS001.id) {
       router.replace(routeMode === "mission" ? "/missions" : "/academy");
+    } else {
+      setAdmittedEntry(entryKey);
     }
-  }, [hydrated, routeMode, player, progress, mission, difficulty, difficultyLevel, selectedMissionId, router]);
+  }, [hydrated, routeMode, player, progress, mission, difficulty, difficultyLevel, selectedMissionId, router, continuingRun, entryKey]);
 
   // Lift the veil the mission hall drops over the route change once this page has real content.
   useEffect(() => {
@@ -292,15 +300,15 @@ function PlayExperience() {
     );
   }
 
-  const validClassroom = routeMode === "classroom" && player.currentMode === "classroom";
+  const validClassroom = routeMode === "classroom" && (player.currentMode === "classroom" || continuingRun);
   const validMission =
     routeMode === "mission" &&
-    player.currentMode === "challenge" &&
+    (continuingRun || (player.currentMode === "challenge" &&
     progress?.playerId === player.playerId &&
     progress.selected?.slug === mission?.slug &&
-    progress.selected?.difficulty === difficultyLevel && Boolean(difficulty);
+    progress.selected?.difficulty === difficultyLevel)) && Boolean(difficulty);
 
-  if ((!validClassroom && !validMission) || selectedMissionId !== missionS001.id) {
+  if (!continuingRun && ((!validClassroom && !validMission) || selectedMissionId !== missionS001.id)) {
     return (
         <main className="fantasy-viewport play-page" style={{ justifyContent: "center", alignItems: "center" }}>
         <p style={{ color: "var(--gold-soft)" }}>{copy.play.returning}</p>
