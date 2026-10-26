@@ -131,7 +131,7 @@ export function useMissionStones(enabled: boolean, stage: string) {
   }, [enabled]);
 
   /** A fresh attempt ("เริ่มใหม่ทั้งด่าน") gets a new run. */
-  const reset = useCallback(() => { write(stage, null); run.current = null; confirmedRun.current = false; reviveKey.current = null; finishedReceipt.current = null; snapshot.current = null; try { sessionStorage.removeItem(`etc-mission-result:${stage}`); } catch {} startedAt.current = null; setElapsed(null); setReward(null); setError(""); }, [stage]);
+  const reset = useCallback(() => { generation.current++; starting.current = null; finishPending.current = null; setSavingReward(false); write(stage, null); run.current = null; confirmedRun.current = false; reviveKey.current = null; finishedReceipt.current = null; snapshot.current = null; try { sessionStorage.removeItem(`etc-mission-result:${stage}`); } catch {} startedAt.current = null; setElapsed(null); setReward(null); setError(""); }, [stage]);
 
   return { begin, finish, retryFinish, savingReward, revive, reset, loadBalance, balance, elapsed, preview: !enabled, reward, error, reviving, canRevive: enabled };
 }
