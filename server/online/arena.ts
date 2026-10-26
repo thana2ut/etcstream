@@ -1,6 +1,6 @@
 import "server-only";
 import { NextResponse } from "next/server";
-import { randomBytes, randomUUID } from "node:crypto";
+import { createHmac, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import { playerClient, trustedClient } from "./supabase";
 import { input, passwordMatches } from "@/server/arena/auth";
 import { ArenaError } from "@/server/arena/db";
@@ -53,6 +53,16 @@ function checked<T>(result: { data: T; error: { message: string } | null }): T {
 }
 const json = (value: unknown) => value as Json;
 const uuid = (s: unknown) => typeof s === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
+function missionFinishProof(run: string, player: string, stage: string) {
+  const key = process.env.SUPABASE_SECRET_KEY;
+  if (!key) throw new ArenaError(503, "ระบบบันทึกรางวัลยังไม่พร้อม กรุณาลองใหม่");
+  return createHmac("sha256", key).update(`mission-finish-v1:${run}:${player}:${stage}`).digest("hex");
+}
+function verifyMissionFinishProof(proof: unknown, run: string, player: string, stage: string) {
+  if (typeof proof !== "string" || !/^[a-f0-9]{64}$/i.test(proof)) return false;
+  const supplied = Buffer.from(proof, "hex"), expected = Buffer.from(missionFinishProof(run, player, stage), "hex");
+  return timingSafeEqual(supplied, expected);
+}
 
 /**
  * A finished run whose server replay proves the wiring becomes VERIFIED. Runs left UNDER_REVIEW by an earlier failed
@@ -192,6 +202,21 @@ export async function cloudArena(request: Request, path: string[]) {
       }
       return response(checked(await client.rpc("etc_player", { action: "register", body: { name: name.normalize("NFC") } })));
     }
+    if (post && route === "mission/finish" && typeof body.proof === "string") {
+      const runId = String(body.run || ""), stage = String(body.stage || "");
+      if (!uuid(runId)) throw new ArenaError(400, "รหัสรอบภารกิจไม่ถูกต้อง");
+      const trusted = trustedClient();
+      const owned = checked(await trusted.from("etc_mission_runs").select("id,player,stage,status").eq("id", runId).maybeSingle()) as { id: string; player: string; stage: string; status: string } | null;
+      if (!owned || owned.stage !== stage || !verifyMissionFinishProof(body.proof, owned.id, owned.player, owned.stage)) throw new ArenaError(401, "หลักฐานรอบภารกิจไม่ถูกต้อง กรุณาเข้าสู่ระบบแล้วลองอีกครั้ง");
+      await consumeCloudBudget(trusted, `mission-proof:${owned.id}`, 12, 900);
+      const finish = async (value: unknown) => checked(await trusted.rpc("etc_mission", { p_player: owned.player, action: "finish", body: json(value) }));
+      if (owned.status === "cleared") return response(await finish({ run: owned.id }));
+      const cables = body.cables;
+      if (!SCENARIOS[stage as ScenarioId]?.stage || !cables || typeof cables !== "object" || Array.isArray(cables) || JSON.stringify(cables).length > 60000) throw new ArenaError(400, "ข้อมูลการต่อสายไม่ถูกต้อง");
+      if (!missionWired({ scenarioId: stage as ScenarioId, cables: cables as TrainingState["cables"] })) throw new ArenaError(409, "การต่อสายยังไม่ครบตามภารกิจ ระบบจึงยังไม่มอบหินวิญญาณ");
+      const mistakes = Math.min(3, Math.max(0, Math.trunc(Number(body.mistakes) || 0)));
+      return response(await finish({ run: owned.id, mistakes }));
+    }
     if (!user) throw new ArenaError(401, "กรุณาเข้าสู่ระบบก่อน");
     if (route === "tester" && !post) return response({
       tester: checked(await trustedClient().rpc("etc_is_test_account", { target: user.id })) === true,
@@ -241,9 +266,10 @@ export async function cloudArena(request: Request, path: string[]) {
         if (!/^(xs|s|m|l|xl)-[1-5]$/.test(stage) || !SCENARIOS[stage as ScenarioId]?.stage) throw new ArenaError(400, "ไม่พบด่านภารกิจนี้");
         if (uuid(body.run)) {
           const previous = checked(await trustedClient().from("etc_mission_runs").select("id,stage,started,status").eq("id", body.run).eq("player", user.id).eq("stage", stage).maybeSingle());
-          if (previous && ["running", "cleared"].includes(previous.status)) return response({ run: previous.id, stage: previous.stage, started: previous.started });
+          if (previous && ["running", "cleared"].includes(previous.status)) return response({ run: previous.id, stage: previous.stage, started: previous.started, proof: missionFinishProof(previous.id, user.id, stage) });
         }
-        return response(await mission("start", { stage }));
+        const started = await mission("start", { stage }) as { run: string; stage: string; started: string };
+        return response({ ...started, proof: missionFinishProof(started.run, user.id, started.stage) });
       }
       if (!uuid(body.run)) throw new ArenaError(400, "รหัสรอบภารกิจไม่ถูกต้อง");
       if (route === "mission/revive") {

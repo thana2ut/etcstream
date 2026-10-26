@@ -6,7 +6,7 @@ import Image from "next/image";
 import { resultCopy } from "@/game/content/result-copy";
 import { ActionButton } from "./action-buttons";
 import { BackButton } from "./back-button";
-import { computeStones, REVIVE_COST, type StoneReward } from "@/components/game/mission-stones";
+import { REVIVE_COST, type StoneReward } from "@/components/game/mission-stones";
 
 interface MissionResultModalProps {
   playerName: string;
@@ -239,7 +239,6 @@ export function MissionOutcomeModal({ status, missionTitle, venue, level, comple
 }) {
   const success = status === "success";
   const signInRequired = stonesError === "กรุณาเข้าสู่ระบบก่อน" || /ระบบยังไม่อนุญาตให้บันทึกผล|ยังไม่ได้เข้าสู่ระบบ/i.test(stonesError ?? "");
-  const pendingStoneEstimate = success && level > 0 && signInRequired && typeof elapsed === "number" ? computeStones(level, elapsed, mistakes).total : null;
   const short = !freeRevive && typeof balance === "number" && balance < reviveCost;
   const [confirming, setConfirming] = useState(false);
   const b = stones?.breakdown;
@@ -282,7 +281,6 @@ export function MissionOutcomeModal({ status, missionTitle, venue, level, comple
             </ul>
             <p className="mo-reward-total"><span>รวมรอบนี้</span><strong><img className="mo-stone-icon is-lg" src="/arena/economy/currencies/spirit-stone-v2.webp" alt="" /> +{stones!.reward.toLocaleString("th-TH")} <em>หิน</em></strong><small>{stonesPreview ? "ยอดสำหรับตรวจดู · ไม่บันทึกเข้าคลัง" : `คงเหลือ ${stones!.balance.toLocaleString("th-TH")} หิน`}</small></p>
           </> : simpleStoneReward !== undefined ? <p className="mo-reward-total"><span>ได้รับรางวัล</span><strong><img className="mo-stone-icon is-lg" src="/arena/economy/currencies/spirit-stone-v2.webp" alt="" /> +{simpleStoneReward.toLocaleString("th-TH")} <em>หิน</em></strong></p> : <>
-            {pendingStoneEstimate !== null && <p className="mo-reward-total"><span>รางวัลรอบนี้ · รอยืนยัน</span><strong><img className="mo-stone-icon is-lg" src="/arena/economy/currencies/spirit-stone-v2.webp" alt="" /> +{pendingStoneEstimate.toLocaleString("th-TH")} <em>หิน</em></strong><small>ยอดคาดหมาย · ยังไม่เข้าคลังจนกว่าระบบจะยืนยัน</small></p>}
             <p className="mo-reward-pending" role="status">{signInRequired
               ? "ระบบยังยืนยันการบันทึกรางวัลไม่ได้ รอบนี้ยังไม่เข้าคลัง"
               : stonesError || "กำลังบันทึกหินวิญญาณ…"}</p>

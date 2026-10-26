@@ -21,11 +21,15 @@ export function computeStones(level: number, seconds: number, mistakes: number, 
 }
 
 const runKey = (stage: string) => `etc-mission-run:${stage}`;
+const proofKey = (stage: string) => `etc-mission-proof:${stage}`;
 const read = (stage: string) => { try { return sessionStorage.getItem(runKey(stage)); } catch { return null; } };
 const write = (stage: string, run: string | null) => { try { if (run) sessionStorage.setItem(runKey(stage), run); else sessionStorage.removeItem(runKey(stage)); } catch { /* private mode: run lives in memory only */ } };
+const readProof = (stage: string) => { try { return sessionStorage.getItem(proofKey(stage)); } catch { return null; } };
+const writeProof = (stage: string, proof: string | null) => { try { if (proof) sessionStorage.setItem(proofKey(stage), proof); else sessionStorage.removeItem(proofKey(stage)); } catch { /* private mode: proof lives in memory only */ } };
 
 export function useMissionStones(enabled: boolean, stage: string) {
   const run = useRef<string | null>(null);
+  const proof = useRef<string | null>(null);
   const starting = useRef<Promise<string | null> | null>(null);
   const reviveKey = useRef<string | null>(null);
   const [reward, setReward] = useState<StoneReward | null>(null);
@@ -44,7 +48,7 @@ export function useMissionStones(enabled: boolean, stage: string) {
 
   useEffect(() => {
     generation.current++;
-    run.current = enabled ? read(stage) : null; confirmedRun.current = false; starting.current = null;
+    run.current = enabled ? read(stage) : null; proof.current = enabled ? readProof(stage) : null; confirmedRun.current = false; starting.current = null;
     finishedReceipt.current = null; snapshot.current = null; finishPending.current = null; setSavingReward(false);
     setReward(null); setError(""); startedAt.current = null; setElapsed(null);
     try {
@@ -58,9 +62,14 @@ export function useMissionStones(enabled: boolean, stage: string) {
     startedAt.current ??= Date.now();
     if (!enabled) return Promise.resolve(null);
     if (run.current && confirmedRun.current) return Promise.resolve(run.current);
+    if (run.current && proof.current) { confirmedRun.current = true; return Promise.resolve(run.current); }
     if (starting.current) return starting.current;
     const version = generation.current;
-    starting.current = api<{ run: string }>("mission/start", { stage, run: run.current }).then((r) => { if (version !== generation.current) return null; run.current = r.run; confirmedRun.current = true; write(stage, r.run); return r.run; })
+    starting.current = api<{ run: string; proof: string }>("mission/start", { stage, run: run.current }).then((r) => {
+      if (version !== generation.current) return null;
+      if (!/^[a-f0-9]{64}$/i.test(r.proof)) throw new Error("ระบบไม่ได้ออกหลักฐานบันทึกรางวัล กรุณาเริ่มรอบใหม่");
+      run.current = r.run; proof.current = r.proof; confirmedRun.current = true; write(stage, r.run); writeProof(stage, r.proof); return r.run;
+    })
       .catch((e: Error) => { if (version === generation.current) setError(`ยังไม่ได้เปิดบันทึกรางวัล: ${e.message}`); return null; })
       .finally(() => { if (version === generation.current) starting.current = null; });
     return starting.current;
@@ -85,11 +94,11 @@ export function useMissionStones(enabled: boolean, stage: string) {
     if (!id) { setError((e) => e || "รอบนี้ไม่ได้เชื่อมกับบัญชีผู้ฝึก จึงไม่ได้รับหินวิญญาณ"); return; }
     try { sessionStorage.setItem(`etc-mission-result:${stage}`, JSON.stringify({ run: id, cables, mistakes })); } catch {}
     try {
-      const r = await api<StoneReward>("mission/finish", { run: id, stage, cables, mistakes });
+      const r = await api<StoneReward>("mission/finish", { run: id, stage, cables, mistakes, proof: proof.current ?? undefined });
       if (!Number.isSafeInteger(r.reward) || r.reward < 0 || !r.breakdown || !Number.isFinite(r.balance)) throw new Error("ข้อมูลใบรับรางวัลยังไม่ครบ กรุณากดบันทึกรางวัลซ้ำ");
       if (version !== generation.current) { notifyEconomyChanged(); return; }
       finishedReceipt.current = r;
-      setReward(r); setBalance(r.balance); setError(""); write(stage, null);
+      setReward(r); setBalance(r.balance); setError(""); write(stage, null); writeProof(stage, null); proof.current = null;
       try { sessionStorage.removeItem(`etc-mission-result:${stage}`); } catch {}
       notifyEconomyChanged();
     } catch (e) { if (version === generation.current) setError((e as Error).message); }
@@ -131,7 +140,7 @@ export function useMissionStones(enabled: boolean, stage: string) {
   }, [enabled]);
 
   /** A fresh attempt ("เริ่มใหม่ทั้งด่าน") gets a new run. */
-  const reset = useCallback(() => { generation.current++; starting.current = null; finishPending.current = null; setSavingReward(false); write(stage, null); run.current = null; confirmedRun.current = false; reviveKey.current = null; finishedReceipt.current = null; snapshot.current = null; try { sessionStorage.removeItem(`etc-mission-result:${stage}`); } catch {} startedAt.current = null; setElapsed(null); setReward(null); setError(""); }, [stage]);
+  const reset = useCallback(() => { generation.current++; starting.current = null; finishPending.current = null; setSavingReward(false); write(stage, null); writeProof(stage, null); run.current = null; proof.current = null; confirmedRun.current = false; reviveKey.current = null; finishedReceipt.current = null; snapshot.current = null; try { sessionStorage.removeItem(`etc-mission-result:${stage}`); } catch {} startedAt.current = null; setElapsed(null); setReward(null); setError(""); }, [stage]);
 
   return { begin, finish, retryFinish, savingReward, revive, reset, loadBalance, balance, elapsed, preview: !enabled, reward, error, reviving, canRevive: enabled };
 }
