@@ -165,6 +165,14 @@ export async function cloudArena(request: Request, path: string[]) {
         if ((await client.auth.signInWithPassword({ email, password })).error) throw new ArenaError(503, "ยังเข้าสู่บัญชีไม่ได้ กรุณาลองใหม่");
         return response({ ok: true, returning: true });
       }
+      if (user) {
+        const currentProfile = checked(await trusted.from("etc_profiles").select("id").eq("id", user.id).maybeSingle()) as { id: string } | null;
+        if (currentProfile) {
+          const signedOut = await client.auth.signOut();
+          if (signedOut.error) throw new ArenaError(503, "ยังออกจากบัญชีผู้ฝึกเดิมไม่ได้ กรุณาลองใหม่");
+          user = null;
+        }
+      }
       if (!user) {
         const result = await client.auth.signInAnonymously();
         if (result.error || !result.data.user) throw new ArenaError(503, "ยังสร้างตัวตนไม่ได้ กรุณาลองใหม่");

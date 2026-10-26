@@ -14,7 +14,7 @@ import { FantasyBackground } from "@/components/ui/fantasy-background";
 import { BackButton } from "@/components/ui/back-button";
 import { soundEngine } from "@/game/audio/sound-engine";
 import { validateNickname, isReservedNickname, OWNER_NAME_KEY } from "@/game/security/nickname-validation";
-import { syncOnlineName, claimReservedName } from "@/components/arena/client-api";
+import { api, syncOnlineName, claimReservedName, type Profile } from "@/components/arena/client-api";
 
 type EntryPhase = "landing" | "name" | "inscribing" | "welcome";
 
@@ -38,6 +38,7 @@ export default function Home() {
   const [showInstructions, setShowInstructions] = useState(false);
   const [changeName, setChangeName] = useState(false);
   const [nickname, setNickname] = useState("");
+  const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   // Reserved names (Admin/แอดมิน …) are accepted only after the server verifies the owner code.
   const [ownerCode, setOwnerCode] = useState("");
@@ -78,11 +79,10 @@ export default function Home() {
   };
 
   const proceedToNameOrWelcome = () => {
-    if (player && !changeName) {
-      setPhase("welcome");
-    } else {
-      setPhase("name");
-    }
+    setNickname(player?.nickname ?? "");
+    setPin("");
+    setChangeName(true);
+    setPhase("name");
   };
 
   // REF 02 -> REF 01: Back from instructions returns to landing
@@ -135,14 +135,34 @@ export default function Home() {
       setError(copy.name.invalid);
       return;
     }
-    if (isReservedNickname(trimmed) && !ownerVerified()) {
+    if (isReservedNickname(trimmed)) {
       if (!ownerCode.trim()) { setError("ชื่อนี้สงวนไว้ ต้องใส่รหัสยืนยันของเจ้าของ"); return; }
       setClaiming(true); const problem = await claimReservedName(trimmed, ownerCode.trim()); setClaiming(false); setOwnerCode("");
       if (problem) { setError(problem); return; }
+    } else {
+      if (!/^[0-9]{4}$/.test(pin)) { setError("กรุณาตั้ง PIN 4 หลัก หรือใส่ PIN เดิมของชื่อนี้"); return; }
+      setClaiming(true);
+      try {
+        await api("pin-join", { name: trimmed, pin });
+      } catch (problem) {
+        setClaiming(false);
+        setError((problem as Error).message);
+        return;
+      }
+      setClaiming(false);
     }
+    let savedName = trimmed;
+    try {
+      const profile = await api<Profile>("profile");
+      savedName = profile.player.name;
+    } catch (problem) {
+      setError((problem as Error).message);
+      return;
+    }
+    setPin("");
     const updatedPlayer: Player = player
-      ? { ...player, nickname: trimmed, lastPlayedAt: new Date().toISOString() }
-      : createPlayer(trimmed);
+      ? { ...player, nickname: savedName, lastPlayedAt: new Date().toISOString() }
+      : createPlayer(savedName);
     if (!setPlayer(updatedPlayer)) {
       setError(copy.name.saveError);
       return;
@@ -155,6 +175,21 @@ export default function Home() {
         setPhase("welcome");
       }, 500)
     );
+  };
+
+  const enterAcademy = async () => {
+    if (!player) { proceedToNameOrWelcome(); return; }
+    try {
+      const profile = await api<Profile>("profile");
+      if (profile.player.name.normalize("NFC") !== player.nickname.trim().normalize("NFC")) throw new Error("ชื่อบัญชีผู้ฝึกไม่ตรงกับชื่อในเครื่อง");
+      soundEngine.play("academy_enter");
+      router.push("/academy");
+    } catch {
+      setNickname(player.nickname);
+      setPin("");
+      setChangeName(true);
+      setPhase("name");
+    }
   };
 
   const currentDisplayName = player?.nickname || nickname;
@@ -268,28 +303,8 @@ export default function Home() {
             ในทุกภารกิจ และทุกเรื่องราวแห่งสำนัก
           </p>
 
-          {hydrated && player && !changeName ? (
-            <div className="returning-player-box">
-              <p className="returning-name-label" style={{ fontSize: "1.1rem", marginBottom: "20px" }}>
-                ยินดีต้อนรับกลับ <strong>{player.nickname}</strong>
-              </p>
-              <div className="btn-group-center" style={{ display: "flex", gap: "14px", justifyContent: "center" }}>
-                <ActionButton variant="gold" size="md" onClick={() => setPhase("welcome")}>
-                  {copy.name.continue}
-                </ActionButton>
-                <button
-                  type="button"
-                  className="cultivation-btn btn-glass btn-md"
-                  onClick={() => {
-                    setNickname(nickname || player.nickname);
-                    setChangeName(true);
-                  }}
-                >
-                  {copy.name.change}
-                </button>
-              </div>
-            </div>
-          ) : (
+          {hydrated && player && !changeName && <p className="returning-name-label" style={{ fontSize: "1.1rem", marginBottom: "20px" }}>ยินดีต้อนรับกลับ <strong>{player.nickname}</strong> กรุณาใส่ PIN เพื่อเข้าบัญชีและรับรางวัล</p>}
+          {
             <form onSubmit={(e) => void handleNameSubmit(e)}>
               <div className="name-input-wrapper">
                 <span className="name-input-field">
@@ -305,6 +320,7 @@ export default function Home() {
                   value={nickname}
                   onChange={(e) => {
                     setNickname(e.target.value);
+                    setPin("");
                     setError("");
                   }}
                   maxLength={20}
@@ -316,14 +332,42 @@ export default function Home() {
                 <span className="name-input-hint">2-20 ตัวอักษร (ไทย อังกฤษ ตัวเลข และเว้นวรรค)</span>
               </div>
 
+              {!isReservedNickname(nickname) && (
+                <div className="name-input-wrapper">
+                  <span className="name-input-field">
+                    <span className="name-input-icon">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                        <rect x="5" y="11" width="14" height="10" rx="2" />
+                        <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+                      </svg>
+                    </span>
+                    <input
+                      type="password"
+                      className="cultivation-input"
+                      value={pin}
+                      onChange={(e) => { setPin(e.target.value.replace(/[^0-9]/g, "").slice(0, 4)); setError(""); }}
+                      inputMode="numeric"
+                      autoComplete="new-password"
+                      pattern="[0-9]{4}"
+                      minLength={4}
+                      maxLength={4}
+                      placeholder="ตั้ง PIN 4 หลัก / ใส่ PIN เดิม"
+                      aria-label="PIN 4 หลัก"
+                      required
+                    />
+                  </span>
+                  <span className="name-input-hint">ชื่อใหม่จะสร้างบัญชีและผูก PIN นี้ · ถ้ามีชื่อนี้แล้ว ใส่ PIN เดิมเพื่อเข้าสู่ระบบ</span>
+                </div>
+              )}
+
 {isReservedNickname(nickname) && <div className="name-input-wrapper"><span className="name-input-field"><span className="name-input-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg></span><input type="password" className="cultivation-input" value={ownerCode} onChange={(e) => { setOwnerCode(e.target.value); setError(""); }} maxLength={64} autoComplete="off" placeholder="รหัสยืนยันชื่อสงวน" aria-label="รหัสยืนยันชื่อสงวน" /></span></div>}
               {error && <p className="form-error" role="alert" style={{ color: "var(--danger)", marginBottom: "16px" }}>{error}</p>}
 
-              <ActionButton variant="gold" size="lg" type="submit" fullWidth>
-                {copy.name.submit}
+              <ActionButton variant="gold" size="lg" type="submit" fullWidth disabled={claiming}>
+                {claiming ? "กำลังตรวจสอบชื่อและ PIN…" : isReservedNickname(nickname) ? "ยืนยันชื่อและเข้าสู่ระบบ" : "จารึกชื่อและเข้าสู่ระบบ"}
               </ActionButton>
             </form>
-          )}
+          }
         </section>
       )}
 
@@ -351,10 +395,7 @@ export default function Home() {
             <ActionButton
               variant="gold"
               size="lg"
-              onClick={() => {
-                soundEngine.play("academy_enter");
-                router.push("/academy");
-              }}
+              onClick={() => void enterAcademy()}
             >
               ก้าวเข้าสู่สำนัก
             </ActionButton>
