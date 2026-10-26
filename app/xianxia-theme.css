@@ -1710,3 +1710,24 @@ body:has(.mission-outcome-overlay) { overflow: hidden; }
   .game-screen:has(.touch-controls) .hud-objective-panel { overflow-y: auto; }
   .game-screen:has(.touch-controls) .hud-objective-panel > .hud-checklist { flex: 0 0 auto; overflow-y: visible; }
 }
+
+/* Training and mission success: balanced summary without the stone reward panel. */
+.is-success .mission-outcome-panel.mo-success-summary {
+  display: flex;
+  flex-direction: column;
+  width: min(820px, 94vw);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  padding: clamp(20px, 4vw, 40px);
+  gap: clamp(12px, 2vh, 22px);
+}
+.is-success .mo-success-summary .mo-head { text-align: center; }
+.is-success .mo-success-summary .mo-stage { margin: 0; }
+.is-success .mo-success-summary .mo-stats { width: 100%; margin: 0; }
+.is-success .mo-success-summary .mo-extras { margin: 0; justify-content: center; }
+.is-success .mo-success-summary .mo-actions { margin: 0; justify-content: center; flex-wrap: wrap; }
+.is-success .mo-success-summary .mo-actions > button { flex: 1 1 180px; }
+@media (max-width: 560px) {
+  .is-success .mo-success-summary .mo-actions { display: flex; flex-direction: column; }
+  .is-success .mo-success-summary .mo-actions > button { flex: auto; width: 100%; }
+}

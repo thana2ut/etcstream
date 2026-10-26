@@ -51,7 +51,7 @@ export function MissionResultModal({
 }: MissionResultModalProps) {
   const completed = connectedRoutes === requiredRoutes;
   const elapsedSeconds = elapsedTime ? (() => { const [minutes, seconds = "0"] = elapsedTime.split(":"); return Number(minutes) * 60 + Number(seconds); })() : null;
-  if (completed) return <MissionOutcomeModal status="success" missionTitle={missionTitle} venue="ห้องฝึก" level={1}
+  if (completed) return <MissionOutcomeModal hideStoneRewards status="success" missionTitle={missionTitle} venue="ห้องฝึก" level={1}
     completed={connectedRoutes} total={requiredRoutes} mistakes={mistakes} elapsed={elapsedSeconds}
     simpleStoneReward={stoneReward} stonesTracked={stoneReward !== undefined || rewardNote !== undefined} stonesError={rewardNote}
     progressError={progressError} merit={merit} rankUp={rankUp} onRetrySync={onRetryReward}
@@ -199,7 +199,8 @@ export function MissionResultModal({
 }
 
 /** Mission Hall only; Free Practice keeps its existing result screen. */
-export function MissionOutcomeModal({ status, missionTitle, venue, level, completed, total, mistakes, reward, stones, stonesError, stonesTracked, stonesPreview, simpleStoneReward, elapsed, merit, rankUp, progressError, reviving, balance, freeRevive, reviveCost = REVIVE_COST, reviveDisabled = false, returnLabel = "กลับหน้าภารกิจ", retryLabel = "เริ่มใหม่ทั้งด่าน", failureReason, onRetrySync, onRevive, onNext, onRetry, onReturn }: {
+export function MissionOutcomeModal({ hideStoneRewards = false, status, missionTitle, venue, level, completed, total, mistakes, reward, stones, stonesError, stonesTracked, stonesPreview, simpleStoneReward, elapsed, merit, rankUp, progressError, reviving, balance, freeRevive, reviveCost = REVIVE_COST, reviveDisabled = false, returnLabel = "กลับหน้าภารกิจ", retryLabel = "เริ่มใหม่ทั้งด่าน", failureReason, onRetrySync, onRevive, onNext, onRetry, onReturn }: {
+  hideStoneRewards?: boolean;
   status: "success" | "failed";
   missionTitle: string;
   venue: string;
@@ -241,13 +242,13 @@ export function MissionOutcomeModal({ status, missionTitle, venue, level, comple
   const signInRequired = stonesError === "กรุณาเข้าสู่ระบบก่อน" || /ระบบยังไม่อนุญาตให้บันทึกผล|ยังไม่ได้เข้าสู่ระบบ/i.test(stonesError ?? "");
   const short = !freeRevive && typeof balance === "number" && balance < reviveCost;
   const [confirming, setConfirming] = useState(false);
-  const b = stones?.breakdown;
+  const b = hideStoneRewards ? undefined : stones?.breakdown;
   const clock = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${(s % 60).toFixed(2).padStart(5, "0")}`;
   const time = b ? clock(b.seconds) : typeof elapsed === "number" ? clock(elapsed) : null;
   const target = b ? `${Math.floor(b.targetSeconds / 60)}:${String(b.targetSeconds % 60).padStart(2, "0")}` : null;
   return <div className={`mission-outcome-overlay is-${status}`} role="dialog" aria-modal="true" aria-labelledby="mission-outcome-title">
     <div className="mission-outcome-mist" aria-hidden="true" />
-    <section className="mission-outcome-panel mo-scroll gold-border-frame">
+    <section className={`mission-outcome-panel mo-scroll gold-border-frame${success && hideStoneRewards ? " mo-success-summary" : ""}`}>
       <header className="mo-head">
         <div className={`mission-outcome-emblem${success ? "" : " is-broken"}`} aria-hidden="true">
           <span className="mission-outcome-blade" />
@@ -261,7 +262,7 @@ export function MissionOutcomeModal({ status, missionTitle, venue, level, comple
       <div className="mo-stage">
         <span className="mo-stage-venue">{venue}</span>
         <strong>{missionTitle}</strong>
-        <span className="mo-stage-level">ระดับ {level}</span>
+        {level > 0 && <span className="mo-stage-level">ระดับ {level}</span>}
       </div>
 
       {success ? <>
@@ -270,7 +271,7 @@ export function MissionOutcomeModal({ status, missionTitle, venue, level, comple
           <div><dt>ความผิดพลาด</dt><dd>{mistakes}</dd><small>ครั้ง</small></div>
           <div><dt>เงื่อนไขสำเร็จ</dt><dd>{completed}/{total}</dd><small>เส้นทาง</small></div>
         </dl>
-        {stonesTracked && <section className="mo-reward" aria-label="รางวัลหินวิญญาณ">
+        {!hideStoneRewards && stonesTracked && <section className="mo-reward" aria-label="รางวัลหินวิญญาณ">
           <h2>รางวัลหินวิญญาณ</h2>
           {b ? <>
             <ul className="mo-reward-rows">
@@ -302,7 +303,7 @@ export function MissionOutcomeModal({ status, missionTitle, venue, level, comple
         {onRevive && short && <p className="form-error" role="status">หินวิญญาณไม่พอ (ต้องใช้ {reviveCost} ก้อน) เลือกเริ่มใหม่ทั้งด่านแทน</p>}
         {stonesError && <p className="form-error" role="alert">{stonesError}</p>}
       </>}
-      {progressError && <p className="form-error" role="alert">{progressError}</p>}
+      {!hideStoneRewards && progressError && <p className="form-error" role="alert">{progressError}</p>}
 
       <div className="mo-actions">
         {success ? <>
@@ -315,7 +316,7 @@ export function MissionOutcomeModal({ status, missionTitle, venue, level, comple
           <button type="button" className="cultivation-btn btn-glass btn-md" onClick={onReturn}>{returnLabel}</button>
         </>}
       </div>
-      {stonesError && onRetrySync && <button type="button" className="cultivation-btn btn-glass btn-md" onClick={onRetrySync} disabled={reviving}>{success ? "ลองบันทึกหินวิญญาณอีกครั้ง" : "ลองบันทึกสถานะอีกครั้ง"}</button>}
+      {!hideStoneRewards && stonesError && onRetrySync && <button type="button" className="cultivation-btn btn-glass btn-md" onClick={onRetrySync} disabled={reviving}>{success ? "ลองบันทึกหินวิญญาณอีกครั้ง" : "ลองบันทึกสถานะอีกครั้ง"}</button>}
       {confirming && onRevive && <div className="mo-confirm" role="alertdialog" aria-modal="true" aria-labelledby="mo-confirm-title"
         style={{ position: "fixed", inset: 0, display: "grid", placeItems: "center", background: "rgba(5,8,20,.72)", zIndex: 50, padding: 16 }}>
         <div className="gold-border-frame" style={{ background: "#0d1430", padding: "20px 22px", borderRadius: 14, maxWidth: 360, width: "100%", textAlign: "center" }}>

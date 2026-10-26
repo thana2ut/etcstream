@@ -38,7 +38,6 @@ import { BagPanel } from "@/components/game/bag-panel";
 import { useMissionStones } from "@/components/game/mission-stones";
 import { ReviewOverlay } from "@/components/game/operator-console";
 import { hiddenCablesFor, packableCatalogIds, packedLeadsFor } from "@/game/content/cable-catalog";
-import { api, type Profile } from "@/components/arena/client-api";
 
 /** Test accounts only: applies the level's canonical cable bag once, then the mission starts. */
 function AutoPack({ run }: { run: () => void }) {
@@ -95,7 +94,6 @@ function PlayExperience() {
   const [reward, setReward] = useState<{ merit: number; rankUp?: string } | null>(null);
   const [showResultModal, setShowResultModal] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
-  const [rewardIdentity, setRewardIdentity] = useState<{ status: "checking" | "ready" | "missing" | "mismatch" | "error"; onlineName?: string; message?: string }>({ status: "checking" });
   // Mission Hall: cable bag packed in the prep lobby before every attempt (null = still in the lobby).
   const [bag, setBag] = useState<Record<string, number> | null>(null);
   const [admittedEntry, setAdmittedEntry] = useState<string | null>(null);
@@ -177,29 +175,6 @@ function PlayExperience() {
   const activeScenario = SCENARIOS[scenarioId];
   // Spirit Stone run for the 25 Mission Hall levels only (never Free Practice or the admin preview).
   const stones = useMissionStones(routeMode === "mission" && !progress?.selected?.admin, scenarioId);
-  const needsRewardIdentity = (routeMode === "mission" && !progress?.selected?.admin) || (routeMode === "classroom" && adminSession === false);
-  const checkRewardIdentity = useCallback(async () => {
-    if (!needsRewardIdentity || !hydrated) return;
-    if (!player?.nickname.trim()) {
-      setRewardIdentity({ status: "error", message: "ไม่พบชื่อผู้ฝึกในเครื่อง กรุณากลับไปตั้งชื่อก่อนเริ่มเล่น" });
-      return;
-    }
-    setRewardIdentity({ status: "checking" });
-    try {
-      const profile = await api<Profile>("profile");
-      const onlineName = profile.player.name.trim();
-      if (onlineName.normalize("NFC") === player.nickname.trim().normalize("NFC")) setRewardIdentity({ status: "ready", onlineName });
-      else setRewardIdentity({ status: "mismatch", onlineName });
-    } catch (error) {
-      const message = (error as Error).message;
-      setRewardIdentity(message === "กรุณาเข้าสู่ระบบก่อน" ? { status: "missing" } : { status: "error", message });
-    }
-  }, [needsRewardIdentity, hydrated, player?.nickname]);
-  useEffect(() => {
-    if (!hydrated) return;
-    if (!needsRewardIdentity) { setRewardIdentity({ status: "ready" }); return; }
-    void checkRewardIdentity();
-  }, [hydrated, needsRewardIdentity, checkRewardIdentity]);
   // Load the scenario only when it actually changes: re-running this (dev hot reload, remounts) must not wipe the
   // room and the bag the trainee packed in the cable-prep lobby.
   useEffect(() => {
@@ -399,7 +374,6 @@ function PlayExperience() {
 
   // Briefing advances to cable preparation; only confirming a valid bag starts play.
   const handlePrepareCables = () => {
-    if (needsRewardIdentity && rewardIdentity.status !== "ready") return;
     setIntroOpen(false);
   };
 
@@ -643,17 +617,7 @@ function PlayExperience() {
             </div>
             <footer className="briefing-actions">
               <p>{validMission ? "เมื่อเข้าใจภารกิจแล้ว จงไปเตรียมสายด้วยวิจารณญาณของเจ้าเอง" : "พร้อมแล้ว เลือกสายจากโต๊ะสายของห้องฝึกในขั้นตอนถัดไป"}</p>
-              {needsRewardIdentity && rewardIdentity.status !== "ready" && <div className="reward-identity-gate" role="status" aria-live="polite">
-                <p>{rewardIdentity.status === "checking" ? "กำลังตรวจบัญชีผู้ฝึกเพื่อผูกรางวัลเข้ากับชื่อของเจ้า…"
-                  : rewardIdentity.status === "missing" ? `ยังไม่ได้เข้าสู่ระบบผู้ฝึก กรุณาเข้าสู่ระบบหรือสร้างบัญชีด้วยชื่อ “${player?.nickname ?? ""}” เพื่อรับรางวัลเข้าชื่อนี้`
-                  : rewardIdentity.status === "mismatch" ? `ชื่อในเกม “${player?.nickname ?? ""}” ไม่ตรงกับบัญชีที่เข้าสู่ระบบ “${rewardIdentity.onlineName ?? ""}” กรุณาใช้บัญชีชื่อเดียวกันเพื่อให้รางวัลเข้าถูกคน`
-                  : rewardIdentity.message ?? "ตรวจสอบบัญชีผู้ฝึกไม่สำเร็จ กรุณาลองอีกครั้ง"}</p>
-                <div className="reward-identity-actions">
-                  <ActionButton href="/arena/profile" variant="glass" size="md" arrow={false}>เข้าสู่ระบบผู้ฝึกด้วยชื่อนี้</ActionButton>
-                  <ActionButton variant="outline" size="md" arrow={false} onClick={() => void checkRewardIdentity()}>ตรวจสอบอีกครั้ง</ActionButton>
-                </div>
-              </div>}
-              <ActionButton variant="gold" size="lg" disabled={needsRewardIdentity && rewardIdentity.status !== "ready"} onClick={handlePrepareCables}>เตรียมสาย</ActionButton>
+              <ActionButton variant="gold" size="lg" onClick={handlePrepareCables}>เตรียมสาย</ActionButton>
             </footer>
           </section>
         </div>
@@ -715,7 +679,7 @@ function PlayExperience() {
       )}
 
       {routeMode === "mission" && showResultModal && trainingCompleted && !trainingFailed && (
-        <MissionOutcomeModal status="success" missionTitle={currentTitle} venue={mission?.venue ?? "ห้องภารกิจ"} level={difficultyLevel}
+        <MissionOutcomeModal hideStoneRewards status="success" missionTitle={currentTitle} venue={mission?.venue ?? "ห้องภารกิจ"} level={difficultyLevel}
           completed={connectedRoutes} total={trainingTotal({ scenarioId })} mistakes={mistakeCount}
           reward={activeScenario.stage?.reward} stones={stones.reward} stonesError={stones.error} stonesTracked={stones.canRevive || !!stones.reward} stonesPreview={stones.preview} elapsed={stones.elapsed} merit={reward?.merit} rankUp={reward?.rankUp} progressError={progressError}
           onRetrySync={() => void stones.retryFinish()} reviving={stones.savingReward}
@@ -724,7 +688,7 @@ function PlayExperience() {
       )}
 
       {routeMode === "classroom" && showResultModal && trainingCompleted && !trainingFailed && (
-        <MissionOutcomeModal status="success" missionTitle={currentTitle} venue="ห้องฝึกปราณสัญญาณ" level={0}
+        <MissionOutcomeModal hideStoneRewards status="success" missionTitle={currentTitle} venue="ห้องฝึกปราณสัญญาณ" level={0}
           completed={connectedRoutes} total={trainingTotal({ scenarioId })} mistakes={mistakeCount} elapsed={classroomTimer.elapsed / 1000}
           simpleStoneReward={classroomRun.reward ?? undefined} stonesTracked={true} stonesError={classroomRun.error || (classroomRun.available ? undefined : "รอบนี้ยังไม่มีบันทึกยืนยันรางวัล กรุณาเริ่มรอบใหม่")} progressError={classroomRun.error} returnLabel="กลับสู่สำนัก" retryLabel="เริ่มใหม่ทั้งห้อง"
           onRetrySync={() => void classroomRun.retrySync()} reviving={classroomRun.busy}
