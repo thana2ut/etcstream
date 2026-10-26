@@ -1,5 +1,5 @@
 import type { Scenario } from "@/game/training/scenarios";
-import { catalogIdFor } from "./cable-catalog";
+import { catalogIdFor, packableCables } from "./cable-catalog";
 import { checkMissionBag, requiredBag } from "./mission-bag";
 
 /**
@@ -13,6 +13,13 @@ export type AdminLoadout =
 
 export function buildAdminLoadout(scenario: Scenario): AdminLoadout {
   const id = scenario.stage?.id ?? scenario.id;
+  if (scenario.id === "studio-full") {
+    const bag = requiredBag(scenario);
+    const leads = packableCables(scenario).map((cable) => cable.id);
+    return leads.length === 8 && checkMissionBag(scenario, bag).ok
+      ? { ok: true, leads, bag }
+      : { ok: false, issues: ["ชุดสายห้องฝึกไม่ครบ กรุณาตรวจข้อมูลสายที่ต้องใช้"] };
+  }
   if (!scenario.stage) return buildTrainingLoadout(scenario);
   if (!scenario.canonical) return { ok: false, issues: [`${id}: ไม่พบเส้นทางมาตรฐานของด่านนี้ในข้อมูลปัจจุบัน`] };
   const preinstalled = new Set((scenario.initialConnections ?? []).map((c) => c.cableId));

@@ -99,6 +99,19 @@ function PlayExperience() {
   const classroomWaiting = routeMode === "classroom" && bag !== null && !introOpen && (!sceneReady || classroomTimer.countdown > 0);
   const tester = useTester();
   const missionAccess = useMissionAccess();
+  const [adminSession, setAdminSession] = useState<boolean | null>(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    const refresh = () => {
+      void fetch("/api/admin/session", { credentials: "same-origin", cache: "no-store", signal: controller.signal })
+        .then(async (response) => response.ok ? response.json() as Promise<{ authenticated?: boolean }> : null)
+        .then((session) => { if (!controller.signal.aborted) setAdminSession(session?.authenticated === true); })
+        .catch(() => { if (!controller.signal.aborted) setAdminSession(false); });
+    };
+    refresh();
+    window.addEventListener("focus", refresh);
+    return () => { controller.abort(); window.removeEventListener("focus", refresh); };
+  }, []);
   const [bagOpen, setBagOpen] = useState(false);
   const trainingFailed = useTrainingStore((state) => state.failed);
   // Leads still inside the bag (badge on the 🎒 button).
@@ -404,8 +417,9 @@ function PlayExperience() {
 
   // Entry order: briefing first, cable preparation next, then immediate gameplay. The classroom offers exactly the leads laid out on its table.
   if (((routeMode === "mission" && validMission) || validClassroom) && !introOpen && bag === null) {
+    if (adminSession === null) return <main className="fantasy-viewport play-page"><p role="status">กำลังตรวจสอบสิทธิ์บัญชี…</p></main>;
     // Owner Admin and the dedicated test accounts skip cable selection and receive the level's canonical loadout.
-    const testerPack = tester || missionAccess ? buildAdminLoadout(activeScenario) : null;
+    const testerPack = tester || missionAccess || adminSession === true ? buildAdminLoadout(activeScenario) : null;
     if (testerPack?.ok) return <AutoPack key={scenarioId} run={() => {
       setBag(testerPack.bag);
       resetTraining(scenarioId, hiddenCablesFor(activeScenario, testerPack.bag), packedLeadsFor(activeScenario, testerPack.bag));
