@@ -210,7 +210,7 @@ function PlayExperience() {
 
   useEffect(() => {
     if (introOpen || bag === null || loadedScenarioId !== scenarioId) return;
-    if (routeMode === "mission" && trainingFailed) return;
+    if ((routeMode === "mission" || routeMode === "classroom") && trainingFailed) return;
     if (routeMode === "mission" && trainingCompleted && settledAttemptRef.current === scenarioId) return;
     if (trainingCompleted && progress?.selected?.admin) {
       // Administrator inspection must not grant player progression, merit or rank.
@@ -652,6 +652,11 @@ function PlayExperience() {
       )}
 
       {/* Mission Hall result states use the level's real evaluator, never a cable-count shortcut. */}
+      {routeMode === "classroom" && trainingFailed && !introOpen && bag !== null && (
+        <MissionOutcomeModal status="failed" missionTitle={currentTitle} venue="ห้องฝึกปราณสัญญาณ" level={0}
+          completed={connectedRoutes} total={trainingTotal({ scenarioId })} mistakes={mistakeCount} elapsed={classroomTimer.elapsed / 1000}
+          onRetry={handleRetry} onReturn={() => router.push("/academy")} />
+      )}
       {routeMode === "mission" && trainingFailed && !showResultModal && (
         <MissionOutcomeModal status="failed" missionTitle={currentTitle} venue={mission?.venue ?? "ห้องภารกิจ"} level={difficultyLevel}
           completed={connectedRoutes} total={trainingTotal({ scenarioId })} mistakes={mistakeCount}

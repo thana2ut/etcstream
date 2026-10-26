@@ -114,6 +114,7 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
             <span>{scenario.stage && scenario.requirements.length > 0 ? "ต่อสายถูกต้อง" : "ความคืบหน้า"}: {progress}/{total} ขั้น</span>
           </div>
           {scenario.stage && !state.completed && !state.failed && <p className="hud-panel-sub mission-mistake-count" role="status">ความผิดพลาด {state.wrongStreak}/{MAX_MISSION_CONNECTION_MISTAKES}</p>}
+          {scenario.id === "studio-full" && <p className="hud-panel-sub mission-mistake-count" role="status" aria-live="polite">ความผิดพลาด {state.wrongStreak}/3</p>}
           {scenario.venueScale && !scenario.stage && !state.completed && <p className="hud-panel-sub" role="status">ต่อผิดติดต่อกัน: {state.wrongStreak}/{MAX_WRONG_STREAK}</p>}
           {scenario.venueScale && state.completed && <p className="hud-panel-sub" role="status" style={{ color: "var(--success)", fontWeight: 700 }}>✓ ผ่านด่านแล้ว — ครบทุกเงื่อนไข</p>}
 

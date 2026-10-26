@@ -50,7 +50,7 @@ export function useClassroomTimer(enabled: boolean, ready: boolean, paused = fal
     };
     const interval = window.setInterval(update, 50);
     const unsubscribe = useTrainingStore.subscribe((state) => {
-      if (state.scenarioId !== "studio-full" || !state.completed || t.finished) return;
+      if (state.scenarioId !== "studio-full" || (!state.completed && !state.failed) || t.finished) return;
       update();
       t.finished = true;
       window.clearInterval(interval);

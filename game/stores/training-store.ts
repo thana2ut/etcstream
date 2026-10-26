@@ -91,7 +91,17 @@ export const useTrainingStore = create<TrainingStore>((set, get) => ({
       if (state.failed || (scenarioOf(state).stage && state.completed)) return state;
       const outcome = interactWithTarget(state, state.focusedTarget, state.pickMode);
       const next = { ...state, ...outcome, invalidConnectionAttempt: false, pickMode: state.focusedTarget?.kind === "end" ? "whole" as const : state.pickMode };
-      if (scenarioOf(state).stage && state.held && state.focusedTarget?.kind === "port") {
+      if (state.scenarioId === "studio-full" && state.held && state.focusedTarget?.kind === "port" && outcome.invalidConnectionAttempt) {
+        const key = `${state.scenarioId}:${state.held.cableId}:${state.held.end}:${state.focusedTarget.portId}`;
+        const now = Date.now();
+        if (key !== lastRejectedConnection || now - lastRejectedAt > DUPLICATE_REJECTION_MS) {
+          lastRejectedConnection = key;
+          lastRejectedAt = now;
+          next.wrongStreak = Math.min(3, state.wrongStreak + 1);
+          next.failed = next.wrongStreak >= 3;
+          if (next.failed) next.notice = { title: "การฝึกไม่สำเร็จ", detail: "ต่อสายผิดครบ 3/3 ครั้งแล้ว กรุณาเริ่มรอบใหม่", tone: "error" };
+        }
+      } else if (scenarioOf(state).stage && state.held && state.focusedTarget?.kind === "port") {
         if (outcome.invalidConnectionAttempt) {
           const key = `${state.scenarioId}:${state.held.cableId}:${state.held.end}:${state.focusedTarget.portId}`;
           const now = Date.now();
