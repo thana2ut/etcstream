@@ -8,7 +8,6 @@ import { apply, commandCost } from "@/server/arena/command-replay";
 import { validateNickname } from "@/game/security/nickname-validation";
 import { SCENARIOS, type ScenarioId } from "@/game/training/scenarios";
 import { initialTrainingState, initSim, missionWired, type TrainingState } from "@/game/training/hdmi-training";
-import { MISSION_REWARD_PROOF_REQUIRED } from "@/game/security/mission-reward-policy";
 import { classroomAction } from "./classroom";
 import { checkMissionBag } from "@/game/content/mission-bag";
 import { hiddenCablesFor, packedLeadsFor } from "@/game/content/cable-catalog";

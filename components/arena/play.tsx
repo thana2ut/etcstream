@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTrainingStore } from "@/game/stores/training-store";
 import { SCENARIOS, type ScenarioId } from "@/game/training/scenarios";
-import { initSim, trainingTotal } from "@/game/training/hdmi-training";
+import { initSim } from "@/game/training/hdmi-training";
 import { MissionOutcomeModal } from "@/components/ui/mission-result-modal";
 import { hiddenCablesFor, packedLeadsFor } from "@/game/content/cable-catalog";
 import { getDifficultyMeta, getMissionDifficultyLabel, missionChapters } from "@/game/content/mission-catalog";
@@ -24,7 +24,6 @@ import { RewardReceipt } from "./economy";
 import { DuelVerdict, useDuel } from "./duel";
 import { subscribeCompetitionCommands, type CompetitionCommand } from "@/game/training/competition-commands";
 import {AttemptStanding} from "./online";
-import { useMissionStones } from "@/components/game/mission-stones";
 
 function AssetGate({ onReady }: { onReady: () => void }) {
   const progress = useProgress();
@@ -51,7 +50,6 @@ function ArenaClock({ start, epoch, phase, frozenAt }: { start: number; epoch: R
 }
 export function ArenaPlay({ id, duelId }: { id: string; duelId?: string }) {
   const router = useRouter();
-  const [successDismissed, setSuccessDismissed] = useState(false);
   // Live duel: both players prepare cables, enter together and start together; results compare both runs.
   const { duel, send: duelSend } = useDuel(duelId);
   const duelStartTriggered = useRef(false);
@@ -63,8 +61,6 @@ export function ArenaPlay({ id, duelId }: { id: string; duelId?: string }) {
   const clockOffset = useRef(0), clockEpoch = useRef(0), seq = useRef(0), queue = useRef(Promise.resolve());
   const completionStamp = useRef<number | null>(null);
   const [completedAt, setCompletedAt] = useState<number | null>(null);
-  const [stoneStage, setStoneStage] = useState("");
-  const stones = useMissionStones(Boolean(stoneStage), stoneStage);
   const complete = useTrainingStore((s) => s.completed), failed = useTrainingStore((s) => s.failed), simPaused = useTrainingStore((s) => Boolean(s.sim?.paused));
   const bagCount = useTrainingStore((s) => s.bagged?.length ?? 0);
   const previousErrors = useRef(0);
@@ -134,7 +130,6 @@ export function ArenaPlay({ id, duelId }: { id: string; duelId?: string }) {
       seq.current=a.eventSeq || 0;
       commandSequence.current = a.replay?.seq || 0;
       setAttempt(a.replay ? { ...a, protocol: a.replay.protocol, commandSeq: a.replay.seq } : a);
-      if (SCENARIOS[a.scenario as ScenarioId]?.stage) setStoneStage(a.scenario);
       if (SCENARIOS[a.scenario as ScenarioId]) {
         useTrainingStore.getState().reset(a.scenario as ScenarioId);
         useTrainingStore.setState({ sim: initSim(SCENARIOS[a.scenario as ScenarioId], a.seed || 1), failureEnabled: false });
@@ -191,7 +186,6 @@ export function ArenaPlay({ id, duelId }: { id: string; duelId?: string }) {
       clockOffset.current = (a.serverNow || Date.now()) - Date.now();
       clockEpoch.current = (a.serverNow || Date.now()) - performance.now();
       setAttempt(a); setError("");
-      if (action === "finish") void stones.finish(s.cables, s.wrongStreak);
     } catch (e) { setError((e as Error).message); } finally { actionPending.current = false; setBusy(false); }
   };
   useEffect(() => {
@@ -200,7 +194,6 @@ export function ArenaPlay({ id, duelId }: { id: string; duelId?: string }) {
     void act("fail").finally(() => { failureSubmitting.current = false; });
   }, [failed, attempt?.status, started]); // eslint-disable-line react-hooks/exhaustive-deps
   // Stone run opens with the clock; once every route is wired the round is submitted, the clock stops and the summary shows.
-  useEffect(() => { if (attempt?.status === "RUNNING" && started) stones.begin(); }, [attempt?.status, started, stones]);
   const autoFinished = useRef(false);
   useEffect(() => {
     if (!duelId || !duel?.bothStarted || attempt?.status !== "PENDING" || !assetsReady || duelStartTriggered.current) return;
@@ -229,8 +222,8 @@ export function ArenaPlay({ id, duelId }: { id: string; duelId?: string }) {
     return <ArenaShell><ArenaBanner title="ผลรอบฝึกกาลเวลา" file="card-time-attack"><p>{venueLabel} · {scenario.stage.title}</p></ArenaBanner>
       <MissionOutcomeModal status="success" missionTitle={missionTitle} venue={venueLabel ?? "สนามประลอง"} level={missionLevel}
         completed={connected} total={scenario.cables.length} mistakes={state.wrongStreak} elapsed={elapsed}
-        stones={stones.reward} stonesError={stones.error || error || syncError || undefined} stonesTracked={Boolean(stoneStage)} stonesPreview={stones.preview}
-        onRetrySync={() => void stones.retryFinish()} reviving={stones.savingReward}
+        stonesError={error || syncError || undefined} stonesTracked={true}
+        onRetrySync={() => void act("finish")} reviving={busy}
         returnLabel="กลับหอประลอง" progressError={error || syncError || undefined}
         onRetry={() => router.push("/arena/time-attack")} onReturn={() => router.push("/arena")} />
     </ArenaShell>;
@@ -247,11 +240,6 @@ export function ArenaPlay({ id, duelId }: { id: string; duelId?: string }) {
     </ArenaShell>;
   }
   if (!["PENDING","RUNNING"].includes(attempt.status)) return <ArenaShell>
-    {attempt.graphValid && attempt.status !== "DNF" && !successDismissed && <MissionOutcomeModal status="success" missionTitle={missionTitle} venue={venueLabel ?? "หอประลอง"} level={missionLevel}
-      completed={trainingTotal({ scenarioId: attempt.scenario as ScenarioId })} total={trainingTotal({ scenarioId: attempt.scenario as ScenarioId })}
-      mistakes={useTrainingStore.getState().wrongStreak} stones={stones.reward} stonesError={stones.error} stonesTracked={true} elapsed={attempt.elapsedMs === null ? null : attempt.elapsedMs / 1000}
-      onRetrySync={() => void stones.retryFinish()} reviving={stones.savingReward}
-      onRetry={() => router.push("/arena/time-attack")} onReturn={() => setSuccessDismissed(true)} />}
     <ArenaBanner title="ผลรอบฝึกกาลเวลา" file="card-time-attack"><p>{venueLabel} · {scenario.stage.title}</p></ArenaBanner>
     <section className="arena-panel arena-result" data-outcome={attempt.status}>
       <div className="arena-result-seal" aria-hidden="true"><ArenaIcon name={attempt.status === "VERIFIED" ? "trophy" : "time-attack"} /></div>
@@ -261,10 +249,7 @@ export function ArenaPlay({ id, duelId }: { id: string; duelId?: string }) {
       <dl className="arena-stats">
         <div><dt>เวลาที่ใช้</dt><dd>{attempt.start === null ? "—" : timeText(attempt.elapsedMs)}</dd></div>
         <div><dt>ความผิดพลาด</dt><dd>{useTrainingStore.getState().wrongStreak} ครั้ง</dd></div>
-        <div><dt>หินวิญญาณ</dt><dd>{stones.reward ? <>+{stones.reward.reward.toLocaleString("th-TH")}</> : attempt.status === "DNF" ? "—" : stones.error ? "ไม่ได้รับ" : "กำลังบันทึก…"}</dd></div>
       </dl>
-      {stones.reward && <p className="arena-muted">หินพื้นฐาน {stones.reward.breakdown.base} · โบนัสเวลา {stones.reward.breakdown.timeBonus >= 0 ? "+" : ""}{stones.reward.breakdown.timeBonus} (×{Number(stones.reward.breakdown.multiplier).toFixed(2)}) · โบนัสเล่นแม่น +{stones.reward.breakdown.cleanBonus} · คงเหลือ {stones.reward.balance.toLocaleString("th-TH")} หิน</p>}
-      {stones.error && attempt.status !== "DNF" && <p className="arena-muted" role="status">{stones.error}</p>}
       {duelId && <DuelVerdict duel={duel} />}
       {attempt.status === "VERIFIED" && <RewardReceipt attempt={attempt}/>}
       <AttemptStanding attempt={attempt}/>
