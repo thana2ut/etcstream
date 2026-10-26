@@ -279,7 +279,12 @@ export function MissionOutcomeModal({ status, missionTitle, venue, level, comple
               {b.total > b.base + b.timeBonus + b.cleanBonus && <li><span>รางวัลขั้นต่ำ 40%</span><strong>{b.floor.toLocaleString("th-TH")}</strong></li>}
             </ul>
             <p className="mo-reward-total"><span>รวมรอบนี้</span><strong><img className="mo-stone-icon is-lg" src="/arena/economy/currencies/spirit-stone-v2.webp" alt="" /> +{stones!.reward.toLocaleString("th-TH")} <em>หิน</em></strong><small>{stonesPreview ? "ยอดสำหรับตรวจดู · ไม่บันทึกเข้าคลัง" : `คงเหลือ ${stones!.balance.toLocaleString("th-TH")} หิน`}</small></p>
-          </> : simpleStoneReward !== undefined ? <p className="mo-reward-total"><span>ได้รับรางวัล</span><strong><img className="mo-stone-icon is-lg" src="/arena/economy/currencies/spirit-stone-v2.webp" alt="" /> +{simpleStoneReward.toLocaleString("th-TH")} <em>หิน</em></strong></p> : <p className="mo-reward-pending" role="status">{stonesError || "กำลังบันทึกหินวิญญาณ…"}</p>}
+          </> : simpleStoneReward !== undefined ? <p className="mo-reward-total"><span>ได้รับรางวัล</span><strong><img className="mo-stone-icon is-lg" src="/arena/economy/currencies/spirit-stone-v2.webp" alt="" /> +{simpleStoneReward.toLocaleString("th-TH")} <em>หิน</em></strong></p> : <>
+            <p className="mo-reward-pending" role="status">{stonesError === "กรุณาเข้าสู่ระบบก่อน"
+              ? "ไม่พบเซสชันผู้ฝึก จึงยังบันทึกหินไม่ได้ เข้าสู่บัญชีเดิมแล้วกลับมากดบันทึกรางวัลซ้ำได้"
+              : stonesError || "กำลังบันทึกหินวิญญาณ…"}</p>
+            {stonesError === "กรุณาเข้าสู่ระบบก่อน" && <Link className="cultivation-btn btn-glass btn-md" href="/arena/profile">เข้าสู่ระบบผู้ฝึก</Link>}
+          </>}
         </section>}
         {(reward || merit !== undefined || rankUp) && <p className="mo-extras">
           {reward && <span>รางวัลภารกิจ <strong>{reward}</strong></span>}
