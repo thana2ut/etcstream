@@ -1,4 +1,5 @@
 import "server-only";
+import { classroomAction } from "./classroom";
 import { NextResponse } from "next/server";
 import { randomBytes, randomUUID } from "node:crypto";
 import { playerClient, trustedClient } from "./supabase";
@@ -216,12 +217,17 @@ export async function cloudArena(request: Request, path: string[]) {
     // V19 economy: identity comes from the verified Supabase session (auth.uid()); never from the body.
     const economy = async (action: string, value: unknown = {}) => checked(await client.rpc("etc_economy", { action, body: json(value) }));
     if (route === "economy" && !post) return response(await economy("summary"));
+    if (route.startsWith("classroom/") && post) return response(await classroomAction(user.id, route.slice("classroom/".length), body));
     // V30 Mission Hall stones: run times come from the database clock; the wiring is re-checked here before any reward.
     if (route.startsWith("mission/") && post) {
       const mission = async (action: string, value: unknown) => checked(await trustedClient().rpc("etc_mission", { p_player: user.id, action, body: json(value) }));
       if (route === "mission/start") {
         const stage = String(body.stage || "");
         if (!/^(xs|s|m|l|xl)-[1-5]$/.test(stage) || !SCENARIOS[stage as ScenarioId]?.stage) throw new ArenaError(400, "ไม่พบด่านภารกิจนี้");
+        if (uuid(body.run)) {
+          const previous = checked(await trustedClient().from("etc_mission_runs").select("id,stage,started,status").eq("id", body.run).eq("player", user.id).eq("stage", stage).maybeSingle());
+          if (previous?.status === "running") return response({ run: previous.id, stage: previous.stage, started: previous.started });
+        }
         return response(await mission("start", { stage }));
       }
       if (!uuid(body.run)) throw new ArenaError(400, "รหัสรอบภารกิจไม่ถูกต้อง");

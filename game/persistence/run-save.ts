@@ -18,7 +18,7 @@ export type RunMode = "mission" | "mission-admin" | "free-practice";
 export interface RunKey { playerId: string; mode: RunMode; scenarioId: ScenarioId }
 
 /** Store fields that make up the playable world (everything else is UI / derived). */
-export const SAVED_FIELDS = ["cables", "held", "heldItem", "items", "actionsDone", "programSource", "completed", "hiddenCables", "bagged", "sim", "selectedWireless"] as const;
+export const SAVED_FIELDS = ["cables", "held", "heldItem", "items", "actionsDone", "programSource", "completed", "hiddenCables", "bagged", "sim", "selectedWireless", "classroom"] as const;
 type SavedTraining = Pick<TrainingState, (typeof SAVED_FIELDS)[number]>;
 
 export interface RunSnapshot {

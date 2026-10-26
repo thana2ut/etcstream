@@ -2,9 +2,11 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import { useProgress } from "@react-three/drei";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTrainingStore } from "@/game/stores/training-store";
 import { SCENARIOS, type ScenarioId } from "@/game/training/scenarios";
-import { initSim } from "@/game/training/hdmi-training";
+import { initSim, trainingTotal } from "@/game/training/hdmi-training";
+import { MissionOutcomeModal } from "@/components/ui/mission-result-modal";
 import { hiddenCablesFor, packedLeadsFor } from "@/game/content/cable-catalog";
 import { getDifficultyMeta, getMissionDifficultyLabel, missionChapters } from "@/game/content/mission-catalog";
 import { loadSceneFont } from "@/game/rendering/scene-font";
@@ -48,6 +50,8 @@ function ArenaClock({ start, epoch, phase, frozenAt }: { start: number; epoch: R
     : timeText(Math.max(0, now - start))}</>;
 }
 export function ArenaPlay({ id, duelId }: { id: string; duelId?: string }) {
+  const router = useRouter();
+  const [successDismissed, setSuccessDismissed] = useState(false);
   // Live duel: both players prepare cables, enter together and start together; results compare both runs.
   const { duel, send: duelSend } = useDuel(duelId);
   const duelStartTriggered = useRef(false);
@@ -130,10 +134,10 @@ export function ArenaPlay({ id, duelId }: { id: string; duelId?: string }) {
       if (SCENARIOS[a.scenario as ScenarioId]?.stage) stoneStage.current = a.scenario;
       if (SCENARIOS[a.scenario as ScenarioId]) {
         useTrainingStore.getState().reset(a.scenario as ScenarioId);
-        useTrainingStore.setState({ sim: initSim(SCENARIOS[a.scenario as ScenarioId], a.seed || 1) });
+        useTrainingStore.setState({ sim: initSim(SCENARIOS[a.scenario as ScenarioId], a.seed || 1), failureEnabled: false });
       }
       if (a.replay && a.status === "RUNNING") {
-        useTrainingStore.setState(a.replay.state);
+        useTrainingStore.setState({ ...a.replay.state, failed: false, failureEnabled: false });
         setBag(a.replay.bag); setBriefing(false);
       }
       setTouch(window.matchMedia("(pointer: coarse)").matches);
@@ -199,6 +203,10 @@ export function ArenaPlay({ id, duelId }: { id: string; duelId?: string }) {
   const missionObjective = (missionChapter && getDifficultyMeta(missionChapter, missionLevel)?.objective) || scenario.stage.ticket;
   const abandonDialog = <ArenaConfirmDialog open={confirmAbandon} title="ยุติรอบฝึกนี้หรือไม่?" busy={busy} onCancel={() => setConfirmAbandon(false)} onConfirm={() => void act("abandon")}>รอบนี้จะถูกบันทึกว่ายุติ และไม่นำผลไปจัดอันดับ{error && <span className="arena-dialog-error" role="alert">{error}</span>}</ArenaConfirmDialog>;
   if (!["PENDING","RUNNING"].includes(attempt.status)) return <ArenaShell>
+    {attempt.graphValid && attempt.status !== "DNF" && !successDismissed && <MissionOutcomeModal status="success" missionTitle={missionTitle} venue={venueLabel ?? "หอประลอง"} level={missionLevel}
+      completed={trainingTotal({ scenarioId: attempt.scenario as ScenarioId })} total={trainingTotal({ scenarioId: attempt.scenario as ScenarioId })}
+      mistakes={useTrainingStore.getState().wrongStreak} stones={stones.reward} stonesError={stones.error} stonesTracked={true} elapsed={attempt.elapsedMs === null ? null : attempt.elapsedMs / 1000}
+      onRetry={() => router.push("/arena/time-attack")} onReturn={() => setSuccessDismissed(true)} />}
     <ArenaBanner title="ผลรอบฝึกกาลเวลา" file="card-time-attack"><p>{venueLabel} · {scenario.stage.title}</p></ArenaBanner>
     <section className="arena-panel arena-result" data-outcome={attempt.status}>
       <div className="arena-result-seal" aria-hidden="true"><ArenaIcon name={attempt.status === "VERIFIED" ? "trophy" : "time-attack"} /></div>
@@ -238,6 +246,7 @@ export function ArenaPlay({ id, duelId }: { id: string; duelId?: string }) {
   </ArenaShell>;
   if (!bag) return <CableLobby scenario={scenario} title={missionTitle} levelLabel={missionLevelLabel} objective={missionObjective} backLabel="กลับใบงาน" onBack={() => setBriefing(true)} onConfirm={(packed) => {
     useTrainingStore.getState().reset(attempt.scenario as ScenarioId, hiddenCablesFor(scenario, packed), packedLeadsFor(scenario, packed));
+    useTrainingStore.setState({ failureEnabled: false });
     useTrainingStore.setState({ sim: initSim(scenario, attempt.seed || 1) }); previousErrors.current = 0; setBag(packed); if (duelId) void duelSend("packed");
   }} />;
   const running = attempt.status === "RUNNING" && started;

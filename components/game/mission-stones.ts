@@ -34,16 +34,21 @@ export function useMissionStones(enabled: boolean, stage: string) {
   const [balance, setBalance] = useState<number | null>(null);
   const startedAt = useRef<number | null>(null);
   const [elapsed, setElapsed] = useState<number | null>(null);
+  const revivePending = useRef(false);
+  const confirmedRun = useRef(false);
 
-  useEffect(() => { run.current = enabled ? read(stage) : null; starting.current = null; setReward(null); setError(""); startedAt.current = null; setElapsed(null); }, [enabled, stage]);
+  useEffect(() => { run.current = enabled ? read(stage) : null; confirmedRun.current = false; starting.current = null; setReward(null); setError(""); startedAt.current = null; setElapsed(null); }, [enabled, stage]);
 
   /** Opens (or, after a reload, keeps) this level's server run; the clock starts on the database side. */
   const begin = useCallback(() => {
     startedAt.current ??= Date.now();
-    if (!enabled || run.current || starting.current) return;
-    starting.current = api<{ run: string }>("mission/start", { stage }).then((r) => { run.current = r.run; write(stage, r.run); return r.run; })
+    if (!enabled) return Promise.resolve(null);
+    if (run.current && confirmedRun.current) return Promise.resolve(run.current);
+    if (starting.current) return starting.current;
+    starting.current = api<{ run: string }>("mission/start", { stage, run: run.current }).then((r) => { run.current = r.run; confirmedRun.current = true; write(stage, r.run); return r.run; })
       .catch((e: Error) => { setError(`ยังไม่ได้เปิดบันทึกรางวัล: ${e.message}`); return null; })
       .finally(() => { starting.current = null; });
+    return starting.current;
   }, [enabled, stage]);
 
   /** Server re-checks the wiring, then credits the stones once for this run (retries return the same receipt). */
@@ -55,28 +60,36 @@ export function useMissionStones(enabled: boolean, stage: string) {
       if (seconds !== null) { const b = computeStones(Number(stage.slice(-1)) || 1, seconds, mistakes); setReward({ reward: b.total, breakdown: b, balance: -1 }); }
       return;
     }
-    const id = run.current ?? await starting.current;
+    const id = await begin();
     if (!id) { setError((e) => e || "รอบนี้ไม่ได้เชื่อมกับบัญชีผู้ฝึก จึงไม่ได้รับหินวิญญาณ"); return; }
     try {
       const r = await api<StoneReward>("mission/finish", { run: id, stage, cables, mistakes });
       setReward(r); setError(""); write(stage, null); run.current = null;
     } catch (e) { setError((e as Error).message); }
-  }, [enabled, stage]);
+  }, [enabled, stage, begin]);
 
   /** Pays 100 stones once per failure (same idempotency key on retry); true when the level may continue. */
   const revive = useCallback(async () => {
-    if (!enabled || reviving) return false;
-    if (!run.current) { setError("รอบนี้ไม่ได้เชื่อมกับบัญชีผู้ฝึก จึงฟื้นด้วยหินวิญญาณไม่ได้"); return false; }
-    reviveKey.current ??= crypto.randomUUID();
+    if (!enabled || revivePending.current) return false;
+    revivePending.current = true;
     setReviving(true); setError("");
     try {
-      const r = await api<{ balance: number }>("mission/revive", { run: run.current, idempotencyKey: reviveKey.current });
-      setBalance(r.balance);
+      const id = await begin();
+      if (!id) throw new Error("ยังเปิดบันทึกรอบไม่ได้ กรุณาลองเล่นต่ออีกครั้ง สายและอุปกรณ์เดิมยังอยู่");
+      const key = `etc-mission-revive:${id}`;
+      try { reviveKey.current ??= sessionStorage.getItem(key); } catch {}
+      reviveKey.current ??= crypto.randomUUID();
+      try { sessionStorage.setItem(key, reviveKey.current); } catch {}
+      const r = await api<{ status: string; balance: number; ledgerId: string }>("mission/revive", { run: id, idempotencyKey: reviveKey.current });
+      if (r.status !== "committed" || !r.ledgerId || !Number.isFinite(Number(r.balance))) throw new Error("ยังยืนยันรายการหักหินไม่ได้ กรุณาลองอีกครั้งโดยใช้คำขอเดิม");
+      setBalance(Number(r.balance));
+      try { sessionStorage.removeItem(key); } catch {}
       reviveKey.current = null;
+      window.dispatchEvent(new Event("etc-economy-updated"));
       return true;
     } catch (e) { setError((e as Error).message); return false; }
-    finally { setReviving(false); }
-  }, [enabled, reviving]);
+    finally { revivePending.current = false; setReviving(false); }
+  }, [enabled, begin]);
 
   /** Wallet balance for the failure screen (revive is disabled below REVIVE_COST); the server still re-checks on charge. */
   const loadBalance = useCallback(async () => {
@@ -85,7 +98,7 @@ export function useMissionStones(enabled: boolean, stage: string) {
   }, [enabled]);
 
   /** A fresh attempt ("เริ่มใหม่ทั้งด่าน") gets a new run. */
-  const reset = useCallback(() => { write(stage, null); run.current = null; reviveKey.current = null; startedAt.current = null; setElapsed(null); setReward(null); setError(""); }, [stage]);
+  const reset = useCallback(() => { write(stage, null); run.current = null; confirmedRun.current = false; reviveKey.current = null; startedAt.current = null; setElapsed(null); setReward(null); setError(""); }, [stage]);
 
   return { begin, finish, revive, reset, loadBalance, balance, elapsed, preview: !enabled, reward, error, reviving, canRevive: enabled };
 }

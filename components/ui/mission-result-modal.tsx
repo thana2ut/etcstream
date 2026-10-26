@@ -179,7 +179,7 @@ export function MissionResultModal({
 }
 
 /** Mission Hall only; Free Practice keeps its existing result screen. */
-export function MissionOutcomeModal({ status, missionTitle, venue, level, completed, total, mistakes, reward, stones, stonesError, stonesTracked, stonesPreview, elapsed, merit, rankUp, progressError, reviving, balance, freeRevive, onRevive, onNext, onRetry, onReturn }: {
+export function MissionOutcomeModal({ status, missionTitle, venue, level, completed, total, mistakes, reward, stones, stonesError, stonesTracked, stonesPreview, elapsed, merit, rankUp, progressError, reviving, balance, freeRevive, reviveCost = REVIVE_COST, reviveDisabled = false, onRevive, onNext, onRetry, onReturn }: {
   status: "success" | "failed";
   missionTitle: string;
   venue: string;
@@ -205,13 +205,15 @@ export function MissionOutcomeModal({ status, missionTitle, venue, level, comple
   balance?: number | null;
   /** Admin preview: same revive flow, no stones charged. */
   freeRevive?: boolean;
-  onRevive?: () => void;
+  reviveCost?: number;
+  reviveDisabled?: boolean;
+  onRevive?: () => void | boolean | Promise<void | boolean>;
   onNext?: () => void;
   onRetry: () => void;
   onReturn: () => void;
 }) {
   const success = status === "success";
-  const short = !freeRevive && typeof balance === "number" && balance < REVIVE_COST;
+  const short = !freeRevive && typeof balance === "number" && balance < reviveCost;
   const [confirming, setConfirming] = useState(false);
   const b = stones?.breakdown;
   const clock = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
@@ -266,8 +268,8 @@ export function MissionOutcomeModal({ status, missionTitle, venue, level, comple
           <div><dt>เงื่อนไขสำเร็จ</dt><dd>{completed}/{total}</dd><small>เส้นทาง</small></div>
         </dl>
         <p className="mo-reason"><strong>เหตุที่ล้มเหลว</strong>ต่อสายผิดเกินจำนวนที่อนุญาต สายที่ต่อถูกและอุปกรณ์ที่วางไว้ยังอยู่ครบ</p>
-        {onRevive && <p className="mo-choice">จ่าย {REVIVE_COST} หินเพื่อเริ่มต่อจากจุดที่พลาด: สายและอุปกรณ์เดิมยังอยู่ จำนวนครั้งที่ผิดลดลง 1{typeof balance === "number" && <> · ท่านมี {balance.toLocaleString("th-TH")} หิน</>}</p>}
-        {onRevive && short && <p className="form-error" role="status">หินวิญญาณไม่พอ (ต้องใช้ {REVIVE_COST} ก้อน) เลือกเริ่มใหม่ทั้งด่านแทน</p>}
+        {onRevive && <p className="mo-choice">จ่าย {reviveCost} หินเพื่อเริ่มต่อจากจุดที่พลาด: สายและอุปกรณ์เดิมยังอยู่ จำนวนครั้งที่ผิดลดลง 1{typeof balance === "number" && <> · ท่านมี {balance.toLocaleString("th-TH")} หิน</>}</p>}
+        {onRevive && short && <p className="form-error" role="status">หินวิญญาณไม่พอ (ต้องใช้ {reviveCost} ก้อน) เลือกเริ่มใหม่ทั้งด่านแทน</p>}
         {stonesError && <p className="form-error" role="alert">{stonesError}</p>}
       </>}
       {progressError && <p className="form-error" role="alert">{progressError}</p>}
@@ -278,7 +280,7 @@ export function MissionOutcomeModal({ status, missionTitle, venue, level, comple
           <button type="button" className="cultivation-btn btn-gold-subtle btn-md" onClick={onRetry}>เล่นอีกครั้ง</button>
           <button type="button" className={`cultivation-btn ${onNext ? "btn-glass" : "btn-gold"} btn-md`} onClick={onReturn} autoFocus={!onNext}>กลับหน้าภารกิจ</button>
         </> : <>
-          {onRevive && <button type="button" className="cultivation-btn btn-gold btn-md mo-revive-btn" onClick={() => setConfirming(true)} disabled={reviving} autoFocus={!short}>{reviving ? "กำลังฟื้น…" : <><span className="mo-revive-main">เล่นต่อจากจุดที่พลาด</span><span className="mo-revive-cost"><img className="mo-stone-icon" src="/arena/economy/currencies/spirit-stone-v2.webp" alt="" /> ใช้ {REVIVE_COST} หินวิญญาณ</span></>}</button>}
+          {onRevive && <button type="button" className="cultivation-btn btn-gold btn-md mo-revive-btn" onClick={() => setConfirming(true)} disabled={reviving || reviveDisabled} autoFocus={!short}>{reviving ? "กำลังฟื้น…" : <><span className="mo-revive-main">เล่นต่อจากจุดที่พลาด</span><span className="mo-revive-cost"><img className="mo-stone-icon" src="/arena/economy/currencies/spirit-stone-v2.webp" alt="" /> ใช้ {reviveCost} หินวิญญาณ</span></>}</button>}
           <button type="button" className="cultivation-btn btn-gold-subtle btn-md" onClick={onRetry} autoFocus={!onRevive || short}>เริ่มใหม่ทั้งด่าน</button>
           <button type="button" className="cultivation-btn btn-glass btn-md" onClick={onReturn}>กลับหน้าภารกิจ</button>
         </>}
@@ -287,14 +289,14 @@ export function MissionOutcomeModal({ status, missionTitle, venue, level, comple
         style={{ position: "fixed", inset: 0, display: "grid", placeItems: "center", background: "rgba(5,8,20,.72)", zIndex: 50, padding: 16 }}>
         <div className="gold-border-frame" style={{ background: "#0d1430", padding: "20px 22px", borderRadius: 14, maxWidth: 360, width: "100%", textAlign: "center" }}>
           <h2 id="mo-confirm-title" style={{ margin: "0 0 10px" }}>ยืนยันใช้หินวิญญาณ</h2>
-          <p style={{ margin: "4px 0" }}>ค่าเริ่มต่อจากจุดที่พลาด <strong>{REVIVE_COST}</strong> หิน</p>
+          <p style={{ margin: "4px 0" }}>ค่าเริ่มต่อจากจุดที่พลาด <strong>{reviveCost}</strong> หิน</p>
           <p style={{ margin: "4px 0" }}>หินที่ท่านมี <strong>{typeof balance === "number" ? balance.toLocaleString("th-TH") : "กำลังโหลด…"}</strong> หิน</p>
           {freeRevive ? <p style={{ margin: "4px 0", color: "#e9c46a" }}>โหมดทดสอบของแอดมิน · ไม่หักหินจริง</p> : typeof balance === "number" && (short
-            ? <p className="form-error" role="status">หินไม่พอ ขาดอีก {(REVIVE_COST - balance).toLocaleString("th-TH")} หิน</p>
-            : <p style={{ margin: "4px 0", color: "#e9c46a" }}>เพียงพอ · หลังจ่ายเหลือ {(balance - REVIVE_COST).toLocaleString("th-TH")} หิน</p>)}
+            ? <p className="form-error" role="status">หินไม่พอ ขาดอีก {(reviveCost - balance).toLocaleString("th-TH")} หิน</p>
+            : <p style={{ margin: "4px 0", color: "#e9c46a" }}>เพียงพอ · หลังจ่ายเหลือ {(balance - reviveCost).toLocaleString("th-TH")} หิน</p>)}
           <div className="mo-actions" style={{ marginTop: 14 }}>
-            <button type="button" className="cultivation-btn btn-gold btn-md" disabled={reviving || (!freeRevive && (typeof balance !== "number" || short))} autoFocus
-              onClick={() => { setConfirming(false); onRevive(); }}>ยืนยันจ่าย {REVIVE_COST} หิน</button>
+            <button type="button" className="cultivation-btn btn-gold btn-md" disabled={reviving || reviveDisabled || (!freeRevive && (typeof balance !== "number" || short))} autoFocus
+              onClick={async () => { const resumed = await onRevive(); if (resumed !== false) setConfirming(false); }}>ยืนยันจ่าย {reviveCost} หิน</button>
             <button type="button" className="cultivation-btn btn-glass btn-md" onClick={() => setConfirming(false)}>ยกเลิก</button>
           </div>
         </div>

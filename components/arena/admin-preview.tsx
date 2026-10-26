@@ -13,6 +13,8 @@ import { SCENARIOS } from "@/game/training/scenarios";
 import type { AdminPreviewContext } from "@/game/security/admin-preview-types";
 import { useGameAudio } from "@/components/audio/audio-provider";
 import { api } from "./client-api";
+import { MissionOutcomeModal } from "@/components/ui/mission-result-modal";
+import { trainingProgress, trainingTotal } from "@/game/training/hdmi-training";
 
 /** Isolated playable wrapper over the ORIGINAL room/controller/graph/inventory. No academy or rank writes. */
 export function AdminPreview({ context, onExit }: { context: AdminPreviewContext; onExit: () => void }) {
@@ -62,6 +64,7 @@ export function AdminPreview({ context, onExit }: { context: AdminPreviewContext
       const installed = new Set((scenario.initialConnections ?? []).map((c) => c.cableId));
       const hidden = scenario.cables.filter((c) => !c.fixedA && !installed.has(c.id) && catalogIdFor(c) !== "CTRL-REPLAY" && !context.loadout.leads.includes(c.id)).map((c) => c.id);
       useTrainingStore.getState().reset(context.scenarioId, hidden, context.loadout.leads);
+      useTrainingStore.setState({ failureEnabled: false });
       setReady(true); setBagOpen(false); setPaused(false);
     });
     return () => cancelAnimationFrame(frame);
@@ -94,7 +97,7 @@ export function AdminPreview({ context, onExit }: { context: AdminPreviewContext
     pausePanel.current?.querySelector<HTMLButtonElement>("button")?.focus();
     return () => previous?.focus();
   }, [paused, failed]);
-  const active = ready && confirmed && !error && !paused && !bagOpen && !failed && !simPaused;
+  const active = ready && confirmed && !error && !paused && !bagOpen && !failed && !completed && !simPaused;
   useEffect(() => { setPlayPhase(active ? "gameplay" : "intro"); return () => setPlayPhase("intro"); }, [active, setPlayPhase]);
   if (error) return <section className="admin-preview-status" role="alert"><h2>ปิดการเล่นตรวจ</h2><p>{error}</p><button onClick={onExit}>กลับตำหนักบัญชาการ</button></section>;
   if (!ready || !confirmed) return <section className="admin-preview-status" role="status"><p>กำลังตรวจสิทธิ์และเตรียมสายเฉพาะด่าน…</p><button onClick={onExit}>กลับตำหนักบัญชาการ</button></section>;
@@ -112,6 +115,8 @@ export function AdminPreview({ context, onExit }: { context: AdminPreviewContext
       if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
       else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     }}><section className="glass-card gold-border-frame"><h2 id="admin-preview-pause-title">{failed ? "ด่านตรวจหยุดจากเงื่อนไขเกมเดิม" : "พักการเล่นตรวจ"}</h2><p>การเล่นตรวจไม่บันทึกผลหรือเปลี่ยนความคืบหน้าผู้เล่น</p>{!failed && <button onClick={() => setPaused(false)}>เล่นตรวจต่อ</button>}<button onClick={() => { escapePointer(); setReady(false); setReplay((n) => n + 1); }}>เริ่มตรวจใหม่พร้อมชุดสายเดิม</button><button onClick={onExit}>กลับตำหนักบัญชาการ</button></section></div>}
-    {completed && !paused && <div className="admin-preview-complete" role="status">ระบบประเมินภายในฉากครบตามเงื่อนไข · ไม่มอบคะแนน ความสำเร็จ หรือการปลดล็อก</div>}
+    {completed && !paused && <MissionOutcomeModal status="success" missionTitle={context.title} venue="โหมดตรวจฉากของแอดมิน" level={Number(context.scenarioId.split("-").at(-1)) || 0}
+      completed={trainingProgress(useTrainingStore.getState())} total={trainingTotal({ scenarioId: context.scenarioId })} mistakes={useTrainingStore.getState().wrongStreak}
+      reward="ตรวจฉากสำเร็จ · ไม่เพิ่มคะแนนหรือหิน" onRetry={() => { escapePointer(); setReady(false); setReplay((n) => n + 1); }} onReturn={onExit} />}
   </section>;
 }

@@ -16,6 +16,7 @@ let lastRejectedConnection = "";
 let lastRejectedAt = 0;
 
 interface TrainingStore extends TrainingState {
+  failureEnabled: boolean;
   focusedTarget: TrainingTarget | null;
   /** `hiddenCables`: leads not packed in the cable-prep lobby. `bagged`: packed leads that start inside the bag. */
   reset: (scenarioId?: ScenarioId, hiddenCables?: string[], bagged?: string[]) => void;
@@ -63,6 +64,7 @@ function targetKey(target: TrainingTarget | null): string {
 }
 
 export const useTrainingStore = create<TrainingStore>((set, get) => ({
+  failureEnabled: true,
   ...initialTrainingState(),
   focusedTarget: null,
   wrongStreak: 0, failed: false,
@@ -81,7 +83,7 @@ export const useTrainingStore = create<TrainingStore>((set, get) => ({
   reset: (scenarioId, hiddenCables, bagged) => {
     lastRejectedConnection = "";
     lastRejectedAt = 0;
-    set((state) => ({ ...initialTrainingState(scenarioId ?? state.scenarioId, hiddenCables ?? [], bagged ?? []), wrongStreak: 0, failed: false, focusedTarget: null, heldTurn: 0, inspecting: null, inspectHoldStart: null, pickMode: "whole" }));
+    set((state) => ({ ...initialTrainingState(scenarioId ?? state.scenarioId, hiddenCables ?? [], bagged ?? []), failureEnabled: true, wrongStreak: 0, failed: false, focusedTarget: null, heldTurn: 0, inspecting: null, inspectHoldStart: null, pickMode: "whole" }));
   },
   focus: (target) => {
     if (targetKey(get().focusedTarget) !== targetKey(target)) set({ focusedTarget: target });
@@ -92,15 +94,10 @@ export const useTrainingStore = create<TrainingStore>((set, get) => ({
       const outcome = interactWithTarget(state, state.focusedTarget, state.pickMode);
       const next = { ...state, ...outcome, invalidConnectionAttempt: false, pickMode: state.focusedTarget?.kind === "end" ? "whole" as const : state.pickMode };
       if (state.scenarioId === "studio-full" && state.held && state.focusedTarget?.kind === "port" && outcome.invalidConnectionAttempt) {
-        const key = `${state.scenarioId}:${state.held.cableId}:${state.held.end}:${state.focusedTarget.portId}`;
-        const now = Date.now();
-        if (key !== lastRejectedConnection || now - lastRejectedAt > DUPLICATE_REJECTION_MS) {
-          lastRejectedConnection = key;
-          lastRejectedAt = now;
-          next.wrongStreak = Math.min(3, state.wrongStreak + 1);
-          next.failed = next.wrongStreak >= 3;
-          if (next.failed) next.notice = { title: "การฝึกไม่สำเร็จ", detail: "ต่อสายผิดครบ 3/3 ครั้งแล้ว กรุณาเริ่มรอบใหม่", tone: "error" };
-        }
+        next.wrongStreak = Math.min(3, state.wrongStreak + 1);
+        next.failed = next.wrongStreak >= 3;
+        next.classroom = { mistakes: next.wrongStreak, failed: next.failed, question: null };
+        if (next.failed) next.notice = { title: "การฝึกไม่สำเร็จ", detail: "ต่อสายผิดครบ 3/3 ครั้งแล้ว สามารถเริ่มใหม่หรือจ่ายหินเพื่อเล่นต่อจากเดิม", tone: "error" };
       } else if (scenarioOf(state).stage && state.held && state.focusedTarget?.kind === "port") {
         if (outcome.invalidConnectionAttempt) {
           const key = `${state.scenarioId}:${state.held.cableId}:${state.held.end}:${state.focusedTarget.portId}`;
@@ -118,6 +115,7 @@ export const useTrainingStore = create<TrainingStore>((set, get) => ({
         next.wrongStreak = streak;
         next.failed = streak >= MAX_WRONG_STREAK;
       }
+      if (!state.failureEnabled) { next.failed = false; if (next.classroom) next.classroom = { ...next.classroom, failed: false }; }
       if (next.notice?.tone === "success") {
         soundEngine.play("connection_success");
       } else if (next.notice?.tone === "error") {

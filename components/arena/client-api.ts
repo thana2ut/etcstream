@@ -1,5 +1,15 @@
 "use client";
 import type { TrainingState } from "@/game/training/hdmi-training";
+export function apiErrorMessage(value: unknown, fallback = "เชื่อมต่อระบบไม่ได้"): string {
+  if (typeof value === "string" && value.trim() && value !== "[object Object]") return value;
+  if (value && typeof value === "object") {
+    const error = value as { message?: unknown; error?: unknown };
+    if (typeof error.message === "string") return apiErrorMessage(error.message, fallback);
+    if (typeof error.error === "string") return apiErrorMessage(error.error, fallback);
+    if (error.error && typeof error.error === "object" && error.error !== value) return apiErrorMessage((error.error as { message?: unknown }).message, fallback);
+  }
+  return fallback;
+}
 export async function api<T>(path: string, body?: unknown, admin = false, signal?: AbortSignal): Promise<T> {
   let response:Response;
   try {response=await fetch(`/api/${admin ? "admin" : "arena"}/${path}`, { method: body === undefined ? "GET" : "POST", credentials: "same-origin", cache: "no-store", signal, headers: body === undefined ? {} : { "Content-Type": "application/json" }, body: body === undefined ? undefined : JSON.stringify(body) });}
@@ -7,9 +17,9 @@ export async function api<T>(path: string, body?: unknown, admin = false, signal
   let value;
   try{value=await response.json();}catch(e){if((e as Error).name==="AbortError")throw e;throw new Error("ระบบกลางตอบกลับไม่ครบ กรุณาลองเชื่อมต่อใหม่");}
   if (path === "logout" || (!admin && response.status === 401)) clearCache();
-  if (!response.ok) {
+  if (!response.ok || value?.error) {
     if (admin && (response.status === 401 || response.status === 403)) window.dispatchEvent(new Event("etc-admin-session-lost"));
-    throw new Error(value.error || "เชื่อมต่อระบบไม่ได้");
+    throw new Error(apiErrorMessage(value?.error));
   }
   return value as T;
 }

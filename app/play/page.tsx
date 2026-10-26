@@ -7,6 +7,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { GameCanvas } from "@/components/game/game-canvas";
 import { formatClassroomTime, useClassroomTimer } from "@/components/game/use-classroom-timer";
+import { useClassroomRun } from "@/components/game/use-classroom-run";
+import { CLASSROOM_REVIVE_COST } from "@/game/training/classroom-rules";
 import "./classroom.css";
 import { TrainingHud } from "@/components/game/training-hud";
 import { FirstPersonHands } from "@/components/game/first-person-hands";
@@ -98,8 +100,10 @@ function PlayExperience() {
   const continuingRun = bag !== null && admittedEntry === entryKey;
   const [sceneReady, setSceneReady] = useState(false);
   const handleSceneReady = useCallback(() => setSceneReady(true), []);
-  const classroomTimer = useClassroomTimer(routeMode === "classroom" && bag !== null && !introOpen && loadedScenarioId === "studio-full", sceneReady, showExitConfirm);
-  const classroomWaiting = routeMode === "classroom" && bag !== null && !introOpen && (!sceneReady || classroomTimer.countdown > 0);
+  const trainingFailed = useTrainingStore((state) => state.failed);
+  const classroomRun = useClassroomRun(routeMode === "classroom" && bag !== null && !introOpen && sceneReady && loadedScenarioId === "studio-full", bag);
+  const classroomTimer = useClassroomTimer(routeMode === "classroom" && bag !== null && !introOpen && loadedScenarioId === "studio-full", sceneReady && classroomRun.ready, showExitConfirm || trainingFailed || classroomRun.syncBlocked);
+  const classroomWaiting = routeMode === "classroom" && bag !== null && !introOpen && (!sceneReady || !classroomRun.ready || classroomTimer.countdown > 0);
   const tester = useTester();
   const missionAccess = useMissionAccess();
   const [adminSession, setAdminSession] = useState<boolean | null>(null);
@@ -116,7 +120,6 @@ function PlayExperience() {
     return () => { controller.abort(); window.removeEventListener("focus", refresh); };
   }, []);
   const [bagOpen, setBagOpen] = useState(false);
-  const trainingFailed = useTrainingStore((state) => state.failed);
   // Leads still inside the bag (badge on the 🎒 button).
   const bagCount = useTrainingStore((state) => state.bagged?.length ?? 0);
   // C opens the cable bag; R is kept for turning a held device.
@@ -142,7 +145,7 @@ function PlayExperience() {
   const simPaused = useTrainingStore((state) => Boolean(state.sim?.paused));
 
   useEffect(() => {
-    setPlayPhase(showResultModal || (routeMode === "mission" && trainingFailed) ? "result" : introOpen || bag === null ? "intro" : "gameplay");
+    setPlayPhase(showResultModal || ((routeMode === "mission" || routeMode === "classroom") && trainingFailed) ? "result" : introOpen || bag === null ? "intro" : "gameplay");
   }, [introOpen, bag, showResultModal, routeMode, trainingFailed, setPlayPhase]);
 
   useEffect(() => () => setPlayPhase("intro"), [setPlayPhase]);
@@ -207,6 +210,8 @@ function PlayExperience() {
   }, [routeMode, trainingCompleted, trainingFailed]);
   // Failure screen: fetch the wallet so the 100-stone revive can be disabled up front when the balance is short.
   useEffect(() => { if (routeMode === "mission" && trainingFailed) void stones.loadBalance(); }, [routeMode, trainingFailed, stones.loadBalance]);
+  const loadClassroomBalance = classroomRun.loadBalance;
+  useEffect(() => { if (routeMode === "classroom" && trainingFailed) void loadClassroomBalance(); }, [routeMode, trainingFailed, loadClassroomBalance]);
 
   useEffect(() => {
     if (introOpen || bag === null || loadedScenarioId !== scenarioId) return;
@@ -373,7 +378,7 @@ function PlayExperience() {
 
   const handleRetry = () => {
     setShowExitConfirm(false);
-    if (routeMode === "classroom") classroomTimer.reset();
+    if (routeMode === "classroom") { classroomTimer.reset(); classroomRun.reset(); }
     // A new attempt replaces only this level's unfinished snapshot.
     discardRun();
     if (runKey) deleteRun(runKey);
@@ -463,7 +468,7 @@ function PlayExperience() {
           key={scenarioId}
           onReady={routeMode === "classroom" ? handleSceneReady : undefined}
           venue={routeMode === "mission" ? mission?.venueId : "studio"}
-          active={!introOpen && !showResultModal && !showExitConfirm && !classroomWaiting && !bagOpen && !trainingFailed && !((routeMode === "mission" || routeMode === "classroom") && trainingCompleted) && !simPaused}
+          active={!introOpen && !showResultModal && !showExitConfirm && !classroomWaiting && !classroomRun.syncBlocked && !bagOpen && !trainingFailed && !((routeMode === "mission" || routeMode === "classroom") && trainingCompleted) && !simPaused}
           fallbackLook={fallbackLook}
           touch={touch}
           onExitFallback={exitFallback}
@@ -655,13 +660,15 @@ function PlayExperience() {
       {routeMode === "classroom" && trainingFailed && !introOpen && bag !== null && (
         <MissionOutcomeModal status="failed" missionTitle={currentTitle} venue="ห้องฝึกปราณสัญญาณ" level={0}
           completed={connectedRoutes} total={trainingTotal({ scenarioId })} mistakes={mistakeCount} elapsed={classroomTimer.elapsed / 1000}
+          balance={classroomRun.balance} stonesError={classroomRun.error} reviving={classroomRun.busy} reviveDisabled={classroomRun.busy || classroomRun.syncBlocked}
+          reviveCost={CLASSROOM_REVIVE_COST} onRevive={classroomRun.available ? classroomRun.revive : undefined}
           onRetry={handleRetry} onReturn={() => router.push("/academy")} />
       )}
       {routeMode === "mission" && trainingFailed && !showResultModal && (
         <MissionOutcomeModal status="failed" missionTitle={currentTitle} venue={mission?.venue ?? "ห้องภารกิจ"} level={difficultyLevel}
           completed={connectedRoutes} total={trainingTotal({ scenarioId })} mistakes={mistakeCount}
           stonesError={stones.error} reviving={stones.reviving} balance={stones.balance}
-          freeRevive={!stones.canRevive} onRevive={async () => { if (!stones.canRevive || await stones.revive()) useTrainingStore.getState().revive(); }}
+          freeRevive={!stones.canRevive} onRevive={async () => { const resumed = !stones.canRevive || await stones.revive(); if (resumed) useTrainingStore.getState().revive(); return resumed; }}
           onRetry={handleRetry} onReturn={() => router.push("/missions")} />
       )}
 
@@ -673,7 +680,13 @@ function PlayExperience() {
           onRetry={handleRetry} onReturn={() => router.push("/missions")} />
       )}
 
-      {routeMode !== "mission" && showResultModal && (
+      {routeMode === "classroom" && showResultModal && trainingCompleted && !trainingFailed && (
+        <MissionOutcomeModal status="success" missionTitle={currentTitle} venue="ห้องฝึกปราณสัญญาณ" level={0}
+          completed={connectedRoutes} total={trainingTotal({ scenarioId })} mistakes={mistakeCount} elapsed={classroomTimer.elapsed / 1000}
+          reward={classroomRun.reward !== null ? `+${classroomRun.reward} หินวิญญาณ` : undefined} progressError={classroomRun.error}
+          onRetry={handleRetry} onReturn={() => router.push("/academy")} />
+      )}
+      {routeMode !== "mission" && routeMode !== "classroom" && showResultModal && (
         <MissionResultModal
           playerName={player.nickname}
           missionTitle={currentTitle}

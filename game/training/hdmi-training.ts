@@ -40,6 +40,7 @@ export interface HeldEnd { cableId: CableId; end: CableEnd; single?: boolean }
 export type PickMode = "whole" | "a" | "b";
 export interface TrainingNotice { title: string; detail: string; tone: "success" | "error" | "info" }
 export interface TrainingState {
+  classroom?: import("./classroom-rules").ClassroomLearning;
   selectedWireless?: "tx1" | "tx2";
   scenarioId: ScenarioId;
   cables: Record<CableId, CableState>;
@@ -89,6 +90,7 @@ export function initialTrainingState(scenarioId: ScenarioId = "hdmi-basic", hidd
   return {
     scenarioId,
     selectedWireless: undefined,
+    classroom: undefined,
     cables,
     held: null,
     heldItem: null,
