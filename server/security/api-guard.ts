@@ -16,7 +16,9 @@ function reply(status: number, message: string, retry?: number) {
 }
 
 export function guardApiRequest(request: Request): Response | null {
-  if (["cross-site", "same-site"].includes(request.headers.get("sec-fetch-site") || "")) {
+  const fetchSite = request.headers.get("sec-fetch-site");
+  const sameSiteOrigin = fetchSite === "same-site" && request.headers.get("origin") === new URL(request.url).origin;
+  if (fetchSite === "cross-site" || (fetchSite === "same-site" && !sameSiteOrigin)) {
     return reply(403, "ไม่อนุญาตคำขอจากเว็บไซต์อื่น");
   }
   const url = new URL(request.url);
