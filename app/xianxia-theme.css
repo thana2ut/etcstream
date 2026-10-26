@@ -990,8 +990,14 @@
 .briefing-frame .schematic-node small { font-size: .85rem; line-height: 1.65; }
 .briefing-frame .preview-caption-bar { line-height: 1.7; font-size: .9rem; padding: 14px 16px; }
 .briefing-actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 28px; border-top: 1px solid #e9c27a44; background: #0c1930; }
+.briefing-actions { flex-wrap: wrap; }
 .briefing-actions p { margin: 0; color: #c3d3e8; line-height: 1.65; font-size: .92rem; }
 .briefing-actions > :last-child { flex-shrink: 0; min-height: 48px; }
+.reward-identity-gate { flex: 1 1 100%; min-width: 0; padding: 12px 16px; border: 1px solid #d3a85f66; border-radius: 12px; background: #101c31; }
+.briefing-actions .reward-identity-gate p { display: block; margin: 0 0 10px; color: #f1ddb3; line-height: 1.65; overflow-wrap: anywhere; }
+.reward-identity-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.reward-identity-actions .cultivation-btn { min-height: 44px; }
+.briefing-actions > .cultivation-btn:disabled { cursor: not-allowed; opacity: .55; filter: grayscale(.35); }
 .briefing-body:focus-visible { outline: 2px solid #8be4f4; outline-offset: -4px; }
 @media (max-width: 860px) {
   .briefing-header { gap: 14px; padding: 16px; }
@@ -1007,6 +1013,7 @@
   .briefing-frame .intro-mode-title { font-size: 1.25rem; margin-bottom: 2px; }
   .briefing-meta { font-size: .85rem; }
   .briefing-actions p { display: none; }
+  .briefing-actions .reward-identity-gate p { display: block; }
   .briefing-actions { justify-content: flex-end; padding: 8px 14px; }
 }
 @media (max-width: 560px) {
