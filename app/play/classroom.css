@@ -8,3 +8,117 @@
 .classroom-objectives .hud-check-item > div:first-child { min-width: 0; white-space: normal; word-break: normal; overflow-wrap: normal; }
 .classroom-objectives .hud-checkbox-square { margin-top: 3px; flex-shrink: 0; }
 @media (max-width: 760px) { .classroom-status { min-width: 150px; min-height: 46px; padding-inline: 14px; font-size: 24px; } .classroom-objectives { max-width: min(300px, calc(100vw - 32px)); max-height: calc(100dvh - 180px); } }
+Fantasy exit confirmation: keep the supplied frame and button artwork local to this dialog. */
+.play-page .exit-confirm-backdrop {
+  background: radial-gradient(ellipse at 50% 48%, rgba(19, 41, 69, .62), rgba(3, 8, 17, .88) 72%);
+  backdrop-filter: blur(5px);
+}
+.play-page .exit-confirm-modal {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  justify-items: center;
+  width: min(980px, 100%);
+  max-width: 980px;
+  min-height: 360px;
+  overflow: visible;
+  box-sizing: border-box;
+  padding: clamp(68px, 9vw, 104px) clamp(34px, 8vw, 100px) clamp(50px, 7vw, 76px);
+  border: 0;
+  border-radius: 24px;
+  background: transparent !important;
+  box-shadow: none;
+  text-align: center;
+}
+.play-page .exit-confirm-frame-art {
+  z-index: -1;
+  width: 112% !important;
+  height: 124% !important;
+  inset: -10% -6% auto !important;
+  max-width: none;
+  object-fit: fill;
+  pointer-events: none;
+  user-select: none;
+}
+.play-page .exit-confirm-title,
+.play-page .exit-confirm-desc,
+.play-page .exit-confirm-actions { position: relative; z-index: 1; }
+.play-page .exit-confirm-title,
+.play-page .exit-confirm-desc { top: 10px; }
+.play-page .exit-confirm-title {
+  margin: 0 0 14px;
+  color: #f5cf81;
+  font-size: clamp(1.45rem, 3.2vw, 2.1rem);
+  line-height: 1.35;
+  text-shadow: 0 2px 16px rgba(243, 175, 74, .3);
+}
+.play-page .exit-confirm-desc {
+  max-width: 720px;
+  margin: 0 0 clamp(22px, 4vw, 36px);
+  color: #e2e5ec;
+  font-size: clamp(.95rem, 1.6vw, 1.15rem);
+  line-height: 1.75;
+  white-space: normal;
+  text-wrap: pretty;
+}
+.play-page .exit-confirm-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  width: 100%;
+  gap: clamp(8px, 1.6vw, 18px);
+}
+.play-page .exit-confirm-actions > .cultivation-btn {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 34px;
+  align-items: center;
+  justify-items: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 62px;
+  max-height: 84px;
+  aspect-ratio: 3 / 1;
+  box-sizing: border-box;
+  gap: 6px;
+  padding: 10px clamp(16px, 2vw, 24px);
+  border: 0 !important;
+  border-radius: 14px;
+  background-color: transparent !important;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  box-shadow: none !important;
+  overflow: visible;
+  color: #f6e4bd;
+  text-align: center;
+  text-shadow: 0 1px 7px rgba(0, 0, 0, .75);
+  transition: filter .18s ease, transform .18s ease;
+}
+.play-page .exit-confirm-actions > .cultivation-btn:hover { filter: brightness(1.12) drop-shadow(0 0 9px rgba(235, 198, 122, .32)); transform: none; }
+.play-page .exit-confirm-actions > .cultivation-btn:active { transform: none; }
+.play-page .exit-confirm-actions > .cultivation-btn:focus-visible { outline: 2px solid #fff0bf; outline-offset: 3px; }
+.play-page .exit-confirm-actions .exit-confirm-continue { background-image: url('/images/xianxia/ui/exit-button-blue.webp') !important; }
+.play-page .exit-confirm-actions .exit-confirm-restart { background-image: url('/images/xianxia/ui/exit-button-gold.webp') !important; }
+.play-page .exit-confirm-actions .exit-confirm-leave { background-image: url('/images/xianxia/ui/exit-button-red.webp') !important; }
+.play-page .exit-confirm-actions > .cultivation-btn:is(:hover, :active, :focus-visible) {
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+  background-size: 100% 100% !important;
+}
+.play-page .exit-confirm-actions .btn-glow-overlay { display: none; }
+.play-page .exit-confirm-actions .btn-icon { grid-column: 1; display: grid; place-items: center; width: 25px; height: 25px; margin: 0; }
+.play-page .exit-confirm-actions .btn-icon svg { display: block; width: 100%; height: 100%; }
+.play-page .exit-confirm-actions .btn-text { grid-column: 2; justify-self: center; min-width: 0; font-size: clamp(.88rem, 1.4vw, 1.06rem); line-height: 1.3; }
+.play-page .exit-confirm-actions .btn-arrow { grid-column: 3; display: grid; place-items: center; transform: none !important; transition: none; }
+.play-page .exit-confirm-actions .btn-icon { transform: none !important; }
+@media (max-width: 620px) {
+  .play-page .exit-confirm-modal { min-height: 0; padding: 58px 28px 42px; }
+  .play-page .exit-confirm-frame-art { width: 118% !important; height: 120% !important; inset: -7% -9% auto !important; }
+  .play-page .exit-confirm-desc { margin-bottom: 20px; }
+  .play-page .exit-confirm-actions { grid-template-columns: 1fr; gap: 8px; }
+  .play-page .exit-confirm-actions > .cultivation-btn { min-height: 58px; max-height: 74px; grid-template-columns: 44px minmax(0, 1fr) 34px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .play-page .exit-confirm-actions > .cultivation-btn { transition: none; }
+}
+

@@ -372,7 +372,8 @@ function PlayExperience() {
 
 
   const handleRetry = () => {
-    if (routeMode === "classroom") { classroomTimer.reset(); setSceneReady(false); }
+    setShowExitConfirm(false);
+    if (routeMode === "classroom") classroomTimer.reset();
     // A new attempt replaces only this level's unfinished snapshot.
     discardRun();
     if (runKey) deleteRun(runKey);
@@ -626,16 +627,23 @@ function PlayExperience() {
           if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
           else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
         }}>
-          <div className="exit-confirm-modal glass-card dialog-panel gold-border-frame with-corner-runes">
+          <div className="exit-confirm-modal">
+            <Image src="/images/xianxia/ui/exit-modal-frame.webp" alt="" fill sizes="(max-width: 760px) 100vw, 980px" className="exit-confirm-frame-art" priority />
             <h2 className="exit-confirm-title">{routeMode === "classroom" ? "พักการฝึก" : "ออกจากการฝึกหรือไม่?"}</h2>
             <p className="exit-confirm-desc">
               {routeMode === "classroom" ? "เวลาหยุดแล้ว กดฝึกต่อเพื่อนับเวลาต่อจากเดิม หรือออกจากห้องเพื่อบันทึกความคืบหน้า" : "“ความคืบหน้าในรอบนี้อาจถูกยกเลิก แต่ข้อมูลผู้ฝึกและภารกิจของเจ้าจะยังคงอยู่”"}
             </p>
             <div className="exit-confirm-actions">
-              <ActionButton variant="glass" size="md" onClick={handleCancelExit} arrow={false} autoFocus={routeMode === "classroom"}>
+              <ActionButton variant="glass" size="md" className="exit-confirm-continue" onClick={handleCancelExit} arrow={false} autoFocus={routeMode === "classroom"}
+                icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>}>
                 ฝึกต่อ
               </ActionButton>
-              <ActionButton variant="danger" size="md" onClick={handleConfirmExit}>
+              <ActionButton variant="outline" size="md" className="exit-confirm-restart" onClick={handleRetry} arrow={false}
+                icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 7v5h-5"/><path d="M19 12a7 7 0 1 1-2-5l3 5"/></svg>}>
+                เริ่มใหม่
+              </ActionButton>
+              <ActionButton variant="danger" size="md" className="exit-confirm-leave" onClick={handleConfirmExit}
+                icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M14 3h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg>}>
                 ออกจากห้องฝึก
               </ActionButton>
             </div>
