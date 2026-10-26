@@ -230,6 +230,7 @@ export function ArenaPlay({ id, duelId }: { id: string; duelId?: string }) {
       <MissionOutcomeModal status="success" missionTitle={missionTitle} venue={venueLabel ?? "สนามประลอง"} level={missionLevel}
         completed={connected} total={scenario.cables.length} mistakes={state.wrongStreak} elapsed={elapsed}
         stones={stones.reward} stonesError={stones.error || error || syncError || undefined} stonesTracked={Boolean(stoneStage)} stonesPreview={stones.preview}
+        onRetrySync={() => void stones.retryFinish()} reviving={stones.savingReward}
         returnLabel="กลับหอประลอง" progressError={error || syncError || undefined}
         onRetry={() => router.push("/arena/time-attack")} onReturn={() => router.push("/arena")} />
     </ArenaShell>;
@@ -249,6 +250,7 @@ export function ArenaPlay({ id, duelId }: { id: string; duelId?: string }) {
     {attempt.graphValid && attempt.status !== "DNF" && !successDismissed && <MissionOutcomeModal status="success" missionTitle={missionTitle} venue={venueLabel ?? "หอประลอง"} level={missionLevel}
       completed={trainingTotal({ scenarioId: attempt.scenario as ScenarioId })} total={trainingTotal({ scenarioId: attempt.scenario as ScenarioId })}
       mistakes={useTrainingStore.getState().wrongStreak} stones={stones.reward} stonesError={stones.error} stonesTracked={true} elapsed={attempt.elapsedMs === null ? null : attempt.elapsedMs / 1000}
+      onRetrySync={() => void stones.retryFinish()} reviving={stones.savingReward}
       onRetry={() => router.push("/arena/time-attack")} onReturn={() => setSuccessDismissed(true)} />}
     <ArenaBanner title="ผลรอบฝึกกาลเวลา" file="card-time-attack"><p>{venueLabel} · {scenario.stage.title}</p></ArenaBanner>
     <section className="arena-panel arena-result" data-outcome={attempt.status}>

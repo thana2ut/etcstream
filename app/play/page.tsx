@@ -682,6 +682,7 @@ function PlayExperience() {
         <MissionOutcomeModal status="success" missionTitle={currentTitle} venue={mission?.venue ?? "ห้องภารกิจ"} level={difficultyLevel}
           completed={connectedRoutes} total={trainingTotal({ scenarioId })} mistakes={mistakeCount}
           reward={activeScenario.stage?.reward} stones={stones.reward} stonesError={stones.error} stonesTracked={stones.canRevive || !!stones.reward} stonesPreview={stones.preview} elapsed={stones.elapsed} merit={reward?.merit} rankUp={reward?.rankUp} progressError={progressError}
+          onRetrySync={() => void stones.retryFinish()} reviving={stones.savingReward}
           onNext={difficultyLevel < 5 && (Boolean(progress?.selected?.admin) || Boolean(progress?.completed[mission?.slug ?? ""]?.includes(difficultyLevel))) ? handleNextMission : undefined}
           onRetry={handleRetry} onReturn={() => router.push("/missions")} />
       )}
@@ -689,7 +690,8 @@ function PlayExperience() {
       {routeMode === "classroom" && showResultModal && trainingCompleted && !trainingFailed && (
         <MissionOutcomeModal status="success" missionTitle={currentTitle} venue="ห้องฝึกปราณสัญญาณ" level={0}
           completed={connectedRoutes} total={trainingTotal({ scenarioId })} mistakes={mistakeCount} elapsed={classroomTimer.elapsed / 1000}
-          simpleStoneReward={classroomRun.reward ?? undefined} progressError={classroomRun.error} returnLabel="กลับสู่สำนัก" retryLabel="เริ่มใหม่ทั้งห้อง"
+          simpleStoneReward={classroomRun.reward ?? undefined} stonesTracked={true} stonesError={classroomRun.error || (classroomRun.available ? undefined : "รอบนี้ยังไม่มีบันทึกยืนยันรางวัล กรุณาเริ่มรอบใหม่")} progressError={classroomRun.error} returnLabel="กลับสู่สำนัก" retryLabel="เริ่มใหม่ทั้งห้อง"
+          onRetrySync={() => void classroomRun.retrySync()} reviving={classroomRun.busy}
           onRetry={handleRetry} onReturn={() => router.push("/academy")} />
       )}
       {routeMode !== "mission" && routeMode !== "classroom" && showResultModal && (

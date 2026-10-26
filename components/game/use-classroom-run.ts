@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { api } from "@/components/arena/client-api";
+import { api, notifyEconomyChanged } from "@/components/arena/client-api";
 import { subscribeCompetitionCommands, type CompetitionCommand } from "@/game/training/competition-commands";
 import { useTrainingStore } from "@/game/stores/training-store";
 import { initialTrainingState, trainingProgress, type TrainingState } from "@/game/training/hdmi-training";
@@ -21,7 +21,7 @@ export function useClassroomRun(enabled: boolean, bag: Record<string, number> | 
   const applyState = (reply: Reply) => {
     if (reply.state) useTrainingStore.setState({ ...reply.state, invalidConnectionAttempt: false, wrongStreak: reply.state.classroom?.mistakes ?? 0, failed: reply.state.classroom?.failed ?? false, focusedTarget: null, inspecting: null, inspectHoldStart: null });
     if (typeof reply.balance === "number") setBalance(reply.balance);
-    if (typeof reply.reward === "number") setReward(reply.reward);
+    if (typeof reply.reward === "number") { setReward(reply.reward); notifyEconomyChanged(); }
   };
   const drain = useCallback(async () => {
     if (draining.current || !authoritative.current || blocked.current || !run.current) return;
@@ -34,7 +34,7 @@ export function useClassroomRun(enabled: boolean, bag: Record<string, number> | 
         if (!live.current || version !== generation.current) return;
         seq.current++; queue.current.shift();
         if (typeof reply.balance === "number") setBalance(reply.balance);
-        if (typeof reply.reward === "number") setReward(reply.reward);
+        if (typeof reply.reward === "number") { setReward(reply.reward); notifyEconomyChanged(); }
         if (reply.status === "completed") { try { sessionStorage.removeItem(storageKey); } catch {} }
       }
       setError("");

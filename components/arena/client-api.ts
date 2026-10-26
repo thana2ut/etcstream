@@ -1,6 +1,7 @@
 "use client";
 import type { TrainingState } from "@/game/training/hdmi-training";
 export function apiErrorMessage(value: unknown, fallback = "เชื่อมต่อระบบไม่ได้"): string {
+  if (typeof value === "string" && /^(forbidden|unauthorized)$/i.test(value.trim())) return "ระบบยังไม่อนุญาตให้บันทึกผล กรุณาเข้าสู่ระบบอีกครั้ง แล้วกดบันทึกรางวัลซ้ำ";
   if (typeof value === "string" && value.trim() && value !== "[object Object]") return value;
   if (value && typeof value === "object") {
     const error = value as { message?: unknown; error?: unknown };
@@ -9,6 +10,11 @@ export function apiErrorMessage(value: unknown, fallback = "เชื่อม�
     if (error.error && typeof error.error === "object" && error.error !== value) return apiErrorMessage((error.error as { message?: unknown }).message, fallback);
   }
   return fallback;
+}
+export function notifyEconomyChanged() {
+  clearCache();
+  window.dispatchEvent(new Event("etc-economy-changed"));
+  try { const channel = new BroadcastChannel("etc-economy-changed"); channel.postMessage("refresh"); channel.close(); } catch {}
 }
 export async function api<T>(path: string, body?: unknown, admin = false, signal?: AbortSignal): Promise<T> {
   let response:Response;

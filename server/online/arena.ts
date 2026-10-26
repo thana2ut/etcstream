@@ -234,7 +234,7 @@ export async function cloudArena(request: Request, path: string[]) {
         if (!/^(xs|s|m|l|xl)-[1-5]$/.test(stage) || !SCENARIOS[stage as ScenarioId]?.stage) throw new ArenaError(400, "ไม่พบด่านภารกิจนี้");
         if (uuid(body.run)) {
           const previous = checked(await trustedClient().from("etc_mission_runs").select("id,stage,started,status").eq("id", body.run).eq("player", user.id).eq("stage", stage).maybeSingle());
-          if (previous?.status === "running") return response({ run: previous.id, stage: previous.stage, started: previous.started });
+          if (previous && ["running", "cleared"].includes(previous.status)) return response({ run: previous.id, stage: previous.stage, started: previous.started });
         }
         return response(await mission("start", { stage }));
       }
@@ -245,6 +245,9 @@ export async function cloudArena(request: Request, path: string[]) {
       }
       if (route === "mission/finish") {
         const stage = String(body.stage || ""), cables = body.cables;
+        const owned = checked(await trustedClient().from("etc_mission_runs").select("id,stage,status").eq("id", body.run).eq("player", user.id).maybeSingle());
+        if (!owned || owned.stage !== stage) throw new ArenaError(409, "บันทึกรอบไม่ตรงกับด่านนี้ กรุณาใช้รอบเดิมที่เริ่มเล่น", "RUN_MISMATCH");
+        if (owned.status === "cleared") return response(await mission("finish", { run: owned.id }));
         if (!SCENARIOS[stage as ScenarioId]?.stage || !cables || typeof cables !== "object" || Array.isArray(cables) || JSON.stringify(cables).length > 60000) throw new ArenaError(400, "ข้อมูลการต่อสายไม่ถูกต้อง");
         if (!missionWired({ scenarioId: stage as ScenarioId, cables: cables as TrainingState["cables"] })) throw new ArenaError(409, "การต่อสายยังไม่ครบตามภารกิจ ระบบจึงยังไม่มอบหินวิญญาณ");
         const mistakes = Math.min(3, Math.max(0, Math.trunc(Number(body.mistakes) || 0)));
