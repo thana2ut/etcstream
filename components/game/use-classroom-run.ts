@@ -48,7 +48,7 @@ export function useClassroomRun(enabled: boolean, bag: Record<string, number> | 
     const version = ++generation.current;
     if (!useTrainingStore.getState().classroom) useTrainingStore.setState({ classroom: freshClassroomLearning() });
     const unsubscribe = subscribeCompetitionCommands((command) => {
-      if (authoritative.current && version === generation.current && ["interact", "drop", "takeCable", "stowHeld"].includes(command.method)) { queue.current.push(command); setPending(true); void drain(); }
+      if (authoritative.current && version === generation.current && ["interact", "drop", "takeCable", "stowHeld", "review"].includes(command.method)) { queue.current.push(command); setPending(true); void drain(); }
     });
     void (async () => {
       let stored: string | null = null;

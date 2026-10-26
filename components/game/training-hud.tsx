@@ -21,8 +21,16 @@ function parsePrompt(instruction: string): { key: PromptKey | null; text: string
   return m ? { key: m[1] as PromptKey, text: m[2] } : { key: null, text: instruction };
 }
 
-export function TrainingHud({ title, difficultyLabel, objective, touch }: { title: string; difficultyLabel?: string; objective?: string; touch: boolean }) {
+export function TrainingHud({ title, difficultyLabel, objective, touch, elapsedTime }: { title: string; difficultyLabel?: string; objective?: string; touch: boolean; elapsedTime?: string }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  useEffect(() => {
+    if (!touch) return;
+    const query = window.matchMedia("(max-width: 760px), (max-height: 500px)");
+    const update = () => { if (query.matches) setIsCollapsed(true); };
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, [touch]);
   const state = useTrainingStore();
   // The status banner shows each new action's result for 3.5 s, then clears itself.
   const notice = state.notice;
@@ -119,6 +127,7 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
           {scenario.venueScale && state.completed && <p className="hud-panel-sub" role="status" style={{ color: "var(--success)", fontWeight: 700 }}>✓ ผ่านด่านแล้ว — ครบทุกเงื่อนไข</p>}
 
           <div className="hud-checklist">
+            {elapsedTime !== undefined && <p className="hud-panel-sub" role="timer" aria-label={`เวลาที่ใช้ ${elapsedTime}`} style={{ fontVariantNumeric: "tabular-nums", color: "var(--gold-soft)" }}>เวลาที่ใช้ {elapsedTime}</p>}
             {rows.map((group) => (
               <div key={group.id} className="hud-check-group">
                 {rows.length > 1 && <span className="hud-check-group-title">{group.title}</span>}
@@ -142,7 +151,6 @@ export function TrainingHud({ title, difficultyLabel, objective, touch }: { titl
       )}
 
       {/* Bottom-Left Controls Guide (REF 09) */}
-      {showFinalWarning && !state.failed && <div className="mission-final-warning" role="alert"><strong>คำเตือนครั้งสุดท้าย</strong><span>ท่านผิดพลาดครบ 3 ครั้งแล้ว หากต่อสายผิดอีกครั้ง ภารกิจจะล้มเหลวทันที</span></div>}
       {!touch && <ControlsGuide />}
 
       {/* Center Bottom Interaction Prompt (REF 09) */}

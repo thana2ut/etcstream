@@ -113,7 +113,7 @@ export const EQUIPMENT_INFO: Record<string, EquipmentInfo> = {
     model: "Samsung 85\" Crystal UHD U8000F · UA85U8000FKXXT",
     role: "ปลายทางภาพสำหรับตรวจดู Program และ Multi View",
     summary: "ทีวี 4K ขนาด 85 นิ้ว รับภาพจาก Video Switcher เพื่อให้ผู้ควบคุมตรวจภาพก่อนบันทึกหรือถ่ายทอดสด",
-    facts: ["HDMI INPUT มี 3 ช่องสำหรับรับภาพและเสียง", "รับได้ทั้ง PGM OUT และ MULTIVIEW OUT ของ HDS7105", "จอแสดงภาพจำลองตามเส้นทางสัญญาณที่ต่อจริงในห้องฝึก", "ทีวีแสดงภาพ ไม่ได้ทำหน้าที่สลับกล้อง"],
+    facts: ["HDMI INPUT มี 3 ช่องสำหรับรับภาพและเสียง", "รับได้ทั้ง PGM OUT และ MULTIVIEW OUT ของ HDS7105", "จอแสดงภาพตามเส้นทางสัญญาณที่ต่อจริงในห้องฝึก", "ทีวีแสดงภาพ ไม่ได้ทำหน้าที่สลับกล้อง"],
     inThisRoom: "HDS7105 MULTIVIEW หรือ PGM HDMI OUT → HDMI Cable → Samsung TV HDMI IN",
     unverified: ["ตำแหน่งช่อง HDMI ด้านหลังประมาณจากภาพอ้างอิง"],
   },

@@ -824,3 +824,19 @@ html, body { overscroll-behavior: none; }
 body { text-wrap: pretty; overflow-wrap: break-word; line-height: 1.6; }
 h1, h2, h3, h4, h5, h6, button, label, summary, th, .training-feedback, .hud-panel-title, .hud-check-item span,
 .prompt-action-pill, .cl-slot-name, .cl-bag-pick strong, .mission-plaque strong { text-wrap: balance; }
+
+/* Preserve source characters and let the browser find Thai word boundaries. */
+html:lang(th) :where(p, li, dt, dd, label, summary, button, textarea, select) {
+  word-break: normal;
+  overflow-wrap: break-word;
+  letter-spacing: normal;
+}
+textarea, select { font: inherit; }
+.no-split {
+  display: inline-block;
+  max-inline-size: 100%;
+  vertical-align: baseline;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: break-word;
+}

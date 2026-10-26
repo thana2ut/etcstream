@@ -5,6 +5,7 @@
 /docs/
 /tests/
 /art/
+/supabase/
 # Root design references only. Keep game/assets and public/assets in the build.
 /assets/
 /dm-qinglian-extract/

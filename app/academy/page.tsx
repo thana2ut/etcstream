@@ -8,6 +8,7 @@ import { AcademyHeader } from "@/components/ui/academy-header";
 import { ActionButton } from "@/components/ui/action-buttons";
 import { FantasyBackground } from "@/components/ui/fantasy-background";
 import { soundEngine } from "@/game/audio/sound-engine";
+import "./academy.css";
 
 export default function Academy() {
   const router = useRouter();
@@ -45,8 +46,8 @@ export default function Academy() {
 
   return (
       <main className="fantasy-viewport academy-page">
-      {/* 100% Procedural Fantasy Background */}
-      <FantasyBackground variant="academy" image="/images/xianxia/bg-academy.webp" />
+      {/* Mountain sanctuary backdrop, scoped to the room selection page. */}
+      <FantasyBackground variant="academy" image="/images/xianxia/bg-gate.webp" />
 
       {/* Header with trainee info and Back Button */}
       <AcademyHeader
@@ -61,8 +62,8 @@ export default function Academy() {
         <div className="chamber-hero-header">
           <h1 className="chamber-title">{copy.academy.eyebrow}</h1>
           <p className="chamber-desc">
-            ยินดีต้อนรับ ผู้ฝึก<strong>{player.nickname}</strong> ณ สถานที่แห่งนี้มีสองเส้นทาง
-            เส้นทางหนึ่งเพื่อฝึกฝนตนเอง อีกเส้นทางจะนำนักไปสู่ภารกิจที่เปลี่ยนทุกจังหวะการฝึกให้กลายเป็นประสบการณ์จริง
+            ยินดีต้อนรับ ผู้ฝึก <strong>{player.nickname}</strong> ณ สถานที่แห่งนี้มีสองเส้นทาง
+            เส้นทางหนึ่งเพื่อฝึกฝนตนเอง อีกเส้นทางจะนำนักไปสู่ภารกิจ<br />ที่เปลี่ยนทุกจังหวะการฝึกให้กลายเป็นประสบการณ์จริง
           </p>
         </div>
 
@@ -81,7 +82,7 @@ export default function Academy() {
               <h2 className="portal-heading">{copy.academy.classroom.subtitle}</h2>
               <span className="portal-subtitle">{copy.academy.classroom.title}</span>
               <p className="portal-desc">
-                ฝึกได้อิสระ ไม่มีเวลา สอนชัด ลองถูกเพื่อความเข้าใจที่แท้จริง
+                ฝึกวิชาสายสัญญาณให้ชำนาญ ขัดเกลาพื้นฐานให้พร้อมก่อนเข้าสอบสำนัก
               </p>
               <ActionButton variant="cyan" size="md" onClick={enterClassroom}>
                 {copy.academy.classroom.action}
@@ -102,7 +103,7 @@ export default function Academy() {
               <h2 className="portal-heading">{copy.academy.mission.subtitle}</h2>
               <span className="portal-subtitle">รับภารกิจสำนัก</span>
               <p className="portal-desc">
-                เลือกบทภารกิจที่เจ้าสนใจ แล้วไต่ระดับบททดสอบทีละขั้น
+                รับภารกิจจากสำนัก ฝึกซ้อมฝีมือและขัดเกลาวิชาสายสัญญาณให้ก้าวหน้า
               </p>
               <ActionButton variant="gold" size="md" href="/missions">
                 เปิดหอภารกิจ

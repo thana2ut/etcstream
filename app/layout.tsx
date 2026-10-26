@@ -4,7 +4,6 @@ import localFont from "next/font/local";
 import { academyCopy } from "@/game/content/academy-copy";
 import { AudioProvider } from "@/components/audio/audio-provider";
 import { PageLock } from "@/components/ui/page-lock";
-import { TextTidy } from "@/components/ui/text-tidy";
 import "./globals.css";
 import "./app-shell.css";
 import "./cultivation-theme.css";
@@ -39,7 +38,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="th" className={`${sarabun.variable} ${charm.variable} ${kart.variable}`}>
-      <body><PageLock /><TextTidy /><AudioProvider>{children}</AudioProvider></body>
+      <body><PageLock /><AudioProvider>{children}</AudioProvider></body>
     </html>
   );
 }

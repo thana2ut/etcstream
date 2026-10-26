@@ -1,22 +1,23 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "./client-api";
+import { ADMIN_PAGE_SIZE, AdminPagination } from "./admin-pagination";
 import { SLOT_LABELS, stones } from "@/game/content/economy-catalog";
 
 type Status = "draft" | "published" | "unpublished" | "archived";
 type Item = { sku: string; name: string; description: string | null; slot: string; rarity: string | null; price: number; asset: string; sort: number; status: Status; legacy: boolean; starter: boolean; created: number; updated: number; purchases: number; owners: number };
 type Draft = { sku: string; name: string; description: string; slot: string; rarity: string; price: string; sort: string; asset: string };
 
-const STATUS: Record<Status, string> = { draft: "แบบร่าง", published: "เปิดขาย", unpublished: "ซ่อนชั่วคราว", archived: "ยุติการขาย" };
+const STATUS: Record<Status, string> = { draft: "แบบร่าง", published: "เปิดขาย", unpublished: "ซ่อน", archived: "ยุติการขาย" };
 const SLOTS = Object.keys(SLOT_LABELS).filter((s) => s !== "portraitOutfit");
-const PAGE = 20;
+const PAGE = ADMIN_PAGE_SIZE;
 const empty: Draft = { sku: "", name: "", description: "", slot: "profileAvatar", rarity: "", price: "100", sort: "900", asset: "" };
 const toDraft = (i: Item): Draft => ({ sku: i.sku, name: i.name, description: i.description ?? "", slot: i.slot, rarity: i.rarity ?? "", price: String(i.price), sort: String(i.sort), asset: i.asset });
 
 /** V27 live marketplace CMS: create/edit/upload/publish without a redeploy. Never deletes rows or touches ownership. */
 export function CatalogManager() {
   const [items, setItems] = useState<Item[] | null>(null), [error, setError] = useState(""), [notice, setNotice] = useState("");
-  const [q, setQ] = useState(""), [slot, setSlot] = useState("all"), [status, setStatus] = useState("all"), [order, setOrder] = useState("updated"), [page, setPage] = useState(0);
+  const [q, setQ] = useState(""), [slot, setSlot] = useState("all"), [status, setStatus] = useState("all"), [order, setOrder] = useState("updated"), [pageIndex, setPage] = useState(0);
   const [form, setForm] = useState<Draft | null>(null), [origin, setOrigin] = useState(""), [busy, setBusy] = useState(false), [uploading, setUploading] = useState(false);
   const load = useCallback(async () => {
     setError("");
@@ -38,7 +39,7 @@ export function CatalogManager() {
     const by: Record<string, (a: Item, b: Item) => number> = { updated: (a, b) => b.updated - a.updated, price: (a, b) => a.price - b.price, sort: (a, b) => a.sort - b.sort, purchases: (a, b) => b.purchases - a.purchases, name: (a, b) => a.name.localeCompare(b.name, "th") };
     return rows.sort(by[order]);
   }, [items, q, slot, status, order]);
-  const pages = Math.max(1, Math.ceil(list.length / PAGE)), shown = list.slice(page * PAGE, page * PAGE + PAGE);
+  const pages = Math.max(1, Math.ceil(list.length / PAGE)), page = Math.min(pageIndex, pages - 1), shown = list.slice(page * PAGE, page * PAGE + PAGE);
   const current = form?.sku ? items?.find((i) => i.sku === form.sku) : undefined;
   const locked = !!current && (current.legacy || current.starter);
 
@@ -85,7 +86,7 @@ export function CatalogManager() {
       <select value={status} onChange={(e) => { setStatus(e.target.value); setPage(0); }} aria-label="สถานะ"><option value="all">ทุกสถานะ</option>{Object.entries(STATUS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
       <select value={order} onChange={(e) => setOrder(e.target.value)} aria-label="เรียงตาม"><option value="updated">แก้ไขล่าสุด</option><option value="sort">ลำดับร้าน</option><option value="price">ราคา</option><option value="purchases">ยอดขาย</option><option value="name">ชื่อ</option></select>
       <button type="button" onClick={() => open({ ...empty })}>+ เพิ่มสินค้า</button>
-      <button type="button" className="arena-button-secondary" onClick={() => void load()}>รีเฟรช</button>
+      <button type="button" className="arena-button-secondary" onClick={() => void load()}>โหลดข้อมูลใหม่</button>
     </div>
     {error && <p className="arena-error" role="alert">{error}</p>}
     {notice && <p className="arena-note" role="status">{notice}</p>}
@@ -94,8 +95,8 @@ export function CatalogManager() {
       {locked && <p className="arena-note">สินค้ารุ่นก่อน/ของเริ่มต้นฟรี — ดูได้อย่างเดียว ใช้ “ทำสำเนา” เพื่อสร้างสินค้าใหม่</p>}
       <div className="admin-market-edit">
         <fieldset disabled={locked || busy}>
-          <label>ชื่อสินค้า (2–60)<input value={form.name} maxLength={60} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>
-          <label>คำอธิบาย (ไม่เกิน 500)<textarea value={form.description} maxLength={500} rows={3} onChange={(e) => setForm({ ...form, description: e.target.value })} /></label>
+          <label>ชื่อสินค้า (2–60 ตัวอักษร)<input value={form.name} maxLength={60} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>
+          <label>คำอธิบาย (ไม่เกิน 500 ตัวอักษร)<textarea value={form.description} maxLength={500} rows={3} onChange={(e) => setForm({ ...form, description: e.target.value })} /></label>
           <label>หมวดหมู่<select value={form.slot} onChange={(e) => setForm({ ...form, slot: e.target.value })}>{SLOTS.map((s) => <option key={s} value={s}>{SLOT_LABELS[s as keyof typeof SLOT_LABELS]}</option>)}</select></label>
           <label>ความหายาก<input value={form.rarity} maxLength={30} placeholder="เช่น หายาก, ตำนาน" onChange={(e) => setForm({ ...form, rarity: e.target.value })} /></label>
           <label>ราคา (หินวิญญาณ)<input type="number" min={1} max={1000000} step={1} value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} /></label>
@@ -103,8 +104,8 @@ export function CatalogManager() {
           <label>รูปสินค้า (PNG/JPEG/WebP/GIF ≤ 4 MB)<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" disabled={uploading} onChange={(e) => { const f = e.target.files?.[0]; if (f) void upload(f); e.target.value = ""; }} /></label>
           {uploading && <p role="status">กำลังอัปโหลด…</p>}
         </fieldset>
-        <div className="admin-market-preview" aria-label="ตัวอย่างในร้าน">
-          <div className="admin-market-card">{form.asset ? <img src={form.asset} alt="" /> : <span>ยังไม่มีรูป</span>}<strong>{form.name || "ชื่อสินค้า"}</strong><small>{SLOT_LABELS[form.slot as keyof typeof SLOT_LABELS]}{form.rarity && ` · ${form.rarity}`}</small><em>{stones(Number(form.price) || 0)} หินวิญญาณ</em></div>
+        <div className="admin-market-preview" aria-label="การแสดงผลในร้าน">
+          <div className="admin-market-card">{form.asset && <img src={form.asset} alt="" />}<strong>{form.name}</strong><small>{SLOT_LABELS[form.slot as keyof typeof SLOT_LABELS]}{form.rarity && ` · ${form.rarity}`}</small><em>{stones(Number(form.price) || 0)} หินวิญญาณ</em></div>
           {form.description && <p>{form.description}</p>}
         </div>
       </div>
@@ -119,8 +120,8 @@ export function CatalogManager() {
     </section>}
     {!items ? <p role="status">{error ? "" : "กำลังโหลดสินค้า…"}</p> : <>
       <p className="arena-note">ทั้งหมด {list.length} รายการ · เปิดขาย {items.filter((i) => i.status === "published").length}</p>
-      <div className="admin-market-table" role="table" aria-label="รายการสินค้า">
-        {shown.map((i) => <div key={i.sku} role="row" className={`admin-market-row is-${i.status}`}>
+      <div className="admin-market-table" role="list" aria-label="รายการสินค้า">
+        {shown.map((i) => <div key={i.sku} role="listitem" className={`admin-market-row is-${i.status}`}>
           <img src={i.asset} alt="" loading="lazy" />
           <div><strong>{i.name}</strong><small>{i.sku} · {SLOT_LABELS[i.slot as keyof typeof SLOT_LABELS] ?? i.slot}{i.rarity && ` · ${i.rarity}`}</small></div>
           <span>{stones(i.price)}</span>
@@ -135,7 +136,7 @@ export function CatalogManager() {
           </div>
         </div>)}
       </div>
-      {pages > 1 && <div className="admin-market-pages"><button type="button" disabled={page === 0} onClick={() => setPage(page - 1)}>ก่อนหน้า</button><span>{page + 1} / {pages}</span><button type="button" disabled={page >= pages - 1} onClick={() => setPage(page + 1)}>ถัดไป</button></div>}
+      <AdminPagination page={page} totalPages={pages} totalItems={list.length} onPage={setPage} hasNext={page < pages - 1} busy={busy} />
     </>}
   </div>;
 }

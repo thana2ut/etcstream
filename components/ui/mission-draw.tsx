@@ -20,7 +20,7 @@ export function MissionDrawPanel({ rolling, canDraw, canReroll, rerollsUsed, max
   onOpen: () => void;
 }) {
   const status = rolling
-    ? "หอจารึกกำลังเลือกภารกิจให้เจ้า..."
+    ? "หอจารึกกำลังเลือกภารกิจให้เจ้า…"
     : drawnTitle
       ? canDraw
         ? `ภารกิจ “${drawnTitle}” ผ่านครบ 5 ระดับแล้ว — รับภารกิจใหม่ได้`
@@ -38,7 +38,7 @@ export function MissionDrawPanel({ rolling, canDraw, canReroll, rerollsUsed, max
       {/* With an assignment in progress the main button opens it instead of sitting disabled. */}
       {showReroll && !rolling
         ? <ActionButton variant="gold" size="lg" onClick={onOpen}>เปิดภารกิจ</ActionButton>
-        : <ActionButton variant="gold" size="lg" disabled={!canDraw || rolling} onClick={onRoll}>{rolling ? "กำลังสุ่ม..." : "รับภารกิจ"}</ActionButton>}
+        : <ActionButton variant="gold" size="lg" disabled={!canDraw || rolling} onClick={onRoll}>{rolling ? "กำลังสุ่ม…" : "รับภารกิจ"}</ActionButton>}
       {showReroll && <ActionButton variant="cyan" size="md" disabled={!canReroll || rolling} onClick={onReroll}>ขอรับภารกิจใหม่ {rerollsUsed}/{maxRerolls}</ActionButton>}
     </div>
   </section>;

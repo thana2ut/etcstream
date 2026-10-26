@@ -1,5 +1,4 @@
 import "server-only";
-import { classroomAction } from "./classroom";
 import { NextResponse } from "next/server";
 import { randomBytes, randomUUID } from "node:crypto";
 import { playerClient, trustedClient } from "./supabase";
@@ -9,12 +8,16 @@ import { apply, commandCost } from "@/server/arena/command-replay";
 import { validateNickname } from "@/game/security/nickname-validation";
 import { SCENARIOS, type ScenarioId } from "@/game/training/scenarios";
 import { initialTrainingState, initSim, missionWired, type TrainingState } from "@/game/training/hdmi-training";
+import { MISSION_REWARD_PROOF_REQUIRED } from "@/game/security/mission-reward-policy";
+import { classroomAction } from "./classroom";
 import { checkMissionBag } from "@/game/content/mission-bag";
 import { hiddenCablesFor, packedLeadsFor } from "@/game/content/cable-catalog";
 import type { Json } from "./types";
 import { SKU_PATTERN } from "@/game/content/economy-catalog";
+import { hasPlayerPin, matchesPlayerPin, playerPinMetadata } from "@/server/security/player-pin";
+import { consumeCloudBudget } from "@/server/security/cloud-budget";
 import { cloudAdminSession } from "./admin";
-import { replayCloudRun } from "./replay";
+import { replayCloudRun, MAX_REPLAY_COMMANDS } from "./replay";
 import { cloudStages as stages, stageVersion as version, ensureCloudCatalog, verificationEnabled, seasonDTO, standingDTO, type CloudSeason } from "./ranked";
 
 const OWNER_ID = "49bad05a-38ae-49ae-b8b1-b2318b2d98fc";
@@ -108,7 +111,7 @@ export async function cloudArena(request: Request, path: string[]) {
       const account = testAccount(body.name)!, hash = process.env.ADMIN_TEST_CLAIM_HASH;
       if (!hash) throw new ArenaError(503, "ยังไม่ได้ตั้งค่าการยืนยันบัญชีทดสอบ กรุณาติดต่อผู้ดูแล");
       const trusted = trustedClient();
-      checked(await trusted.rpc("etc_trusted_budget", { k: "test-claim", maximum: 10, seconds: 900 }));
+      await consumeCloudBudget(trusted, "test-claim", 10, 900);
       if (typeof body.code !== "string" || body.code.length > 64 || !passwordMatches(body.code.trim(), hash)) throw new ArenaError(401, "ชื่อหรือรหัสยืนยันไม่ถูกต้อง");
       const email = `test-${account}@etcstream.example.com`, password = randomBytes(32).toString("hex");
       let id = (checked(await trusted.rpc("etc_test_account", { operation: "get", account })) as { player: string | null }).player;
@@ -125,7 +128,7 @@ export async function cloudArena(request: Request, path: string[]) {
     if (post && route === "owner-claim") {
       const hash = process.env.ADMIN_DISPLAY_NAME_CLAIM_HASH;
       if (!hash) throw new ArenaError(503, "ยังไม่ได้ตั้งค่าการยืนยันชื่อสงวน กรุณาติดต่อผู้ดูแล");
-      checked(await trustedClient().rpc("etc_trusted_budget", { k: "owner-claim", maximum: 5, seconds: 900 }));
+      await consumeCloudBudget(trustedClient(), "owner-claim", 5, 900);
       if (!reservedName(body.name) || typeof body.code !== "string" || body.code.length > 64 || !passwordMatches(body.code.trim(), hash)) throw new ArenaError(401, "ชื่อหรือรหัสยืนยันไม่ถูกต้อง");
       const password = randomBytes(32).toString("hex");
       const updated = await trustedClient().auth.admin.updateUserById(OWNER_ID, { email: OWNER_LOGIN_EMAIL, password, email_confirm: true });
@@ -135,23 +138,27 @@ export async function cloudArena(request: Request, path: string[]) {
       if (signed.error) throw new ArenaError(503, "ยังกู้บัญชีไม่ได้ กรุณาลองใหม่");
       return response({ ok: true });
     }
-    // Name + 4-digit PIN identity: the PIN lives in the auth user's app_metadata (server-only; players cannot edit it),
-    // is rate-limited per name, and signs this browser into the SAME account (same profile, stones and records).
+    // Keyed PIN digests are bound to the player ID; rate limits still apply per name.
     if (post && route === "pin-join") {
       const name = validateNickname(body.name), pin = String(body.pin ?? "");
       if (!name || reservedName(name)) throw new ArenaError(400, "ใช้ชื่อภาษาไทยหรืออังกฤษ 2–20 ตัวอักษร และไม่ใช้ชื่อสงวน");
       if (!/^[0-9]{4}$/.test(pin)) throw new ArenaError(400, "PIN ต้องเป็นตัวเลข 4 หลัก");
       const trusted = trustedClient(), nfc = name.normalize("NFC");
-      checked(await trusted.rpc("etc_trusted_budget", { k: `pin:${canonicalName(nfc)}`, maximum: 8, seconds: 900 }));
+      await consumeCloudBudget(trusted, `pin:${canonicalName(nfc)}`, 8, 900);
       const found = (checked(await trusted.from("etc_profiles").select("id,name,suspended").ilike("name", nfc.replace(/[\\%_]/g, (c) => "\\" + c))) || [])
         .filter((row) => canonicalName(String(row.name)) === canonicalName(nfc));
       if (found.length) {
         const owner = found[0];
         if (owner.suspended) throw new ArenaError(403, "บัญชีถูกระงับ กรุณาติดต่อผู้ดูแล");
         const account = await trusted.auth.admin.getUserById(owner.id);
-        const stored = account.data.user?.app_metadata?.pin;
-        if (!stored) throw new ArenaError(409, "ชื่อนี้มีผู้ใช้แล้วและยังไม่ได้ตั้ง PIN กรุณาเลือกชื่ออื่น");
-        if (stored !== pin) throw new ArenaError(401, "ชื่อหรือ PIN ไม่ถูกต้อง");
+        if (account.error || !account.data.user) throw new ArenaError(503, "ยังตรวจสอบบัญชีไม่ได้ กรุณาลองใหม่");
+        const metadata = account.data.user.app_metadata;
+        if (!hasPlayerPin(metadata)) throw new ArenaError(409, "ชื่อนี้มีผู้ใช้แล้วและยังไม่ได้ตั้ง PIN กรุณาเลือกชื่ออื่น");
+        if (!matchesPlayerPin(owner.id, pin, metadata)) throw new ArenaError(401, "ชื่อหรือ PIN ไม่ถูกต้อง");
+        if (metadata.pin != null) {
+          if ((await trusted.auth.admin.updateUserById(owner.id, { app_metadata: playerPinMetadata(owner.id, pin, metadata) })).error) throw new ArenaError(503, "ยังปรับการป้องกัน PIN ไม่สำเร็จ กรุณาลองใหม่");
+          if (user?.id === owner.id && (await client.auth.refreshSession()).error) throw new ArenaError(503, "กรุณาเข้าสู่ระบบอีกครั้งเพื่อปรับการป้องกัน PIN");
+        }
         if (user?.id === owner.id) return response({ ok: true, returning: true });
         const email = `p-${owner.id}@players.etcstream.example.com`, password = randomBytes(32).toString("hex");
         if ((await trusted.auth.admin.updateUserById(owner.id, { email, password, email_confirm: true })).error) throw new ArenaError(503, "ยังเข้าสู่บัญชีไม่ได้ กรุณาลองใหม่");
@@ -165,7 +172,7 @@ export async function cloudArena(request: Request, path: string[]) {
         user = result.data.user;
       }
       const created = checked(await client.rpc("etc_player", { action: "register", body: { name: nfc } }));
-      if ((await trusted.auth.admin.updateUserById(user.id, { app_metadata: { ...(user.app_metadata ?? {}), pin } })).error) throw new ArenaError(503, "สร้างตัวตนแล้ว แต่ยังบันทึก PIN ไม่ได้ กรุณาตั้ง PIN อีกครั้งในโปรไฟล์");
+      if ((await trusted.auth.admin.updateUserById(user.id, { app_metadata: playerPinMetadata(user.id, pin, user.app_metadata) })).error) throw new ArenaError(503, "สร้างตัวตนแล้ว แต่ยังบันทึก PIN ไม่ได้ กรุณาตั้ง PIN อีกครั้งในโปรไฟล์");
       return response(created);
     }
     if (post && route === "register") {
@@ -189,12 +196,13 @@ export async function cloudArena(request: Request, path: string[]) {
     const player = checked(await client.rpc("etc_player", { action: "get" })) as { id: string; rankPublic: boolean };
     const rpc = async (action: string, value: unknown = {}) => checked(await client.rpc("etc_player", { action, body: json(value) }));
     if (route === "profile" && post) return response(await rpc("profile", body));
-    if (route === "pin" && !post) return response({ hasPin: Boolean(user.app_metadata?.pin) });
+    if (route === "pin" && !post) return response({ hasPin: hasPlayerPin(user.app_metadata) });
     if (route === "pin" && post) {
       const pin = String(body.pin ?? "");
       if (!/^[0-9]{4}$/.test(pin)) throw new ArenaError(400, "PIN ต้องเป็นตัวเลข 4 หลัก");
-      checked(await trustedClient().rpc("etc_trusted_budget", { k: `pin-set:${user.id}`, maximum: 5, seconds: 900 }));
-      if ((await trustedClient().auth.admin.updateUserById(user.id, { app_metadata: { ...(user.app_metadata ?? {}), pin } })).error) throw new ArenaError(503, "ยังบันทึก PIN ไม่ได้ กรุณาลองใหม่");
+      await consumeCloudBudget(trustedClient(), `pin-set:${user.id}`, 5, 900);
+      if ((await trustedClient().auth.admin.updateUserById(user.id, { app_metadata: playerPinMetadata(user.id, pin, user.app_metadata) })).error) throw new ArenaError(503, "ยังบันทึก PIN ไม่ได้ กรุณาลองใหม่");
+      if ((await client.auth.refreshSession()).error) throw new ArenaError(503, "บันทึก PIN แล้ว กรุณาเข้าสู่ระบบอีกครั้ง");
       return response({ ok: true });
     }
     // V35 live duels: GET duel?op=incoming|active|get&id=…, POST duel {op, …}. Identity is auth.uid() inside etc_duel.
@@ -340,7 +348,7 @@ export async function cloudArena(request: Request, path: string[]) {
         if (!stages.includes(body.scenario as ScenarioId) || !uuid(body.requestId)) throw new ArenaError(400, "ข้อมูลรอบหรือภารกิจไม่ถูกต้อง");
         const old = checked(await db.from("etc_runs").select("*").eq("player", user.id).eq("request_id", body.requestId).maybeSingle()) as Run | null;
         if (old) { if (old.scenario !== body.scenario) throw new ArenaError(409, "รหัสรอบนี้ใช้กับด่านอื่นแล้ว"); return response(view(old)); }
-        checked(await db.rpc("etc_trusted_budget", { k: "run:" + user.id, maximum: 8, seconds: 3600 }));
+        await consumeCloudBudget(db, "run:" + user.id, 8, 3600);
         await ensureCloudCatalog();
         const id = body.scenario as ScenarioId;
         const current = checked(await db.from("etc_seasons").select("id").eq("status", "open").lte("starts", new Date().toISOString()).gt("ends", new Date().toISOString()).order("starts", { ascending: false }).limit(1).maybeSingle());
@@ -370,9 +378,10 @@ export async function cloudArena(request: Request, path: string[]) {
         const state = initialTrainingState(r.scenario, hiddenCablesFor(SCENARIOS[r.scenario], bag), packedLeadsFor(SCENARIOS[r.scenario], bag));
         state.sim = initSim(SCENARIOS[r.scenario], r.seed); patch.state = state; patch.bag = bag;
       } else if (body.action === "command") {
-        checked(await db.rpc("etc_trusted_budget", { k: "command:" + user.id, maximum: 600, seconds: 60 }));
+        await consumeCloudBudget(db, "command:" + user.id, 600, 60);
         command = body.command as { method: string; args: unknown[] };
         if (!command || typeof command.method !== "string" || !Array.isArray(command.args) || command.args.length > 3 || JSON.stringify(command).length > 8000 || !Number.isSafeInteger(body.seq)) throw new ArenaError(400, "คำสั่งเกมไม่ถูกต้อง");
+        if (Number(body.seq) < 1 || Number(body.seq) > MAX_REPLAY_COMMANDS) throw new ArenaError(409, "จำนวนคำสั่งเกินข้อจำกัดของรอบนี้ กรุณาเริ่มรอบใหม่");
         if (Number(body.seq) <= r.seq) {
           const old = checked(await db.from("etc_commands").select("payload").eq("run_id", r.id).eq("seq", body.seq).maybeSingle());
           if (!old || JSON.stringify(old.payload) !== JSON.stringify(json(command))) {
@@ -395,7 +404,7 @@ export async function cloudArena(request: Request, path: string[]) {
     throw new ArenaError(404, "ไม่พบรายการนี้");
   } catch (error) {
     const code = error instanceof Error ? error.message : "";
-    if (error instanceof ArenaError) return response({ error: error.message }, error.status);
+    if (error instanceof ArenaError) return response({ error: error.message, ...(error.code ? { code: error.code } : {}) }, error.status);
     if (/PROFILE_REQUIRED|AUTH_REQUIRED/.test(code)) return response({ error: "กรุณาเข้าสู่ระบบก่อน" }, 401);
     if (/RATE_LIMIT/.test(code)) return response({ error: "ทำรายการบ่อยเกินไป กรุณารอสักครู่" }, 429);
     if (/SUSPENDED/.test(code)) return response({ error: "บัญชีถูกระงับ กรุณาติดต่อผู้ดูแล" }, 403);

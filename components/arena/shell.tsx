@@ -11,7 +11,6 @@ import { ProfileAvatar } from "./profile-avatar";
 import { useArenaResource } from "./use-arena-resource";
 
 type ChipEquipped = { equipped?: Partial<Record<string, { asset: string }>> };
-type Inbox = { pendingIn: number; challengesIn: number };
 
 export const arenaAsset = (file: string) => `/assets/arena/${file}.png`;
 const competitionHallIcons: Record<string, string> = {
@@ -22,19 +21,20 @@ const competitionHallIcons: Record<string, string> = {
   friends: "/assets/ui/competition-hall/05_companions_icon.png",
 };
 export const arenaDestinations = [
-  // Top menu keeps five destinations; other modes stay reachable from the home cards.
+  // Friends remain available through the home card and profile shortcuts.
   ["home", "/arena", "หน้าหลัก"], ["ranked", "/arena/ranked", "จัดอันดับ"],
-  ["friends", "/arena/friends", "สหาย"], ["market", "/arena/market", "ตลาดสวรรค์"], ["profile", "/arena/profile", "โปรไฟล์"],
+  ["market", "/arena/market", "ตลาดสวรรค์"], ["profile", "/arena/profile", "โปรไฟล์"],
 ] as const;
+const allArenaDestinations = [...arenaDestinations, ["friends", "/arena/friends", "สหาย"] as const];
 export function ArenaIcon({ name }: { name: string }) { return <Image src={competitionHallIcons[name] ?? arenaAsset(`icon-${name}`)} alt="" width={44} height={44} className="arena-icon" />; }
 export function ArenaShell({ children, admin = false, adminHeader, player,rank,connection,rankState,booting = false }: { children: React.ReactNode; admin?: boolean; adminHeader?: React.ReactNode; booting?: boolean; player?: PlayerView;rank?:{tier:string;score:number}|null;connection?:"connecting"|"connected"|"disconnected";rankState?:"loading"|"stale"|"ready" }) {
   const pathname = usePathname();
-  const current = arenaDestinations.find(([, href]) => href !== "/arena" && pathname.startsWith(href))?.[0] ?? "home";
+  const current = allArenaDestinations.find(([, href]) => href !== "/arena" && pathname.startsWith(href))?.[0] ?? "home";
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
   // Live identity art and inbox count (polled only while visible; no fake presence).
-  const chip = useArenaResource<ChipEquipped>(player && !admin ? "economy" : null, 60000), inbox = useArenaResource<Inbox>(player && !admin ? "social/me" : null, 30000);
-  const unread = (inbox.data?.pendingIn ?? 0) + (inbox.data?.challengesIn ?? 0), eq = chip.data?.equipped ?? {};
+  const chip = useArenaResource<ChipEquipped>(player && !admin ? "economy" : null, 60000);
+  const eq = chip.data?.equipped ?? {};
   return <main className={`arena-shell${admin ? " is-admin" : " arena-public"}${booting ? " is-booting" : ""}`} data-arena-scene={admin ? undefined : current} aria-busy={booting || undefined}>
     <Image src={arenaAsset(admin ? "bg-admin-command-hall" : "bg-arena-hub")} alt="" fill sizes="100vw" className="arena-backdrop" />
     <div className="arena-scrim" />
@@ -42,7 +42,7 @@ export function ArenaShell({ children, admin = false, adminHeader, player,rank,c
       {admin ? adminHeader ?? <header className="arena-top"><Link href="/">กลับหน้าต้อนรับ</Link><Link href="/academy">กลับสำนัก</Link><Link href="/admin">บัญชาการสำนัก</Link></header> : <header className="arena-header" onKeyDown={(e) => { if (e.key === "Escape" && menuOpen) { setMenuOpen(false); menuButton.current?.focus(); } }}>
         <div className="arena-brand-group"><Link className="arena-home-button" href="/academy" aria-label="กลับสำนัก">← กลับสำนัก</Link><Link className="arena-brand" href="/arena"><ArenaIcon name="arena" /><span>หอประลองเซียน</span></Link></div>
         <button ref={menuButton} type="button" className="arena-menu-toggle" aria-expanded={menuOpen} aria-controls="arena-navigation" onClick={() => setMenuOpen(!menuOpen)}>เมนู {menuOpen ? "−" : "+"}</button>
-        <nav id="arena-navigation" className={`arena-navigation${menuOpen ? " is-open" : ""}`} aria-label="เมนูหอประลอง">{arenaDestinations.map(([key, href, label]) => <Link key={key} href={href} aria-current={current === key ? "page" : undefined} onClick={() => setMenuOpen(false)}>{label}{key === "friends" && unread > 0 && <span className="arena-nav-badge" aria-label={`มีรายการรอตอบ ${unread} รายการ`}>{unread}</span>}</Link>)}</nav>
+        <nav id="arena-navigation" className={`arena-navigation${menuOpen ? " is-open" : ""}`} aria-label="เมนูหอประลอง">{arenaDestinations.map(([key, href, label]) => <Link key={key} href={href} aria-current={current === key ? "page" : undefined} onClick={() => setMenuOpen(false)}>{label}</Link>)}</nav>
         {player && <Link href="/arena/profile" className={`arena-player-chip${eq.profileNameplate ? " has-nameplate" : ""}`} style={eq.profileNameplate ? ({ "--nameplate": `url("${eq.profileNameplate.asset}")` } as React.CSSProperties) : undefined} title={`เปิดโปรไฟล์ของ ${player.name}`} aria-label={`เปิดโปรไฟล์ของ ${player.name}`}>
           <span className="chip-avatar"><ProfileAvatar avatar={(eq.profileAvatar ?? eq.portraitOutfit)?.asset} frame={eq.profileFrame?.asset} size={46} />{eq.profileCompanion && <Image className="chip-pet" src={eq.profileCompanion.asset} alt="" width={28} height={28} />}{rank && rankState!=="stale" && <span className="chip-rank"><RankBadge tier={rank.tier} size={20} decorative /></span>}</span>
           <span className="chip-text"><small className="chip-label">โปรไฟล์</small><strong>{player.name}</strong>

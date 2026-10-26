@@ -65,7 +65,7 @@ export function createAttempt(player: string, value: unknown) {
   return attemptView(one("SELECT * FROM attempts WHERE id=?", a)!);
 }
 export function attemptView(a: Row) {
-  return { id: a.id, scenario: a.scenario, scenarioVersion: a.scenario_version, rulesVersion: a.rules_version, seasonId:a.season_id || null, verifiedAt:a.verified_at || null,validationVersion:a.validation_version || null, status: a.status, start: a.start, elapsedMs: a.elapsed, penaltyMs: a.penalty, totalMs: a.total, mistakes: a.mistakes, graphValid: Boolean(a.graph_valid), invalid: Boolean(a.invalid), reason: a.invalid ? "ผลถูกยกเลิกโดยผู้ดูแล" : a.status === "REJECTED" ? "ผลไม่ผ่านการรับรอง กรุณาติดต่อผู้ดูแลหากต้องการรายละเอียด" : a.status === "UNDER_REVIEW" ? "ผลนี้ยังไม่ผ่านการรับรองอันดับ ต้องมีหลักฐานคำสั่งและระดับที่รองรับครบก่อน" : null, created: a.created, serverNow: Date.now() };
+  return { id: a.id, scenario: a.scenario, scenarioVersion: a.scenario_version, rulesVersion: a.rules_version, seasonId:a.season_id || null, verifiedAt:a.verified_at || null,validationVersion:a.validation_version || null, status: a.status, start: a.start, elapsedMs: a.elapsed, penaltyMs: a.penalty, totalMs: a.total, mistakes: a.mistakes, graphValid: Boolean(a.graph_valid), invalid: Boolean(a.invalid), reason: a.invalid ? "ผลถูกยกเลิกโดยผู้ดูแล" : a.reason || (a.status === "REJECTED" ? "ผลไม่ผ่านการรับรอง กรุณาติดต่อผู้ดูแลหากต้องการรายละเอียด" : a.status === "UNDER_REVIEW" ? "ผลนี้ยังไม่ผ่านการรับรองอันดับ ต้องมีหลักฐานคำสั่งและระดับที่รองรับครบก่อน" : null), created: a.created, serverNow: Date.now() };
 }
 export function ownedAttempt(player: string, id: string) {
   const a = one("SELECT * FROM attempts WHERE id=? AND player=?", id, player);
@@ -86,6 +86,13 @@ export function attemptAction(player: string, id: string, body: Record<string, u
     }
     if (body.action === "abandon") {
       if (["PENDING", "RUNNING"].includes(String(a.status))) run("UPDATE attempts SET status='DNF',finish=? WHERE id=?", now, id);
+      return attemptView(ownedAttempt(player, id));
+    }
+    if (body.action === "fail") {
+      const replay = one("SELECT state,protocol FROM competition_replay WHERE attempt=?", id);
+      const state = replay?.protocol === "server-command-v1" ? JSON.parse(String(replay.state)) as TrainingState : null;
+      if (a.status !== "RUNNING" || (state?.connectionMistakes ?? 0) < 3) throw new ArenaError(409, "เซิร์ฟเวอร์ยังยืนยันความผิดพลาดครบ 3/3 ครั้งไม่ได้");
+      run("UPDATE attempts SET status='DNF',finish=?,reason=? WHERE id=?", now, "ต่อสายผิดครบ 3/3 ครั้ง ภารกิจล้มเหลว", id);
       return attemptView(ownedAttempt(player, id));
     }
     if (a.status !== "RUNNING") return attemptView(a); // idempotent finish

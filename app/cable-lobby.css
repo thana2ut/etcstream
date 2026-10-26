@@ -825,6 +825,41 @@
 .cl-screen.cl-v3 .is-grid .cl-slot-hit { left: 0 !important; right: 0 !important; justify-items: center; }
 .cl-screen.cl-v3 .is-grid .cl-slot-name, .cl-screen.cl-v3 .is-grid .cl-slot-ends { width: 100%; padding: 0; text-indent: 0; }
 
+/* Complete category, connector and objective text at every viewport width. */
+.cl-screen.cl-v3 :is(.cl-title p, .cl-objective, .cl-tab-label, .cl-slot-name, .cl-slot-ends),
+.cl-bag-pick strong, .bag-hand strong, .bag-info-row p {
+  min-width: 0;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: break-word;
+  overflow: visible;
+  text-overflow: clip;
+  line-height: 1.6;
+}
+.cl-screen.cl-v3 .cl-tab-label, .cl-screen.cl-v3 .cl-facts dd, .cl-facts dd {
+  display: block;
+  -webkit-line-clamp: unset;
+  -webkit-box-orient: initial;
+}
+.cl-facts dd { min-width: 0; overflow: visible; text-overflow: clip; overflow-wrap: break-word; line-height: 1.6; }
+.cl-screen.cl-v3 .cl-tabs { grid-auto-rows: minmax(56px, auto); }
+.cl-screen.cl-v3 .cl-tabs button { height: auto; max-height: none; padding-block: 8px; }
+.cl-screen.cl-v3 .cl-catalog.is-grid { grid-auto-rows: minmax(212px, auto); }
+.cl-screen.cl-v3 .is-grid .cl-slot { height: auto; }
+.cl-screen.cl-v3 .is-grid .cl-slot-hit {
+  position: relative !important;
+  inset: auto !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 212px !important;
+}
+.cl-screen.cl-v3 .cl-detail > .cl-facts-scroll dd { overflow-wrap: break-word; }
+.cl-v3 .cl-enter-wrap small { white-space: normal; line-height: 1.6; }
+@media (max-width: 1000px) {
+  .cl-screen.cl-v3 .cl-catalog.is-grid { grid-auto-rows: minmax(226px, auto); }
+  .cl-screen.cl-v3 .is-grid .cl-slot-hit { min-height: 226px !important; }
+}
+
 /* bag slots: the cable fills the slot and the count sits in a clear badge */
 .cl-v3 .cl-bag-thumbnail { inset: 4px 4px 6px; }
 .cl-v3 .cl-bag-hit em { right: 4px; bottom: 4px; min-width: 1.5em; padding: 1px 5px; border-radius: 999px; background: #0b1a33e6; border: 1px solid rgba(79, 216, 255, .55); color: #e9fbff; font-size: .78rem; line-height: 1.3; text-align: center; text-shadow: none; }

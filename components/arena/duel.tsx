@@ -137,7 +137,7 @@ export function DuelVerdict({ duel }: { duel: DuelState | null }) {
   const card = (p: DuelPlayer, label: string) => <div className={`duel-verdict-card${winner === p.side ? " is-winner" : ""}`}>
     <span className="duel-verdict-label">{label}</span><strong>{p.name}</strong>
     <b>{ok(p) ? timeText(p.totalMs) : done(p) ? "ไม่จบภารกิจ" : "กำลังประลอง…"}</b>
-    <small>{typeof p.mistakes === "number" ? `ผิดพลาด ${p.mistakes} ครั้ง` : " "}</small>
+    <small>{typeof p.mistakes === "number" ? `ผิดพลาด ${p.mistakes} ครั้ง` : null}</small>
   </div>;
   return <section className="duel-verdict" aria-live="polite">
     <p className="duel-invite-kicker">✦ ผลประลองสองเซียน ✦</p>

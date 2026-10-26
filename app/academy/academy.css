@@ -1,0 +1,55 @@
+/* Room selection: misty mountains, jade shadows and warm lantern light. */
+.academy-page .xianxia-backdrop-image {
+  inset: 0;
+  background-position: center 38%;
+  animation: none;
+  transform: none;
+  filter: saturate(.76) brightness(.88);
+}
+
+.academy-page > .xianxia-backdrop::after {
+  background:
+    radial-gradient(ellipse at 18% 40%, #236c7426, transparent 58%),
+    radial-gradient(ellipse at 85% 30%, #c5924430, transparent 50%),
+    linear-gradient(180deg, #07121cc9 0%, #0a19256e 30%, #091522a3 65%, #050d17eb 100%);
+}
+
+.academy-page .xianxia-mist {
+  height: 32%;
+  opacity: .45;
+  animation: none;
+  background: radial-gradient(ellipse at center, #b8d3d52e, transparent 70%);
+}
+
+.academy-page .chamber-hero-header {
+  box-sizing: border-box;
+  width: min(100%, 800px);
+  padding: 18px clamp(16px, 3vw, 32px);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.academy-page .chamber-title {
+  color: #f7e4bc;
+  text-shadow: 0 3px 16px #020810b3;
+}
+
+.academy-page .chamber-desc { color: #d8e3e5; }
+
+.academy-page .dual-paths-grid .path-portal-card {
+  background: linear-gradient(160deg, #142b37f2, #0a1421f5 65%);
+  box-shadow: 0 22px 60px #02070f70, inset 0 1px #f1d9a41f;
+}
+
+.academy-page .portal-content-body {
+  background: linear-gradient(180deg, #10223030, #08121c66);
+}
+
+.academy-page .portal-desc { color: #c7d5df; }
+
+@media (max-width: 650px) {
+  .academy-page .xianxia-backdrop-image { background-position: 42% center; }
+  .academy-page .chamber-hero-header { padding: 16px; border-radius: 14px; }
+}

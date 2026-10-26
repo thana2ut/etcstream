@@ -10,6 +10,7 @@ import { AdminTraining } from "./admin-training";
 import { EconomyAdmin } from "./admin-economy";
 import { CatalogManager } from "./admin-catalog";
 import { AdminDashboard } from "./admin-dashboard";
+import { AdminSecurity } from "./admin-security";
 import { api } from "./client-api";
 
 const MissionHall = dynamic(() => import("@/components/ui/mission-hall").then((m) => m.MissionHall), { ssr: false, loading: () => <p role="status">กำลังเปิดหอภารกิจเดิม…</p> });
@@ -18,12 +19,12 @@ const AdminPreview = dynamic(() => import("./admin-preview").then((m) => m.Admin
 /** V27 control-center navigation. Sub-sections reuse the existing, server-backed admin panels. */
 const areas = [
   { id: "overview", title: "ภาพรวม", icon: "trophy", note: "สรุประบบและสิ่งที่ต้องดูแล" },
-  { id: "competition", title: "ห้องแข่งขัน", icon: "arena", note: "ผู้เล่น รอบแข่งขัน การรับรอง อันดับ ฤดูกาล สังคม", subs: ["overview", "players", "competitions", "reviews", "leaderboards", "seasons", "friends", "matches"] },
+  { id: "competition", title: "ผู้ฝึกและการแข่งขัน", icon: "arena", note: "จัดการบัญชี ผลแข่งขัน และฤดูกาล", subs: ["players", "competitions", "reviews", "seasons"] },
   { id: "training", title: "ห้องฝึก", icon: "settings", note: "สถานะห้องฝึกและการเข้าเล่นตรวจ" },
-  { id: "missions", title: "ห้องภารกิจ", icon: "trophy", note: "หอภารกิจเดิม 5 สถานที่ × 5 ระดับ" },
+  { id: "missions", title: "ห้องภารกิจ", icon: "trophy", note: "เลือกสถานที่และระดับเพื่อเข้าเล่นตรวจ" },
   { id: "market", title: "ตลาดสวรรค์", icon: "trophy", note: "จัดการสินค้า อัปโหลดรูป เปิด/ปิดขาย" },
   { id: "economy", title: "เศรษฐกิจหินวิญญาณ", icon: "trophy", note: "คลัง ธุรกรรม รางวัล เกณฑ์เหรียญ ปรับยอด" },
-  { id: "system", title: "ระบบและความปลอดภัย", icon: "settings", note: "สถานะฐานข้อมูลและประวัติการดำเนินการ", subs: ["database", "audit"] },
+  { id: "system", title: "ระบบและประวัติ", icon: "settings", note: "เหตุการณ์ความปลอดภัยและการดำเนินการ", subs: ["security", "audit", "database"] },
 ] as const;
 type Area = typeof areas[number]["id"];
 type AdminSession = { entryId: string; actorId: string; rotate: boolean; expires: number; serverNow: number };
@@ -31,9 +32,8 @@ type AdminSession = { entryId: string; actorId: string; rotate: boolean; expires
 export function UnifiedAdmin({ actorId, expires, serverNow, entryId, onExit }: { entryId: string; actorId: string; expires: number; serverNow: number; onExit: () => void }) {
   const router = useRouter();
   const [area, setArea] = useState<Area>("overview");
-  const [sub, setSub] = useState<Record<string, string>>({ competition: "overview", system: "database" });
+  const [sub, setSub] = useState<Record<string, string>>({ competition: "players", system: "security" });
   const [visited, setVisited] = useState<Area[]>(["overview"]);
-  const [navOpen, setNavOpen] = useState(false);
   const [preview, setPreview] = useState<AdminPreviewContext | null>(null);
   const [previewError, setPreviewError] = useState("");
   const [launching, setLaunching] = useState(false);
@@ -68,8 +68,8 @@ export function UnifiedAdmin({ actorId, expires, serverNow, entryId, onExit }: {
     return () => { controller.abort(); clearInterval(timer); clearTimeout(expiry); window.removeEventListener("etc-admin-session-lost", lost); document.removeEventListener("visibilitychange", visible); };
   }, [check, locked]);
   const choose = (next: Area, nextSub?: string) => {
-    setArea(next); setNavOpen(false);
-    if (nextSub) setSub((s) => ({ ...s, [next]: nextSub }));
+    setArea(next);
+    if (nextSub) setSub((s) => ({ ...s, [next]: nextSub === "leaderboards" ? "competitions" : nextSub }));
     setVisited((old) => old.includes(next) ? old : [...old, next]);
     requestAnimationFrame(() => heading.current?.focus());
   };
@@ -103,22 +103,23 @@ export function UnifiedAdmin({ actorId, expires, serverNow, entryId, onExit }: {
   const current = areas.find((a) => a.id === area)!;
   const currentSub = "subs" in current ? sub[area] : undefined;
   const header = <header className="admin-cc-top">
-    <button type="button" className="admin-cc-menu" aria-expanded={navOpen} aria-controls="admin-cc-nav" onClick={() => setNavOpen(!navOpen)}>เมนู</button>
     <div className="admin-cc-brand"><strong>ETCSTREAM</strong><span>ศูนย์ควบคุม</span></div>
     <nav className="admin-cc-crumb" aria-label="ตำแหน่งปัจจุบัน"><span>ศูนย์ควบคุม</span><span aria-hidden="true">›</span><span>{current.title}</span>{currentSub && <><span aria-hidden="true">›</span><span>{adminLabels[currentSub] ?? currentSub}</span></>}</nav>
-    <span className={`admin-cc-status${locked ? " is-locked" : ""}`}>{locked ? "ปิดพื้นที่ชั่วคราว" : checking ? "กำลังตรวจสิทธิ์…" : `ผู้ดูแลหลัก${checkedAt ? ` · ตรวจล่าสุด ${new Date(checkedAt).toLocaleTimeString("th-TH")}` : ""}`}</span>
-    <div className="admin-cc-actions"><button type="button" disabled={busy} onClick={() => void logout("/academy")}>ออกจากโหมดแอดมิน</button><button type="button" className="arena-button-secondary" disabled={busy} onClick={() => void logout()}>ออกจากระบบ</button></div>
+    <span className={`admin-cc-status${locked ? " is-locked" : ""}`} title={checkedAt ? `ตรวจสิทธิ์ล่าสุด ${new Date(checkedAt).toLocaleTimeString("th-TH")}` : undefined}>{locked ? "ปิดพื้นที่" : checking ? "กำลังตรวจสิทธิ์…" : "ผู้ดูแลหลัก · พร้อมใช้งาน"}</span>
+    <div className="admin-cc-actions"><button type="button" disabled={busy} onClick={() => void logout("/academy")}>ออกจากโหมดผู้ดูแล</button></div>
   </header>;
   return <ArenaShell admin adminHeader={header}><div className="admin-unified admin-cc" data-room={area}>
+    <a className="admin-skip-link" href="#admin-cc-title">ข้ามไปเนื้อหา</a>
     {locked ? <section className="arena-panel" role="alert"><h2>ปิดพื้นที่ผู้ดูแล</h2><p>{locked}</p><button disabled={busy || checking} onClick={() => void logout()}>ออกและกรอกรหัสหลักใหม่</button><p>หากออกจากระบบไม่สำเร็จ กรุณากดออกจากระบบอีกครั้งเมื่อเครือข่ายพร้อม</p></section> : <>
-      <nav id="admin-cc-nav" className={`admin-cc-nav${navOpen ? " is-open" : ""}`} aria-label="ส่วนของศูนย์ควบคุม">
+      <nav id="admin-cc-nav" className="admin-cc-nav" aria-label="ส่วนของศูนย์ควบคุม">
+        <div className="admin-nav-caption">พื้นที่ทำงาน</div>
         {areas.map((a) => <div key={a.id} className="admin-cc-group">
-          <button type="button" className="admin-cc-link" aria-current={area === a.id ? "page" : undefined} onClick={() => choose(a.id)}><ArenaIcon name={a.icon} /><span>{a.title}<small>{a.note}</small></span></button>
-          {"subs" in a && area === a.id && <div className="admin-cc-subs">{a.subs.map((s) => <button type="button" key={s} aria-pressed={sub[a.id] === s} onClick={() => choose(a.id, s)}>{adminLabels[s] ?? s}</button>)}</div>}
+          <button type="button" className="admin-cc-link" aria-current={area === a.id ? "page" : undefined} onClick={() => choose(a.id)}><ArenaIcon name={a.icon} /><span>{a.title}</span></button>
         </div>)}
       </nav>
       <section className="admin-cc-main" aria-labelledby="admin-cc-title">
-        <h2 id="admin-cc-title" ref={heading} tabIndex={-1} className="admin-cc-title">{current.title}{currentSub && <small> · {adminLabels[currentSub] ?? currentSub}</small>}</h2>
+        <header className="admin-page-heading"><div><p className="admin-eyebrow">ศูนย์ดูแลสำนัก</p><h2 id="admin-cc-title" ref={heading} tabIndex={-1} className="admin-cc-title">{current.title}</h2><p className="arena-note">{current.note}</p></div></header>
+        {"subs" in current && <nav className="admin-subnav admin-page-tabs" aria-label={`ส่วน${current.title}`}>{current.subs.map((s) => <button type="button" key={s} aria-pressed={currentSub === s} onClick={() => choose(area, s)}>{adminLabels[s] ?? s}</button>)}</nav>}
         {previewError && <p className="arena-error" role="alert">{previewError}</p>}
         {area === "overview" && <AdminDashboard onGo={(a, s) => choose(a as Area, s)} />}
         {area === "competition" && <AdminPanel key={sub.competition} section={sub.competition} />}
@@ -126,7 +127,7 @@ export function UnifiedAdmin({ actorId, expires, serverNow, entryId, onExit }: {
         {visited.includes("missions") && <div hidden={area !== "missions"}><MissionHall admin embedded active={area === "missions" && !preview} onPreview={(slug, level) => launch({ chamber: "missions", slug, level })} /></div>}
         {area === "market" && <CatalogManager />}
         {area === "economy" && <EconomyAdmin />}
-        {area === "system" && <AdminPanel key={sub.system} section={sub.system} />}
+        {area === "system" && (sub.system === "security" ? <AdminSecurity /> : <AdminPanel key={sub.system} section={sub.system} />)}
       </section>
       {preview && createPortal(<AdminPreview key={preview.id} context={preview} onExit={() => void endPreview()} />, document.body)}
     </>}

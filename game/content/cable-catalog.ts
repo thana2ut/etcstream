@@ -188,4 +188,4 @@ export function bagUsage(scenario: Scenario, bag: Record<string, number>): Recor
   return use;
 }
 
-export const MAX_WRONG_STREAK = 5;
+export const MAX_WRONG_STREAK = 3;

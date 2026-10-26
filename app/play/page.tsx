@@ -9,6 +9,7 @@ import { GameCanvas } from "@/components/game/game-canvas";
 import { formatClassroomTime, useClassroomTimer } from "@/components/game/use-classroom-timer";
 import { useClassroomRun } from "@/components/game/use-classroom-run";
 import { CLASSROOM_REVIVE_COST } from "@/game/training/classroom-rules";
+import { ClassroomLearning } from "@/components/game/classroom-learning";
 import "./classroom.css";
 import { TrainingHud } from "@/components/game/training-hud";
 import { FirstPersonHands } from "@/components/game/first-person-hands";
@@ -101,8 +102,9 @@ function PlayExperience() {
   const [sceneReady, setSceneReady] = useState(false);
   const handleSceneReady = useCallback(() => setSceneReady(true), []);
   const trainingFailed = useTrainingStore((state) => state.failed);
+  const classroomQuestion = useTrainingStore((state) => state.classroom?.question);
   const classroomRun = useClassroomRun(routeMode === "classroom" && bag !== null && !introOpen && sceneReady && loadedScenarioId === "studio-full", bag);
-  const classroomTimer = useClassroomTimer(routeMode === "classroom" && bag !== null && !introOpen && loadedScenarioId === "studio-full", sceneReady && classroomRun.ready, showExitConfirm || trainingFailed || classroomRun.syncBlocked);
+  const classroomTimer = useClassroomTimer(routeMode === "classroom" && bag !== null && !introOpen && loadedScenarioId === "studio-full", sceneReady && classroomRun.ready, showExitConfirm || trainingFailed || Boolean(classroomQuestion) || classroomRun.syncBlocked);
   const classroomWaiting = routeMode === "classroom" && bag !== null && !introOpen && (!sceneReady || !classroomRun.ready || classroomTimer.countdown > 0);
   const tester = useTester();
   const missionAccess = useMissionAccess();
@@ -123,7 +125,7 @@ function PlayExperience() {
   // Leads still inside the bag (badge on the 🎒 button).
   const bagCount = useTrainingStore((state) => state.bagged?.length ?? 0);
   // C opens the cable bag; R is kept for turning a held device.
-  const bagUsable = Boolean(bag) && !introOpen && !showResultModal && !showExitConfirm && !classroomWaiting;
+  const bagUsable = Boolean(bag) && !introOpen && !showResultModal && !showExitConfirm && !classroomWaiting && !classroomQuestion && !trainingFailed;
   useEffect(() => {
     if (!bagUsable) return;
     const onKey = (e: KeyboardEvent) => {
@@ -326,7 +328,7 @@ function PlayExperience() {
   const schematicNodes = [["ต้นทาง", "กล้อง / ไมค์"], ["ประมวลผล", "เครื่องสลับภาพ / ผสมเสียง"], ["ปลายทาง", "จอ / รับภาพ / ถ่ายทอด"]];
 
   async function lockPointer() {
-    if (touch || introOpen || showExitConfirm || classroomWaiting || (routeMode === "classroom" && trainingCompleted)) return;
+    if (touch || introOpen || showExitConfirm || classroomWaiting || classroomQuestion || trainingFailed || (routeMode === "classroom" && trainingCompleted)) return;
     const canvas = document.querySelector("canvas");
     if (canvas) {
       try {
@@ -468,7 +470,7 @@ function PlayExperience() {
           key={scenarioId}
           onReady={routeMode === "classroom" ? handleSceneReady : undefined}
           venue={routeMode === "mission" ? mission?.venueId : "studio"}
-          active={!introOpen && !showResultModal && !showExitConfirm && !classroomWaiting && !classroomRun.syncBlocked && !bagOpen && !trainingFailed && !((routeMode === "mission" || routeMode === "classroom") && trainingCompleted) && !simPaused}
+          active={!introOpen && !showResultModal && !showExitConfirm && !classroomWaiting && !classroomQuestion && !classroomRun.syncBlocked && !bagOpen && !trainingFailed && !((routeMode === "mission" || routeMode === "classroom") && trainingCompleted) && !simPaused}
           fallbackLook={fallbackLook}
           touch={touch}
           onExitFallback={exitFallback}
@@ -657,11 +659,15 @@ function PlayExperience() {
       )}
 
       {/* Mission Hall result states use the level's real evaluator, never a cable-count shortcut. */}
+      {routeMode === "classroom" && classroomQuestion && !trainingFailed && <ClassroomLearning failed={false} available={classroomRun.available} busy={classroomRun.busy} balance={classroomRun.balance} error={classroomRun.error}
+        missionTitle={currentTitle} elapsed={classroomTimer.elapsed} completed={connectedRoutes} total={trainingTotal({ scenarioId })}
+        onRevive={() => void classroomRun.revive()} onRestart={handleRetry} onLeave={() => router.push("/academy")} onRetrySync={() => void classroomRun.retrySync()} />}
       {routeMode === "classroom" && trainingFailed && !introOpen && bag !== null && (
         <MissionOutcomeModal status="failed" missionTitle={currentTitle} venue="ห้องฝึกปราณสัญญาณ" level={0}
           completed={connectedRoutes} total={trainingTotal({ scenarioId })} mistakes={mistakeCount} elapsed={classroomTimer.elapsed / 1000}
           balance={classroomRun.balance} stonesError={classroomRun.error} reviving={classroomRun.busy} reviveDisabled={classroomRun.busy || classroomRun.syncBlocked}
           reviveCost={CLASSROOM_REVIVE_COST} onRevive={classroomRun.available ? classroomRun.revive : undefined}
+          returnLabel="กลับสู่สำนัก" retryLabel="เริ่มใหม่ทั้งห้อง" onRetrySync={() => void classroomRun.retrySync()}
           onRetry={handleRetry} onReturn={() => router.push("/academy")} />
       )}
       {routeMode === "mission" && trainingFailed && !showResultModal && (
@@ -683,7 +689,7 @@ function PlayExperience() {
       {routeMode === "classroom" && showResultModal && trainingCompleted && !trainingFailed && (
         <MissionOutcomeModal status="success" missionTitle={currentTitle} venue="ห้องฝึกปราณสัญญาณ" level={0}
           completed={connectedRoutes} total={trainingTotal({ scenarioId })} mistakes={mistakeCount} elapsed={classroomTimer.elapsed / 1000}
-          reward={classroomRun.reward !== null ? `+${classroomRun.reward} หินวิญญาณ` : undefined} progressError={classroomRun.error}
+          simpleStoneReward={classroomRun.reward ?? undefined} progressError={classroomRun.error} returnLabel="กลับสู่สำนัก" retryLabel="เริ่มใหม่ทั้งห้อง"
           onRetry={handleRetry} onReturn={() => router.push("/academy")} />
       )}
       {routeMode !== "mission" && routeMode !== "classroom" && showResultModal && (

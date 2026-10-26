@@ -40,7 +40,7 @@ function ProjectionSurface() {
   return <group position={[0, 1.9, BACK + 0.195]}>
     <Slab p={[0, 0, 0]} s={[3.9, 2.08, 0.004]} c={ready ? "#263d60" : "#d1d2cf"} r={0.9} />
     <Text font={SCENE_FONT} position={[0, 0, 0.006]} fontSize={0.12} color={ready ? "#e5efff" : "#454c53"} textAlign="center">
-      {sceneText(ready ? `ภาพจำลองจากสัญญาณจริง\n${feed}` : "ยังไม่มีภาพจากระบบ\nตรวจสายและเลือก Program")}
+      {sceneText(ready ? `ภาพจากเส้นทางสัญญาณจริง\n${feed}` : "ไม่มีสัญญาณภาพ\nตรวจสายและเลือก Program")}
     </Text>
   </group>;
 }

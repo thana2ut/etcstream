@@ -11,7 +11,7 @@ import { NameplatePill, ProfileCover } from "./profile-cover";
 
 export type EconomyItem = { sku: string; name: string; slot: CosmeticSlot; price: number; asset: string; enabled: boolean; legacy?: boolean; starter?: boolean; rarity?: string | null; description?: string | null; owned: boolean; equipped: boolean };
 export type EconomySummary = { balance: number; earned: number; spent: number; equipped: Partial<Record<CosmeticSlot, EconomyItem>>; ownedCount: number; claims: number };
-type Receipt = { entries: { kind: "first_clear" | "medal" | "daily"; amount: number; meta: { stage?: string; tier?: Medal; level?: number; day?: string } }[]; balance: number };
+type Receipt = { entries: { kind: "first_clear" | "medal" | "daily" | "competitive_win"; amount: number; meta: { stage?: string; tier?: Medal; level?: number; day?: string; seconds?: number } }[]; balance: number };
 
 function useReducedMotion() {
   const [reduced, setReduced] = useState(true);
@@ -176,7 +176,7 @@ export function CelestialMarket() {
       </nav>}
       </div>
       {item && <aside className="arena-panel econ-detail" aria-label={`รายละเอียด ${item.name}`}>
-        {item.slot === "profileNameplate" ? <NameplatePreview plate={item.asset} name={item.name} /> : item.slot === "profileCover" ? <CoverPreview cover={item.asset} name={item.name} /> : <div className="econ-detail-art"><Image src={item.asset} alt={item.name} fill sizes="(max-width:900px) 70vw, 320px" /></div>}
+        {item.slot === "profileNameplate" ? <NameplatePreview plate={item.asset} name={item.name} /> : item.slot === "profileCover" ? <CoverPreview cover={item.asset} name={item.name} /> : item.slot === "profileFrame" ? <FramePreview frame={item.asset} name={item.name} /> : <div className="econ-detail-art"><Image src={item.asset} alt={item.name} fill sizes="(max-width:900px) 70vw, 320px" /></div>}
         <span className="arena-eyebrow">{SLOT_LABELS[item.slot]} · {marketCodes.get(item.sku) ?? item.sku}</span><h3>{item.name}</h3>
         {item.rarity && <p className="econ-rarity">ระดับ {item.rarity}</p>}{item.description && <p>{item.description}</p>}
         <p className="arena-note">แสดงที่: {SLOT_CONTEXT[item.slot]}</p>
@@ -218,7 +218,7 @@ function PurchaseSuccess({ receipt, owned, busy, onEquip, onClose }: { receipt: 
     <div className="econ-modal-art is-glow"><Image src={receipt.asset} alt={receipt.name} fill sizes="200px" /></div>
     <span className="arena-eyebrow">แลกสำเร็จ · บันทึกในสมุดบัญชีแล้ว</span><h2>{receipt.name}</h2>
     <p className="econ-modal-debit">หินวิญญาณ −{stones(receipt.price)}</p>
-    <p>คงเหลือ <SpiritStones amount={receipt.balance} /> · เก็บเข้าถุงเฉียนคุนแล้ว</p>
+    <p className="econ-success-balance"><span>คงเหลือ</span><SpiritStones amount={receipt.balance} /><span aria-hidden="true">·</span><span>เก็บเข้าถุงเฉียนคุนแล้ว</span></p>
     <p className="arena-note">เลขที่รายการ {receipt.ledgerId.slice(0, 8).toUpperCase()}</p>
     <div className="arena-actions">{owned && !owned.equipped && <button type="button" disabled={busy} onClick={onEquip}>สวมใส่เลย</button>}<Link className="arena-action econ-secondary" href="/arena/bag">ดูในถุงเฉียนคุน</Link><button type="button" className="arena-button-secondary" onClick={onClose}>ปิด</button></div>
   </EconModal>;
@@ -276,7 +276,7 @@ export function QiankunBag({ name }: { name: string }) {
   </div>;
 }
 
-const kindLabel: Record<string, string> = { first_clear: "ผ่านด่านครั้งแรก", medal: "เหรียญความเร็ว", daily: "ภารกิจประจำวัน", purchase: "แลกของในตลาด", admin_adjust: "ผู้ดูแลปรับยอด" };
+const kindLabel: Record<string, string> = { competitive_win: "ชนะการแข่งขัน", first_clear: "ผ่านด่านครั้งแรก", medal: "เหรียญความเร็ว", daily: "ภารกิจประจำวัน", purchase: "แลกของในตลาด", admin_adjust: "ผู้ดูแลปรับยอด" };
 function LedgerHistory() {
   const ledger = useArenaResource<{ entries: { id: string; amount: number; kind: string; balanceAfter: number; meta: Record<string, string>; created: number }[] }>("economy/ledger", 60000);
   return <details className="arena-panel econ-ledger"><summary>บันทึกหินวิญญาณ (จากสมุดบัญชีเซิร์ฟเวอร์)</summary>
@@ -294,11 +294,11 @@ export function RewardReceipt({ attempt }: { attempt: AttemptView }) {
   if (receipt.loading) return <p className="econ-receipt" role="status">กำลังอ่านใบรับรางวัลจากสมุดบัญชี…</p>;
   if (receipt.error && !receipt.data) return <p className="arena-error" role="alert">ยังอ่านใบรับรางวัลไม่ได้ · ยอดในคลังไม่สูญหาย ลองเปิดหน้านี้ใหม่ภายหลัง</p>;
   const entries = receipt.data?.entries || [], total = entries.reduce((sum, e) => sum + e.amount, 0);
-  if (!entries.length) return <p className="arena-note econ-receipt-none">ด่านนี้รับรางวัลผ่านด่านครั้งแรกและเหรียญระดับนี้ไปแล้ว จึงไม่มีหินวิญญาณเพิ่มในรอบนี้</p>;
+  if (!entries.length) return <p className="arena-note econ-receipt-none">ยังไม่มีรายการรางวัลในสมุดบัญชีของรอบนี้</p>;
   return <section className="econ-receipt is-earned" aria-label="ใบรับรางวัล">
     <Image className="econ-receipt-art" src={ECONOMY_ASSETS.spiritStone} alt="" width={112} height={112} />
     <div><span className="arena-eyebrow">ได้รับรางวัลจากผลที่ยืนยันแล้ว</span>
-      <ul>{entries.map((e, i) => <li key={i}><span>{e.kind === "first_clear" ? `ผ่านด่านครั้งแรก · ระดับ ${e.meta.level}` : e.kind === "medal" ? `${MEDAL_LABELS[e.meta.tier as Medal] || "เหรียญ"} (ส่วนเพิ่ม)` : "ภารกิจประจำวัน · สามด่านต่างกัน"}</span><SpiritStones amount={e.amount} size={18} /></li>)}</ul>
+      <ul>{entries.map((e, i) => <li key={i}><span>{e.kind === "competitive_win" ? `ชนะการแข่งขัน · ระดับ ${e.meta.level} · ${e.meta.seconds?.toFixed(1) ?? "—"} วินาที` : e.kind === "first_clear" ? `ผ่านด่านครั้งแรก · ระดับ ${e.meta.level}` : e.kind === "medal" ? `${MEDAL_LABELS[e.meta.tier as Medal] || "เหรียญ"} (ส่วนเพิ่ม)` : "ภารกิจประจำวัน · สามด่านต่างกัน"}</span><SpiritStones amount={e.amount} size={18} /></li>)}</ul>
       <p className="econ-receipt-total">รวม <SpiritStones amount={total} /> · คงเหลือในคลัง <SpiritStones amount={receipt.data!.balance} /></p>
     </div>
   </section>;
@@ -317,11 +317,19 @@ function CoverPreview({ cover, name }: { cover: string; name: string }) {
   const summary = useEconomySummary(true), eq = summary.data?.equipped ?? {};
   return <div className="econ-cover-preview">
     <Image className="econ-cover-thumb" src={cover} alt={name} width={720} height={240} sizes="(max-width:900px) 90vw, 340px" />
-    <span className="arena-note">ตัวอย่างบนการ์ดโปรไฟล์ของเจ้า</span>
+    <span className="arena-note">การแสดงผลบนการ์ดโปรไฟล์ของเจ้า</span>
     <ProfileCover cover={cover} className="econ-cover-mock" bodyClassName="econ-cover-mock-body">
       <ProfileAvatar avatar={(eq.profileAvatar ?? eq.portraitOutfit)?.asset} frame={eq.profileFrame?.asset} size={56} />
       <span><strong>โปรไฟล์ของเจ้า</strong><small>ชื่อ · อันดับ · สถิติ</small></span>
     </ProfileCover>
+  </div>;
+}
+
+/** Shows the selected frame layered over the signed-in player's currently equipped portrait. */
+function FramePreview({ frame, name }: { frame: string; name: string }) {
+  const summary = useEconomySummary(true), eq = summary.data?.equipped ?? {};
+  return <div className="econ-frame-preview" aria-label={`การแสดง${name}บนรูปโปรไฟล์ของเจ้า`}>
+    <ProfileAvatar avatar={(eq.profileAvatar ?? eq.portraitOutfit)?.asset} frame={frame} name={name} size={248} className="econ-market-frame" />
   </div>;
 }
 
@@ -330,7 +338,7 @@ function NameplatePreview({ plate, name }: { plate: string; name: string }) {
   const summary = useEconomySummary(true), eq = summary.data?.equipped ?? {};
   return <div className="econ-cover-preview">
     <Image className="econ-nameplate-thumb" src={plate} alt={name} width={760} height={134} sizes="(max-width:900px) 90vw, 340px" />
-    <span className="arena-note">ตัวอย่างแถบโปรไฟล์ด้านบนเกม</span>
+    <span className="arena-note">การแสดงแถบโปรไฟล์ด้านบนเกม</span>
     <NameplatePill plate={plate} className="econ-nameplate-mock"><ProfileAvatar avatar={(eq.profileAvatar ?? eq.portraitOutfit)?.asset} frame={eq.profileFrame?.asset} size={40} /><span>โปรไฟล์<small>ชื่อของเจ้า · ออนไลน์</small></span></NameplatePill>
   </div>;
 }

@@ -2,15 +2,14 @@
 
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { emitTrainingInput, type TrainingMoveCode } from "@/game/input/training-input";
-import { useTrainingStore } from "@/game/stores/training-store";
 
-const JOY_RADIUS = 62;
 const JOY_DEAD = 0.35;
 
 /** Analog-style stick: the knob follows the finger inside the ring; direction maps to W/A/S/D (diagonals allowed). */
 function MoveStick() {
   const [knob, setKnob] = useState<[number, number]>([0, 0]);
-  const active = useRef<{ id: number; cx: number; cy: number } | null>(null);
+  const [pressed, setPressed] = useState(false);
+  const active = useRef<{ id: number; cx: number; cy: number; radius: number } | null>(null);
   const held = useRef(new Set<TrainingMoveCode>());
   const apply = (next: Set<TrainingMoveCode>) => {
     for (const code of held.current) if (!next.has(code)) emitTrainingInput({ type: "move", code, pressed: false });
@@ -22,31 +21,51 @@ function MoveStick() {
     if (!c) return;
     let dx = x - c.cx, dy = y - c.cy;
     const len = Math.hypot(dx, dy);
-    if (len > JOY_RADIUS) { dx = (dx / len) * JOY_RADIUS; dy = (dy / len) * JOY_RADIUS; }
+    if (len > c.radius) { dx = (dx / len) * c.radius; dy = (dy / len) * c.radius; }
     setKnob([dx, dy]);
     const next = new Set<TrainingMoveCode>();
-    if (dy < -JOY_RADIUS * JOY_DEAD) next.add("KeyW");
-    if (dy > JOY_RADIUS * JOY_DEAD) next.add("KeyS");
-    if (dx < -JOY_RADIUS * JOY_DEAD) next.add("KeyA");
-    if (dx > JOY_RADIUS * JOY_DEAD) next.add("KeyD");
+    if (dy < -c.radius * JOY_DEAD) next.add("KeyW");
+    if (dy > c.radius * JOY_DEAD) next.add("KeyS");
+    if (dx < -c.radius * JOY_DEAD) next.add("KeyA");
+    if (dx > c.radius * JOY_DEAD) next.add("KeyD");
     apply(next);
   };
   const stop = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (active.current?.id !== event.pointerId) return;
     active.current = null;
+    setPressed(false);
     setKnob([0, 0]);
     apply(new Set());
   };
-  useEffect(() => () => apply(new Set()), []);
+  useEffect(() => {
+    const release = () => {
+      active.current = null;
+      setPressed(false);
+      setKnob([0, 0]);
+      apply(new Set());
+    };
+    const onVisibility = () => { if (document.hidden) release(); };
+    window.addEventListener("blur", release);
+    window.addEventListener("resize", release);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("blur", release);
+      window.removeEventListener("resize", release);
+      document.removeEventListener("visibilitychange", onVisibility);
+      apply(new Set());
+    };
+  }, []);
   return <div
     className="touch-move-pad"
     role="application"
     aria-label="ปุ่มเคลื่อนที่ ลากลูกกลมเพื่อเดิน"
     onPointerDown={(event) => {
+      if (active.current) return;
       event.preventDefault();
       event.currentTarget.setPointerCapture(event.pointerId);
       const box = event.currentTarget.getBoundingClientRect();
-      active.current = { id: event.pointerId, cx: box.left + box.width / 2, cy: box.top + box.height / 2 };
+      active.current = { id: event.pointerId, cx: box.left + box.width / 2, cy: box.top + box.height / 2, radius: Math.min(box.width, box.height) * 0.34 };
+      setPressed(true);
       track(event.clientX, event.clientY);
     }}
     onPointerMove={(event) => { if (active.current?.id === event.pointerId) { event.preventDefault(); track(event.clientX, event.clientY); } }}
@@ -58,14 +77,29 @@ function MoveStick() {
     <span className="touch-joy-arrow is-left" aria-hidden="true">◀</span>
     <span className="touch-joy-arrow is-down" aria-hidden="true">▼</span>
     <span className="touch-joy-arrow is-right" aria-hidden="true">▶</span>
-    <span className={`touch-joy-knob${active.current ? " is-active" : ""}`} aria-hidden="true" style={{ transform: `translate(calc(-50% + ${knob[0]}px), calc(-50% + ${knob[1]}px))` }} />
+    <span className={`touch-joy-knob${pressed ? " is-active" : ""}`} aria-hidden="true" style={{ transform: `translate(calc(-50% + ${knob[0]}px), calc(-50% + ${knob[1]}px))` }} />
   </div>;
 }
 
 export function TouchControls() {
   const look = useRef<{ id: number; x: number; y: number } | null>(null);
+  useEffect(() => {
+    const release = () => {
+      look.current = null;
+      emitTrainingInput({ type: "interact", pressed: false });
+    };
+    const onVisibility = () => { if (document.hidden) release(); };
+    window.addEventListener("blur", release);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("blur", release);
+      document.removeEventListener("visibilitychange", onVisibility);
+      release();
+    };
+  }, []);
 
   const startLook = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (look.current) return;
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
     look.current = { id: event.pointerId, x: event.clientX, y: event.clientY };

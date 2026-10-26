@@ -70,7 +70,7 @@ export function AdminPreview({ context, onExit }: { context: AdminPreviewContext
     return () => cancelAnimationFrame(frame);
   }, [context.scenarioId, context.loadout, scenario, replay, confirmed]);
   useEffect(() => {
-    const query = window.matchMedia("(pointer: coarse), (max-width: 768px)");
+    const query = window.matchMedia("(any-pointer: coarse), (max-width: 768px)");
     const update = () => setTouch(query.matches); update(); query.addEventListener("change", update);
     return () => query.removeEventListener("change", update);
   }, []);

@@ -19,10 +19,15 @@ interface MissionResultModalProps {
   connectedRoutes: number;
   requiredRoutes: number;
   studioFull?: boolean;
+  elapsedTime?: string;
+  stoneReward?: number;
+  rewardNote?: string;
+  onRetryReward?: () => void;
   /** Merit earned (mission mode). */
   merit?: number;
   /** New sect rank reached by this completion. */
   rankUp?: string;
+  mistakes?: number;
 }
 
 export function MissionResultModal({
@@ -36,10 +41,21 @@ export function MissionResultModal({
   connectedRoutes,
   requiredRoutes,
   studioFull = false,
+  elapsedTime,
+  stoneReward,
+  rewardNote,
+  onRetryReward,
   merit,
   rankUp,
+  mistakes = 0,
 }: MissionResultModalProps) {
   const completed = connectedRoutes === requiredRoutes;
+  const elapsedSeconds = elapsedTime ? (() => { const [minutes, seconds = "0"] = elapsedTime.split(":"); return Number(minutes) * 60 + Number(seconds); })() : null;
+  if (completed) return <MissionOutcomeModal status="success" missionTitle={missionTitle} venue="ห้องฝึก" level={1}
+    completed={connectedRoutes} total={requiredRoutes} mistakes={mistakes} elapsed={elapsedSeconds}
+    simpleStoneReward={stoneReward} stonesTracked={stoneReward !== undefined || rewardNote !== undefined} stonesError={rewardNote}
+    progressError={progressError} merit={merit} rankUp={rankUp} onRetrySync={onRetryReward}
+    onNext={onNewMission} onRetry={onRetry} onReturn={onReturnToAcademy} returnLabel={resultCopy.actions.return} />;
 
   return (
     <div className="result-screen-overlay" role="dialog" aria-modal="true" aria-labelledby="result-title">
@@ -61,6 +77,9 @@ export function MissionResultModal({
             <strong className="mission-name-label">{missionTitle}</strong>
           </div>
           {difficultyLabel && <p className="result-level-label">{difficultyLabel}</p>}
+          {stoneReward !== undefined && <p className="result-level-label">ได้รับ {stoneReward.toLocaleString("th-TH")} หินวิญญาณ</p>}
+          {rewardNote && <p className="result-level-label" role="status">{rewardNote}</p>}
+          {onRetryReward && <button type="button" onClick={onRetryReward}>ลองบันทึกรางวัลอีกครั้ง</button>}
           {merit !== undefined && completed && <p className="result-level-label">ได้รับ +{merit} เกียรติภูมิ</p>}
           {rankUp && completed && <p className="result-rank-up" role="status">✦ เลื่อนขั้นเป็น “{rankUp}” ✦</p>}
           {progressError && <p className="form-error" role="alert">{progressError}</p>}
@@ -70,6 +89,7 @@ export function MissionResultModal({
         <div className="result-body-card glass-panel">
           {/* Left: Metrics */}
           <div className="metrics-column">
+            {elapsedTime !== undefined && <div className="metric-row"><span className="metric-icon" aria-hidden="true">⏱</span><span className="metric-name">เวลาที่ใช้</span><strong className="metric-val">{elapsedTime}</strong></div>}
             <div className="metric-row">
               <span className="metric-icon">🎯</span>
               <span className="metric-name">{resultCopy.metrics.completion}</span>
@@ -179,7 +199,7 @@ export function MissionResultModal({
 }
 
 /** Mission Hall only; Free Practice keeps its existing result screen. */
-export function MissionOutcomeModal({ status, missionTitle, venue, level, completed, total, mistakes, reward, stones, stonesError, stonesTracked, stonesPreview, elapsed, merit, rankUp, progressError, reviving, balance, freeRevive, reviveCost = REVIVE_COST, reviveDisabled = false, onRevive, onNext, onRetry, onReturn }: {
+export function MissionOutcomeModal({ status, missionTitle, venue, level, completed, total, mistakes, reward, stones, stonesError, stonesTracked, stonesPreview, simpleStoneReward, elapsed, merit, rankUp, progressError, reviving, balance, freeRevive, reviveCost = REVIVE_COST, reviveDisabled = false, returnLabel = "กลับหน้าภารกิจ", retryLabel = "เริ่มใหม่ทั้งด่าน", failureReason, onRetrySync, onRevive, onNext, onRetry, onReturn }: {
   status: "success" | "failed";
   missionTitle: string;
   venue: string;
@@ -195,6 +215,7 @@ export function MissionOutcomeModal({ status, missionTitle, venue, level, comple
   stonesTracked?: boolean;
   /** Admin preview: reward is computed locally and not credited. */
   stonesPreview?: boolean;
+  simpleStoneReward?: number;
   /** Client-measured seconds, shown when the server receipt has no time yet. */
   elapsed?: number | null;
   merit?: number;
@@ -207,6 +228,10 @@ export function MissionOutcomeModal({ status, missionTitle, venue, level, comple
   freeRevive?: boolean;
   reviveCost?: number;
   reviveDisabled?: boolean;
+  returnLabel?: string;
+  retryLabel?: string;
+  failureReason?: string;
+  onRetrySync?: () => void;
   onRevive?: () => void | boolean | Promise<void | boolean>;
   onNext?: () => void;
   onRetry: () => void;
@@ -216,7 +241,7 @@ export function MissionOutcomeModal({ status, missionTitle, venue, level, comple
   const short = !freeRevive && typeof balance === "number" && balance < reviveCost;
   const [confirming, setConfirming] = useState(false);
   const b = stones?.breakdown;
-  const clock = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s) % 60).padStart(2, "0")}`;
+  const clock = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${(s % 60).toFixed(2).padStart(5, "0")}`;
   const time = b ? clock(b.seconds) : typeof elapsed === "number" ? clock(elapsed) : null;
   const target = b ? `${Math.floor(b.targetSeconds / 60)}:${String(b.targetSeconds % 60).padStart(2, "0")}` : null;
   return <div className={`mission-outcome-overlay is-${status}`} role="dialog" aria-modal="true" aria-labelledby="mission-outcome-title">
@@ -253,8 +278,8 @@ export function MissionOutcomeModal({ status, missionTitle, venue, level, comple
               <li><span>โบนัสเล่นแม่น (ไม่ผิดเลย)</span><strong>+{b.cleanBonus.toLocaleString("th-TH")}</strong></li>
               {b.total > b.base + b.timeBonus + b.cleanBonus && <li><span>รางวัลขั้นต่ำ 40%</span><strong>{b.floor.toLocaleString("th-TH")}</strong></li>}
             </ul>
-            <p className="mo-reward-total"><span>รวมรอบนี้</span><strong><img className="mo-stone-icon is-lg" src="/arena/economy/currencies/spirit-stone-v2.webp" alt="" /> +{stones!.reward.toLocaleString("th-TH")} <em>หิน</em></strong><small>{stonesPreview ? "ตัวอย่างโหมดแอดมิน · ไม่บันทึกจริง" : `คงเหลือ ${stones!.balance.toLocaleString("th-TH")} หิน`}</small></p>
-          </> : <p className="mo-reward-pending" role="status">{stonesError || "กำลังบันทึกหินวิญญาณ…"}</p>}
+            <p className="mo-reward-total"><span>รวมรอบนี้</span><strong><img className="mo-stone-icon is-lg" src="/arena/economy/currencies/spirit-stone-v2.webp" alt="" /> +{stones!.reward.toLocaleString("th-TH")} <em>หิน</em></strong><small>{stonesPreview ? "ยอดสำหรับตรวจดู · ไม่บันทึกเข้าคลัง" : `คงเหลือ ${stones!.balance.toLocaleString("th-TH")} หิน`}</small></p>
+          </> : simpleStoneReward !== undefined ? <p className="mo-reward-total"><span>ได้รับรางวัล</span><strong><img className="mo-stone-icon is-lg" src="/arena/economy/currencies/spirit-stone-v2.webp" alt="" /> +{simpleStoneReward.toLocaleString("th-TH")} <em>หิน</em></strong></p> : <p className="mo-reward-pending" role="status">{stonesError || "กำลังบันทึกหินวิญญาณ…"}</p>}
         </section>}
         {(reward || merit !== undefined || rankUp) && <p className="mo-extras">
           {reward && <span>รางวัลภารกิจ <strong>{reward}</strong></span>}
@@ -267,7 +292,7 @@ export function MissionOutcomeModal({ status, missionTitle, venue, level, comple
           <div><dt>อนุญาต</dt><dd>3</dd><small>ครั้ง</small></div>
           <div><dt>เงื่อนไขสำเร็จ</dt><dd>{completed}/{total}</dd><small>เส้นทาง</small></div>
         </dl>
-        <p className="mo-reason"><strong>เหตุที่ล้มเหลว</strong>ต่อสายผิดเกินจำนวนที่อนุญาต สายที่ต่อถูกและอุปกรณ์ที่วางไว้ยังอยู่ครบ</p>
+        <p className="mo-reason"><strong>เหตุที่ล้มเหลว</strong>{failureReason ?? "ต่อสายผิดครบ 3/3 ครั้ง สายที่ต่อถูกและอุปกรณ์ที่วางไว้ยังอยู่ครบ"}</p>
         {onRevive && <p className="mo-choice">จ่าย {reviveCost} หินเพื่อเริ่มต่อจากจุดที่พลาด: สายและอุปกรณ์เดิมยังอยู่ จำนวนครั้งที่ผิดลดลง 1{typeof balance === "number" && <> · ท่านมี {balance.toLocaleString("th-TH")} หิน</>}</p>}
         {onRevive && short && <p className="form-error" role="status">หินวิญญาณไม่พอ (ต้องใช้ {reviveCost} ก้อน) เลือกเริ่มใหม่ทั้งด่านแทน</p>}
         {stonesError && <p className="form-error" role="alert">{stonesError}</p>}
@@ -278,21 +303,21 @@ export function MissionOutcomeModal({ status, missionTitle, venue, level, comple
         {success ? <>
           {onNext && <button type="button" className="cultivation-btn btn-gold btn-md" onClick={onNext} autoFocus>ด่านถัดไป</button>}
           <button type="button" className="cultivation-btn btn-gold-subtle btn-md" onClick={onRetry}>เล่นอีกครั้ง</button>
-          <button type="button" className={`cultivation-btn ${onNext ? "btn-glass" : "btn-gold"} btn-md`} onClick={onReturn} autoFocus={!onNext}>กลับหน้าภารกิจ</button>
+          <button type="button" className={`cultivation-btn ${onNext ? "btn-glass" : "btn-gold"} btn-md`} onClick={onReturn} autoFocus={!onNext}>{returnLabel}</button>
         </> : <>
           {onRevive && <button type="button" className="cultivation-btn btn-gold btn-md mo-revive-btn" onClick={() => setConfirming(true)} disabled={reviving || reviveDisabled} autoFocus={!short}>{reviving ? "กำลังฟื้น…" : <><span className="mo-revive-main">เล่นต่อจากจุดที่พลาด</span><span className="mo-revive-cost"><img className="mo-stone-icon" src="/arena/economy/currencies/spirit-stone-v2.webp" alt="" /> ใช้ {reviveCost} หินวิญญาณ</span></>}</button>}
-          <button type="button" className="cultivation-btn btn-gold-subtle btn-md" onClick={onRetry} autoFocus={!onRevive || short}>เริ่มใหม่ทั้งด่าน</button>
-          <button type="button" className="cultivation-btn btn-glass btn-md" onClick={onReturn}>กลับหน้าภารกิจ</button>
+          <button type="button" className="cultivation-btn btn-gold-subtle btn-md" onClick={onRetry} autoFocus={!onRevive || short}>{retryLabel}</button>
+          <button type="button" className="cultivation-btn btn-glass btn-md" onClick={onReturn}>{returnLabel}</button>
         </>}
       </div>
+      {stonesError && onRetrySync && <button type="button" className="cultivation-btn btn-glass btn-md" onClick={onRetrySync} disabled={reviving}>ลองบันทึกสถานะอีกครั้ง</button>}
       {confirming && onRevive && <div className="mo-confirm" role="alertdialog" aria-modal="true" aria-labelledby="mo-confirm-title"
         style={{ position: "fixed", inset: 0, display: "grid", placeItems: "center", background: "rgba(5,8,20,.72)", zIndex: 50, padding: 16 }}>
         <div className="gold-border-frame" style={{ background: "#0d1430", padding: "20px 22px", borderRadius: 14, maxWidth: 360, width: "100%", textAlign: "center" }}>
           <h2 id="mo-confirm-title" style={{ margin: "0 0 10px" }}>ยืนยันใช้หินวิญญาณ</h2>
-          {stonesError && <p className="form-error" role="alert">{stonesError}</p>}
           <p style={{ margin: "4px 0" }}>ค่าเริ่มต่อจากจุดที่พลาด <strong>{reviveCost}</strong> หิน</p>
           <p style={{ margin: "4px 0" }}>หินที่ท่านมี <strong>{typeof balance === "number" ? balance.toLocaleString("th-TH") : "กำลังโหลด…"}</strong> หิน</p>
-          {freeRevive ? <p style={{ margin: "4px 0", color: "#e9c46a" }}>โหมดทดสอบของแอดมิน · ไม่หักหินจริง</p> : typeof balance === "number" && (short
+          {freeRevive ? <p style={{ margin: "4px 0", color: "#e9c46a" }}>โหมดทดสอบของผู้ดูแล · ไม่หักหินจริง</p> : typeof balance === "number" && (short
             ? <p className="form-error" role="status">หินไม่พอ ขาดอีก {(reviveCost - balance).toLocaleString("th-TH")} หิน</p>
             : <p style={{ margin: "4px 0", color: "#e9c46a" }}>เพียงพอ · หลังจ่ายเหลือ {(balance - reviveCost).toLocaleString("th-TH")} หิน</p>)}
           <div className="mo-actions" style={{ marginTop: 14 }}>

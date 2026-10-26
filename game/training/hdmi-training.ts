@@ -53,6 +53,8 @@ export interface TrainingState {
   notice: TrainingNotice | null;
   /** Transient marker: one deliberate cable-to-port attempt rejected by the existing validator. */
   invalidConnectionAttempt?: boolean;
+  /** Competition replay's server-derived count of rejected cable-to-port connections. */
+  connectionMistakes?: number;
   /** Mission cable-prep: leads the trainee did not pack (not rendered, cannot be used). */
   hiddenCables?: string[];
   /** Leads currently inside the trainee's bag (packed, not in the room yet): not rendered, taken out one at a time. */

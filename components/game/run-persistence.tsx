@@ -30,7 +30,8 @@ export function useRunAutosave(key: RunKey | null, active: boolean, lobbyBag: Re
     if (st.scenarioId !== k.scenarioId) return true;
     if (st.completed || (k.mode !== "free-practice" && st.failed)) { deleteRun(k); last.current = ""; setStatus({ state: "idle" }); return true; }
     const training = pickTraining(st);
-    const body = JSON.stringify([training, st.wrongStreak, st.failed, st.heldTurn, bag]);
+    const elapsedMs = k.mode === "free-practice" ? Math.floor((elapsedRef.current ?? 0) / 5000) * 5000 : undefined;
+    const body = JSON.stringify([training, st.wrongStreak, st.failed, st.heldTurn, bag, elapsedMs]);
     if (!force && body === last.current) return true;
     setStatus({ state: "saving" });
     const res = writeRun(k, { lobbyBag: bag, training, wrongStreak: st.wrongStreak, failed: st.failed, heldTurn: st.heldTurn, ...(k.scenarioId === "studio-full" ? { classroomElapsedMs: elapsedRef.current } : {}) });
@@ -59,19 +60,21 @@ export function useRunAutosave(key: RunKey | null, active: boolean, lobbyBag: Re
     // Only world-state fields count as changes; notices, focus and hover do not trigger writes.
     const unsub = useTrainingStore.subscribe((s, p) => {
       if (s.cables === p.cables && s.items === p.items && s.held === p.held && s.heldItem === p.heldItem && s.bagged === p.bagged
-        && s.sim === p.sim && s.actionsDone === p.actionsDone && s.completed === p.completed && s.failed === p.failed && s.heldTurn === p.heldTurn) return;
+        && s.classroom === p.classroom && s.sim === p.sim && s.actionsDone === p.actionsDone && s.completed === p.completed && s.failed === p.failed && s.heldTurn === p.heldTurn) return;
       pending.current = true;
       if (timer.current !== null) window.clearTimeout(timer.current);
       timer.current = window.setTimeout(() => write(k, bagRef.current), 400);
     });
     const onHide = () => { if (document.visibilityState === "hidden") write(k, bagRef.current); };
     const onPageHide = () => write(k, bagRef.current);
+    const timeSave = window.setInterval(() => write(k, bagRef.current), 5000);
     document.addEventListener("visibilitychange", onHide);
     window.addEventListener("pagehide", onPageHide);
     return () => {
       unsub();
       document.removeEventListener("visibilitychange", onHide);
       window.removeEventListener("pagehide", onPageHide);
+      window.clearInterval(timeSave);
       // Leaving the room (pause, console, route change): commit what is still pending for this run.
       if (pending.current) write(k, bagRef.current);
     };

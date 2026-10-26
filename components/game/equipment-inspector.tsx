@@ -44,7 +44,7 @@ export function EquipmentInspector() {
   // Hold-E opens the same orbit viewer immediately in Free Practice and every mission.
   return <div className="inspector-overlay" role="dialog" aria-modal="true" aria-labelledby="inspector-title">
     <div className="inspector-stage">
-      <Canvas camera={{ fov: 40, position: [1.6, 1.2, 2.2] }} dpr={[1, 1.7]}>
+      <Canvas camera={{ fov: 40, position: [1.6, 1.2, 2.2] }} dpr={[1, 2]}>
         <color attach="background" args={["#10151f"]} />
         <hemisphereLight args={["#e8eef7", "#39342c", 1.6]} />
         <directionalLight position={[3, 4, 3]} intensity={2.4} />

@@ -33,7 +33,10 @@ export function apply(state: TrainingState, method: string, args: unknown[]): Tr
       else if (target.kind === "action") { if (!scenario.actions.some((a) => a.id === target.actionId)) throw new ArenaError(400,"ไม่พบการกระทำนี้"); }
       else if (target.kind === "device") { if (!scenario.devices.some((d) => d.id === target.deviceId)) throw new ArenaError(400,"ไม่พบอุปกรณ์นี้"); }
       else throw new ArenaError(400,"ชนิดเป้าหมายไม่ถูกต้อง");
-      return interactWithTarget(state,target,mode as "whole" | "a" | "b");
+      const next = interactWithTarget({ ...state, invalidConnectionAttempt: false },target,mode as "whole" | "a" | "b");
+      return next.invalidConnectionAttempt
+        ? { ...next, connectionMistakes: (state.connectionMistakes ?? 0) + 1 }
+        : next;
     }
     case "takeCable": {
       const id = text(args[0]), cable = state.cables[id];
@@ -84,9 +87,10 @@ export function recordCommand(attempt: Row, body: Record<string, unknown>) {
 }
 export function commandCost(before: TrainingState, after: TrainingState, method: string, rules: Record<string, number>) {
   const errors = Math.max(0,(after.sim?.errors || 0) - (before.sim?.errors || 0));
+  const connectionErrors = Math.max(0, (after.connectionMistakes ?? 0) - (before.connectionMistakes ?? 0));
   const failed = method === "test" && after.notice?.tone === "error";
   const connector = /หัวต่อ|ชนิดสาย|ขั้ว/.test(after.notice?.detail || "");
-  return { penalty: errors * Number(connector ? rules.connector_ms : rules.route_ms) + (failed ? Number(rules.failed_ms) : 0) + (method === "trace" ? Number(rules.hint_ms) : 0), mistakes: errors + (failed ? 1 : 0) };
+  return { penalty: errors * Number(connector ? rules.connector_ms : rules.route_ms) + connectionErrors * Number(connector ? rules.connector_ms : rules.route_ms) + (failed ? Number(rules.failed_ms) : 0) + (method === "trace" ? Number(rules.hint_ms) : 0), mistakes: errors + connectionErrors + (failed ? 1 : 0) };
 }
 export function finishReplay(attempt: Row, now: number): boolean {
   const replay=one("SELECT * FROM competition_replay WHERE attempt=?",attempt.id);

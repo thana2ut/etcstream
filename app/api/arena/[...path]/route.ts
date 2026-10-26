@@ -11,6 +11,7 @@ import * as ranked from "@/server/arena/ranked";
 import {generateRecovery,recoverPlayer} from "@/server/arena/recovery";
 import { cloudEnabled } from "@/server/online/supabase";
 import { cloudArena } from "@/server/online/arena";
+import { guardApiRequest } from "@/server/security/api-guard";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -103,6 +104,8 @@ async function handle(request: Request, context: Context) {
   throw new ArenaError(404, "ไม่พบรายการนี้");
 }
 async function respond(request: Request, context: Context) {
+  const rejected = guardApiRequest(request);
+  if (rejected) return rejected;
   if (cloudEnabled()) return cloudArena(request, (await context.params).path);
   try { return NextResponse.json(await handle(request, context), { headers: { "Cache-Control": "no-store" } }); }
   catch (e) {

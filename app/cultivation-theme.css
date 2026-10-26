@@ -408,6 +408,16 @@ body {
   display: flex;
   gap: 14px;
   justify-content: center;
+  flex-wrap: wrap;
+}
+
+.exit-confirm-restart .btn-icon { display: inline-grid; place-items: center; }
+.exit-confirm-restart .btn-icon svg { width: 18px; height: 18px; }
+
+@media (max-width: 520px) {
+  .exit-confirm-modal { padding: 22px 18px; }
+  .exit-confirm-actions { gap: 10px; }
+  .exit-confirm-actions .cultivation-btn { flex: 1 1 130px; justify-content: center; }
 }
 
 /* ==========================================================================
@@ -3234,6 +3244,7 @@ html[data-reduced-motion="true"] *, html[data-reduced-motion="true"] *::before, 
 
 /* ── Mission hall: sect rank + drawn assignment ───────────────────────── */
 .mission-draw { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(280px, 1.6fr); gap: 22px; padding: 22px 26px; margin: 0 auto 26px; max-width: 1180px; width: 100%; }
+.mission-account-loading { max-width: 1180px; width: 100%; margin: 0 auto 26px; padding: 18px 24px; border: 1px solid rgba(201, 164, 106, .28); border-radius: 16px; background: rgba(10, 14, 22, .38); color: #d9cfbd; text-align: center; line-height: 1.55; }
 .mission-draw h2 { margin: 4px 0 2px; font-size: 1.7rem; color: #f6ddaa; }
 .mission-draw h3 { margin: 4px 0 6px; font-size: 1.35rem; color: #f6ddaa; }
 .mission-draw p, .mission-draw small { color: #d9cfbd; line-height: 1.55; }

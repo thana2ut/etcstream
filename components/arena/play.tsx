@@ -61,14 +61,17 @@ export function ArenaPlay({ id, duelId }: { id: string; duelId?: string }) {
   const [started, setStarted] = useState(false), [pointerLocked, setPointerLocked] = useState(false);
   const actionPending = useRef(false);
   const clockOffset = useRef(0), clockEpoch = useRef(0), seq = useRef(0), queue = useRef(Promise.resolve());
-  const stoneStage = useRef("");
-  const stones = useMissionStones(Boolean(stoneStage.current), stoneStage.current);
-  const complete = useTrainingStore((s) => s.completed), simPaused = useTrainingStore((s) => Boolean(s.sim?.paused));
+  const completionStamp = useRef<number | null>(null);
+  const [completedAt, setCompletedAt] = useState<number | null>(null);
+  const [stoneStage, setStoneStage] = useState("");
+  const stones = useMissionStones(Boolean(stoneStage), stoneStage);
+  const complete = useTrainingStore((s) => s.completed), failed = useTrainingStore((s) => s.failed), simPaused = useTrainingStore((s) => Boolean(s.sim?.paused));
   const bagCount = useTrainingStore((s) => s.bagged?.length ?? 0);
   const previousErrors = useRef(0);
   const commands = useRef<{ seq: number; command: CompetitionCommand }[]>([]);
   const commandSequence = useRef(0), inFlight = useRef<Promise<void> | null>(null);
   const [syncError, setSyncError] = useState("");
+  const failureSubmitting = useRef(false);
   const drain = useCallback((): Promise<void> => {
     if (inFlight.current) return inFlight.current;
     const task = (async () => {
@@ -131,7 +134,7 @@ export function ArenaPlay({ id, duelId }: { id: string; duelId?: string }) {
       seq.current=a.eventSeq || 0;
       commandSequence.current = a.replay?.seq || 0;
       setAttempt(a.replay ? { ...a, protocol: a.replay.protocol, commandSeq: a.replay.seq } : a);
-      if (SCENARIOS[a.scenario as ScenarioId]?.stage) stoneStage.current = a.scenario;
+      if (SCENARIOS[a.scenario as ScenarioId]?.stage) setStoneStage(a.scenario);
       if (SCENARIOS[a.scenario as ScenarioId]) {
         useTrainingStore.getState().reset(a.scenario as ScenarioId);
         useTrainingStore.setState({ sim: initSim(SCENARIOS[a.scenario as ScenarioId], a.seed || 1), failureEnabled: false });
@@ -140,10 +143,16 @@ export function ArenaPlay({ id, duelId }: { id: string; duelId?: string }) {
         useTrainingStore.setState({ ...a.replay.state, failed: false, failureEnabled: false });
         setBag(a.replay.bag); setBriefing(false);
       }
-      setTouch(window.matchMedia("(pointer: coarse)").matches);
     }).catch((e) => { if (live) setError(e.message); });
     return () => { live = false; if (document.pointerLockElement) document.exitPointerLock(); useTrainingStore.setState(saved, true); };
   }, [id]);
+  useEffect(() => {
+    const query = window.matchMedia("(any-pointer: coarse), (max-width: 768px)");
+    const update = () => setTouch(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (confirmAbandon || !bag || attempt?.status !== "RUNNING" || Date.now() + clockOffset.current < Number(attempt.start) || e.repeat) return;
@@ -153,6 +162,14 @@ export function ArenaPlay({ id, duelId }: { id: string; duelId?: string }) {
     }; window.addEventListener("keydown", onKey); return () => window.removeEventListener("keydown", onKey);
   }, [bag, attempt?.status, attempt?.start, confirmAbandon]);
   useEffect(() => useTrainingStore.subscribe((state) => {
+    if (state.completed && completionStamp.current === null) {
+      const stamp = performance.now() + clockEpoch.current;
+      completionStamp.current = stamp;
+      setCompletedAt(stamp);
+    } else if (!state.completed && completionStamp.current !== null) {
+      completionStamp.current = null;
+      setCompletedAt(null);
+    }
     const errors = state.sim?.errors || 0;
     const delta = errors - previousErrors.current; previousErrors.current = errors;
     if (attempt?.protocol === "server-command-v1" || delta <= 0 || attempt?.status !== "RUNNING" || Date.now() + clockOffset.current < Number(attempt.start)) return;
@@ -177,19 +194,22 @@ export function ArenaPlay({ id, duelId }: { id: string; duelId?: string }) {
       if (action === "finish") void stones.finish(s.cables, s.wrongStreak);
     } catch (e) { setError((e as Error).message); } finally { actionPending.current = false; setBusy(false); }
   };
+  useEffect(() => {
+    if (!failed || attempt?.status !== "RUNNING" || !started || failureSubmitting.current) return;
+    failureSubmitting.current = true;
+    void act("fail").finally(() => { failureSubmitting.current = false; });
+  }, [failed, attempt?.status, started]); // eslint-disable-line react-hooks/exhaustive-deps
   // Stone run opens with the clock; once every route is wired the round is submitted, the clock stops and the summary shows.
   useEffect(() => { if (attempt?.status === "RUNNING" && started) stones.begin(); }, [attempt?.status, started, stones]);
   const autoFinished = useRef(false);
-  const [completedAt, setCompletedAt] = useState<number | null>(null);
   useEffect(() => {
     if (!duelId || !duel?.bothStarted || attempt?.status !== "PENDING" || !assetsReady || duelStartTriggered.current) return;
     duelStartTriggered.current = true; void act("ready");
-  }); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { if (complete && !completedAt) setCompletedAt(performance.now() + clockEpoch.current); }, [complete, completedAt]);
+  });
   useEffect(() => {
     if (!complete || attempt?.status !== "RUNNING" || !started || autoFinished.current) return;
     autoFinished.current = true; if (document.pointerLockElement) document.exitPointerLock(); void act("finish");
-  }); // eslint-disable-line react-hooks/exhaustive-deps
+  });
   if (!attempt) return <ArenaShell><ArenaBanner title="ภารกิจจับเวลา" file="card-time-attack" /><section className="arena-panel">{error ? <ArenaEmptyState icon="time-attack" title="ยังเปิดรอบนี้ไม่ได้" href="/arena/time-attack" action="กลับไปเลือกภารกิจ"><span role="alert">{error}</span></ArenaEmptyState> : <p role="status" className="arena-skeleton">กำลังเปิดใบภารกิจ…</p>}</section></ArenaShell>;
   const scenario = SCENARIOS[attempt.scenario as ScenarioId];
   if (!scenario?.stage) return <ArenaShell><ArenaBanner title="ข้อมูลด่านไม่พร้อม" file="card-time-attack" /><section className="arena-panel"><ArenaEmptyState icon="time-attack" title="ยังเปิดใบภารกิจนี้ไม่ได้" href="/arena/time-attack" action="กลับไปเลือกภารกิจ">ข้อมูลด่านของรอบนี้ยังไม่พร้อมใช้งาน</ArenaEmptyState></section></ArenaShell>;
@@ -202,6 +222,29 @@ export function ArenaPlay({ id, duelId }: { id: string; duelId?: string }) {
   const missionLevelLabel = missionChapter ? getMissionDifficultyLabel(missionChapter, missionLevel) : scenario.stage.id;
   const missionObjective = (missionChapter && getDifficultyMeta(missionChapter, missionLevel)?.objective) || scenario.stage.ticket;
   const abandonDialog = <ArenaConfirmDialog open={confirmAbandon} title="ยุติรอบฝึกนี้หรือไม่?" busy={busy} onCancel={() => setConfirmAbandon(false)} onConfirm={() => void act("abandon")}>รอบนี้จะถูกบันทึกว่ายุติ และไม่นำผลไปจัดอันดับ{error && <span className="arena-dialog-error" role="alert">{error}</span>}</ArenaConfirmDialog>;
+  if (complete && attempt.status === "RUNNING" && started && !failed) {
+    const state = useTrainingStore.getState();
+    const connected = scenario.cables.filter((cable) => state.cables[cable.id]?.a.portId && state.cables[cable.id]?.b.portId).length;
+    const elapsed = attempt.start === null || completedAt === null ? null : Math.max(0, (completedAt - Number(attempt.start)) / 1000);
+    return <ArenaShell><ArenaBanner title="ผลรอบฝึกกาลเวลา" file="card-time-attack"><p>{venueLabel} · {scenario.stage.title}</p></ArenaBanner>
+      <MissionOutcomeModal status="success" missionTitle={missionTitle} venue={venueLabel ?? "สนามประลอง"} level={missionLevel}
+        completed={connected} total={scenario.cables.length} mistakes={state.wrongStreak} elapsed={elapsed}
+        stones={stones.reward} stonesError={stones.error || error || syncError || undefined} stonesTracked={Boolean(stoneStage)} stonesPreview={stones.preview}
+        returnLabel="กลับหอประลอง" progressError={error || syncError || undefined}
+        onRetry={() => router.push("/arena/time-attack")} onReturn={() => router.push("/arena")} />
+    </ArenaShell>;
+  }
+  if (attempt.status === "DNF" && attempt.reason?.includes("ครบ 3/3")) {
+    const state = useTrainingStore.getState();
+    const connected = scenario.cables.filter((cable) => state.cables[cable.id]?.a.portId && state.cables[cable.id]?.b.portId).length;
+    return <ArenaShell><ArenaBanner title="ผลรอบฝึกกาลเวลา" file="card-time-attack"><p>{venueLabel} · {scenario.stage.title}</p></ArenaBanner>
+      <MissionOutcomeModal status="failed" missionTitle={missionTitle} venue={venueLabel ?? "สนามประลอง"} level={missionLevel}
+        completed={connected} total={scenario.cables.length} mistakes={state.wrongStreak} elapsed={attempt.start === null || attempt.elapsedMs === null ? null : attempt.elapsedMs / 1000}
+        failureReason="ต่อสายผิดครบ 3/3 ครั้ง รอบประลองนี้จึงสิ้นสุดลง"
+        returnLabel="กลับหอประลอง" retryLabel="เลือกด่านใหม่"
+        onRetry={() => router.push("/arena/time-attack")} onReturn={() => router.push("/arena")} />
+    </ArenaShell>;
+  }
   if (!["PENDING","RUNNING"].includes(attempt.status)) return <ArenaShell>
     {attempt.graphValid && attempt.status !== "DNF" && !successDismissed && <MissionOutcomeModal status="success" missionTitle={missionTitle} venue={venueLabel ?? "หอประลอง"} level={missionLevel}
       completed={trainingTotal({ scenarioId: attempt.scenario as ScenarioId })} total={trainingTotal({ scenarioId: attempt.scenario as ScenarioId })}
@@ -210,8 +253,8 @@ export function ArenaPlay({ id, duelId }: { id: string; duelId?: string }) {
     <ArenaBanner title="ผลรอบฝึกกาลเวลา" file="card-time-attack"><p>{venueLabel} · {scenario.stage.title}</p></ArenaBanner>
     <section className="arena-panel arena-result" data-outcome={attempt.status}>
       <div className="arena-result-seal" aria-hidden="true"><ArenaIcon name={attempt.status === "VERIFIED" ? "trophy" : "time-attack"} /></div>
-      <span className={`arena-status${attempt.status === "DNF" ? " is-muted" : ""}`}>{attempt.status === "DNF" ? statusText(attempt.status) : attempt.graphValid ? "ภารกิจสำเร็จ" : "ส่งผลแล้ว"}</span>
-      <h2>{attempt.status === "DNF" ? "รอบนี้ยุติแล้ว" : attempt.graphValid ? "ภารกิจสำเร็จ" : "บันทึกผลรอบนี้แล้ว"}</h2>
+      <span className={`arena-status${attempt.status === "DNF" ? " is-muted" : ""}`}>{attempt.status === "DNF" ? (attempt.reason?.includes("ครบ 3/3") ? "ภารกิจล้มเหลว" : statusText(attempt.status)) : attempt.graphValid ? "ภารกิจสำเร็จ" : "ส่งผลแล้ว"}</span>
+      <h2>{attempt.status === "DNF" ? (attempt.reason?.includes("ครบ 3/3") ? "ภารกิจล้มเหลว" : "รอบนี้ยุติแล้ว") : attempt.graphValid ? "ภารกิจสำเร็จ" : "บันทึกผลรอบนี้แล้ว"}</h2>
       {attempt.status === "DNF" && <p>{attempt.start === null ? "ยุติก่อนเริ่มจับเวลา จึงไม่มีเวลาสำหรับรอบนี้" : attempt.reason || "รอบนี้ถูกยุติ"}</p>}
       <dl className="arena-stats">
         <div><dt>เวลาที่ใช้</dt><dd>{attempt.start === null ? "—" : timeText(attempt.elapsedMs)}</dd></div>
@@ -251,7 +294,7 @@ export function ArenaPlay({ id, duelId }: { id: string; duelId?: string }) {
   }} />;
   const running = attempt.status === "RUNNING" && started;
   return <main className="fantasy-viewport game-screen play-page" style={{ position: "fixed", inset: 0, background: "#081325" }}>
-    <div className="game-viewport" style={{ position: "absolute", inset: 0, zIndex: 0 }}><GameCanvas key={scenario.id} venue={venue} active={running && !confirmAbandon && !bagOpen && !simPaused} fallbackLook={fallback} touch={touch} onExitFallback={exitFallback} onPointerLockError={enterFallback} /></div>
+    <div className="game-viewport" style={{ position: "absolute", inset: 0, zIndex: 0 }}><GameCanvas key={scenario.id} venue={venue} active={running && !failed && !confirmAbandon && !bagOpen && !simPaused} fallbackLook={fallback} touch={touch} onExitFallback={exitFallback} onPointerLockError={enterFallback} /></div>
     <AssetGate onReady={markAssetsReady} />
     {duelId && attempt.status === "PENDING" && (!duel?.bothPacked || !duel?.bothStarted) && <div className="duel-wait-veil" role="status" aria-live="polite">
       <section className="duel-wait">
@@ -264,11 +307,18 @@ export function ArenaPlay({ id, duelId }: { id: string; duelId?: string }) {
     </div>}
     {running && !confirmAbandon && <><FirstPersonHands /><div className="game-center-reticle" aria-hidden="true" /></>}
     {running && !touch && !pointerLocked && !fallback && !bagOpen && !confirmAbandon && <p role="status" style={{ position: "absolute", zIndex: 5, left: "50%", top: "48%", transform: "translate(-50%, -50%)", pointerEvents: "none", padding: "0.8rem 1.2rem", border: "1px solid #c8a967", borderRadius: 12, background: "#081325df", color: "#fff1d0", textAlign: "center" }}>คลิกในห้องเพื่อควบคุมเมาส์ แล้วใช้ W A S D เดิน</p>}
-    <div className="arena-game-bar"><strong>{scenario.stage.id}</strong><span className="arena-live">{attempt.status === "RUNNING" ? <ArenaClock start={Number(attempt.start)} epoch={clockEpoch} phase="game" frozenAt={completedAt} /> : "รอเริ่ม"}</span><span>⏱ จับเวลา · ต่อครบแล้วเวลาหยุดทันที</span>
-      {attempt.status === "PENDING" && (duelId
-        ? <button className="arena-game-primary" disabled={!assetsReady || busy || !duel?.bothPacked || Boolean(duel?.me.started)} onClick={() => void duelSend("start")}>{!assetsReady ? "กำลังโหลดฉากและฟอนต์…" : !duel?.bothPacked ? "รอคู่ประลองเตรียมสาย…" : duel.me.started ? "รอคู่ประลองกดเริ่ม…" : "พร้อม เริ่มประลอง"}</button>
-        : <button className="arena-game-primary" disabled={!assetsReady || busy} onClick={() => void act("ready")}>{assetsReady ? "พร้อม เริ่มนับถอยหลัง" : "กำลังโหลดฉากและฟอนต์…"}</button>)}
-      <button disabled={!running} onClick={() => { if (document.pointerLockElement) document.exitPointerLock(); setBagOpen(true); }}>{touch ? "กระเป๋า" : "กระเป๋า (C)"} <b className="cl-bag-badge">{bagCount}</b></button>
-      <button className="arena-game-primary" disabled={!complete || !running || busy || Boolean(syncError)} onClick={() => void act("finish")}>เสร็จสิ้น</button><button className="arena-game-danger" disabled={busy} onClick={() => { if (document.pointerLockElement) document.exitPointerLock(); setConfirmAbandon(true); }}>ยุติรอบ</button>{error && <span role="alert">{error}</span>}{syncError && <span role="alert">{syncError} <button onClick={() => void drain()}>ส่งคำสั่งที่ค้างซ้ำ</button></span>}
-    </div><TrainingHud title={missionTitle} difficultyLabel={missionLevelLabel} objective={missionObjective} touch={touch} />{bagOpen && <BagPanel bag={bag} onClose={() => setBagOpen(false)} />}<ReviewOverlay /><EquipmentInspector /><InspectHoldRing />{touch && running && !confirmAbandon && <TouchControls />}<div className="arena-public arena-game-dialog">{abandonDialog}</div></main>;
+    {failed && attempt.status === "RUNNING" && <div className="instructions-modal-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="arena-failed-title" style={{ zIndex: 80, display: "grid", placeItems: "center" }}><section className="arena-panel" style={{ width: "min(480px, calc(100vw - 32px))", textAlign: "center" }}><h2 id="arena-failed-title">ภารกิจล้มเหลว</h2><p>ต่อสายผิดครบ 3/3 ครั้ง</p>{error && <p role="alert">{error}</p>}<button className="arena-game-primary" disabled={busy} onClick={() => void act("fail")}>{busy ? "กำลังบันทึกผล…" : "ดูผลภารกิจ"}</button></section></div>}
+    <section className={`arena-round-hud${attempt.status === "RUNNING" ? " is-timing" : ""}`} aria-label="สถานะรอบแข่งขัน">
+      <span className="arena-round-hud-stage">{scenario.stage.id} · {missionLevelLabel}</span>
+      <h1>{missionTitle}</h1>
+      <div className="arena-round-hud-clock" role="timer" aria-label="เวลาที่ใช้">
+        {attempt.status === "RUNNING" ? <ArenaClock start={Number(attempt.start)} epoch={clockEpoch} phase="game" frozenAt={completedAt} /> : <span>รอเริ่ม</span>}
+      </div>
+      {attempt.status === "PENDING" && !duelId && <button className="arena-game-primary" disabled={!assetsReady || busy} onClick={() => void act("ready")}>{assetsReady ? "พร้อม · เริ่มนับถอยหลัง" : "กำลังเตรียมสนาม…"}</button>}
+      {attempt.status === "RUNNING" && !started && <p className="arena-round-hud-hint" role="status">เตรียมตัวให้พร้อม การแข่งขันกำลังจะเริ่ม</p>}
+    </section>
+    <button type="button" className={`cl-bag-button arena-round-bag${touch ? " is-touch" : ""}`} disabled={!running || failed} onClick={() => { if (document.pointerLockElement) document.exitPointerLock(); setBagOpen(true); }} aria-label={`เปิดกระเป๋า มี ${bagCount} ชิ้น`}>🎒 กระเป๋า <b className="cl-bag-badge">{bagCount}</b></button>
+    <button type="button" className="arena-round-abandon" disabled={busy} onClick={() => { if (document.pointerLockElement) document.exitPointerLock(); setConfirmAbandon(true); }}>ยุติรอบ</button>
+    {(error || syncError) && <div className="arena-round-feedback" role="alert">{error || syncError}{syncError && <button type="button" onClick={() => void drain()}>ส่งข้อมูลซ้ำ</button>}</div>}
+    <TrainingHud title={missionTitle} difficultyLabel={missionLevelLabel} objective={missionObjective} touch={touch} />{bagOpen && <BagPanel bag={bag} onClose={() => setBagOpen(false)} />}<ReviewOverlay /><EquipmentInspector /><InspectHoldRing />{touch && running && !confirmAbandon && <TouchControls />}<div className="arena-public arena-game-dialog">{abandonDialog}</div></main>;
 }

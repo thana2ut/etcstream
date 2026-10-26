@@ -7,14 +7,14 @@ import { ArenaEmptyState, ArenaFriendCode } from "./shell";
 import { useArenaResource } from "./use-arena-resource";
 import { ProfileAvatar } from "./profile-avatar";
 import { ChangeCoverButton, ProfileCover } from "./profile-cover";
-import { RankBadge } from "./rank-badge";
+import { RankBadge, tierForScore } from "./rank-badge";
 import { useEconomySummary, type EconomySummary } from "./economy";
 import { stones } from "@/game/content/economy-catalog";
 import { selectedMission } from "./portal";
 import { missionChapters } from "@/game/content/mission-catalog";
 
 type Equipped = Partial<Record<string, { sku: string; name: string; asset: string; rarity?: string | null; description?: string | null }>>;
-export type PlayerCard = { name: string; friendCode: string; isMe: boolean; relation: "self" | "friend" | "outgoing" | "incoming" | "none" | "blocked"; acceptRequests: boolean; online: boolean; equipped: Equipped; status?: string; incoming?: boolean; stats?: { verifiedStages: number; bestMs: number | null } | null };
+export type PlayerCard = { name: string; friendCode: string; isMe: boolean; relation: "self" | "friend" | "outgoing" | "incoming" | "none" | "blocked"; acceptRequests: boolean; online: boolean; equipped: Equipped; status?: string; incoming?: boolean; stats?: { verifiedStages: number; bestMs: number | null } | null; seasonStanding?: { score: number; globalRank: number; stages: number } | null; spiritStones?: number | null };
 type SocialMe = PlayerCard & { searchable: boolean; acceptRequests: boolean; pendingIn: number; challengesIn: number };
 type Challenge = { id: string; stage: string; incoming: boolean; status: "pending" | "accepted" | "declined" | "cancelled" | "expired" | "completed"; created: number; expires: number; other: PlayerCard; myBestMs: number | null; otherBestMs: number | null };
 type Standing = { tier: string; score: number; globalRank?: number } | null | undefined;
@@ -123,7 +123,7 @@ export function ChallengesPanel() {
   const respond = async (id: string, decision: string) => { setBusy(true); setError(""); try { await api("social/challenge-respond", { id, decision }); list.retry(); } catch (e) { setError((e as Error).message); } finally { setBusy(false); } };
   const items = list.data?.challenges ?? [];
   return <section className="arena-panel social-challenges"><span className="arena-eyebrow">คำท้าทำเวลา</span><h2>คำท้าทำเวลา</h2>
-    <p className="arena-note">ต่างคนต่างเล่นด่านเดียวกันภายใน 7 วันหลังตอบรับ เทียบเฉพาะเวลาที่เซิร์ฟเวอร์รับรองแล้ว ไม่มีรางวัลหรือคะแนนอันดับเพิ่ม · ดวลสด 1v1 ยังไม่เปิดใช้งาน</p>
+    <p className="arena-note">ต่างคนต่างเล่นด่านเดียวกันภายใน 7 วันหลังตอบรับ เทียบเฉพาะเวลาที่เซิร์ฟเวอร์รับรองแล้ว ไม่มีรางวัลหรือคะแนนอันดับเพิ่ม</p>
     {error && <p className="arena-error" role="alert">{error}</p>}
     {list.loading ? <p role="status">กำลังโหลดคำท้า…</p> : list.error && !list.data ? <p className="arena-error">{list.error} <button onClick={list.retry}>ลองอีกครั้ง</button></p>
       : items.length === 0 ? <ArenaEmptyState icon="time-attack" title="ยังไม่มีคำท้า">ส่งคำท้าได้จากรายชื่อสหายหรือโปรไฟล์ของสหาย</ArenaEmptyState>
@@ -229,9 +229,14 @@ export function PlayerProfilePage({ code }: { code: string }) {
   // Action buttons sit above the cover, separate from the artwork.
   return <div className="profile-hub"><div className="profile-hub-actions is-above-cover">{card.isMe ? null : <><RelationButton card={card} onChange={() => void load()} />{card.relation === "friend" && <ChallengeSender code={card.friendCode} name={card.name} />}</>}{!card.isMe && <Link className="arena-text-link" href="/arena/friends">กลับหน้าสหาย →</Link>}</div><ProfileCover cover={eq.profileCover?.asset} className="arena-panel profile-hub-card" bodyClassName="profile-hub-header is-public">
     <div className="profile-hub-portrait"><ProfileAvatar avatar={avatarOf(eq)} frame={eq.profileFrame?.asset} name={card.name} size={168} />{eq.profileCompanion && <Image className="profile-hub-pet" src={eq.profileCompanion.asset} alt={eq.profileCompanion.name} width={96} height={96} />}</div>
-    <div className="profile-hub-identity"><span className="arena-eyebrow">{card.isMe ? "โปรไฟล์ของเจ้า (มุมมองผู้อื่น)" : card.relation === "friend" ? "สหายร่วมสำนัก" : "ผู้ฝึกในหอประลอง"}</span><h2>{card.name}</h2><code>@{card.friendCode}</code>
+    <div className="profile-hub-identity"><span className="arena-eyebrow">{card.isMe ? "โปรไฟล์ของเจ้า (มุมมองผู้อื่น)" : card.relation === "friend" ? "สหายร่วมสำนัก" : "ผู้ฝึกในหอประลอง"}</span><h2>{card.name}</h2><ArenaFriendCode code={card.friendCode} />
       <p>{card.online ? "ออนไลน์ (ผู้ฝึกยินยอมแสดง)" : "ไม่ได้แสดงสถานะออนไลน์"}</p>
-      {card.stats ? <dl className="profile-hub-stats"><div><dt>ด่านที่รับรองแล้ว</dt><dd>{card.stats.verifiedStages}</dd></div><div><dt>เวลารับรองดีที่สุด</dt><dd>{timeText(card.stats.bestMs)}</dd></div></dl> : <p className="arena-note">ผู้ฝึกท่านนี้ไม่ได้เปิดเผยสถิติ</p>}
+      {card.seasonStanding && <div className="profile-hub-rank"><RankBadge tier={tierForScore(card.seasonStanding.score)} size={48} current /><span><strong>{tierForScore(card.seasonStanding.score)}</strong> · {card.seasonStanding.score.toLocaleString("th-TH")} คะแนนฤดูกาล</span></div>}
+      {card.stats ? <dl className="profile-hub-stats has-icons">
+        <div><span className="stat-icon">{card.seasonStanding ? <RankBadge tier={tierForScore(card.seasonStanding.score)} size={34} decorative /> : <Image src="/assets/arena/ranks/rank-01-novice.png" alt="" width={34} height={34} />}</span><span><dt>ผลที่รับรอง</dt><dd>{card.stats.verifiedStages}</dd></span></div>
+        <div><span className="stat-icon"><Image src="/arena/economy/currencies/hourglass-v1.webp" alt="" width={34} height={34} /></span><span><dt>เวลารับรองดีที่สุด</dt><dd>{timeText(card.stats.bestMs)}</dd></span></div>
+        {card.spiritStones !== null && card.spiritStones !== undefined && <div><span className="stat-icon"><Image src="/arena/economy/currencies/spirit-stone-v2.webp" alt="" width={34} height={34} /></span><span><dt>หินวิญญาณ</dt><dd>{stones(card.spiritStones)}</dd></span></div>}
+      </dl> : <p className="arena-note">ผู้ฝึกท่านนี้ไม่ได้เปิดเผยสถิติ</p>}
     </div>
   </ProfileCover><Showcase equipped={eq} own={card.isMe} /></div>;
 }

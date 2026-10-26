@@ -18,5 +18,5 @@ export const feedbackCopy = {
     portOccupied: { title: "ประตูสัญญาณถูกใช้งานอยู่แล้ว", detail: "พอร์ตนี้มีการเชื่อมต่ออยู่" },
     invalidRoute: { title: "เส้นทางนี้ยังไม่ตรงกับภารกิจ", detail: "ลองวิเคราะห์ต้นทางและปลายทางอีกครั้ง" },
   },
-  signalTest: { action: "ตรวจค่ายกลสัญญาณ", incomplete: { title: "ค่ายกลยังไม่สมบูรณ์", detail: "มีอย่างน้อยหนึ่งเส้นทางที่ยังไม่สามารถส่งสัญญาณได้" }, complete: { title: "ค่ายกลสัญญาณสมบูรณ์", detail: "พลังของระบบเริ่มไหลเวียน...", status: "SIGNAL ACTIVE" } },
+  signalTest: { action: "ตรวจค่ายกลสัญญาณ", incomplete: { title: "ค่ายกลยังไม่สมบูรณ์", detail: "มีอย่างน้อยหนึ่งเส้นทางที่ยังไม่สามารถส่งสัญญาณได้" }, complete: { title: "ค่ายกลสัญญาณสมบูรณ์", detail: "พลังของระบบเริ่มไหลเวียน…", status: "SIGNAL ACTIVE" } },
 } as const;

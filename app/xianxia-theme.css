@@ -206,6 +206,42 @@
 }
 .btn-glass, .btn-outline { border-color: var(--border-gold); color: var(--gold-300); }
 
+/* Gameplay exit choices use three distinct visual weights: continue, restart, and leave. */
+.exit-confirm-actions > .cultivation-btn:first-child {
+  background: linear-gradient(155deg, #174253, #10263a 72%);
+  border: 1px solid rgba(105, 203, 218, .7);
+  color: #d8f5f2;
+  box-shadow: inset 0 1px rgba(224, 255, 250, .08), 0 5px 18px rgba(20, 123, 147, .2);
+}
+.exit-confirm-actions > .cultivation-btn:first-child:hover {
+  background: linear-gradient(155deg, #20586a, #15344b 72%);
+  border-color: #8ce4e4;
+  box-shadow: 0 0 20px rgba(77, 200, 215, .25);
+}
+.exit-confirm-actions > .exit-confirm-restart {
+  background: linear-gradient(155deg, #59452c, #30271f 78%);
+  border: 1px solid rgba(220, 184, 112, .72);
+  color: #f5dfad;
+  box-shadow: inset 0 1px rgba(255, 239, 195, .08), 0 5px 18px rgba(120, 83, 31, .2);
+}
+.exit-confirm-actions > .exit-confirm-restart:hover {
+  background: linear-gradient(155deg, #705737, #3b3022 78%);
+  border-color: #f0cf87;
+  box-shadow: 0 0 20px rgba(220, 184, 112, .24);
+}
+.exit-confirm-actions > .cultivation-btn:last-child {
+  background: linear-gradient(180deg, #b63a2c, #7f211d);
+  border: 1px solid rgba(232, 175, 112, .78);
+  color: #ffedc5;
+  box-shadow: 0 5px 18px rgba(155, 38, 31, .28), inset 0 1px rgba(255, 226, 191, .15);
+}
+.exit-confirm-actions > .cultivation-btn:last-child:hover {
+  background: linear-gradient(180deg, #cc4936, #91271f);
+  box-shadow: 0 0 22px rgba(212, 75, 52, .34);
+}
+.exit-confirm-actions > .cultivation-btn:focus-visible { outline: 3px solid #f2d28f; outline-offset: 3px; }
+.exit-confirm-actions > .cultivation-btn:disabled { filter: grayscale(.35); opacity: .62; cursor: not-allowed; }
+
 /* ---------- Academy path portals get painted art ---------- */
 .portal-arcane-art { background: center / cover no-repeat url(/images/xianxia/card-1.webp); }
 .portal-arcane-mission { background: center / cover no-repeat url(/images/xianxia/card-5.webp); }
@@ -570,13 +606,17 @@
 .inspector-compact ul { margin: 0; padding-left: 18px; }
 
 /* Mission detail opens as its own page over the hall (levels + start button visible without hunting for them). */
-.mission-detail-page { position: fixed; inset: 0; z-index: 200; overflow-y: auto; background: #050d1a; animation: mission-detail-in .22s ease-out; }
-.mission-detail-inner { position: relative; z-index: 1; width: min(1100px, 100%); margin: 0 auto; padding: clamp(16px, 3vw, 32px) 16px 40px; display: flex; flex-direction: column; gap: 14px; min-height: 100%; justify-content: center; }
+.mission-detail-page { position: fixed; inset: 0; z-index: 200; overflow: hidden; background: #050d1a; animation: mission-detail-in .22s ease-out; }
+.mission-detail-inner { position: relative; z-index: 1; box-sizing: border-box; width: min(1100px, 100%); height: 100dvh; margin: 0 auto; padding: clamp(16px, 3vw, 32px) 16px 40px; display: flex; flex-direction: column; gap: 14px; min-height: 0; justify-content: center; }
 .mission-detail-back { position: relative; align-self: flex-start; display: inline-flex; align-items: center; justify-content: center; width: 166px; min-height: 48px; padding: 0 18px; border-radius: 9999px; border: 1px solid rgba(233, 194, 122, .55); background: rgba(5, 15, 36, .88); color: #f3e2b6; font-size: .95rem; font-weight: 700; line-height: 1; text-align: center; cursor: pointer; }
 .mission-detail-back-arrow { position: absolute; left: 16px; top: 50%; display: grid; place-items: center; width: 18px; height: 18px; transform: translateY(-50%); }
 .mission-detail-back-arrow svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 .mission-detail-back:hover { border-color: #ffe3a3; box-shadow: 0 0 14px rgba(245, 184, 66, .35); }
-.mission-detail-page .mission-choice-panel { margin-top: 0; }
+.mission-detail-page .mission-choice-panel { flex: 1 1 auto; min-height: 0; margin-top: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-gutter: stable; scrollbar-width: thin; scrollbar-color: rgba(226, 190, 112, .78) rgba(9, 20, 34, .72); }
+.mission-detail-page .mission-choice-panel::-webkit-scrollbar { width: 10px; }
+.mission-detail-page .mission-choice-panel::-webkit-scrollbar-track { margin-block: 14px; border: 1px solid rgba(198, 164, 100, .2); border-radius: 999px; background: rgba(9, 20, 34, .72); }
+.mission-detail-page .mission-choice-panel::-webkit-scrollbar-thumb { border: 2px solid rgba(9, 20, 34, .72); border-radius: 999px; background: linear-gradient(180deg, #f0d18b, #a8783f); box-shadow: 0 0 8px rgba(233, 194, 122, .24); }
+.mission-detail-page .mission-choice-panel::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #ffe7ab, #c18e4a); }
 @keyframes mission-detail-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .mission-detail-page { animation: none; } }
 /* Start bar: its own floating card under the levels (stays in view on short screens without covering the tiles). */
@@ -592,6 +632,41 @@
 .mission-detail-page .mission-choice-footer > div { min-width: 0; flex: 1 1 320px; border-left: 3px solid #e9c27a; padding-left: 14px; }
 .mission-detail-page .mission-choice-footer strong { color: #ffe3a3; }
 .mission-detail-page .mission-choice-footer p { margin: 4px 0 0; color: #c9d6f2; }
+/* Keep mission copy inside its own frame at every viewport size. */
+.mission-detail-page .mission-choice-panel,
+.mission-detail-page .mission-choice-intro,
+.mission-detail-page .mission-choice-footer,
+.mission-detail-page .mission-difficulty-tile { min-width: 0; }
+.mission-detail-page .mission-choice-intro :is(h2, p, small) { overflow-wrap: anywhere; }
+.mission-detail-page .mission-choice-intro p:not(.mission-choice-subtitle):not(.mission-choice-venue) {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden;
+}
+.mission-detail-page .mission-choice-venue { overflow-wrap: anywhere; }
+.mission-detail-page .mission-difficulty-tile {
+  height: 204px; min-height: 0; overflow: hidden;
+}
+.mission-detail-page .mission-difficulty-tile strong {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3;
+  overflow: hidden; overflow-wrap: anywhere;
+}
+.mission-detail-page .mission-difficulty-tile span:not(.mission-difficulty-number) {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4;
+  overflow: hidden; overflow-wrap: anywhere;
+}
+.mission-detail-page .mission-choice-footer strong,
+.mission-detail-page .mission-choice-footer p { overflow-wrap: anywhere; }
+.mission-detail-page .mission-choice-footer p {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+}
+.mission-detail-page .mission-choice-footer .cultivation-btn { max-width: 100%; white-space: normal; }
+@media (max-width: 1000px) {
+  .mission-detail-page .mission-difficulty-tile { height: 190px; }
+}
+@media (max-width: 650px) {
+  .mission-detail-page .mission-difficulty-tile { height: auto; min-height: 150px; }
+  .mission-detail-page .mission-choice-intro p:not(.mission-choice-subtitle):not(.mission-choice-venue) { -webkit-line-clamp: 5; }
+  .mission-detail-page .mission-choice-footer > div { flex-basis: 100%; }
+}
 @media (max-height: 820px) {
   .mission-detail-inner { justify-content: flex-start; }
 }
@@ -729,6 +804,14 @@
 .mission-hall-page span,
 .mission-hall-page small {
   font-family: var(--font-thai);
+}
+
+/* The trainee's name follows the same readable font as the academy greeting. */
+.academy-page .chamber-desc strong {
+  font-family: var(--font-thai);
+  font-size: inherit;
+  font-style: normal;
+  font-weight: 600;
 }
 
 .play-page p,
@@ -1446,3 +1529,177 @@ html[data-overlay] .cloud-layer { transition: none; }
 body:has(.mission-outcome-overlay) { overflow: hidden; }
 /* Touch: the plug/unplug button stands out from the others. */
 .touch-action-buttons .touch-plug { border-color: #e7c27c; background: rgba(90, 64, 24, .88); color: #ffe9b8; }
+
+/* Thai/English copy: retain the existing artwork and typefaces, show complete labels. */
+.eyebrow, .mission-hall-eyebrow, .inspector-role,
+.hud-check-group-title, .mo-reward h2, .briefing-card :is(h2, h3) {
+  letter-spacing: normal;
+  line-height: 1.6;
+}
+.cultivation-btn:not(.btn-icon) { white-space: normal; line-height: 1.55; }
+.exit-confirm-desc { white-space: normal; }
+.prompt-action-pill > span:last-child, .prompt-holding-pill, .hud-notice,
+.bag-card, .inspector-panel,
+.briefing-frame :is(.intro-mode-title, .intro-narrative, .target-step-item > div, .schematic-node),
+.welcome-page .welcome-player-name {
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+.game-screen .interaction-prompt-center .prompt-action-pill {
+  height: auto;
+  white-space: normal;
+  align-items: center;
+}
+.game-screen .interaction-prompt-center .prompt-action-pill > span:last-child,
+.game-screen .interaction-prompt-center .prompt-holding-pill {
+  min-width: 0;
+  white-space: normal;
+  text-wrap: pretty;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: break-word;
+  line-height: 1.6;
+}
+.instruction-body-text p + p { margin-block-start: .85em; }
+.instructions-modal-container .tab-pill-btn {
+  height: auto;
+  padding-block: 6px;
+  white-space: normal;
+  line-height: 1.6;
+}
+.mission-plaque-description {
+  display: block;
+  -webkit-line-clamp: unset;
+  overflow: visible;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+.mo-actions .cultivation-btn {
+  height: auto;
+  min-width: 0;
+  padding-block: 10px;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  line-height: 1.6;
+}
+.mo-actions .cultivation-btn.mo-revive-btn { line-height: 1.6; }
+.mo-stage > *, .mo-stats > div { min-width: 0; }
+.mo-stage strong, .mo-stats dd { line-height: 1.5; }
+.is-success .mission-outcome-panel.mo-scroll { overflow-y: auto; }
+@media (max-width: 560px) {
+  .mo-stats { grid-template-columns: repeat(auto-fit, minmax(min(100%, 110px), 1fr)); }
+}
+
+/* Exit choices share one visual rhythm: matching widths, heights, and aligned labels. */
+.exit-confirm-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: stretch; gap: 14px; }
+.exit-confirm-actions > .cultivation-btn { display: grid; grid-template-columns: 24px minmax(0, 1fr) 24px; align-items: center; width: 100%; min-width: 0; min-height: 56px; box-sizing: border-box; gap: 8px; padding: 10px 12px; text-align: center; }
+.exit-confirm-actions > .cultivation-btn .btn-icon { grid-column: 1; justify-self: center; margin: 0; }
+.exit-confirm-actions > .cultivation-btn .btn-text { grid-column: 2; justify-self: center; min-width: 0; text-align: center; }
+.exit-confirm-actions > .cultivation-btn .btn-arrow { grid-column: 3; justify-self: center; }
+@media (max-width: 520px) {
+  .exit-confirm-actions { grid-template-columns: 1fr; gap: 10px; }
+  .exit-confirm-actions > .cultivation-btn { min-height: 50px; }
+}
+
+/* Keep mission level selection inside its frame; scroll the framed content instead of the page. */
+.mission-detail-page { overflow: hidden !important; overscroll-behavior: none; }
+.mission-detail-inner { height: 100dvh; min-height: 0; justify-content: flex-start; overflow: hidden; }
+.mission-detail-page .mission-choice-panel {
+  flex: 1 1 auto; min-height: 0; overflow-x: hidden; overflow-y: auto;
+  overscroll-behavior: contain; scrollbar-gutter: stable; scrollbar-width: thin;
+  scrollbar-color: rgba(226, 190, 112, .85) rgba(9, 20, 34, .78);
+}
+.mission-detail-page .mission-choice-panel::-webkit-scrollbar { width: 10px; }
+.mission-detail-page .mission-choice-panel::-webkit-scrollbar-track { margin-block: 12px; border: 1px solid rgba(198, 164, 100, .22); border-radius: 999px; background: rgba(9, 20, 34, .78); }
+.mission-detail-page .mission-choice-panel::-webkit-scrollbar-thumb { border: 2px solid rgba(9, 20, 34, .78); border-radius: 999px; background: linear-gradient(180deg, #f0d18b, #a8783f); box-shadow: 0 0 8px rgba(233, 194, 122, .24); }
+.mission-detail-page .mission-choice-panel::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #ffe7ab, #c18e4a); }
+.mission-detail-page .mission-choice-intro { flex: 0 0 auto; }
+.mission-detail-page .mission-choice-intro p:not(.mission-choice-subtitle):not(.mission-choice-venue) { display: block; overflow: visible; -webkit-line-clamp: unset; }
+.mission-detail-page .mission-difficulty-grid { flex: 0 0 auto; }
+.mission-detail-page .mission-difficulty-tile { height: auto; min-height: 204px; overflow: visible; }
+.mission-detail-page .mission-difficulty-tile strong,
+.mission-detail-page .mission-difficulty-tile span:not(.mission-difficulty-number) { display: block; overflow: visible; -webkit-line-clamp: unset; }
+.mission-detail-page .mission-choice-footer { flex: 0 0 auto; }
+@media (max-width: 760px) {
+  .mission-detail-page { overflow: hidden !important; }
+  .mission-detail-inner { height: 100dvh; min-height: 0; }
+  .mission-detail-page .mission-choice-panel { flex: 1 1 auto; }
+  .mission-detail-page .mission-difficulty-tile { min-height: 0; }
+}
+
+/* Shared game surfaces: fit the live viewport, including Safari's changing browser chrome. */
+.game-screen { width: 100%; height: 100dvh; min-height: 0; overflow: hidden; overscroll-behavior: none; }
+.game-screen .game-viewport { width: 100%; height: 100%; }
+.game-screen .game-viewport canvas { display: block; touch-action: none; image-rendering: auto; }
+.game-screen:has(.touch-controls) {
+  --touch-stick-size: clamp(104px, 18vmin, 176px);
+  --touch-action-size: clamp(48px, 7vmin, 60px);
+  --touch-control-bottom: max(20px, calc(env(safe-area-inset-bottom, 0px) + 12px));
+}
+.game-screen .touch-controls .touch-move-pad {
+  left: max(16px, calc(env(safe-area-inset-left, 0px) + 12px));
+  bottom: var(--touch-control-bottom);
+  width: var(--touch-stick-size);
+  height: var(--touch-stick-size);
+  box-sizing: border-box;
+  transform: none;
+}
+.game-screen .touch-controls .touch-joy-knob { width: 32%; height: 32%; }
+.game-screen .touch-controls .touch-joy-arrow { font-size: clamp(12px, 2vmin, 17px); }
+.game-screen .touch-controls .touch-action-buttons {
+  right: max(16px, calc(env(safe-area-inset-right, 0px) + 12px));
+  bottom: var(--touch-control-bottom);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  width: calc(var(--touch-action-size) * 2 + 8px);
+}
+.game-screen .touch-controls .touch-action-buttons .touch-control-button {
+  width: 100%; min-width: 0;
+  height: var(--touch-action-size); min-height: 44px;
+  padding: 5px;
+  box-sizing: border-box;
+  font-size: clamp(13px, 1.8vmin, 15px);
+  line-height: 1.3;
+}
+.game-screen:has(.touch-controls) .cl-bag-button.is-touch {
+  top: auto !important;
+  bottom: calc(var(--touch-control-bottom) + var(--touch-action-size) * 2 + 28px) !important;
+  right: max(16px, calc(env(safe-area-inset-right, 0px) + 12px));
+  min-height: 44px;
+  padding: 6px 14px;
+}
+.game-screen:has(.touch-controls) .hud-objective-panel {
+  top: calc(68px + env(safe-area-inset-top, 0px));
+  width: min(300px, calc(100vw - 32px));
+  min-height: 0;
+  max-height: max(90px, calc(100dvh - 84px - env(safe-area-inset-top, 0px) - max(var(--touch-stick-size), var(--touch-action-size) * 2 + 72px) - var(--touch-control-bottom))) !important;
+}
+.game-screen:has(.touch-controls) .hud-objective-panel > .hud-checklist { min-height: 0; }
+.game-screen:has(.touch-controls) .hud-objective-mini-pill { top: calc(68px + env(safe-area-inset-top, 0px)); max-width: calc(100vw - 32px); }
+.game-screen:has(.touch-controls) .interaction-prompt-center.is-touch {
+  bottom: calc(var(--touch-control-bottom) + max(var(--touch-stick-size), var(--touch-action-size) * 2 + 8px) + 16px);
+  width: min(560px, calc(100vw - 32px));
+  max-width: calc(100vw - 32px);
+}
+.game-screen:has(.touch-controls) .interaction-prompt-center.is-touch .prompt-action-pill {
+  left: 0; width: fit-content; max-width: 100%;
+  font-size: clamp(12px, 1.6vmin, 14px);
+}
+.game-screen:has(.touch-controls) .interaction-prompt-center.is-touch .prompt-action-pill > span:last-child {
+  white-space: normal; overflow-wrap: anywhere;
+}
+.game-screen .inspector-overlay { height: 100dvh; overflow: hidden; }
+.game-screen .inspector-overlay .inspector-panel { min-height: 0; max-height: 100%; overflow-y: auto; overscroll-behavior: contain; }
+@media (max-width: 860px) {
+  .game-screen .inspector-overlay { grid-template-rows: minmax(150px, 45dvh) minmax(0, 1fr); }
+}
+@media (max-width: 620px), (max-height: 500px) {
+  .game-screen .exit-confirm-backdrop { overflow-y: auto; overscroll-behavior: contain; }
+  .game-screen .exit-confirm-modal { flex-shrink: 0; margin-block: auto; }
+}
+@media (max-height: 500px) {
+  .game-screen:has(.touch-controls) .hud-objective-panel { overflow-y: auto; }
+  .game-screen:has(.touch-controls) .hud-objective-panel > .hud-checklist { flex: 0 0 auto; overflow-y: visible; }
+}

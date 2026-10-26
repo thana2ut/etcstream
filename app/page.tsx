@@ -309,7 +309,7 @@ export default function Home() {
                   }}
                   maxLength={20}
                   autoComplete="nickname"
-                  placeholder="พิมพ์ชื่อของคุณ..."
+                  placeholder="พิมพ์ชื่อของคุณ…"
                   className="cultivation-input"
                 />
                 </span>

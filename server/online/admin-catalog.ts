@@ -5,6 +5,8 @@ import { trustedClient, cloudConfig } from "./supabase";
 import { cloudAdminSession } from "./admin";
 import { checkOrigin } from "@/server/arena/auth";
 import { ArenaError } from "@/server/arena/db";
+import { boundedBody } from "@/server/security/request-body";
+import { consumeCloudBudget } from "@/server/security/cloud-budget";
 
 // V27 live marketplace CMS. Every call is authorized by the single main /admin session (server-side) and writes
 // only through etc_catalog_admin() (service role) or the server-only Storage upload below.
@@ -69,7 +71,7 @@ export async function catalogAdmin(route: string, post: boolean, body: Record<st
     const asset = String(body.asset || "");
     const { url } = cloudConfig();
     if (!asset.startsWith("/arena/") && !asset.startsWith(url + MEDIA_PREFIX)) throw new ArenaError(400, "ต้องอัปโหลดรูปสินค้าก่อนบันทึก");
-    const r = await db.rpc("etc_trusted_budget", { k: "owner-catalog", maximum: 60, seconds: 60 }); if (r.error) throw new ArenaError(429, "บันทึกบ่อยเกินไป กรุณารอสักครู่");
+    await consumeCloudBudget(db, "owner-catalog", 60, 60);
     return reply(await call("save", {
       sku: typeof body.sku === "string" ? body.sku : "", name: String(body.name || "").normalize("NFC"), description: String(body.description || "").normalize("NFC"),
       slot: String(body.slot || ""), rarity: String(body.rarity || ""), price: Math.trunc(Number(body.price)), sort: Math.trunc(Number(body.sort) || 900),
@@ -88,9 +90,10 @@ export async function catalogUpload(request: Request) {
     if (request.method !== "POST") throw new ArenaError(405, "ใช้วิธีส่งข้อมูลไม่ถูกต้อง");
     if (Number(request.headers.get("content-length") || 0) > MAX_BYTES + 64 * 1024) throw new ArenaError(413, "ไฟล์ใหญ่เกิน 4 MB");
     const db = trustedClient();
-    const budget = await db.rpc("etc_trusted_budget", { k: "owner-upload", maximum: 30, seconds: 300 });
-    if (budget.error) throw new ArenaError(429, "อัปโหลดบ่อยเกินไป กรุณารอสักครู่");
-    const form = await request.formData().catch(() => null);
+    await consumeCloudBudget(db, "owner-upload", 30, 300);
+    if (!request.headers.get("content-type")?.toLowerCase().startsWith("multipart/form-data;")) throw new ArenaError(415, "รูปแบบข้อมูลอัปโหลดไม่ถูกต้อง");
+    const bytesBody = await boundedBody(request, MAX_BYTES + 64 * 1024);
+    const form = await new Response(new Uint8Array(bytesBody), { headers: { "Content-Type": request.headers.get("content-type")! } }).formData().catch(() => null);
     const file = form?.get("file");
     if (!(file instanceof File)) throw new ArenaError(400, "ไม่พบไฟล์รูป");
     if (file.size === 0 || file.size > MAX_BYTES) throw new ArenaError(413, "ไฟล์ต้องมีขนาดไม่เกิน 4 MB");

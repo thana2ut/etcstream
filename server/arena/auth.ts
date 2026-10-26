@@ -3,6 +3,8 @@ import { adminEntry, openEntry, closeEntry } from "./admin-entry";
 import { cookies } from "next/headers";
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { one, run, ArenaError, limit, type Row } from "./db";
+import { boundedBody } from "@/server/security/request-body";
+import { checkJsonShape } from "@/server/security/json-shape";
 
 export const cookieName = (role: string) => role === "admin" ? "etc_admin" : "etc_player";
 export const digest = (text: string) => createHash("sha256").update(text).digest("hex");
@@ -59,12 +61,12 @@ export function checkOrigin(request: Request) {
 }
 export async function input(request: Request) {
   checkOrigin(request);
-  if (!request.headers.get("content-type")?.startsWith("application/json")) throw new ArenaError(415, "รูปแบบข้อมูลไม่ถูกต้อง");
-  if (Number(request.headers.get("content-length") || 0) > 262144) throw new ArenaError(413, "ข้อมูลมีขนาดใหญ่เกินไป");
-  const reader = request.body?.getReader(); let length = 0; const chunks: Uint8Array[] = [];
-  if (!reader) throw new ArenaError(400, "ไม่พบข้อมูลคำขอ");
-  while (true) { const next = await reader.read(); if (next.done) break; length += next.value.length; if (length > 262144) { await reader.cancel(); throw new ArenaError(413, "ข้อมูลมีขนาดใหญ่เกินไป"); } chunks.push(next.value); }
-  try { const value = JSON.parse(Buffer.concat(chunks).toString("utf8")); if (!value || typeof value !== "object" || Array.isArray(value)) throw Error(); return value as Record<string, unknown>; } catch { throw new ArenaError(400, "ข้อมูลคำขอไม่ถูกต้อง"); }
+  if (request.headers.get("content-type")?.split(";")[0].trim().toLowerCase() !== "application/json") throw new ArenaError(415, "รูปแบบข้อมูลไม่ถูกต้อง");
+  const bytes = await boundedBody(request, 262144);
+  let value: unknown;
+  try { value = JSON.parse(bytes.toString("utf8")); if (!value || typeof value !== "object" || Array.isArray(value)) throw Error(); } catch { throw new ArenaError(400, "ข้อมูลคำขอไม่ถูกต้อง"); }
+  checkJsonShape(value);
+  return value as Record<string, unknown>;
 }
 export function loginLimit() {
   // Single-owner portal: persistent global budget cannot be evaded by spoofing proxy headers.

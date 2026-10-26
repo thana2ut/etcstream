@@ -33,7 +33,7 @@ export function MissionHall({ admin = false, embedded = false, active = true, on
       .then((r) => (r.ok ? r.json() : null)).then((v) => {
         if (!alive) return;
         setAccount(typeof v?.account === "string" ? v.account : null);
-        setFullMissionAccess(v?.missionAccess === true);
+        setFullMissionAccess(v?.missionAccess === true || v?.tester === true);
       })
       .catch(() => { if (alive) { setAccount(null); setFullMissionAccess(false); } });
     return () => { alive = false; };
@@ -52,7 +52,7 @@ export function MissionHall({ admin = false, embedded = false, active = true, on
   const detailRef = useRef<HTMLDivElement>(null);
   const [rollIndex, setRollIndex] = useState<number | null>(null);
   const [rolling, setRolling] = useState(false);
-  const [drawnLocal, setDrawnLocal] = useState<{ slug: string; rerolls: number } | null>(null);
+  const [drawnLocal, setDrawnLocal] = useState<{ slug: string; rerolls: number; account: string | null } | null>(null);
   const timers = useRef<number[]>([]);
   const stopSpin = useRef<(() => void) | null>(null);
   useEffect(() => () => { timers.current.forEach((id) => window.clearTimeout(id)); stopSpin.current?.(); }, []);
@@ -72,10 +72,12 @@ export function MissionHall({ admin = false, embedded = false, active = true, on
   }, [detailOpen, selectedSlug]);
 
   if (!hydrated || !player || !progress) {
-    return <Container className={embedded ? "arena-panel" : "fantasy-viewport mission-loading"}><p>{hydrated && !player ? "หอภารกิจเดิมต้องใช้โปรไฟล์ฝึกในเบราว์เซอร์นี้ กรุณาสร้างโปรไฟล์ที่หน้าต้อนรับก่อน ระบบจะไม่สร้างผู้เล่นหรือผลภารกิจแทนคุณ" : "กำลังเปิดหอภารกิจ..."}</p>{embedded && hydrated && !player && <Link href="/">ไปหน้าต้อนรับ</Link>}</Container>;
+    return <Container className={embedded ? "arena-panel" : "fantasy-viewport mission-loading"}><p>{hydrated && !player ? "หอภารกิจเดิมต้องใช้โปรไฟล์ฝึกในเบราว์เซอร์นี้ กรุณาสร้างโปรไฟล์ที่หน้าต้อนรับก่อน ระบบจะไม่สร้างผู้เล่นหรือผลภารกิจแทนคุณ" : "กำลังเปิดหอภารกิจ…"}</p>{embedded && hydrated && !player && <Link href="/">ไปหน้าต้อนรับ</Link>}</Container>;
   }
 
-  const record = previewOnly || account === undefined ? null : drawnLocal ?? missionDrawRepository.load(player.playerId, account);
+  const record = previewOnly || account === undefined
+    ? null
+    : drawnLocal?.account === account ? drawnLocal : missionDrawRepository.load(player.playerId, account);
   const drawn = record?.slug ?? null;
   const rerollsUsed = record?.rerolls ?? 0;
   const clearedOf = (slug: string) => progress.completed[slug]?.length ?? 0;
@@ -84,7 +86,10 @@ export function MissionHall({ admin = false, embedded = false, active = true, on
   const canReroll = !canDraw && Boolean(drawn) && rerollsUsed < MAX_REROLLS && clearedOf(drawn!) === 0;
 
   const spin = async (reroll: boolean) => {
-    if (rolling) return;
+    // The first account lookup must finish before a draw can be written. Otherwise it could be
+    // saved under the local fallback identity and appear for another account in this session.
+    if (rolling || account === undefined) return;
+    const drawAccount = account;
     // Ask the server at the moment of the draw, so a just-claimed test account always counts.
     const isTester = tester || await checkTester();
     // Equal chance among venues not yet fully cleared (all venues once everything is done); a redraw never repeats.
@@ -114,8 +119,8 @@ export function MissionHall({ admin = false, embedded = false, active = true, on
             stopSpin.current?.();
             stopSpin.current = null;
             soundEngine.play("draw_result");
-            missionDrawRepository.save(player.playerId, account ?? null, target.m.slug, rerolls);
-            setDrawnLocal({ slug: target.m.slug, rerolls });
+            missionDrawRepository.save(player.playerId, drawAccount, target.m.slug, rerolls);
+            setDrawnLocal({ slug: target.m.slug, rerolls, account: drawAccount });
             setRolling(false);
             setSelectedSlug(target.m.slug);
             setSelectedLevel(target.m.difficulties.find((d) => !progress.completed[target.m.slug]?.includes(d.level))?.level ?? 1);
@@ -173,7 +178,8 @@ export function MissionHall({ admin = false, embedded = false, active = true, on
             : <>กดรับภารกิจ แล้วหอจารึกจะสุ่มมอบสถานที่ให้เจ้าหนึ่งแห่ง<br />ผ่านครบ 5 ระดับของสถานที่นั้นจึงรับภารกิจใหม่ได้</>}</p>
         </header>
 
-        {!admin && !fullMissionAccess && <MissionDrawPanel
+        {!admin && !fullMissionAccess && account === undefined && <p className="mission-account-loading" role="status">กำลังตรวจสอบบัญชีก่อนเปิดรับภารกิจ…</p>}
+        {!admin && !fullMissionAccess && account !== undefined && <MissionDrawPanel
           rolling={rolling} canDraw={canDraw} canReroll={canReroll} rerollsUsed={rerollsUsed} maxRerolls={MAX_REROLLS}
           drawnTitle={drawn ? getMissionBySlug(drawn)?.title ?? null : null} drawnCleared={drawn ? clearedOf(drawn) : 0}
           onRoll={() => void spin(false)} onReroll={() => void spin(true)}

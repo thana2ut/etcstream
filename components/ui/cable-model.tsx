@@ -106,7 +106,7 @@ function Stage({ cable, auto, margin = 1.2, definition }: { cable: CatalogCable;
 /** Small turning preview in the lobby detail panel. */
 export function CablePreview({ cable }: { cable: CatalogCable }) {
   return <div className="cl-preview">
-    <Canvas camera={{ fov: 35, position: [0.2, 0.35, 1.3] }} dpr={[1, 1.25]}><Stage cable={cable} auto margin={0.95} /></Canvas>
+    <Canvas camera={{ fov: 35, position: [0.2, 0.35, 1.3] }} dpr={[1, 2]}><Stage cable={cable} auto margin={0.95} /></Canvas>
   </div>;
 }
 
@@ -119,7 +119,7 @@ export function CableInspector({ cable, definition, onClose }: { cable: CatalogC
   }, [onClose]);
   return <div className="inspector-overlay cl-inspector" role="dialog" aria-modal="true" aria-labelledby="cable-inspector-title">
     <div className="inspector-stage">
-      <Canvas camera={{ fov: 35, position: [0.6, 0.45, 1.3] }} dpr={[1, 1.5]}>
+      <Canvas camera={{ fov: 35, position: [0.6, 0.45, 1.3] }} dpr={[1, 2]}>
         <color attach="background" args={["#10151f"]} />
         <Stage cable={cable} auto={false} definition={definition} />
       </Canvas>
@@ -172,7 +172,7 @@ export function CardCableScene({ cable }: { cable: CatalogCable }) {
  * Scroll is measured without debounce so packed-bag thumbnails stay locked to their slots while the page scrolls.
  */
 export function CatalogCanvas() {
-  return <Canvas className="cl-catalog-gl" dpr={1} resize={{ scroll: true, debounce: { scroll: 0, resize: 0 } }} camera={{ fov: 34, position: [0, 0, 1.55] }} gl={{ alpha: true, antialias: true }} style={{ position: "fixed", inset: 0, width: "100vw", height: "100vh", pointerEvents: "none" }}>
+  return <Canvas className="cl-catalog-gl" dpr={[1, 2]} resize={{ scroll: true, debounce: { scroll: 0, resize: 0 } }} camera={{ fov: 34, position: [0, 0, 1.55] }} gl={{ alpha: true, antialias: true }} style={{ position: "fixed", inset: 0, width: "100vw", height: "100dvh", pointerEvents: "none" }}>
     <View.Port />
   </Canvas>;
 }

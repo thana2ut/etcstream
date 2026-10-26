@@ -11,6 +11,9 @@ import type { AdminPreviewContext } from "@/game/security/admin-preview-types";
 import { ensureCloudCatalog, stageVersions, seasonDTO, type CloudSeason } from "./ranked";
 import { verificationEnabled } from "./ranked";
 import { catalogAdmin } from "./admin-catalog";
+import { hasPlayerPin } from "@/server/security/player-pin";
+import { consumeCloudBudget } from "@/server/security/cloud-budget";
+import { adminSecurityReport } from "@/server/security/admin-monitor";
 
 const cookie = "etc_cloud_admin";
 const digest = (s: string) => createHash("sha256").update(s).digest("hex");
@@ -21,6 +24,23 @@ function ownerHash() {
   return value;
 }
 function check<T>(result: { data: T; error: unknown }): T { if (result.error) throw new ArenaError(503, "ยังเชื่อมต่อข้อมูลผู้ดูแลไม่ได้"); return result.data; }
+async function eraseOwnedStorageObjects(db: ReturnType<typeof trustedClient>, targetId: string) {
+  const objects: { bucket_id: string; object_name: string }[] = [];
+  for (let offset = 0; ; offset += 1000) {
+    const page = check(await db.rpc("etc_account_erasure_storage_page", { target_id: targetId, page_offset: offset })) as { bucket_id: string; object_name: string }[];
+    objects.push(...page);
+    if (page.length < 1000) break;
+    if (offset >= 200000) throw new ArenaError(503, "บัญชีถูกระงับและข้อมูลเกมถูกลบแล้ว แต่มีไฟล์จำนวนมากเกินกว่าจะลบไฟล์ส่วนตัวอัตโนมัติ กรุณาติดต่อผู้ดูแลระบบ");
+  }
+  const byBucket = new Map<string, string[]>();
+  for (const item of objects) byBucket.set(item.bucket_id, [...(byBucket.get(item.bucket_id) || []), item.object_name]);
+  for (const [bucket, paths] of byBucket) {
+    for (let start = 0; start < paths.length; start += 1000) {
+      const { error } = await db.storage.from(bucket).remove(paths.slice(start, start + 1000));
+      if (error) throw new ArenaError(503, "บัญชีถูกระงับและข้อมูลเกมถูกลบแล้ว แต่ลบไฟล์ส่วนตัวไม่สำเร็จ กรุณากดดำเนินการลบต่ออีกครั้ง");
+    }
+  }
+}
 export async function cloudAdminSession(): Promise<Admission | null> {
   const value = (await cookies()).get(cookie)?.value;
   if (!value || !/^[a-f0-9]{64}$/.test(value)) return null;
@@ -40,7 +60,7 @@ export async function cloudAdmin(request: Request, path: string[]) {
     if (post && ["entry-reset", "logout"].includes(route)) { await revoke(); return reply({ ok: true }); }
     if (post && route === "login") {
       const hash = ownerHash();
-      check(await db.rpc("etc_trusted_budget", { k: "owner-login", maximum: 8, seconds: 900 }));
+      await consumeCloudBudget(db, "owner-login", 8, 900);
       if (typeof body.password !== "string" || body.password.length < 14 || body.password.length > 128 || !/[A-Za-z]/.test(body.password) || !/[^A-Za-z]/.test(body.password) || !passwordMatches(body.password, hash)) throw new ArenaError(401, "รหัสผ่านไม่ถูกต้อง");
       await revoke();
       const token = randomBytes(32).toString("hex"), expires = Date.now() + 8 * 3600000;
@@ -54,9 +74,10 @@ export async function cloudAdmin(request: Request, path: string[]) {
     if (!admission) throw new ArenaError(401, "กรุณากรอกรหัสหลักเพื่อเข้าตำหนักอีกครั้ง");
     const expires = Date.parse(admission.expires);
     if (route === "session" && !post) return reply({ authenticated: true, entryId: admission.entry_id, actorId: "owner", rotate: false, expires, serverNow: Date.now() });
+    if (route === "security" && !post) return reply(await adminSecurityReport());
     if (["competition-status", "competition-lock", "competition-unlock"].includes(route)) return reply({ configured: true, unlocked: true, authority: "main-admin-session" });
     if (post && route === "preview-start") {
-      check(await db.rpc("etc_trusted_budget", { k: "owner-preview", maximum: 30, seconds: 60 }));
+      await consumeCloudBudget(db, "owner-preview", 30, 60);
       const entry = { expires, preview: null };
       const preview = previewStart(entry, body);
       check(await db.from("etc_admin_sessions").update({ preview }).eq("token_hash", admission.token_hash));
@@ -124,10 +145,27 @@ export async function cloudAdmin(request: Request, path: string[]) {
         if (body.confirm !== target) throw new ArenaError(400, "รหัสรอบที่ยืนยันไม่ตรงกับรอบเป้าหมาย");
         check(await db.rpc("etc_invalidate_run", { run_id: target, why: reason })); return reply({ ok: true });
       }
-      if (!["rename", "clear", "hide", "suspend", "restore"].includes(String(body.action))) throw new ArenaError(409, "การลบข้อมูลและแก้ผลอันดับยังไม่เปิดใช้งาน ต้องตรวจนโยบายเก็บรักษาและสำรองข้อมูลก่อน");
-      const profile = check(await db.from("etc_profiles").select("friend_code").eq("id", target).maybeSingle());
+      if (!["rename", "clear", "hide", "suspend", "restore", "delete"].includes(String(body.action))) throw new ArenaError(409, "การแก้ไขนี้ยังไม่เปิดใช้งาน");
+      const profile = check(await db.from("etc_profiles").select("friend_code,deletion_pending").eq("id", target).maybeSingle()) as { friend_code: string; deletion_pending: boolean } | null;
       if (!profile) throw new ArenaError(404, "ไม่พบบัญชีผู้ฝึกเป้าหมาย");
-      if (body.confirm !== profile.friend_code) throw new ArenaError(400, "รหัสสหายที่ยืนยันไม่ตรงกับบัญชีเป้าหมาย");
+      const confirmCode = profile.deletion_pending ? target : profile.friend_code;
+      if (body.confirm !== confirmCode) throw new ArenaError(400, "รหัสยืนยันไม่ตรงกับบัญชีเป้าหมาย");
+      if (body.action === "delete") {
+        const authUser = await db.auth.admin.getUserById(target);
+        if (authUser.error || !authUser.data.user) throw new ArenaError(503, "ยังยืนยันบัญชีในระบบเข้าสู่ระบบไม่ได้ จึงยังไม่เริ่มลบข้อมูล");
+        const banned = await db.auth.admin.updateUserById(target, { ban_duration: "876000h" });
+        if (banned.error) throw new ArenaError(503, "ระงับการเข้าสู่ระบบของบัญชีนี้ไม่สำเร็จ จึงยังไม่เริ่มลบข้อมูล");
+        const prepared = await db.rpc("etc_prepare_account_erasure", { target_id: target, confirm_friend_code: confirmCode, reason });
+        if (prepared.error) {
+          if (!profile.deletion_pending) await db.auth.admin.updateUserById(target, { ban_duration: "none" });
+          throw new ArenaError(503, "เตรียมลบข้อมูลบัญชีไม่สำเร็จ กรุณาตรวจฐานข้อมูลและลองใหม่");
+        }
+        await eraseOwnedStorageObjects(db, target);
+        const removed = await db.auth.admin.deleteUser(target, false);
+        if (removed.error) throw new ArenaError(503, "ข้อมูลเกมและไฟล์ถูกลบแล้ว แต่ปิดบัญชีเข้าสู่ระบบไม่สำเร็จ กดดำเนินการลบต่ออีกครั้งได้");
+        return reply({ ok: true, deleted: true });
+      }
+      if (profile.deletion_pending) throw new ArenaError(409, "บัญชีนี้กำลังรอลบ ให้ดำเนินการลบต่อเท่านั้น");
       check(await db.rpc("etc_moderate", { target_id: target, operation: body.action, new_name: String(body.name || "").normalize("NFC"), reason }));
       return reply({ ok: true });
     }
@@ -154,8 +192,8 @@ export async function cloudAdmin(request: Request, path: string[]) {
       const wallets = ids.length ? (check(await db.from("etc_wallets").select("player,balance").in("player", ids)) || []) as { player: string; balance: number }[] : [];
       const balances = new Map(wallets.map((w) => [w.player, Number(w.balance)]));
       // Owner-only view of each player's 4-digit sign-in PIN (stored in server-only app_metadata).
-      const pins = new Map<string, string>(await Promise.all(ids.map(async (id) => [id, String((await db.auth.admin.getUserById(id)).data.user?.app_metadata?.pin ?? "")] as [string, string])));
-      return reply({ backend: "supabase", players: players.filter((p) => !search || [p.name,p.friend_code,p.id].some((v) => String(v).toLowerCase().includes(search))).map((p) => ({ ...p, created: Date.parse(p.created), deleted: 0, attempt_count: null, balance: balances.get(p.id) ?? 0, pin: pins.get(p.id) || null })) });
+      const pins = new Map<string, string>(await Promise.all(ids.map(async (id) => [id, hasPlayerPin((await db.auth.admin.getUserById(id)).data.user?.app_metadata ?? {}) ? "ตั้งค่าแล้ว" : ""] as [string, string])));
+      return reply({ backend: "supabase", players: players.filter((p) => !search || [p.name,p.friend_code,p.id].some((v) => String(v).toLowerCase().includes(search))).map((p) => p.deletion_pending ? ({ id: p.id, name: "บัญชีกำลังรอลบ", friend_code: "", deletion_pending: 1, deleted: 0, attempt_count: 0, balance: 0, pin: null }) : ({ ...p, created: Date.parse(p.created), deleted: 0, deletion_pending: 0, attempt_count: null, balance: balances.get(p.id) ?? 0, pin: pins.get(p.id) || null })) });
     }
     if (["competitions", "leaderboards", "reviews"].includes(route)) {
       let query = db.from("etc_runs").select("id,player,scenario,status,start,created,elapsed,penalty,total,graph_valid,invalid,verified_at,validation_version").order("created", { ascending: false }).range(offset, offset + 99);

@@ -168,7 +168,7 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
           <span className="cl-result-count">{q ? `ผลการค้นหา ${items.length} รายการ` : `${items.length} รายการ`}</span>
           <label className="cl-search">
             <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" /><path d="M13 13l4 4" /></svg>
-            <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="ค้นหาสาย..." aria-label="ค้นหาสาย" />
+            <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="ค้นหาสาย…" aria-label="ค้นหาสาย" />
             {query && <button type="button" onClick={() => setQuery("")} aria-label="ล้างคำค้น">✕</button>}
           </label>
         </div>
@@ -244,7 +244,7 @@ export function CableLobby({ scenario, title, levelLabel, objective, playerName,
         <strong>{mission ? "เลือกชนิดและจำนวนสายให้ตรงกับภารกิจ ระบบจะตรวจกระเป๋าก่อนเปิดประตูด่าน" : "ใส่สายอย่างน้อย 1 เส้นก่อนเข้าสู่ด่าน แล้วตรวจจำนวนให้ตรงกับงาน"}</strong>
         <small>{scenario.stage
           ? "อุปกรณ์และสายประจำฉากยังอยู่ตามเดิม · สายตัวเลือกที่ไม่จำเป็นไม่เพิ่มเป็นงานของด่าน · ต่อผิดครบ 3 ครั้งจะพักเพื่อทบทวน"
-          : <>อุปกรณ์รออยู่ในห้องแล้ว · สายที่ไม่ได้นำไปจะไม่มีในห้อง · ต่อผิดติดต่อกัน {MAX_WRONG_STREAK} ครั้ง = ไม่ผ่าน</>}</small>
+          : <>อุปกรณ์รออยู่ในห้องแล้ว · สายที่ไม่ได้นำไปจะไม่มีในห้อง · ต่อผิดครบ {MAX_WRONG_STREAK} ครั้ง = ไม่ผ่าน</>}</small>
       </div>
       <div className="cl-enter-wrap">
         <small id="cl-entry-status" className={total === 0 ? "" : "is-ready"} role="status">{mission ? total === 0 ? "จัดสายใส่กระเป๋าก่อน แล้วกดเข้าสู่ด่านเพื่อตรวจ" : `ในกระเป๋า ${total} เส้น · กดเข้าสู่ด่านเพื่อตรวจ` : total === 0 ? "ใส่สายอย่างน้อย 1 เส้นก่อนเข้าสู่ด่าน" : `พร้อมออกเดินทาง · ${total} เส้น`}</small>

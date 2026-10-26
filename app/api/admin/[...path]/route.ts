@@ -4,7 +4,8 @@ import { demoView, setDemo } from "@/server/arena/demo";
 import { adminEntry } from "@/server/arena/admin-entry";
 import { previewStart } from "@/server/arena/admin-preview";
 import { trainingStatus } from "@/server/arena/training-status";
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
+import { recordAdminSecurityEvent } from "@/server/security/admin-monitor";
 import { input, issueSession, loginLimit, logout, passwordHash, passwordMatches, requireSession } from "@/server/arena/auth";
 import { all, one, run, transaction, audit, onlineSchemaReady, requireOnlineSchema, ArenaError, limit } from "@/server/arena/db";
 import { moderate, settings, attemptView } from "@/server/arena/service";
@@ -12,11 +13,14 @@ import {seasonAdmin,seasonView,activeSeason} from "@/server/arena/ranked";
 import { cloudEnabled } from "@/server/online/supabase";
 import { cloudAdmin } from "@/server/online/admin";
 import { catalogUpload } from "@/server/online/admin-catalog";
+import { guardApiRequest } from "@/server/security/api-guard";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 type Context = { params: Promise<{ path: string[] }> };
-async function respond(request: Request, context: Context) {
+async function handleRequest(request: Request, context: Context) {
+  const rejected = guardApiRequest(request);
+  if (rejected) return rejected;
   // Vercel must never fall back to the legacy SQLite owner credential.
   if (cloudEnabled() || process.env.VERCEL === "1") {
     const path = (await context.params).path;
@@ -52,6 +56,7 @@ async function respond(request: Request, context: Context) {
       if (!attempt) throw new ArenaError(404,"ไม่พบรอบแข่งขันนี้");
       data = { attempt: attemptView(attempt), replay: one("SELECT protocol,seq,last_hash FROM competition_replay WHERE attempt=?",target) || null, commands: all("SELECT seq,payload,received,command_hash FROM competition_commands WHERE attempt=? ORDER BY seq LIMIT 100 OFFSET ?",target,offset) };
     }
+    else if (route === "security" && !post) data = { available: false, events: [], checkedAt: new Date().toISOString() };
     else if (route === "database" && !post) data = { ...databaseDiagnostic(), verifiedSliceEnabled: process.env.ARENA_VERIFIED_SLICE_ENABLED === "1", supportedStage: "xs-1" };
     else if (route === "demo" && !post) data = demoView(true);
     else if (route === "demo" && post) data = setDemo(id, body);
@@ -96,7 +101,7 @@ async function respond(request: Request, context: Context) {
     else if (!post && route === "audit") data = { events: all("SELECT * FROM audit WHERE action LIKE ? OR target LIKE ? OR actor LIKE ? ORDER BY created DESC LIMIT 100 OFFSET ?", search, search, search, offset) };
     else if (!post && route === "settings") data = { settings: settings(), duelEnabled: false };
     else if (!post && route === "friends") data = { requests: one("SELECT COUNT(*) AS count FROM friends WHERE status='pending'"), blocks: one("SELECT COUNT(*) AS count FROM blocks") };
-    else if (!post && route === "matches") data = { enabled: false, matches: [], reason: "ยังไม่เปิดใช้งาน: ต้องเพิ่มการตรวจย้อนกลับคำสั่งฝั่งเซิร์ฟเวอร์และทดสอบการเริ่มพร้อมกัน/หลุดเชื่อมต่อก่อน" };
+    else if (!post && route === "matches") data = { enabled: false, matches: [], reason: "ห้องประลองปิดใช้งาน" };
     else if (!post && route === "overview") data = { players: one("SELECT COUNT(*) AS count FROM players"), activePlayers: one("SELECT COUNT(*) AS count FROM players WHERE deleted=0 AND suspended=0"), verifiedPlayers: onlineSchemaReady()?one("SELECT COUNT(DISTINCT a.player) AS count FROM attempts a JOIN players p ON p.id=a.player WHERE a.status='VERIFIED' AND a.invalid=0 AND a.verified_at IS NOT NULL AND a.validation_version IS NOT NULL AND p.deleted=0 AND p.suspended=0"):null, attempts: one("SELECT COUNT(*) AS count FROM attempts"), pending: one("SELECT COUNT(*) AS count FROM attempts WHERE status='UNDER_REVIEW'"),online:one("SELECT COUNT(DISTINCT p.id) AS count FROM players p JOIN sessions s ON s.principal=p.id AND s.role='player' WHERE p.presence=1 AND p.public=1 AND p.hidden=0 AND p.suspended=0 AND p.deleted=0 AND s.seen>? AND s.expires>?",Date.now()-90000,Date.now()),eligible:onlineSchemaReady()?one("SELECT COUNT(*) AS count FROM players WHERE public=1 AND rank_public=1 AND hidden=0 AND suspended=0 AND deleted=0"):null,verified:onlineSchemaReady()?one("SELECT COUNT(*) AS count FROM attempts WHERE status='VERIFIED' AND invalid=0 AND verified_at IS NOT NULL AND validation_version IS NOT NULL"):null,season:onlineSchemaReady()?activeSeason():null,duelEnabled:false };
     else throw new ArenaError(404, "ไม่พบรายการนี้");
     return NextResponse.json(data, { headers: { "Cache-Control": "no-store" } });
@@ -105,6 +110,11 @@ async function respond(request: Request, context: Context) {
     if (!(e instanceof ArenaError)) console.error("Admin operation failed", e instanceof Error ? e.name : "UnknownError");
     return NextResponse.json({ error: failure.message, code: failure.code }, { status: failure.status, headers: { "Cache-Control": "no-store" } });
   }
+}
+async function respond(request: Request, context: Context) {
+  const response = await handleRequest(request, context);
+  if ([401, 403, 413, 414, 429].includes(response.status)) after(() => recordAdminSecurityEvent(request, response.status));
+  return response;
 }
 export const GET = respond;
 export const POST = respond;

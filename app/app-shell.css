@@ -161,7 +161,7 @@ html, body {
 .name-stage { padding: clamp(22px, 4vh, 42px); }
 .name-stage .seal-medallion { width: 52px; height: 52px; margin-bottom: 12px; }
 .name-stage h1 { font-size: clamp(1.6rem, 3vw, 2.5rem); margin-bottom: 12px; }
-.welcome-stage h1, .chamber-intro h1 em, .name-stage h1 { overflow-wrap: anywhere; }
+.welcome-stage h1, .chamber-intro h1 em, .name-stage h1 { overflow-wrap: break-word; }
 .name-stage form { margin-top: 17px; }
 .name-stage .privacy-note { margin-top: 15px; }
 .welcome-stage h1 { font-size: clamp(1.65rem, 3vw, 2.7rem); }
@@ -170,8 +170,8 @@ html, body {
   padding: max(5px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(5px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
 }
 .academy-header { padding: 10px clamp(8px, 3vw, 28px); min-width: 0; }
-.academy-header .brand-lockup > span:last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.trainee-badge { max-width: 44vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.academy-header .brand-lockup > span:last-child { min-width: 0; white-space: normal; overflow-wrap: break-word; }
+.trainee-badge { max-width: 44vw; white-space: normal; overflow-wrap: break-word; }
 .chamber-content {
   width: min(100%, 1200px);
   height: 100%;
@@ -257,7 +257,7 @@ html, body {
 .hud-heading { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
 .hud-heading > div { min-width: 0; }
 .mission-hud .eyebrow { margin: 0 0 2px; font-size: .65rem; }
-.hud-heading h2 { margin: 0; font-size: .98rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hud-heading h2 { margin: 0; font-size: .98rem; line-height: 1.6; white-space: normal; overflow-wrap: break-word; }
 .hud-toggle { flex: none; width: 30px; height: 30px; border-radius: 7px; border: 1px solid rgba(99,219,232,.35); color: var(--cyan); background: rgba(13,48,67,.7); font-size: 1.1rem; cursor: pointer; }
 .hud-toggle:hover, .hud-toggle:focus-visible { border-color: var(--gold); outline: 2px solid rgba(232,198,128,.45); outline-offset: 2px; }
 .hud-body[hidden] { display: none; }
