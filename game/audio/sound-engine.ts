@@ -19,6 +19,7 @@ class WebAudioSoundEngine implements AcademyAudioPlayer {
   private ctx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
   private activeSamples = new Set<HTMLAudioElement>();
+  private stopSpinTrack: (() => void) | null = null;
   private preferences: AudioPreferences = DEFAULT_PREFERENCES;
   private listeners = new Set<() => void>();
 
@@ -149,31 +150,32 @@ class WebAudioSoundEngine implements AcademyAudioPlayer {
   private static readonly UI_TAPS: ReadonlySet<SoundCue> = new Set(["button_click", "ui_close", "ui_tab", "ui_select"]);
   private lastTapAt = 0;
 
-  /**
-   * Mission-hall roulette track: starts playing, reports its length (so the spin can follow its rhythm) and
-   * returns a stop function that fades it out the moment the roulette lands.
-   */
+  /** Only one roulette track may play; landing or leaving the hall stops it immediately. */
   public startSpin(onDuration?: (seconds: number) => void): () => void {
+    this.stopSpinTrack?.();
     if (typeof window === "undefined" || this.preferences.muted || this.preferences.volume === 0) { onDuration?.(0); return () => {}; }
     const track = new Audio("/audio/sfx/draw-spin.mp3");
-    const volume = Math.min(0.72, this.preferences.volume * 1.5);
-    track.volume = volume;
+    track.volume = Math.min(0.72, this.preferences.volume * 1.5);
     track.loop = true;
-    track.addEventListener("loadedmetadata", () => onDuration?.(Number.isFinite(track.duration) ? track.duration : 0), { once: true });
-    this.activeSamples.add(track);
-    void track.play().catch(() => this.activeSamples.delete(track));
     let stopped = false;
-    return () => {
+    const metadata = () => { if (!stopped) onDuration?.(Number.isFinite(track.duration) ? track.duration : 0); };
+    const stop = () => {
       if (stopped) return;
       stopped = true;
-      const start = performance.now();
-      const fade = () => {
-        const k = Math.min(1, (performance.now() - start) / 160);
-        track.volume = volume * (1 - k);
-        if (k < 1) requestAnimationFrame(fade); else { track.pause(); this.activeSamples.delete(track); }
-      };
-      fade();
+      track.removeEventListener("loadedmetadata", metadata);
+      track.loop = false;
+      track.muted = true;
+      track.pause();
+      track.removeAttribute("src");
+      track.load();
+      this.activeSamples.delete(track);
+      if (this.stopSpinTrack === stop) this.stopSpinTrack = null;
     };
+    this.stopSpinTrack = stop;
+    track.addEventListener("loadedmetadata", metadata, { once: true });
+    this.activeSamples.add(track);
+    void track.play().then(() => { if (stopped) track.pause(); }).catch(stop);
+    return stop;
   }
 
   public play(cue: SoundCue): void {

@@ -55,7 +55,19 @@ export function MissionHall({ admin = false, embedded = false, active = true, on
   const [drawnLocal, setDrawnLocal] = useState<{ slug: string; rerolls: number; account: string | null } | null>(null);
   const timers = useRef<number[]>([]);
   const stopSpin = useRef<(() => void) | null>(null);
-  useEffect(() => () => { timers.current.forEach((id) => window.clearTimeout(id)); stopSpin.current?.(); }, []);
+  const spinPending = useRef(false);
+  const spinGeneration = useRef(0);
+  useEffect(() => {
+    if (!active) { spinPending.current = false; setRolling(false); }
+    return () => {
+      spinGeneration.current++;
+      spinPending.current = false;
+      timers.current.forEach((id) => window.clearTimeout(id));
+      timers.current = [];
+      stopSpin.current?.();
+      stopSpin.current = null;
+    };
+  }, [active]);
 
   useEffect(() => { if (!previewOnly) hydrate(); }, [hydrate, previewOnly]);
   useEffect(() => { if (hydrated && !player && !embedded) router.replace("/"); }, [hydrated, player, router, embedded]);
@@ -88,10 +100,14 @@ export function MissionHall({ admin = false, embedded = false, active = true, on
   const spin = async (reroll: boolean) => {
     // The first account lookup must finish before a draw can be written. Otherwise it could be
     // saved under the local fallback identity and appear for another account in this session.
-    if (rolling || account === undefined) return;
+    if (!active || spinPending.current || rolling || account === undefined) return;
+    spinPending.current = true;
+    const generation = ++spinGeneration.current;
+    setRolling(true);
     const drawAccount = account;
     // Ask the server at the moment of the draw, so a just-claimed test account always counts.
     const isTester = tester || await checkTester();
+    if (generation !== spinGeneration.current) return;
     // Equal chance among venues not yet fully cleared (all venues once everything is done); a redraw never repeats.
     const all = missionChapters.map((m, i) => ({ m, i }));
     // Test accounts (admin1-admin3) draw like everyone else, except the live-broadcast venue (stadium) is never drawn.
@@ -121,6 +137,8 @@ export function MissionHall({ admin = false, embedded = false, active = true, on
             soundEngine.play("draw_result");
             missionDrawRepository.save(player.playerId, drawAccount, target.m.slug, rerolls);
             setDrawnLocal({ slug: target.m.slug, rerolls, account: drawAccount });
+            spinPending.current = false;
+            timers.current = [];
             setRolling(false);
             setSelectedSlug(target.m.slug);
             setSelectedLevel(target.m.difficulties.find((d) => !progress.completed[target.m.slug]?.includes(d.level))?.level ?? 1);
